@@ -1,0 +1,28 @@
+{
+	"name": "wicket/manage-preferences",
+	"title": "Manage Preferences",
+	"description": "A Wicket block for Manage Preferences",
+	"style": "block-wicket-manage-preferences",
+	"category": "wicket",
+	"icon": "",
+	"apiVersion": 2,
+	"keywords": [],
+	"acf": {
+		"mode": "preview",
+		"renderTemplate": "render.php"
+	},
+	"styles": [
+	],
+	"supports": {
+		"align": false,
+		"anchor": false,
+		"alignContent": false,
+		"color": {
+			"text": false,
+			"background": false,
+			"link": false
+		},
+		"alignText": true,
+		"fullHeight": false
+	}
+}
