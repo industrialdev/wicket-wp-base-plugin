@@ -75,6 +75,7 @@ class wicket_contact_information extends WP_Widget {
 					});
 				});
 		</script>";
+
 	}
 
 }

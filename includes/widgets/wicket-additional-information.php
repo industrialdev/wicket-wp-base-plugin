@@ -38,8 +38,12 @@ class wicket_additional_information extends WP_Widget {
 	{
 		
 		$wicket_settings = get_wicket_settings();
+		$person_id = wicket_current_person_uuid();
 	
-		?>
+		if ( empty($person_id) ) {
+			// do nothing
+		} else {
+		?>		
 
 		<script type="text/javascript">
 			window.Wicket=function(doc,tag,id,script){
@@ -51,7 +55,6 @@ class wicket_additional_information extends WP_Widget {
 
 		<?php 
 		$environment = get_option('wicket_admin_settings_environment');
-		$rcmp_information_schema = $environment[0] == 'prod' ? '14452756-67cd-41b6-94a1-658db279d2bc' : '14452756-67cd-41b6-94a1-658db279d2bc';
 		?>
 
 		<script type="text/javascript">
@@ -63,7 +66,7 @@ class wicket_additional_information extends WP_Widget {
 						loadIcons: true,
 						rootEl: widgetRoot,
 						apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-						accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
+						accessToken: '<?php echo wicket_access_token_for_person($person_id) ?>',
 						resource: { type: "people", id: '<?php echo wicket_current_person_uuid(); ?>' },
 						lang:  "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
 					}).then(function (widget) {
@@ -75,13 +78,12 @@ class wicket_additional_information extends WP_Widget {
 			})()
 		</script>
 
-	<?php
+		<?php
+		}
 
 	}
 
 }
-
-
 
 // Register the widget
 function register_custom_widget_wicket_additonal_information() {

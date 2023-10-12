@@ -303,6 +303,11 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'label' => __('Hide membership product single pages', 'wicket'),
 			    'description' => __('Products in the categories that are identified as Membership Categories in the Wicket Settings -> Memberships Tab will have their single page redirect to the homepage. These products can still be added to cart by other methods such as the onboarding form.', 'wicket')
 			]);
+			$section->add_option('checkbox', [
+			    'name' => 'wicket_admin_settings_woo_remove_added_to_cart_message',
+			    'label' => __('Remove product added to cart message', 'wicket'),
+			    'description' => __('When redirected to a checkout disable the "X added to cart, continue shopping?" message.', 'wicket')
+			]);
 
 			// WP Cassify Integration Tab
 			$section = $tab_int->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);

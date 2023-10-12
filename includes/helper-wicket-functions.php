@@ -122,6 +122,18 @@ function wicket_current_person(){
 }
 
 /**------------------------------------------------------------------
+* Check if user is a Wicket person (compare UUID format)
+------------------------------------------------------------------*/
+function wicket_person_has_uuid() {
+    $user_id = get_current_user_id();
+    $user_info = get_userdata($user_id);
+    if (is_string($user_info->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user_info->user_login) == 1)) {
+        return true;
+    }
+    return false;
+}
+
+/**------------------------------------------------------------------
 * Gets all people from wicket
 ------------------------------------------------------------------*/
 function wicket_get_all_people(){

@@ -82,6 +82,7 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			} 
 			// Include woocommerce memberships team functions
 			if ( is_plugin_active('woocommerce-memberships-for-teams/woocommerce-memberships-for-teams.php') ) {
+				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team-metabox.php';
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team.php';
 			}
 			// Include user switching functions
