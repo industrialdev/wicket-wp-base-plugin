@@ -1386,3 +1386,21 @@ function get_person_to_organizations_connection_types_list(){
 
   return $found;
 }
+
+
+/**------------------------------------------------------------------
+* Gets all individual memberships
+* Documentation: https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
+------------------------------------------------------------------*/
+function get_individual_memberships(){
+  $client = wicket_api_client();
+  try {
+    $search_organizations = $client->get('memberships');
+  } catch (\Exception $e) {
+    // echo "<pre>";
+    // print_r($e->getMessage());
+    // echo "</pre>";
+    // die;
+  }
+  return $search_organizations;
+}
