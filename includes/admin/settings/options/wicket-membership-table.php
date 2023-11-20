@@ -27,9 +27,15 @@ class WicketMembershipOverview extends OptionAbstract {
 	{ ?>
 
 		<?php
-			$memberships = get_individual_memberships();
-			if($memberships && isset($memberships['data'])):
-			$amount_memberships = count($memberships['data']);
+			$categories = wicket_get_option( 'wicket_admin_settings_membership_categories' );
+			$memberships = $this->get_memberships_table_data($categories);
+			if($memberships):
+				$amount_memberships = count($memberships);
+			// echo '<pre>';
+			// print_r($memberships);
+			// echo '</pre>';
+
+			// die;
 		?>
 
 			<br />
@@ -50,43 +56,79 @@ class WicketMembershipOverview extends OptionAbstract {
 					</tr>
 				</thead>
 				<tbody>
-					<?php  foreach ($memberships['data'] as $membership):
-						$active = (isset($membership['attributes']['active']) && $membership['attributes']['active'] == 1) ? 'Active' : 'Inactive';
-						$membership_slug = ($membership['attributes']['slug']) ?? $membership['attributes']['slug'];
-						$membership_type = ($membership['attributes']['type']) ?? $membership['attributes']['type'];
-						$membership_plan = (function_exists('wc_memberships_get_membership_plan')) ? wc_memberships_get_membership_plan($membership_slug) : '';
-						$membership_plan_id = ($membership_plan) ? $membership_plan->get_id() : '';
-						$membership_product_ids = ($membership_plan) ? get_post_meta($membership_plan->get_id(), '_product_ids') : '';
-					?>
+					<?php foreach($memberships as $membership): ?>
 						<tr>
-							<td><?php echo $membership['attributes']['name_en']; ?></td>
-							<td><?php echo $active; ?></td>
-							<td><?php echo ucfirst($membership_type); ?></td>
+							<td><?php echo $membership['name']; ?></td>
+							<td><?php echo $membership['status']; ?></td>
+							<td><?php echo ucfirst($membership['type']); ?></td>
 							<td>
-								<?php if($membership_plan){ ?>
-									<a href="<?php echo get_admin_url(); ?>/post.php?post=<?php echo $membership_plan_id; ?>&action=edit&lang=en" class="wc-membership-plan" data-list-id="individual_slug" target="_blank"><?php echo $membership_plan->get_name(); ?></a>
+								<?php if($membership['membership_plan_id']){
+								$membership_plan = (function_exists('wc_memberships_get_membership_plan')) ? wc_memberships_get_membership_plan($membership['slug']) : '';
+								?>
+									<a href="<?php echo get_admin_url(); ?>/post.php?post=<?php echo $membership['membership_plan_id']; ?>&action=edit&lang=en" class="wc-membership-plan" data-list-id="individual_slug" target="_blank"><?php echo $membership_plan->get_name(); ?></a>
 								<?php } ?>
 							</td>
 							<td>
 								<?php 
-									if($membership_product_ids && isset($membership_product_ids[0])){
-										echo count($membership_product_ids[0]);
+									if($membership['product_ids'] && isset($membership['product_ids'][0])){
+										echo count($membership['product_ids'][0]);
 									}
 								?>
 							</td>
 							<td>-</td>
 							<td>
-								<?php if($membership_plan){
-									$view_members = admin_url( "edit.php?post_type=wc_user_membership&action=-1&post_parent={$membership_plan_id}" );
+								<?php 
+								if($membership['membership_plan_id']){
+									$view_members = admin_url( "edit.php?post_type=wc_user_membership&action=-1&post_parent={$membership['membership_plan_id']}" );
 									echo '<a href="' . esc_url( $view_members ) . '" title="' . esc_html__( 'View Members', 'woocommerce-memberships' ) . '">';
 									echo $membership_plan->get_memberships_count();
 									echo '</a>';
-								} ?>
+								}
+								?>
 							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
+				<?php endif; ?>
 			</table>
-		<?php endif; ?>
 	<?php }
+
+
+	public function get_memberships_table_data($categories = null)
+	{
+		$memberships = [];
+		$individual_memberships = get_individual_memberships();
+		if($individual_memberships && isset($individual_memberships['data'])) {
+
+			foreach ($individual_memberships['data'] as $key => $value) {
+				$has_category = false;
+				$membership_slug = ($value['attributes']['slug']) ?? $value['attributes']['slug'];
+				$membership_plan = (function_exists('wc_memberships_get_membership_plan')) ? wc_memberships_get_membership_plan($membership_slug) : '';
+				$product_ids = ($membership_plan) ? get_post_meta($membership_plan->get_id(), '_product_ids') : '';
+				if($product_ids && isset($product_ids[0]) && $categories){
+					foreach($categories as $category_id) {
+						foreach ( $product_ids[0] as $product_id ) {
+							if(has_term($category_id, 'product_cat', $product_id)){
+								$has_category = true;
+							}
+						}
+					}
+				}
+
+				if(($has_category && $categories) || (!$categories)){
+					$memberships[$key]['status'] = (isset($value['attributes']['active']) && $value['attributes']['active'] == 1) ? 'Active' : 'Inactive';
+					$memberships[$key]['type'] = ($value['attributes']['type']) ?? $value['attributes']['type'];
+					$memberships[$key]['name'] = ($value['attributes']['name_en']) ?? $value['attributes']['name_en'];
+					$memberships[$key]['slug'] = $membership_slug;
+					$memberships[$key]['membership_plan_id'] = ($membership_plan) ? $membership_plan->get_id() : '';
+					$memberships[$key]['product_ids'] = $product_ids;
+				}
+
+				
+			}
+
+		}
+
+		return $memberships;
+	}
 }
