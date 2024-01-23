@@ -16,38 +16,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Jeffreyvr\WPSettings\Options\OptionAbstract;
 
 add_filter('wp_settings_option_type_map', function($options){
-    $options['wicket-api-check-prod'] = WicketAPICheckProd::class;
-    $options['wicket-api-check-stage'] = WicketAPICheckStage::class;
+    $options['wicket-api-check'] = WicketAPICheck::class;
     return $options;
 });
 
-class WicketAPICheckProd extends OptionAbstract {
+class WicketAPICheck extends OptionAbstract {
     public $view = 'wicket-api-check-prod';
     public function render()
-    { ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <?php echo __('Status', 'wicket'); ?>
-            </th>
-            <td class="forminp forminp-wicket-api-status">
-                <span class="wicket-api-status positive"><?php echo __('CONNECTED', 'wicket'); ?></span>
-            </td>
-        </tr>
-    <?php }
-}
-
-class WicketAPICheckStage extends OptionAbstract {
-    public $view = 'wicket-api-check-stage';
-    public function render()
-    { ?>
-
-        <tr valign="top">
-            <th scope="row" class="titledesc">
-                <?php echo __('Status', 'wicket'); ?>
-            </th>
-            <td class="forminp forminp-wicket-api-status">
-                <span class="wicket-api-status negative"><?php echo __('NOT CONNECTED', 'wicket'); ?></span>
-            </td>
-        </tr>
+    { 
+      $client = wicket_api_client();
+      ?>
+      <tr valign="top">
+        <th scope="row" class="titledesc">
+          <?php echo __('Status', 'wicket'); ?>
+        </th>
+        <td class="forminp forminp-wicket-api-status">
+          <?php if($client): ?>
+            <span class="wicket-api-status positive"><?php echo __('CONNECTED', 'wicket'); ?></span>
+          <?php else: ?>
+            <span class="wicket-api-status negative"><?php echo __('NOT CONNECTED', 'wicket'); ?></span>
+          <?php endif; ?>
+        </td>
+      </tr>
     <?php }
 }

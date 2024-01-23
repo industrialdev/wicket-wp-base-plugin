@@ -148,14 +148,14 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			        'prod' => __('Production','wicket')
 			    ]
 			]);
+
+			$section->add_option('wicket-api-check');
+
 			// Production Section
 			$section = $tab_env->add_section(__('Wicket Production', 'wicket'), [
 				'description' => __('Configure Wicket API setting, etc. for production', 'wicket'),
 			]);
 
-			$section->add_option('wicket-api-check-prod', [
-			   'label' => __( 'Wicket Environment', 'wicket' ),
-			]);
 			$section->add_option('text', [
 			    'name' => 'wicket_admin_settings_prod_api_endpoint',
 			    'label' => __('API Endpoint', 'wicket'),
@@ -186,7 +186,6 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 				'description' => __('Configure Wicket API setting, etc. for staging', 'wicket'),
 			]);
 
-			$section->add_option('wicket-api-check-stage');
 			$section->add_option('text', [
 			    'name' => 'wicket_admin_settings_stage_api_endpoint',
 			    'label' => __('API Endpoint', 'wicket'),
