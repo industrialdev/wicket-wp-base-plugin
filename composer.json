@@ -1,5 +1,17 @@
 {
-    "require": {
-        "jeffreyvanrossum/wp-settings": "1.2.1"
+  "name": "industrialdev/wicket-wp-base-plugin",
+  "description": "Wicket Core Plugin",
+  "keywords": ["wordpress", "plugin"],
+  "homepage": "https://github.com/industrialdev/wicket-wp-base-plugin",
+  "authors": [
+    {
+      "name": "Wicket",
+      "homepage": "https://wicket.io"
     }
+  ],
+  "type": "wordpress-plugin",
+  "require": {
+    "php": ">=8.0",
+    "jeffreyvanrossum/wp-settings": "1.2.1"
+  }
 }
