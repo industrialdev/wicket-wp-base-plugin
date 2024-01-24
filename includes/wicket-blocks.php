@@ -49,10 +49,9 @@ if ( ! class_exists( 'Wicket_Blocks' ) ) {
 			foreach( $blocks as $block ) {
 				if ( file_exists( WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/block.json' ) ) {
 					// Check if Block is already registered
-					$new_block = WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/block.json';
 					$registry = WP_Block_Type_Registry::get_instance();
-					if ( ! $registry->get_registered( $new_block ) ) {
-						register_block_type( $new_block );
+					if ( ! $registry->get_registered( 'wicket/' . $block ) ) {
+						register_block_type( WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/block.json' );
 						if ( file_exists( WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/style.css' ) ) {
 							wp_register_style( 'block-' . $block, WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/style.css', array(), filemtime( WICKET_PLUGIN_DIR . 'includes/blocks/acf-blocks/' . $block . '/style.css' ) );
 						}
