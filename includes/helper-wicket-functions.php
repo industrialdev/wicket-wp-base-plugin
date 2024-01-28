@@ -1242,9 +1242,9 @@ function wicket_get_current_user_touchpoints($service_id){
 // ];
 // write_touchpoint($params);
 // ----------------------------------------------------------------
-function write_touchpoint($params){
+function write_touchpoint($params, $wicket_service_id){
   $client = wicket_api_client();
-  $payload = build_touchpoint_payload($params);
+  $payload = build_touchpoint_payload($params, $wicket_service_id);
 
   if ($payload) {
     try {
@@ -1260,10 +1260,8 @@ function write_touchpoint($params){
   }
 }
 
-function build_touchpoint_payload($params){
-  $environment = wicket_get_option('wicket_admin_settings_environment');
-  // use correct service key based on environment
-  $wicket_service_id = $environment[0] == 'prod' ? '23ceaa2a-338d-4088-8dce-ddb887a0d12f' : 'accc3a0e-1580-4863-8cd2-2e849c2d465f';
+function build_touchpoint_payload($params, $wicket_service_id){
+
   $payload = [
     'data' => [
       'type' => 'touchpoints',
@@ -1292,6 +1290,48 @@ function build_touchpoint_payload($params){
     $payload['data']['attributes']['data'] = $params['data'];
   }
   return $payload;
+}
+
+// ----------------------------------------------------------------
+// use this to get/create a service id to then pass into the write_touchpoint() function
+// example:
+// $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
+// write_touchpoint($params, $service_id);
+// ----------------------------------------------------------------
+function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP') {
+  $client = wicket_api_client();
+
+  // check for existing service, return service ID
+  $existing_services = $client->get('services')['data'];
+  $existing_service = reset(array_filter($existing_services, function($service) use ($service_name) {
+    return isset($service['attributes']['name']) && $service['attributes']['name'] === $service_name;
+  }));
+  if ($existing_service) {
+    return $existing_service['id'];
+  }
+
+  // if no existing service, create one and return service ID
+  $payload['data']['attributes'] = [
+    'name' => $service_name,
+    'description' => $service_description,
+    'status' => 'active',
+    'integration_type' => "custom",
+  ];
+  try {
+    $service = $client->post("/services", ['json' => $payload]);
+    return $service['data']['id'];
+  } catch (Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($e->getMessage());
+    // echo "</pre>";
+    //
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+    // die;
+  }
+  return false;
 }
 
 /**------------------------------------------------------------------
