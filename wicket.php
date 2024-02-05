@@ -71,6 +71,9 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			// Include wicket shortcodes
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
+			// Include Mailtrap settings for stage
+			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
+
 			// Include wp-cassify sync
 			if ( is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1') ) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';

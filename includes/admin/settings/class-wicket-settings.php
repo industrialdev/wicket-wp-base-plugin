@@ -315,6 +315,34 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'label' => __('CAS User Role Sync', 'wicket'),
 			    'description' => __('Sync user roles with Wicket when user logs in to WordPress - Requires WP-CASSIFY plugin.', 'wicket')
 			]);
+			
+
+			// Mailtrap Integration Tab
+			$section = $tab_int->add_section(__('Mailtrap', 'wicket'), [
+				'as_link' => true,
+				'description' => __('Used to send all Wordpress mail to mailtrap. Typically used on staging/local for testing and will only take effect when the Wicket environment is toggled to "Staging". <br> NOTE! Remember to disable any SMTP plugin(s) while using the stage environment. Otherwise these settings won\'t take effect.', 'wicket')
+			]);
+			
+			$section->add_option('text', [
+				'name' => 'wicket_admin_settings_mailtrap_host',
+				'label' => __('Host', 'wicket'),
+				'description' => __('Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP', 'wicket')
+		 	]);
+			$section->add_option('text', [
+				'name' => 'wicket_admin_settings_mailtrap_port',
+				'label' => __('Port', 'wicket'),
+				'description' => __('This is usually 2525', 'wicket')
+		 	]);
+			$section->add_option('text', [
+				'name' => 'wicket_admin_settings_mailtrap_username',
+				'label' => __('Username', 'wicket'),
+				'description' => __('Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP', 'wicket')
+		 	]);
+			$section->add_option('text', [
+				'name' => 'wicket_admin_settings_mailtrap_password',
+				'label' => __('Password', 'wicket'),
+				'description' => __('Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP', 'wicket')
+		 	]);
 
 			/*
 			 * Filters to extend the settings above
