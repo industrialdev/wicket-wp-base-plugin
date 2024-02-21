@@ -579,7 +579,6 @@ function update_team_post( $subscription, $new_status, $old_status ) {
     $team_posts = get_posts($team_args);
 
     foreach ($team_posts as $team_post) {
-        file_put_contents('php://stdout', '-----------------------'.print_r($team_post->ID,true));
         wp_update_post([
             'ID' => $team_post->ID
         ]);
