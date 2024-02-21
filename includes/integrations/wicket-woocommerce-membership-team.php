@@ -560,3 +560,28 @@ function get_formatted_item_data( $team ) {
 
     return $payload;
 }
+
+/**
+ * Trigger an update on the corresponding team post whenever there's a change to the subscription post (this is something that is lacking currently)
+ */
+add_action( 'woocommerce_subscription_status_updated', 'update_team_post', 1, 3);
+function update_team_post( $subscription, $new_status, $old_status ) {
+    $team_subscription = wcs_get_subscription($subscription->ID);
+
+    // find subscriptions with the team_name meta based on the initial import using the importer plugin
+    $team_args = array(
+        'numberposts' => -1,
+        'post_type'   => 'wc_memberships_team',
+        'meta_key'    => '_subscription_id', // when using the subscription importer, set this as custom post meta
+        'meta_value'  => $team_subscription->ID
+    );
+
+    $team_posts = get_posts($team_args);
+
+    foreach ($team_posts as $team_post) {
+        file_put_contents('php://stdout', '-----------------------'.print_r($team_post->ID,true));
+        wp_update_post([
+            'ID' => $team_post->ID
+        ]);
+    }
+}
