@@ -13,7 +13,12 @@ function mailtrap($phpmailer) {
   $phpmailer->Password = wicket_get_option('wicket_admin_settings_mailtrap_password');
 }
 
-$environment = get_option('wicket_admin_settings_environment');
+$wicket_settings = get_option('wicket_settings');
+$environment = '';
+if( !empty( $wicket_settings ) ) {
+  $environment = $wicket_settings['wicket_admin_settings_environment'] ?? $environment;
+}
+
 if ($environment[0] != 'prod') {
   add_action('phpmailer_init', 'mailtrap');
 }
