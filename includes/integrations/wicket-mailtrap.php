@@ -19,6 +19,6 @@ if( !empty( $wicket_settings ) ) {
   $environment = $wicket_settings['wicket_admin_settings_environment'] ?? $environment;
 }
 
-if ($environment[0] != 'prod') {
+if ($environment != 'prod') {
   add_action('phpmailer_init', 'mailtrap');
 }
