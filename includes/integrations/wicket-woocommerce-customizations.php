@@ -61,7 +61,7 @@ function wicket_disable_cart_links(){
 
 /**
  * When redirected to a checkout disable the "X added to cart, continue shopping?" message
- THIS DID NOT WORK WHEN ADDED INTO A FUNCTION, BUT IT SHOULD BE. THIS SHOULD ALSO ONLY BE APPLIED TO THE CART PAGE, CURRENTLY IT IS EVERYWHERE.
+ * THIS DID NOT WORK WHEN ADDED INTO A FUNCTION, BUT IT SHOULD BE. THIS SHOULD ALSO ONLY BE APPLIED TO THE CART PAGE, CURRENTLY IT IS EVERYWHERE.
  */
 if ( wicket_get_option('wicket_admin_settings_woo_remove_added_to_cart_message') === '1' )  {          
     add_filter( 'wc_add_to_cart_message_html', '__return_false' ); 

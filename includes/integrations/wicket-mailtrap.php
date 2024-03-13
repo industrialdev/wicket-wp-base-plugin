@@ -5,12 +5,24 @@
 // You typically also have to disable the WP SMTP mail plugin as well when needing to use this on stage/local
 
 function mailtrap($phpmailer) {
+  $wicket_settings = get_option('wicket_settings');
+  if( empty( $wicket_settings ) ) {
+    return;
+  }
+  if( !isset( $wicket_settings['wicket_admin_settings_mailtrap_host'] ) ||
+      !isset( $wicket_settings['wicket_admin_settings_mailtrap_port'] ) ||
+      !isset( $wicket_settings['wicket_admin_settings_mailtrap_username'] ) ||
+      !isset( $wicket_settings['wicket_admin_settings_mailtrap_password'] )
+  ) {
+    return;
+  }
+
   $phpmailer->isSMTP();
-  $phpmailer->Host = wicket_get_option('wicket_admin_settings_mailtrap_host');
+  $phpmailer->Host = $wicket_settings['wicket_admin_settings_mailtrap_host'];
   $phpmailer->SMTPAuth = true;
-  $phpmailer->Port = wicket_get_option('wicket_admin_settings_mailtrap_port');
-  $phpmailer->Username = wicket_get_option('wicket_admin_settings_mailtrap_username');
-  $phpmailer->Password = wicket_get_option('wicket_admin_settings_mailtrap_password');
+  $phpmailer->Port = $wicket_settings['wicket_admin_settings_mailtrap_port'];
+  $phpmailer->Username = $wicket_settings['wicket_admin_settings_mailtrap_username'];
+  $phpmailer->Password = $wicket_settings['wicket_admin_settings_mailtrap_password'];
 }
 
 $wicket_settings = get_option('wicket_settings');
