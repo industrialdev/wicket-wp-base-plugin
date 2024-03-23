@@ -868,6 +868,24 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
   return false;
 }
 
+/**
+ * Check for matching membership for person 
+ * Option: filter by date
+ */
+ function mdp_wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '' ) {
+    $client = wicket_api_client();
+	  try{
+			$response = $client->get("people/$person_uuid/membership_entries?include=membership&filter[starts_at_eq]=$starts_at&filter[ends_at_eq]=$ends_at&page[size]=2000");
+      foreach($response['data'] as $record) {
+        if( $record['relationships']['membership']['data']['id'] == $membership_uuid ) {
+          return $record['id'];
+        } 
+      }
+    } catch (Exception $e){
+      $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    }
+ }
+
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
