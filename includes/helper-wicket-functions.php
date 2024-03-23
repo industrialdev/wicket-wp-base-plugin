@@ -147,7 +147,7 @@ function wicket_get_person_by_id($uuid){
     $person = $client->people->fetch($uuid);
     return $person;
   }
-  return $person;
+  return false;
 }
 
 /**------------------------------------------------------------------
@@ -871,7 +871,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_individual_membership($person_uuid, $membership_id){
+function mdp_wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at, $ends_at) {
   $client = wicket_api_client();
 
   // build membership payload
@@ -879,8 +879,8 @@ function wicket_assign_individual_membership($person_uuid, $membership_id){
 		'data' => [
 			'type' => 'person_memberships',
 			'attributes' => [
-				'starts_at' => date('c', time()),
-				// "ends_at" => date('c', strtotime('+1 year'))
+				'starts_at' => $starts_at,
+				'ends_at' => $ends_at
 			],
 			'relationships' => [
 				'person' => [
@@ -891,7 +891,7 @@ function wicket_assign_individual_membership($person_uuid, $membership_id){
 				],
 				'membership' => [
 					'data' => [
-						'id' => $membership_id,
+						'id' => $membership_uuid,
 						'type' => 'memberships'
 					]
 				]
@@ -900,20 +900,11 @@ function wicket_assign_individual_membership($person_uuid, $membership_id){
 	];
 
   try {
-    $person = $client->post("person_memberships", ['json' => $payload]);
-    return true;
+    $response = $client->post("person_memberships", ['json' => $payload]);
   } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
-    // echo "<pre>";
-    // print_r($e->getMessage());
-    // echo "</pre>";
-    //
-    // echo "<pre>";
-    // print_r($errors);
-    // echo "</pre>";
-    // die;
+    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
   }
-  return false;
+  return $response;
 }
 
 /**------------------------------------------------------------------
@@ -1438,5 +1429,6 @@ function get_individual_memberships(){
     // echo "</pre>";
     // die;
   }
+  //var_dump($search_organizations);exit;
   return $search_organizations;
 }

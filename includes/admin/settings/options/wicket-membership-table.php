@@ -47,6 +47,7 @@ class WicketMembershipOverview extends OptionAbstract {
 				<thead>
 					<tr>
 						<th><?php echo __('Wicket Membership Tier', 'wicket'); ?></th>
+						<th><?php echo __('Wicket Membership UUID', 'wicket'); ?></th>
 						<th><?php echo __('Status', 'wicket'); ?></th>
 						<th><?php echo __('Type', 'wicket'); ?></th>
 						<th><?php echo __('WooCommerce Membership', 'wicket'); ?></th>
@@ -59,6 +60,7 @@ class WicketMembershipOverview extends OptionAbstract {
 					<?php foreach($memberships as $membership): ?>
 						<tr>
 							<td><?php echo $membership['name']; ?></td>
+							<td><?php echo $membership['uuid']; ?></td>
 							<td><?php echo $membership['status']; ?></td>
 							<td><?php echo ucfirst($membership['type']); ?></td>
 							<td>
@@ -102,6 +104,7 @@ class WicketMembershipOverview extends OptionAbstract {
 
 			foreach ($individual_memberships['data'] as $key => $value) {
 				$has_category = false;
+        $membership_uuid = $value['id'];
 				$membership_slug = ($value['attributes']['slug']) ?? $value['attributes']['slug'];
 				$membership_plan = (function_exists('wc_memberships_get_membership_plan')) ? wc_memberships_get_membership_plan($membership_slug) : '';
 				$product_ids = ($membership_plan) ? get_post_meta($membership_plan->get_id(), '_product_ids') : '';
@@ -122,6 +125,7 @@ class WicketMembershipOverview extends OptionAbstract {
 					$memberships[$key]['slug'] = $membership_slug;
 					$memberships[$key]['membership_plan_id'] = ($membership_plan) ? $membership_plan->get_id() : '';
 					$memberships[$key]['product_ids'] = $product_ids;
+					$memberships[$key]['uuid'] = $membership_uuid;
 				}
 
 				
