@@ -872,7 +872,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
  * Check for matching membership for person 
  * Option: filter by date
  */
- function mdp_wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '' ) {
+ function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '' ) {
     $client = wicket_api_client();
 	  try{
 			$response = $client->get("people/$person_uuid/membership_entries?include=membership&filter[starts_at_eq]=$starts_at&filter[ends_at_eq]=$ends_at&page[size]=2000");
@@ -889,7 +889,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function mdp_wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at, $ends_at) {
+function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at, $ends_at) {
   $client = wicket_api_client();
 
   // build membership payload
