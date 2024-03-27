@@ -72,6 +72,8 @@ if ( ! class_exists( 'Wicket_Admin' ) ) {
 			$screen = get_current_screen();
 			if ( $screen->id == 'toplevel_page_wicket-settings' ) {
 		    	return $classes.' wicket-admin-settings ';
+			}else{
+					return $classes;
 			}
 		}
 
