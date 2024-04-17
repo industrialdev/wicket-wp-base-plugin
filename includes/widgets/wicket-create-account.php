@@ -10,137 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Wicket\Client;
-
-/*
- * Process Form
- *
- */
-function process_wicket_create_account_form() {
-	$errors = [];
-	if(!session_id()) session_start();
-	if (isset($_POST['wicket_create_account'])){
-
-		$client = wicket_api_client();
-		/**------------------------------------------------------------------
-		* Create Account
-		------------------------------------------------------------------*/
-		$first_name = isset($_POST['given_name']) ? $_POST['given_name'] : '';
-		$last_name = isset($_POST['family_name']) ? $_POST['family_name'] : '';
-		$email = isset($_POST['address']) ? $_POST['address'] : '';
-		$password = isset($_POST['password']) ? $_POST['password'] : '';
-		$password_confirmation = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
-
-		if ($first_name == '') {
-			$first_name_blank = new stdClass;
-			$first_name_blank->meta = (object)['field' => 'user.given_name'];
-			$first_name_blank->title = __("can't be blank");
-			$errors[] = $first_name_blank;
-		}
-		if ($last_name == '') {
-			$last_name_blank = new stdClass;
-			$last_name_blank->meta = (object)['field' => 'user.family_name'];
-			$last_name_blank->title = __("can't be blank");
-			$errors[] = $last_name_blank;
-		}
-		if ($email == '') {
-			$email_blank = new stdClass;
-			$email_blank->meta = (object)['field' => 'emails.address'];
-			$email_blank->title = __("can't be blank");
-			$errors[] = $email_blank;
-		}
-		if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			$email_invalid = new stdClass;
-			$email_invalid->meta = (object)['field' => 'emails.address'];
-			$email_invalid->title = __("must be valid email");
-			$errors[] = $email_invalid;
-		}
-		if ($password == '') {
-			$pass_blank = new stdClass;
-			$pass_blank->meta = (object)['field' => 'user.password'];
-			$pass_blank->title = __("can't be blank");
-			$errors[] = $pass_blank;
-		}
-		if ($password_confirmation == '') {
-			$confirm_pass_blank = new stdClass;
-			$confirm_pass_blank->meta = (object)['field' => 'user.password_confirmation'];
-			$confirm_pass_blank->title = __("can't be blank");
-			$errors[] = $confirm_pass_blank;
-		}
-		if ($password_confirmation != $password) {
-			$pass_blank = new stdClass;
-			$pass_blank->meta = (object)['field' => 'user.password'];
-			$pass_blank->title = __(" - Passwords do not match");
-			$errors[] = $pass_blank;
-		}
-		$enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
-		if ($enable_google_captcha === '1') {
-			$passes_google_check = wicket_check_google_captcha();
-			if (!$passes_google_check) {
-				$errors[] = (object)[
-						'title' => __(' - Please validate using the captcha below'),
-						'meta' => (object)[
-							'field' => 'google'
-						]
-					];
-			}
-		}
-		$_SESSION['wicket_create_account_form_errors'] = $errors;
-
-		// don't send anything if errors
-		if (empty($errors)) {
-			// get parent org from admin settings to associate this person to
-			$wicket_settings = get_wicket_settings();
-			$parent_org = $wicket_settings['parent_org'];
-			$args = [
-				'query' => [
-					'filter' => [
-						'alternate_name_en_eq' => $parent_org
-					],
-					'page' => [
-						'number' => 1,
-						'size' => 1,
-					]
-				]
-			];
-			$org = $client->get('organizations', $args);
-
-		  $user = [
-				'password'              => $_POST['password'],
-				'password_confirmation' => $_POST['password_confirmation'],
-			];
-		  $_POST['user'] = $user;
-
-		  $person = new \Wicket\Entities\People($_POST);
-		  $email = new \Wicket\Entities\Emails([
-		    'address' => $_POST['address'],
-		    'primary' => true,
-		  ]);
-		  $person->attach($email);
-
-		  try {
-		    $new_person = $client->people->create($person, (object)$org['data'][0]);
-		  } catch (Exception $e) {
-				$_SESSION['wicket_create_account_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
-		  }
-			/**------------------------------------------------------------------
-			* Redirect to a verify page if person was created
-			------------------------------------------------------------------*/
-			if (empty($_SESSION['wicket_create_account_form_errors'])) {
-				unset($_SESSION['wicket_create_account_form_errors']);
-				$creation_redirect_id = wicket_get_option('wicket_admin_settings_person_creation_redirect');
-				$creation_redirect_path = get_permalink( $creation_redirect_id );
-				header('Location: '.$creation_redirect_path);
-				die;
-			}
-		}
-	} else {
-		if(isset($_SESSION['wicket_create_account_form_errors'])){
-			unset($_SESSION['wicket_create_account_form_errors']);
-		}
-	}
-}
-add_action('init', 'process_wicket_create_account_form');
-
 /*
  * The widget class
  * http://www.wpexplorer.com/create-widget-plugin-wordpress
@@ -159,6 +28,7 @@ class wicket_create_account extends WP_Widget {
 				'customize_selective_refresh' => true,
 			)
 		);
+		add_action( 'init', array( $this, 'process_wicket_create_account_form') );
 	}
 
 	public function form($instance) {
@@ -179,6 +49,163 @@ class wicket_create_account extends WP_Widget {
 			return;
 		}
 		$this->build_form();
+	}
+
+	/*
+	* Google Captcha
+	*
+	*/
+	public function wicket_check_google_captcha(){
+		if (!isset($_POST['g-recaptcha-response'])) {
+			return false;
+		}
+		$ch = curl_init();
+		$secret = wicket_get_option('wicket_admin_settings_google_captcha_secret_key');
+		$response = $_POST['g-recaptcha-response'];
+		$remoteip = $_SERVER['REMOTE_ADDR'];
+
+		curl_setopt($ch, CURLOPT_URL,"https://www.google.com/recaptcha/api/siteverify");
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS,
+			"secret=$secret&response=$response&remoteip=$remoteip"
+		);
+
+		// receive server response ...
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$google_response = curl_exec($ch);
+		curl_close ($ch);
+		$google_response = json_decode($google_response)->success;
+		return $google_response;
+	}
+
+	/*
+	* Process Form
+	*
+	*/
+	public function process_wicket_create_account_form() {
+		$errors = [];
+		if(!session_id()) session_start();
+		if (isset($_POST['wicket_create_account'])){
+
+			$client = wicket_api_client();
+			/**------------------------------------------------------------------
+			* Create Account
+			------------------------------------------------------------------*/
+			$first_name = isset($_POST['given_name']) ? $_POST['given_name'] : '';
+			$last_name = isset($_POST['family_name']) ? $_POST['family_name'] : '';
+			$email = isset($_POST['address']) ? $_POST['address'] : '';
+			$password = isset($_POST['password']) ? $_POST['password'] : '';
+			$password_confirmation = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
+
+			if ($first_name == '') {
+				$first_name_blank = new stdClass;
+				$first_name_blank->meta = (object)['field' => 'user.given_name'];
+				$first_name_blank->title = __("can't be blank");
+				$errors[] = $first_name_blank;
+			}
+			if ($last_name == '') {
+				$last_name_blank = new stdClass;
+				$last_name_blank->meta = (object)['field' => 'user.family_name'];
+				$last_name_blank->title = __("can't be blank");
+				$errors[] = $last_name_blank;
+			}
+			if ($email == '') {
+				$email_blank = new stdClass;
+				$email_blank->meta = (object)['field' => 'emails.address'];
+				$email_blank->title = __("can't be blank");
+				$errors[] = $email_blank;
+			}
+			if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+				$email_invalid = new stdClass;
+				$email_invalid->meta = (object)['field' => 'emails.address'];
+				$email_invalid->title = __("must be valid email");
+				$errors[] = $email_invalid;
+			}
+			if ($password == '') {
+				$pass_blank = new stdClass;
+				$pass_blank->meta = (object)['field' => 'user.password'];
+				$pass_blank->title = __("can't be blank");
+				$errors[] = $pass_blank;
+			}
+			if ($password_confirmation == '') {
+				$confirm_pass_blank = new stdClass;
+				$confirm_pass_blank->meta = (object)['field' => 'user.password_confirmation'];
+				$confirm_pass_blank->title = __("can't be blank");
+				$errors[] = $confirm_pass_blank;
+			}
+			if ($password_confirmation != $password) {
+				$pass_blank = new stdClass;
+				$pass_blank->meta = (object)['field' => 'user.password'];
+				$pass_blank->title = __(" - Passwords do not match");
+				$errors[] = $pass_blank;
+			}
+			$enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
+			if ($enable_google_captcha === '1') {
+				$passes_google_check = $this->wicket_check_google_captcha();
+				if (!$passes_google_check) {
+					$errors[] = (object)[
+							'title' => __(' - Please validate using the captcha below'),
+							'meta' => (object)[
+								'field' => 'google'
+							]
+						];
+				}
+			}
+			$_SESSION['wicket_create_account_form_errors'] = $errors;
+
+			// don't send anything if errors
+			if (empty($errors)) {
+				// get parent org from admin settings to associate this person to
+				$wicket_settings = get_wicket_settings();
+				$parent_org = $wicket_settings['parent_org'];
+
+				$args = [
+					'query' => [
+						'filter' => [
+							'alternate_name_en_eq' => $parent_org
+						],
+						'page' => [
+							'number' => 1,
+							'size' => 1,
+						]
+					]
+				];
+				$org = $client->get('organizations', $args);
+
+				$user = [
+					'password'              => $_POST['password'],
+					'password_confirmation' => $_POST['password_confirmation'],
+				];
+				$_POST['user'] = $user;
+
+				$person = new \Wicket\Entities\People($_POST);
+				$email = new \Wicket\Entities\Emails([
+					'address' => $_POST['address'],
+					'primary' => true,
+				]);
+				$person->attach($email);
+
+				try {
+					$new_person = $client->people->create($person, (object)$org['data'][0]);
+				} catch (Exception $e) {
+					$_SESSION['wicket_create_account_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+				}
+				/**------------------------------------------------------------------
+				* Redirect to a verify page if person was created
+				------------------------------------------------------------------*/
+				if (empty($_SESSION['wicket_create_account_form_errors'])) {
+					unset($_SESSION['wicket_create_account_form_errors']);
+					$creation_redirect_id = wicket_get_option('wicket_admin_settings_person_creation_redirect');
+					$creation_redirect_path = get_permalink( $creation_redirect_id );
+					header('Location: '.$creation_redirect_path);
+					die;
+				}
+			}
+		} else {
+			if(isset($_SESSION['wicket_create_account_form_errors'])){
+				unset($_SESSION['wicket_create_account_form_errors']);
+			}
+		}
 	}
 
 	private function build_form()
@@ -339,30 +366,3 @@ function register_custom_widget_wicket_create_account() {
 	register_widget('wicket_create_account');
 }
 add_action('widgets_init', 'register_custom_widget_wicket_create_account');
-
-/*
- * Google Captcha
- *
- */
-function wicket_check_google_captcha(){
-  if (!isset($_POST['g-recaptcha-response'])) {
-    return false;
-  }
-  $ch = curl_init();
-	$secret = get_option('wicket_admin_settings_google_captcha_secret_key');
-  $response = $_POST['g-recaptcha-response'];
-  $remoteip = $_SERVER['REMOTE_ADDR'];
-
-  curl_setopt($ch, CURLOPT_URL,"https://www.google.com/recaptcha/api/siteverify");
-  curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS,
-    "secret=$secret&response=$response&remoteip=$remoteip"
-  );
-
-  // receive server response ...
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  $google_response = curl_exec($ch);
-  curl_close ($ch);
-  $google_response = json_decode($google_response)->success;
-  return $google_response;
-}
