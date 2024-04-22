@@ -25,3 +25,7 @@ function component_exists( $slug ) {
 	}
 	return false;
 }
+
+function get_components_dir() {
+	return __DIR__ . "/components/";
+}

@@ -1,7 +1,7 @@
 <?php
 $defaults           = array(
 	'classes'            => [],
-	'author'             => '',
+	'author'             => [],
 	'hide_profile_image' => false,
 	'hide_bio'           => false,
 );
