@@ -5,7 +5,8 @@ function get_component( $slug, array $args = array(), $output = true ) {
 	if ( ! $output ) {
 		ob_start();
 	}
-	$template_file = locate_template( "components/{$slug}.php", false, false );
+	$template_file = __DIR__ . "/components/{$slug}.php";
+	//$template_file = locate_template( "components/{$slug}.php", false, false );
 	if ( file_exists( $template_file ) ) :
 		require ( $template_file );
 	else :
@@ -17,7 +18,8 @@ function get_component( $slug, array $args = array(), $output = true ) {
 }
 
 function component_exists( $slug ) {
-	$template_file = locate_template( "components/{$slug}.php", false, false );
+	$template_file = __DIR__ . "/components/{$slug}.php";
+	//$template_file = locate_template( "components/{$slug}.php", false, false );
 	if ( file_exists( $template_file ) ) {
 		return true;
 	}
