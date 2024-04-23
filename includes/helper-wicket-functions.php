@@ -817,7 +817,7 @@ function wicket_remove_role($person_uuid, $role_name){
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id){
+function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at, $ends_at){
   $client = wicket_api_client();
 
   // build membership payload
@@ -825,8 +825,8 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 		'data' => [
 			'type' => 'organization_memberships',
 			'attributes' => [
-				'starts_at' => date('c', time()),
-				"ends_at" => date('c', strtotime('+1 year'))
+				'starts_at' => $starts_at,
+				"ends_at" => $ends_at
 			],
 			'relationships' => [
 				'owner' => [
@@ -852,20 +852,11 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 	];
 
   try {
-    $person = $client->post("organization_memberships", ['json' => $payload]);
-    return true;
+    $response = $client->post("person_memberships", ['json' => $payload]);
   } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
-    echo "<pre>";
-    print_r($e->getMessage());
-    echo "</pre>";
-
-    echo "<pre>";
-    print_r($errors);
-    echo "</pre>";
-    die;
+    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
   }
-  return false;
+  return $response;
 }
 
 /**
