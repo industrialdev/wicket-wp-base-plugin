@@ -852,7 +852,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 	];
 
   try {
-    $response = $client->post("person_memberships", ['json' => $payload]);
+    $response = $client->post("organization_memberships", ['json' => $payload]);
   } catch (Exception $e) {
     $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
   }
