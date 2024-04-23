@@ -102,7 +102,8 @@ $classes[] = 'component-related-posts';
 								<?php echo $view_all_link['title'] ?>
 							</a>
 						<?php else : ?>
-							<a href="<?php echo $post_type_archive_link ?>" class="underline ml-4 pl-4 border-l border-dark-070">
+							<a href="<?php echo $post_type_archive_link ?>"
+								class="underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
 								<?php echo __( 'View All', 'wicket' ) ?>
 							</a>
 						<?php endif; ?>
