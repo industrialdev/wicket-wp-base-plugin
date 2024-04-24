@@ -63,10 +63,8 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-blocks.php';
 			// Include wicket widgets
 			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-create-account.php';
-			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-contact-information.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-update-password.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-manage-preferences.php';
-			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-additional-information.php';
 
 			// Include wicket shortcodes
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
