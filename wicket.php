@@ -96,8 +96,8 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-user-switching-sync.php';
 			}
 			
-
-			
+			// Enqueue styles and scripts
+			add_action( 'wp_enqueue_scripts', array( 'Wicket_Main', 'enqueue_plugin_styles' ), 15 ); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
 		}
 
 		/**
@@ -115,6 +115,43 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 
 			if ( ! defined( 'WICKET_PLUGIN_DIR' ) ) {
 				define( 'WICKET_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+			}
+		}
+
+		public static function enqueue_plugin_styles() {
+			$theme = wp_get_theme(); // gets the current theme
+			$theme_name = $theme->name;
+
+			$base_styles_url      = WICKET_URL . 'assets/css/min/wicket.min.css';
+			$base_styles_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
+			$tailwind_styles_url  = WICKET_URL . 'assets/css/min/wicket-tailwind.min.css';
+			$tailwind_styles_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind.min.css';
+			$alpine_scripts_url   = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
+			$alpine_scripts_path  = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
+
+			if( str_contains( strtolower( $theme_name ), 'wicket' ) ) {
+				// Wicket theme is active, so just enqueue the compiled component styles
+				wp_enqueue_style( 'wicket-plugin-base-styles', $base_styles_url, 
+				FALSE,
+				filemtime( $base_styles_path ),
+				'all' );
+			} else {
+				// Wicket theme not in use, so enqueue the compiled component styles and
+				// the backup component Tailwind styles and Alpine
+
+				wp_enqueue_style( 'wicket-plugin-base-styles', $base_styles_url, 
+					FALSE,
+					filemtime( $base_styles_path ),
+					'all' );
+				wp_enqueue_style( 'wicket-plugin-tailwind-styles', $tailwind_styles_url, 
+					FALSE,
+					filemtime( $tailwind_styles_path ),
+					'all' );
+				wp_enqueue_script( 'wicket-plugin-alpine-script',
+					$alpine_scripts_url,
+					array(),
+					filemtime( $alpine_scripts_path ),
+					array() );
 			}
 		}
 

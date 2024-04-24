@@ -1,0 +1,16 @@
+@mixin add-external-icon {
+  &:after {
+    display: inline-block;
+    content: '\f35d';
+    font-family: var(--fa-style-family, 'Font Awesome 6 Pro');
+    font-weight: inherit;
+    margin-left: 4px;
+    font-size: 90%;
+  }
+}
+
+@mixin media-breakpoint-down($size) {
+  @media (min-width: $size) {
+    @content;
+  }
+}

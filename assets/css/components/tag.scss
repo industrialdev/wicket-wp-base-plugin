@@ -1,0 +1,17 @@
+.tags {
+    display: flex;
+
+    .tag-with-icon {
+        padding: 4px 8px;
+        align-items: center;
+        gap: var(--spacing-space-100, 8px);
+        border-radius: 4px;
+        margin-top: 30px;
+        background: #4F555A;
+        color: #fff;
+        font-weight: 600;
+        i {
+            margin-left: 5px;
+        }
+    }
+}

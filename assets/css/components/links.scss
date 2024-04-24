@@ -1,0 +1,16 @@
+a {
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus {
+    box-shadow: var(--wp--custom--box-shadow--focus);
+    text-decoration: underline;
+  }
+}
+
+p {
+  & > a[target='_blank'] {
+    @include add-external-icon;
+  }
+}

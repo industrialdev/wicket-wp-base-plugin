@@ -1,0 +1,30 @@
+{
+  "devDependencies": {
+    "dotenv": "^4.0.0",
+    "gulp": "^4.0",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-dart-sass": "^1.0.2",
+    "gulp-ignore": "^3.0.0",
+    "gulp-imagemin": "^6.1.1",
+    "gulp-insert": "^0.5.0",
+    "gulp-notify": "^3.0.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-postcss": "^9.0.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-uglify": "^3.0.0",
+    "gulp-wrap": "^0.15.0",
+    "lerna": "^2.11.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-stream": "^7.0.0"
+  },
+  "dependencies": {
+    "alpinejs": "^3.13.2",
+    "color": "^4.2.3"
+  }
+}
