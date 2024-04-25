@@ -817,8 +817,15 @@ function wicket_remove_role($person_uuid, $role_name){
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at, $ends_at){
+function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = ''){
   $client = wicket_api_client();
+
+  if( empty( $starts_at ) ) {
+    $starts_at = date('c', time());
+  }
+  if( empty( $ends_at ) ) {
+    $ends_at = date('c', strtotime('+1 year'));
+  }
 
   // build membership payload
   $payload = [
@@ -880,9 +887,16 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at, $ends_at) {
+function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at ='', $ends_at = '') {
   $client = wicket_api_client();
 
+  if( empty( $starts_at ) ) {
+    $starts_at = date('c', time());
+  }
+  if( empty( $ends_at ) ) {
+    $ends_at = date('c', strtotime('+1 year'));
+  }
+  
   // build membership payload
   $payload = [
 		'data' => [
