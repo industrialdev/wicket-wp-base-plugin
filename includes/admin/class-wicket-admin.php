@@ -40,13 +40,18 @@ if ( ! class_exists( 'Wicket_Admin' ) ) {
 		 * Enqueue scripts for admin
 		 */
 		public function wicket_admin_enqueue_scripts() {
-			// Enqueue Wicket Admin JS CSS
-			wp_enqueue_script( 'wicket_admin_js', WICKET_URL . 'assets/js/wicket_admin.js', array( 'jquery' ), '1.0', false );
-			wp_enqueue_style( 'wicket_admin_css', WICKET_URL . 'assets/css/wicket_admin.css', array(), '1.0' );
+			$screen = get_current_screen();
+			
+			// don't include unless on wicket admin pages so we don't mess with other plugin admin pages
+			if ( $screen->id == 'toplevel_page_wicket-settings' ) {
+				// Enqueue Wicket Admin JS CSS
+				wp_enqueue_script( 'wicket_admin_js', WICKET_URL . 'assets/js/wicket_admin.js', array( 'jquery' ), '1.0', false );
+				wp_enqueue_style( 'wicket_admin_css', WICKET_URL . 'assets/css/wicket_admin.css', array(), '1.0' );
 
-			// Enqueue Select2 JS CSS
-			wp_enqueue_style( 'select2', WICKET_URL . 'assets/css/select2.css', array(), '1.0' );
-			wp_enqueue_script( 'select2', WICKET_URL . 'assets/js/select2.js', false, '1.0', array( 'jquery' ), '1.0', false );
+				// Enqueue Select2 JS CSS
+				wp_enqueue_style( 'select2', WICKET_URL . 'assets/css/select2.css', array(), '1.0' );
+				wp_enqueue_script( 'select2', WICKET_URL . 'assets/js/select2.js', false, '1.0', array( 'jquery' ), '1.0', false );
+			}
 		}
 
 		/**
