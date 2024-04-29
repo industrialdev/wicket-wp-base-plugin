@@ -23,7 +23,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 				x-bind:class="activeTab == <?php echo $title_index ?> ? 'border-dark-100 border-b-4 pb-[10px]' : 'border-light-020'"
 				x-bind:aria-selected="activeTab == <?php echo $title_index ?> ? 'true' : 'false'"
 				x-on:click="activeTab = <?php echo $title_index ?>">
-				<?php echo $item['title'] ?>
+				<?php echo $item['title'] ? $item['title'] : __( 'Tab ', 'wicket' ) . $title_index + 1 ?>
 			</button>
 			<?php
 			$title_index++;
@@ -41,7 +41,8 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 				x-bind:hidden="activeTab !== <?php echo $content_index ?>">
 				<?php echo $item['body_content'] ?>
 
-				<?php if ( isset( $item['call_to_action'], $item['call_to_action']['link_and_label'] ) ) {
+				<?php
+				if ( isset( $item['call_to_action'], $item['call_to_action']['link_and_label']['url'] ) ) {
 					get_component( 'button', [ 
 						'variant'     => $item['call_to_action']['button_style'],
 						'label'       => $item['call_to_action']['link_and_label']['title'],
