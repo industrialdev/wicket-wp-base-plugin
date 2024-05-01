@@ -232,9 +232,13 @@ function wicket_get_organizations(){
 /**------------------------------------------------------------------
 * Get organization by UUID from Wicket
 ------------------------------------------------------------------*/
-function wicket_get_organization($uuid){
+function wicket_get_organization($uuid, $include = null ){
+  $query_string = '';
   $client = wicket_api_client();
-  $organization = $client->get('organizations/'.$uuid);
+  if( !empty( $include ) ) {
+    $query_string = '/?include=' . $include;
+  }
+  $organization = $client->get('organizations/' . $uuid . $query_string );
   if ($organization) {
     return $organization;
   }
@@ -654,6 +658,24 @@ function send_new_person_to_team_assignment_email($first_name, $last_name, $emai
 }
 
 /**------------------------------------------------------------------
+ * Send email to Tier Contact Address for new membership pending approval
+ ------------------------------------------------------------------*/
+ function send_approval_required_email( $email, $membership_link ){
+  $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+	$to = $email;
+	$subject = "Membership Pending Approval";
+	$body = "You have a membership pending approval.
+	<br>
+  Please login with the following link to process the membership request.
+  <br>
+  $membership_link";
+	$headers = array('Content-Type: text/html; charset=UTF-8');
+	$headers[] = 'From:' . get_bloginfo('admin_email') . '<' . get_bloginfo('admin_email') . '>';
+	wp_mail($to,$subject,$body,$headers);
+}
+
+
+/**------------------------------------------------------------------
  * Create basic person record, no password
  ------------------------------------------------------------------*/
  function wicket_create_person($given_name, $family_name, $address = '', $password = '', $password_confirmation = '', $job_title = '', $gender = '', $additional_info = []){
@@ -924,6 +946,71 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 
   try {
     $response = $client->post("person_memberships", ['json' => $payload]);
+  } catch (Exception $e) {
+    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+  }
+  return $response;
+}
+
+/**------------------------------------------------------------------
+ * Update individual membership dates
+ ------------------------------------------------------------------*/
+ function wicket_update_individual_membership_dates($membership_uuid, $starts_at ='', $ends_at = '') {
+  $client = wicket_api_client();
+
+  if( empty( $starts_at ) ) {
+    $starts_at = date('c', time());
+  }
+  if( empty( $ends_at ) ) {
+    $ends_at = date('c', strtotime('+1 year'));
+  }
+  
+  // build membership payload
+  $payload = [
+		'data' => [
+			'type' => 'person_memberships',
+			'attributes' => [
+				'starts_at' => $starts_at,
+				'ends_at' => $ends_at
+      ],
+		]
+	];
+
+  try {
+    $response = $client->patch("/person_memberships/$membership_uuid", ['json' => $payload]);
+  } catch (Exception $e) {
+    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+  }
+  return $response;
+}
+
+
+/**------------------------------------------------------------------
+ * Update organization membership dates
+ ------------------------------------------------------------------*/
+ function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = ''){
+  $client = wicket_api_client();
+
+  if( empty( $starts_at ) ) {
+    $starts_at = date('c', time());
+  }
+  if( empty( $ends_at ) ) {
+    $ends_at = date('c', strtotime('+1 year'));
+  }
+
+  // build membership payload
+  $payload = [
+		'data' => [
+			'type' => 'organization_memberships',
+			'attributes' => [
+				'starts_at' => $starts_at,
+				"ends_at" => $ends_at
+			],
+		]
+	];
+
+  try {
+    $response = $client->patch("organization_memberships/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
     $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
   }
