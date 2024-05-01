@@ -839,7 +839,7 @@ function wicket_remove_role($person_uuid, $role_name){
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = ''){
+function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0){
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -855,7 +855,8 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 			'type' => 'organization_memberships',
 			'attributes' => [
 				'starts_at' => $starts_at,
-				"ends_at" => $ends_at
+				"ends_at" => $ends_at,
+        "max_assignments" => $max_seats,
 			],
 			'relationships' => [
 				'owner' => [
@@ -988,7 +989,7 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Update organization membership dates
  ------------------------------------------------------------------*/
- function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = ''){
+ function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false ){
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -1008,6 +1009,10 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 			],
 		]
 	];
+  
+  if( $max_seats !== false ) {
+    $payload['data']['attributes']['max_assignments'] = $max_seats;
+  }
 
   try {
     $response = $client->patch("organization_memberships/$membership_uuid", ['json' => $payload]);
