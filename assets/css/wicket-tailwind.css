@@ -488,6 +488,13 @@
     -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
+.translate-y-\[-50\%\] {
+    --tw-translate-y: -50%;
+    -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+}
 .transform {
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -735,6 +742,9 @@
 }
 .border-b {
     border-bottom-width: 1px
+}
+.border-b-2 {
+    border-bottom-width: 2px
 }
 .border-b-4 {
     border-bottom-width: 4px
@@ -994,6 +1004,10 @@
     padding-left: 1rem;
     padding-right: 1rem
 }
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem
+}
 .py-4 {
     padding-top: 1rem;
     padding-bottom: 1rem
@@ -1007,6 +1021,15 @@
 }
 .pb-3 {
     padding-bottom: 0.75rem
+}
+.pb-\[10px\] {
+    padding-bottom: 10px
+}
+.pl-10 {
+    padding-left: 2.5rem
+}
+.pl-16 {
+    padding-left: 4rem
 }
 .pl-4 {
     padding-left: 1rem
@@ -1094,6 +1117,10 @@
 .text-dark-100 {
     --tw-text-opacity: 1;
     color: rgb(35 42 49 / var(--tw-text-opacity))
+}
+.text-light-090 {
+    --tw-text-opacity: 1;
+    color: rgb(140 140 140 / var(--tw-text-opacity))
 }
 .text-primary-100 {
     --tw-text-opacity: 1;
@@ -1681,6 +1708,10 @@
 .hover\:cursor-pointer:hover {
     cursor: pointer
 }
+.hover\:border-dark-100:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(35 42 49 / var(--tw-border-opacity))
+}
 .hover\:underline:hover {
     -webkit-text-decoration-line: underline;
     -moz-text-decoration-line: underline;
@@ -1690,6 +1721,10 @@
     -webkit-text-decoration-line: none;
     -moz-text-decoration-line: none;
     text-decoration-line: none
+}
+.focus\:border-dark-100:focus {
+    --tw-border-opacity: 1;
+    border-color: rgb(35 42 49 / var(--tw-border-opacity))
 }
 .focus\:shadow-focus:focus {
     --tw-shadow: 0px 0px 1px 2px #0997FF;
@@ -1809,6 +1844,10 @@
     .md\:gap-5 {
         gap: 1.25rem
     }
+    .md\:px-8 {
+        padding-left: 2rem;
+        padding-right: 2rem
+    }
 }
 @media (min-width: 1024px) {
     .lg\:hidden {
@@ -1876,6 +1915,10 @@
         padding-left: 0px;
         padding-right: 0px
     }
+    .lg\:px-16 {
+        padding-left: 4rem;
+        padding-right: 4rem
+    }
     .lg\:py-8 {
         padding-top: 2rem;
         padding-bottom: 2rem
@@ -1885,6 +1928,12 @@
     }
     .lg\:text-body-lg {
         font-size: 20px
+    }
+}
+@media (min-width: 1280px) {
+    .xl\:px-0 {
+        padding-left: 0px;
+        padding-right: 0px
     }
 }
 /*# sourceMappingURL=../../maps/wicket-tailwind.css.map */

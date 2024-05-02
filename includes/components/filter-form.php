@@ -1,12 +1,14 @@
 <?php
-$defaults   = array(
-	'classes'    => [],
-	'taxonomies' => [],
+$defaults         = array(
+	'classes'          => [],
+	'taxonomies'       => [],
+	'hide_date_filter' => false,
 );
-$args       = wp_parse_args( $args, $defaults );
-$classes    = $args['classes'];
-$taxonomies = $args['taxonomies'];
-$classes[]  = 'component-filter-form';
+$args             = wp_parse_args( $args, $defaults );
+$classes          = $args['classes'];
+$taxonomies       = $args['taxonomies'];
+$hide_date_filter = $args['hide_date_filter'];
+$classes[]        = 'component-filter-form';
 ?>
 
 <div x-data="{showFilters: <?php echo wp_is_mobile() ? 'false' : 'true' ?>}"
@@ -125,6 +127,46 @@ $classes[]  = 'component-filter-form';
 			</div>
 			<?php
 		endforeach; ?>
+
+		<?php if ( ! $hide_date_filter ) : ?>
+			<div x-data="{open: true}" class="pb-3 mb-3 border-b border-light-020">
+				<button @click="open = ! open" id="date-dropdown-toggle" type="button" class="flex w-full gap-3 items-center">
+					<span class="font-bold">
+						<?php echo __( 'Date Range', 'wicket' ); ?>
+					</span>
+					<span class="ml-auto">
+						<template x-if="open">
+							<i class="fas fa-caret-up"></i>
+						</template>
+						<template x-if="!open">
+							<i class="fas fa-caret-down"></i>
+						</template>
+					</span>
+				</button>
+				<div id="date-dropdown" x-show="open">
+					<div class="mt-3">
+						<?php
+						$start_date = isset( $_GET['start_date'] ) ? $_GET['start_date'] : '';
+						$end_date   = isset( $_GET['end_date'] ) ? $_GET['end_date'] : '';
+						?>
+						<div class="relative mb-3">
+							<label for="start_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
+								<?php echo __( 'From:', 'wicket' ); ?>
+							</label>
+							<input id="start_date" class="w-full italic pl-16 text-light-090" type="date" name="start_date"
+								value="<?php echo $start_date; ?>">
+						</div>
+						<div class="relative">
+							<label for="start_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
+								<?php echo __( 'To:', 'wicket' ); ?>
+							</label>
+							<input id="end_date" class="w-full italic pl-10 text-light-090" type="date" name="end_date"
+								value="<?php echo $end_date; ?>">
+						</div>
+					</div>
+				</div>
+			</div>
+		<?php endif; ?>
 
 		<?php
 		get_component( 'button', [ 
