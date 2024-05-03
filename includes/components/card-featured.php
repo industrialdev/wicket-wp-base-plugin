@@ -105,12 +105,12 @@ if ( $image_position === 'right' ) {
 				</div>
 			<?php } ?>
 
-			<?php if ( $cta ) {
+			<?php if ( $cta && $link ) {
 				get_component( 'button', [ 
 					'variant' => $cta,
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
-					'link'    => 'Test',
+					'link'    => $link,
 				] );
 			} ?>
 
