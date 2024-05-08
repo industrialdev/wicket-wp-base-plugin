@@ -149,19 +149,19 @@ $classes[]        = 'component-filter-form';
 						$start_date = isset( $_GET['start_date'] ) ? $_GET['start_date'] : '';
 						$end_date   = isset( $_GET['end_date'] ) ? $_GET['end_date'] : '';
 						?>
-						<div class="relative mb-3">
+						<div class="group relative mb-3">
 							<label for="start_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
 								<?php echo __( 'From:', 'wicket' ); ?>
 							</label>
-							<input id="start_date" class="w-full italic pl-16 text-light-090" type="date" name="start_date"
-								value="<?php echo $start_date; ?>">
+							<input id="start_date" class="w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100"
+								type="date" name="start_date" value="<?php echo $start_date; ?>">
 						</div>
-						<div class="relative">
-							<label for="start_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
+						<div class="group relative">
+							<label for="end_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
 								<?php echo __( 'To:', 'wicket' ); ?>
 							</label>
-							<input id="end_date" class="w-full italic pl-10 text-light-090" type="date" name="end_date"
-								value="<?php echo $end_date; ?>">
+							<input id="end_date" class="w-full italic pl-10 text-light-040 group-[.has-value]:text-dark-100" type="date"
+								name="end_date" value="<?php echo $end_date; ?>">
 						</div>
 					</div>
 				</div>
