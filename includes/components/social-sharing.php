@@ -26,7 +26,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 			'a_tag'              => true,
 			'link'               => 'https://www.facebook.com/sharer/sharer.php?u=' . get_the_permalink(),
 			'link_target'        => '_blank',
-			'screen_reader_text' => 'Share on Facebook',
+			'screen_reader_text' => 'Share on Facebook (opens in a new tab)',
 		] ) ?>
 	</li>
 	<li>
@@ -40,7 +40,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 			'a_tag'              => true,
 			'link'               => 'https://twitter.com/intent/tweet?url=' . get_the_permalink() . '&amp;text=' . urlencode( get_the_title() ) . '%20-%20' . urlencode( get_the_excerpt() ),
 			'link_target'        => '_blank',
-			'screen_reader_text' => 'Share on Twitter',
+			'screen_reader_text' => 'Share on Twitter (opens in a new tab)',
 		] ) ?>
 	</li>
 	<li>
@@ -54,7 +54,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 			'a_tag'              => true,
 			'link'               => 'https://www.linkedin.com/shareArticle?mini=true&amp;url=' . get_the_permalink() . '&amp;title=' . urlencode( get_the_title() ),
 			'link_target'        => '_blank',
-			'screen_reader_text' => 'Share on LinkedIn',
+			'screen_reader_text' => 'Share on LinkedIn (opens in a new tab)',
 		] ) ?>
 	</li>
 	<li>
@@ -68,7 +68,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 			'a_tag'              => true,
 			'link'               => 'mailto:?subject=' . urlencode( get_the_title() ) . '&body=' . get_the_permalink(),
 			'link_target'        => '_blank',
-			'screen_reader_text' => 'Share via Email',
+			'screen_reader_text' => 'Share via Email (opens in a new tab)',
 		] ) ?>
 	</li>
 </ul>

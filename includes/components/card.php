@@ -63,9 +63,10 @@ $classes[] = 'component-card p-4 bg-white shadow-4 flex flex-col gap-4 relative 
 						get_component( 'link', [ 
 							'url'      => $link['url'],
 							'text'     => $link['title'],
+							'target'   => $link['target'],
 							'icon_end' => [ 
 								'icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
-								'text' => 'Icon text',
+								'text' => 'Open link',
 							],
 						] );
 					}
