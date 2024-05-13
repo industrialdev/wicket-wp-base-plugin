@@ -31,8 +31,32 @@ function sync_wicket_data() {
       $wp_roles = new WP_Roles();
     }
 
+    $roles = $person->role_names;
+
+    // Sync membership tiers as roles in WP if the option is set
+    if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
+      // get current person active memberships ids, find the active memberships slug from ids, assign user with roles from active membership tiers
+      $memberships = wicket_get_current_person_memberships();
+      $active_memberships_ids = [];
+      if(isset($memberships["data"])) {
+        foreach ($memberships["data"] as $key => $membership) {
+          if($membership["attributes"]["status"] == 'Active') {
+            $active_memberships_ids[$key] = $membership["relationships"]["membership"]["data"]["id"];
+          }
+        }
+      }
+      // look if included membership are active and if yes add to $roles[]
+      if(isset($memberships["included"])) {
+        foreach ($memberships["included"] as $key => $membership) {
+          if (in_array($membership['id'], $active_memberships_ids)) {
+            $roles[] = $membership['attributes']['name'];
+          }
+        }
+      }
+    }
+
     // update user with roles from Wicket
-    foreach ($person->role_names as $role) {
+    foreach ($roles as $role) {
       // check if the role exists in WP already
       $role_exists = wp_roles()->is_role($role);
       if ($role_exists) {
@@ -81,8 +105,32 @@ function sync_wicket_data_for_person($person_uuid) {
     $wp_roles = new WP_Roles();
   }
 
+  $roles = $person->role_names;
+
+  // Sync membership tiers as roles in WP if the option is set
+  if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
+    // get current person active memberships ids, find the active memberships slug from ids, assign user with roles from active membership tiers
+    $memberships = wicket_get_current_person_memberships();
+    $active_memberships_ids = [];
+    if(isset($memberships["data"])) {
+      foreach ($memberships["data"] as $key => $membership) {
+        if($membership["attributes"]["status"] == 'Active') {
+          $active_memberships_ids[$key] = $membership["relationships"]["membership"]["data"]["id"];
+        }
+      }
+    }
+    // look if included membership are active and if yes add to $roles[]
+    if(isset($memberships["included"])) {
+      foreach ($memberships["included"] as $key => $membership) {
+        if (in_array($membership['id'], $active_memberships_ids)) {
+          $roles[] = $membership['attributes']['name'];
+        }
+      }
+    }
+  }
+
   // update user with roles from Wicket
-  foreach ($person->role_names as $role) {
+  foreach ($roles as $role) {
     // check if the role exists in WP already
     $role_exists = wp_roles()->is_role($role);
     if ($role_exists) {
