@@ -129,7 +129,7 @@ $classes[]        = 'component-filter-form';
 		endforeach; ?>
 
 		<?php if ( ! $hide_date_filter ) : ?>
-			<div x-data="{open: true}" class="pb-3 mb-3 border-b border-light-020">
+			<div x-data="{open: true}" class="date-range-controls pb-3 mb-3 border-b border-light-020">
 				<button @click="open = ! open" id="date-dropdown-toggle" type="button" class="flex w-full gap-3 items-center">
 					<span class="font-bold">
 						<?php echo __( 'Date Range', 'wicket' ); ?>

@@ -311,10 +311,16 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			// WP Cassify Integration Tab
 			$section = $tab_int->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);
 			$section->add_option('checkbox', [
-			    'name' => 'wicket_admin_settings_wpcassify_sync_roles',
-			    'label' => __('CAS User Role Sync', 'wicket'),
-			    'description' => __('Sync user roles with Wicket when user logs in to WordPress - Requires WP-CASSIFY plugin.', 'wicket')
+				'name' => 'wicket_admin_settings_wpcassify_sync_roles',
+				'label' => __('Sync Security Roles', 'wicket'),
+				'description' => __('Sync all roles found under profile -> security -> roles in the MDP for each user when they log in to WordPress - Requires WP-CASSIFY plugin.', 'wicket')
 			]);
+			$section->add_option('checkbox', [
+			    'name' => 'wicket_admin_settings_wpcassify_sync_memberships_as_roles',
+			    'label' => __('Sync Memberships as Roles', 'wicket'),
+			    'description' => __('Sync user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called "Student" within the MDP, when they log in, a role will be created called "Student" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!<em></strong>', 'wicket'),
+			]);
+			
 			
 
 			// Mailtrap Integration Tab
