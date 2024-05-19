@@ -111,7 +111,7 @@ if ( $image_position === 'right' ) {
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
 					'link'    => $link,
-					'classes' => 'component-card-featured__cta',
+					'classes' => [ 'component-card-featured__cta' ],
 				] );
 			} ?>
 
