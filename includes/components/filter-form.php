@@ -179,7 +179,13 @@ $classes[]        = 'component-filter-form';
 		?>
 
 		<div>
-			<a href="<?php echo get_the_permalink(); ?>" class="mt-3 !p-1 button inline-flex button--ghost">
+			<?php 
+				$clear_all_url = strtok( $_SERVER['REQUEST_URI'], '?' ); // Grabs everything in the URI before a ? character
+				if( isset( $_GET['s'] ) ) {
+					$clear_all_url .= '?s=clearresults';
+				}
+			?>
+			<a href="<?php echo $clear_all_url; ?>" class="mt-3 !p-1 button inline-flex button--ghost">
 				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
 				<?php echo __( 'Clear All', 'wicket' ); ?>
 			</a>
