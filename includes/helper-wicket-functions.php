@@ -887,7 +887,7 @@ function wicket_remove_role($person_uuid, $role_name){
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0){
+function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0, $grace_period_days = 0 ){
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -905,6 +905,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 				'starts_at' => $starts_at,
 				"ends_at" => $ends_at,
         "max_assignments" => $max_seats,
+        "grace_period_days" => $grace_period_days,
 			],
 			'relationships' => [
 				'owner' => [
@@ -958,7 +959,7 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at ='', $ends_at = '') {
+function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at ='', $ends_at = '', $grace_period_days = 0) {
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -974,7 +975,8 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 			'type' => 'person_memberships',
 			'attributes' => [
 				'starts_at' => $starts_at,
-				'ends_at' => $ends_at
+				'ends_at' => $ends_at,
+        "grace_period_days" => $grace_period_days,
 			],
 			'relationships' => [
 				'person' => [
@@ -1004,7 +1006,7 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Update individual membership dates
  ------------------------------------------------------------------*/
- function wicket_update_individual_membership_dates($membership_uuid, $starts_at ='', $ends_at = '') {
+ function wicket_update_individual_membership_dates($membership_uuid, $starts_at ='', $ends_at = '', $grace_period_days = false ) {
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -1025,6 +1027,10 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 		]
 	];
 
+  if( $grace_period_days !== false ) {
+    $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
+  }
+
   try {
     $response = $client->patch("/person_memberships/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
@@ -1037,7 +1043,7 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Update organization membership dates
  ------------------------------------------------------------------*/
- function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false ){
+ function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false ){
   $client = wicket_api_client();
 
   if( empty( $starts_at ) ) {
@@ -1062,8 +1068,45 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
     $payload['data']['attributes']['max_assignments'] = $max_seats;
   }
 
+  if( $grace_period_days !== false ) {
+    $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
+  }
+
   try {
     $response = $client->patch("organization_memberships/$membership_uuid", ['json' => $payload]);
+  } catch (Exception $e) {
+    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+  }
+  return $response;
+}
+
+/**
+ * Set the external ID on the membership record
+ *
+ * @param string $membership_uuid wicket mdp membership id
+ * @param string $membership_type organization|individual
+ * @param int $external_id post_id
+ * @return object | \WP_Error
+ */
+function wicket_update_membership_external_id( $membership_uuid, $membership_type, $external_id ) {
+  $client = wicket_api_client();
+
+  if( !in_array( $membership_type, ['organization_memberships', 'person_memberships'] ) ) {
+    new \WP_Error( 'wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )' );
+  }
+
+  // build membership payload
+  $payload = [
+		'data' => [
+			'type' => $membership_type,
+			'attributes' => [
+        'external_id' => $external_id
+      ],
+		]
+	];
+  
+  try {
+    $response = $client->patch("$membership_type/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
     $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
   }

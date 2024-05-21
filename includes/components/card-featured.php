@@ -27,7 +27,7 @@ $cta_label      = $args['cta_label'];
 
 $classes[]             = 'component-card-featured bg-white shadow-4 flex flex-col gap-4 relative';
 $image_wrapper_classes = [];
-$title_classes         = [ 'block text-dark-100 font-bold leading-7 text-heading-xs' ];
+$title_classes         = [ 'component-card-featured__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
 
 if ( $image_position === 'top' ) {
 	$classes[]               = '@2xl:flex-col @2xl:items-center';
@@ -73,7 +73,7 @@ if ( $image_position === 'right' ) {
 		<div class="flex flex-col grow items-start gap-3">
 
 			<?php if ( $content_type ) { ?>
-				<div class="text-dark-070 uppercase font-bold leading-none">
+				<div class="component-card-featured__content-type text-dark-070 uppercase font-bold leading-none">
 					<?php echo $content_type; ?>
 				</div>
 			<?php } ?>
@@ -94,13 +94,13 @@ if ( $image_position === 'right' ) {
 			<?php } ?>
 
 			<?php if ( $excerpt ) { ?>
-				<div class="leading-6">
+				<div class="component-card-featured__excerpt leading-6">
 					<?php echo $excerpt; ?>
 				</div>
 			<?php } ?>
 
 			<?php if ( $date ) { ?>
-				<div class="text-body-sm text-dark-070 italic">
+				<div class="component-card-featured__date text-body-sm text-dark-070 italic">
 					<?php echo $date; ?>
 				</div>
 			<?php } ?>
@@ -111,6 +111,7 @@ if ( $image_position === 'right' ) {
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
 					'link'    => $link,
+					'classes' => [ 'component-card-featured__cta' ],
 				] );
 			} ?>
 

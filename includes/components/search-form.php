@@ -2,10 +2,12 @@
 $defaults    = array(
 	'classes'     => [ 'flex', 'gap-2', 'w-full' ],
 	'placeholder' => __( 'Search by Keyword', 'wicket' ),
+	'url-param'   => 'keyword',
 );
 $args        = wp_parse_args( $args, $defaults );
 $classes     = $args['classes'];
 $placeholder = $args['placeholder'];
+$url_param   = $args['url-param'];
 
 $classes[] = 'component-search-form form';
 ?>
@@ -24,8 +26,8 @@ $classes[] = 'component-search-form form';
 				'text-lg',
 			],
 		] ); ?>
-		<input type="search" id="keyword" name="keyword"
-			value="<?php echo isset ( $_GET['keyword'] ) ? $_GET['keyword'] : ''; ?>"
+		<input type="search" id="<?php echo $url_param; ?>" name="<?php echo $url_param; ?>"
+			value="<?php echo isset ( $_GET[$url_param] ) ? $_GET[$url_param] : ''; ?>"
 			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full" />
 	</div>
 

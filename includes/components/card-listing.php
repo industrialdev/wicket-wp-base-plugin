@@ -11,6 +11,7 @@ $defaults       = array(
 		'text'   => 'Go somewhere',
 		'target' => '_self',
 	],
+	'link_type'      => 'title',
 	'member_only'    => false,
 	'featured_image' => '',
 );
@@ -22,6 +23,7 @@ $excerpt        = $args['excerpt'];
 $date           = $args['date'];
 $topics         = $args['topics'];
 $link           = $args['link'];
+$link_type      = $args['link_type'];
 $member_only    = $args['member_only'];
 $featured_image = $args['featured_image'];
 $image          = '';
@@ -52,11 +54,14 @@ if ( $featured_image ) {
 			</div>
 		<?php } ?>
 
-		<?php if ( $title ) { ?>
+		<?php if ( $title && $link_type == 'title' ) { ?>
 			<a href="<?php echo $link['url'] ?>" <?php $link['target'] === '_blank' ? 'target="_blank"' : '' ?>
 				class="block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg">
 				<?php echo $title; ?>
 			</a>
+		<?php } else if ( $title ) { ?>
+			<div class="block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
+				<?php echo $title; ?></div>
 		<?php } ?>
 
 		<?php if ( $excerpt ) { ?>
@@ -82,6 +87,17 @@ if ( $featured_image ) {
 				<?php } ?>
 			</div>
 		<?php } ?>
+
+		<?php if ( $link['url'] != '#' && $link_type == 'button' ) { 
+			get_component( 'button', [ 
+				'link'        => $link['url'],
+				'label'       => $link['text'],
+				'a_tag'       => true,
+				'link_target' => $link['target'],
+				'suffix_icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
+				'variant'     => 'secondary',
+			] );	
+		} ?>
 	</div>
 
 	<?php if ( $image ) { ?>
