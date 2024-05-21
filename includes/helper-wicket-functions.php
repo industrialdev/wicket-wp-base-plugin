@@ -91,6 +91,54 @@ function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8) {
 }
 
 /**------------------------------------------------------------------
+* Generate access token for Org widgets
+* This endpoint will return an access token that lets you use the profile + additional info widget on any org. 
+* You will need to know the person uuid (the person currently logged into the website) and the organization uuid so you can provide it to the widget_tokens endpoint
+------------------------------------------------------------------*/
+function wicket_get_access_token($person_id, $org_uuid){
+  $client = wicket_api_client();
+
+  $payload = [
+    'data' => [
+      'type' => 'widget_tokens',
+      'attributes' => [
+        "widget_context" => "organizations",
+      ],
+      'relationships' => [
+        'subject' => [
+          'data' => [
+            'type' => 'people',
+            'id' => $person_id
+          ]
+        ],
+        'resource' => [
+          'data' => [
+            'type' => "organizations",
+            'id' => $org_uuid,
+          ]
+        ]
+      ],
+    ]
+  ];
+
+  try {
+    $token = $client->post("widget_tokens", ['json' => $payload]);
+    return $token['token'];
+  } catch (Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($e->getMessage());
+    // echo "</pre>";
+    //
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+    // die;
+  }
+  return false;
+}
+
+/**------------------------------------------------------------------
 * Get current person wicket personUuid
 ------------------------------------------------------------------*/
 function wicket_current_person_uuid(){
