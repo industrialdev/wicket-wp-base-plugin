@@ -24,12 +24,18 @@ if ( have_rows( 'social_media_links', 'option' ) ) : ?>
 	<ul class="<?php echo implode( ' ', $classes ) ?>">
 		<?php while ( have_rows( 'social_media_links', 'option' ) ) :
 			the_row(); ?>
+			<?php 
+				$icon           = 'fab fa-' . get_row_layout() . ' fa-fw';
+				if( get_row_layout() == 'custom_other' ) {
+					$icon = get_sub_field( 'fontawesome_icon_classes' );
+				}
+			?>
 			<li>
 				<?php get_component( 'button', [ 
 					'size'               => 'sm',
 					'variant'            => $button_variant,
 					'label'              => '',
-					'prefix_icon'        => 'fab fa-' . get_row_layout() . ' fa-fw',
+					'prefix_icon'        => $icon,
 					'reversed'           => $reversed,
 					'rounded'            => true,
 					'a_tag'              => true,

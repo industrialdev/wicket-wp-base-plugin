@@ -94,7 +94,7 @@ if ( $rounded_corners ) {
 
 		<div>
 			<?php if ( $display_text ) { ?>
-				<div class="text-heading-xs text-dark-100 font-bold leading-7">
+				<div class="text-heading-xs text-dark-100 font-bold leading-7 mb-1">
 					<?php echo $display_text; ?>
 				</div>
 			<?php } ?>

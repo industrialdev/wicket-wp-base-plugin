@@ -265,8 +265,14 @@
     margin-top: 1rem;
     margin-bottom: 1rem
 }
+.-mb-3 {
+    margin-bottom: -0.75rem
+}
 .mb-0 {
     margin-bottom: 0px
+}
+.mb-1 {
+    margin-bottom: 0.25rem
 }
 .mb-10 {
     margin-bottom: 2.5rem
@@ -1061,6 +1067,9 @@
 .text-body-lg {
     font-size: 20px
 }
+.text-body-md {
+    font-size: 16px
+}
 .text-body-sm {
     font-size: 14px
 }
@@ -1106,6 +1115,10 @@
 .leading-normal {
     line-height: 1.6
 }
+.text-dark-060 {
+    --tw-text-opacity: 1;
+    color: rgb(42 50 59 / var(--tw-text-opacity))
+}
 .text-dark-070 {
     --tw-text-opacity: 1;
     color: rgb(40 48 56 / var(--tw-text-opacity))
@@ -1118,9 +1131,9 @@
     --tw-text-opacity: 1;
     color: rgb(35 42 49 / var(--tw-text-opacity))
 }
-.text-light-090 {
+.text-light-040 {
     --tw-text-opacity: 1;
-    color: rgb(140 140 140 / var(--tw-text-opacity))
+    color: rgb(204 204 204 / var(--tw-text-opacity))
 }
 .text-primary-100 {
     --tw-text-opacity: 1;
@@ -1756,6 +1769,10 @@
     -webkit-box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)
 }
+.group.has-value .group-\[\.has-value\]\:text-dark-100 {
+    --tw-text-opacity: 1;
+    color: rgb(35 42 49 / var(--tw-text-opacity))
+}
 @container (min-width: 28rem) {
     .\@md\:flex-row {
         -webkit-box-orient: horizontal;
@@ -1808,6 +1825,9 @@
         -webkit-align-items: center;
         -ms-flex-align: center;
         align-items: center
+    }
+    .\@2xl\:text-body-lg {
+        font-size: 20px
     }
     .\@2xl\:text-heading-md {
         font-size: clamp(1.5rem, 2vw + 1rem, 1.75rem)
