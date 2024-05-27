@@ -73,7 +73,7 @@ if ( $image_position === 'right' ) {
 			</div>
 		<?php } ?>
 
-		<div class="flex flex-col grow items-start gap-3">
+		<div class="component-card-featured__content-wrapper flex flex-col grow items-start gap-3">
 
 			<?php if ( $content_type ) { ?>
 				<div class="component-card-featured__content-type text-dark-070 uppercase font-bold leading-none">
