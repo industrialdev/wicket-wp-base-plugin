@@ -34,13 +34,13 @@ $title_classes         = [ 'component-card-featured__title block text-dark-100 f
 
 if ( $image_position === 'top' ) {
 	$classes[]               = '@2xl:flex-col @2xl:items-center';
-	$image_wrapper_classes[] = '@2xl:basis-1/2';
+	$image_wrapper_classes[] = 'component-card-featured__image-wrapper @2xl:basis-1/2';
 	$title_classes[]         = '@2xl:text-heading-md';
 }
 
 if ( $image_position === 'left' ) {
 	$classes[]               = '@2xl:flex-row @2xl:items-start justify-between';
-	$image_wrapper_classes[] = 'hidden @lg:block basis-1/4 flex-none';
+	$image_wrapper_classes[] = 'component-card-featured__image-wrapper hidden @lg:block basis-1/4 flex-none';
 }
 
 if ( $image_position === 'right' ) {
