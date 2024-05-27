@@ -1,6 +1,7 @@
 <?php
 $defaults       = array(
 	'classes'        => [],
+	'post_type'      => '',
 	'content_type'   => '',
 	'title'          => '',
 	'excerpt'        => '',
@@ -14,6 +15,7 @@ $defaults       = array(
 );
 $args           = wp_parse_args( $args, $defaults );
 $classes        = $args['classes'];
+$post_type      = $args['post_type'];
 $content_type   = $args['content_type'];
 $title          = $args['title'];
 $excerpt        = $args['excerpt'];
@@ -26,6 +28,7 @@ $cta            = $args['cta'];
 $cta_label      = $args['cta_label'];
 
 $classes[]             = 'component-card-featured bg-white shadow-4 flex flex-col gap-4 relative';
+$classes[]             = 'component-card-featured--' . $post_type;
 $image_wrapper_classes = [];
 $title_classes         = [ 'component-card-featured__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
 
@@ -42,7 +45,7 @@ if ( $image_position === 'left' ) {
 
 if ( $image_position === 'right' ) {
 	$classes[]               = '@2xl:flex-row-reverse lg:flex-row-reverse @2xl:items-start justify-between';
-	$image_wrapper_classes[] = 'hidden @lg:block basis-1/4 flex-none';
+	$image_wrapper_classes[] = 'component-card-featured__image-wrapper hidden @lg:block basis-1/4 flex-none';
 }
 
 ?>
