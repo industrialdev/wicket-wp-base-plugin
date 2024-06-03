@@ -1,5 +1,5 @@
 <?php
-$defaults  = array(
+$defaults          = array(
 	'classes'           => [],
 	'title'             => '',
 	'subtitle'          => '',
@@ -7,9 +7,9 @@ $defaults  = array(
 	'pre_heading'       => '',
 	'excerpt'           => '',
 	'link'              => [ 
-		'url'            => '#',
-		'text'           => 'Go somewhere',
-		'target'         => '_self',
+		'url'    => '#',
+		'text'   => 'Go somewhere',
+		'target' => '_self',
 	],
 	'cta_style'         => 'link',
 	'image'             => '',
@@ -40,9 +40,9 @@ $classes[] = 'component-card p-4 bg-white shadow-4 flex flex-col gap-4 relative 
 			</div>
 		<?php } ?>
 
-		<div class="flex flex-col gap-4">
+		<div class="component-card__container flex flex-col gap-4">
 
-		<?php if ( $pre_heading ) { ?>
+			<?php if ( $pre_heading ) { ?>
 				<div class="block uppercase text-dark-060 font-semibold leading-7 text-body-md @2xl:text-body-lg -mb-3">
 					<?php echo $pre_heading; ?>
 				</div>
