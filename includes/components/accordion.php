@@ -17,9 +17,15 @@ $initial_open_item_id  = $args['initial-open-item-id'];
 
 $font_awesome_icon_open = 'fa-solid fa-minus';
 $font_awesome_icon_closed = 'fa-solid fa-plus';
+
 if( $icon_type == 'chevrons' ) {
   $font_awesome_icon_open = 'fa-solid fa-circle-chevron-up';
   $font_awesome_icon_closed = 'fa-solid fa-circle-chevron-down';
+}
+
+if ( $icon_type == 'carets') {
+  $font_awesome_icon_open = 'fa-solid fa-caret-up';
+  $font_awesome_icon_closed = 'fa-solid fa-caret-down';
 }
 
 // Determine initial open item, if any
@@ -38,7 +44,7 @@ $classes[] = 'component-accordion @container w-full';
 $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--preset--color--light);"';
 ?>
 
-<div 
+<div
   class="<?php echo implode( ' ', $classes ); ?>"
   <?php if(!is_admin()) { echo "x-data='{ openAccordion: ".$initial_open_item_id." }'"; } ?>
   <?php if( is_admin() && empty($items) ){ echo $placeholder_styles; } ?>
@@ -48,15 +54,15 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
   <p><?php _e('Use the Block controls in edit mode or on the right to add accordion items.', 'wicket'); ?></p>
   <?php endif; ?>
 
-  <?php 
+  <?php
   $i = 0;
-  foreach( $items as $item ) : 
+  foreach( $items as $item ) :
     $show_toggle_icon = true;
     if( isset( $item['show_toggle_icon'] ) ) {
       $show_toggle_icon = $item['show_toggle_icon'];
     }
     ?>
-    <div 
+    <div
       class="accordion-item p-2 hover:cursor-pointer <?php if($accordion_type == 'card'){ echo 'rounded-100 border border-primary-060 mb-3'; } else { echo 'border-b border-primary-060 border-solid '; } if( $i == 0 && $accordion_type == 'list' ) { echo ' border-t'; } ?>"
       x-bind:class="openAccordion == <?php echo $i; ?> ? 'border-b-4 bg-tertiary-010 bg-opacity-20 open <?php if($accordion_type == 'card') { echo 'border-light-120'; } ?>' : ''"
       x-bind:aria-expanded="openAccordion == <?php echo $i; ?> ? 'true' : 'false'"
@@ -74,14 +80,14 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
             <?php echo $item['title']; ?>
           <?php endif; ?>
         </h4>
-        <?php 
+        <?php
           if( $show_toggle_icon ) {
-            get_component( 'icon', [ 
+            get_component( 'icon', [
               'icon' => $font_awesome_icon_open,
               'classes' => ['text-heading-md', 'text-primary-100', 'ml-4'],
               'atts' => ["x-show='openAccordion == " . $i . "'"]
             ] );
-            get_component( 'icon', [ 
+            get_component( 'icon', [
               'icon' => $font_awesome_icon_closed,
               'classes' => ['text-heading-md', 'text-primary-100', 'ml-4'],
               'atts' => ["x-show='openAccordion != " . $i . "'"]
@@ -90,7 +96,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
         ?>
       </div>
       <?php if( !$separate_title_body ): ?>
-      <div 
+      <div
         class="mt-1 pr-12"
         x-show="openAccordion == <?php echo $i; ?>"
         x-transition
@@ -113,7 +119,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
             'url'      => $item['call_to_action']['link_and_label']['url'],
             'target'   => $item['call_to_action']['link_and_label']['target'],
             'classes'  => ['mt-4', 'block', 'font-bold'],
-            'icon_end' => [ 
+            'icon_end' => [
               'icon' => $item['call_to_action']['link_and_label']['target'] == '_blank' ? 'fa-solid fa-arrow-up-right-from-square' : '',
             ],
           ] );
@@ -124,7 +130,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
     </div>
 
     <?php if( $separate_title_body ): ?>
-    <div 
+    <div
       class="py-4 px-12 <?php if($accordion_type == 'list') { echo 'border-b border-primary-060'; } ?>"
       x-show="openAccordion == <?php echo $i; ?>"
       x-transition
@@ -147,7 +153,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
             'url'      => $item['call_to_action']['link_and_label']['url'],
             'target'   => $item['call_to_action']['link_and_label']['target'],
             'classes'  => ['mt-4', 'block', 'font-bold'],
-            'icon_end' => [ 
+            'icon_end' => [
               'icon' => $item['call_to_action']['link_and_label']['target'] == '_blank' ? 'fa-solid fa-arrow-up-right-from-square' : '',
             ],
           ] );
@@ -155,8 +161,8 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
     </div>
     <?php endif; ?>
 
-    <?php 
+    <?php
     $i++;
-  endforeach; 
+  endforeach;
   ?>
 </div>
