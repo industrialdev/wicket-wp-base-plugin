@@ -5,6 +5,11 @@
 This plugin is not available in the WordPress.org plugin repository. It is distributed to Wicket clients for implementation by a developer who will add the plugin according to the project code process.
 If using a non-composerized install of wordpress (i.e. bedrock), you must follow these steps to gain the vendor folder within the plugin.
 
+Add this to the require section within the composer.json at the root of the plugin:
+```
+"industrialdev/wicket-sdk-php": "dev-master"
+```
+
 Add this to the bottom of the object in composer.json at the root of the plugin:
 ```
   "repositories": [
