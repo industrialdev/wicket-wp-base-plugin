@@ -21,5 +21,7 @@ Add this to the bottom of the object in composer.json at the root of the plugin:
 ```
 Then run "composer install" within the plugin directory. You may have to remove the composer.lock first if this doesnt run. You'll know when this worked when you look in vendor and see the "industrialdev" folder
 
+If you are running bedrock, you can just add both of those things above to the root composer.json for you entire site
+
 ## Style Notes
 There is a placeholder theme.json file in the root of the plugin folder that is only there to provide an easy 'default styles' reference to Tailwind (WordPress should ignore it just fine), should we need to use fallback styles on a site that isn't running a Wicket theme. There is a similar fallback enqueue for Alpine in that scenario as well.
