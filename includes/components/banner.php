@@ -182,7 +182,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					<?php get_component( 'image', [ 
 						'id'      => $featured_image['id'],
 						'alt'     => $featured_image['alt'],
-						'classes' => [ 'lg:max-h-[425px] ml-auto' ],
+						'classes' => [ 'component-banner__featured-image lg:max-h-[425px] ml-auto' ],
 					] ); ?>
 				</div>
 			<?php elseif ( ! empty( $call_to_action ) && $call_to_action['title'] ) : ?>
@@ -225,7 +225,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			'id'           => $background_image['id'],
 			'alt'          => $background_image['alt'],
 			'aspect_ratio' => '3/2',
-			'classes'      => [ 'absolute inset-0 w-full h-full object-cover object-center z-0 opacity-[.1]' ],
+			'classes'      => [ 'component-banner__bg-image absolute inset-0 w-full h-full object-cover object-center z-0 opacity-[.1]' ],
 		] );
 	} ?>
 </div>
