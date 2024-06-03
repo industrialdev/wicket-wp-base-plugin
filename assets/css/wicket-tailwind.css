@@ -206,6 +206,10 @@
 .relative {
     position: relative
 }
+.sticky {
+    position: -webkit-sticky;
+    position: sticky
+}
 .inset-0 {
     inset: 0px
 }
@@ -297,6 +301,9 @@
 }
 .ml-auto {
     margin-left: auto
+}
+.mr-2 {
+    margin-right: 0.5rem
 }
 .mr-3 {
     margin-right: 0.75rem
@@ -993,6 +1000,9 @@
 .p-2 {
     padding: 0.5rem
 }
+.p-3 {
+    padding: 0.75rem
+}
 .p-4 {
     padding: 1rem
 }
@@ -1002,6 +1012,10 @@
 .p-6 {
     padding: 1.5rem
 }
+.px-1 {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem
+}
 .px-12 {
     padding-left: 3rem;
     padding-right: 3rem
@@ -1009,6 +1023,10 @@
 .px-4 {
     padding-left: 1rem;
     padding-right: 1rem
+}
+.py-10 {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem
 }
 .py-3 {
     padding-top: 0.75rem;

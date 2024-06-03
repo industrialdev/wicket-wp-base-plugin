@@ -69,6 +69,9 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			// Include wicket shortcodes
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
+			// Include internal API endpoints
+			include_once WICKET_PLUGIN_DIR . 'includes/wicket-internal-endpoints.php';
+
 			// Include wicket components
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
 
