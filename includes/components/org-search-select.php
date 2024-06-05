@@ -7,17 +7,60 @@ $classes                         = $args['classes'];
 $searchMode                      = 'org'; // Options: org, groups, ...
 $relationshipTypeUponOrgCreation = 'employee';
 
+// Check if this person already has a connection to this org, and if so delete it first
+$current_connections = wicket_get_person_connections();
+$person_to_org_connections = [];
+foreach( $current_connections['data'] as $connection ) {
+  $connection_id = $connection['id'];
+  if( isset( $connection['attributes']['connection_type'] ) ) {
+    if( $connection['attributes']['connection_type'] == 'person_to_organization' ) {
+        $person_to_org_connections[] = [
+          'connection_id' => $connection['id'],
+          'starts_at'     => $connection['attributes']['starts_at'],
+          'ends_at'       => $connection['attributes']['ends_at'],
+          'tags'          => $connection['attributes']['tags'],
+          'active'        => $connection['attributes']['active'],
+          'org_id'        => $connection['relationships']['organization']['data']['id'],
+          'person_id'     => $connection['relationships']['person']['data']['id'],
+        ];
+    }
+  }
+}
 
-// TODO: Check current user org relationship to see if they already have a selected org,
-// and if so populate selectedOrgUuid in Apline
 
 ?>
 
-<div class="container component-org-search-select " x-data="orgss">
+<div class="container component-org-search-select " x-data="orgss" x-init="init">
 
   <?php // TODO: add conditional CTA displaying the currently selected UUID ?>
 
   <form class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3" x-on:submit="handleSubmit">
+    <div x-show="personToOrgConnections.length > 0" x-cloak>
+      <h2 class="font-bold text-heading-md my-3">Your Current Organization(s)</h2>
+      <template x-for="(connection, index) in personToOrgConnections" :key="connection.connection_id">
+        <div class="rounded-100 bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
+          <div class="font-bold text-body-md">Org type</div>
+          <div class="flex mb-2 items-center">
+            <div x-text="" class="font-bold text-heading-sm mr-5">Org name</div>
+            <div>
+              <template x-if="connection.active">
+                <div>
+                  <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span>Active Membership</span>
+                </div>
+              </template>
+              <template x-if="! connection.active">
+                <div>
+                  <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span>Inactive Membership</span>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div class="mb-3">Parent Organization</div>
+          <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </div>
+        </div>
+      </template>
+    </div>
+    
     <div class="flex">
       <input type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" x-model="searchBox" />
       <?php get_component( 'button', [ 
@@ -71,8 +114,13 @@ $relationshipTypeUponOrgCreation = 'employee';
             searchBox: '',
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
+            //personToOrgConnections: JSON.parse(JSON.stringify(<?php echo json_encode( $person_to_org_connections, JSON_FORCE_OBJECT ); ?>)),
+            personToOrgConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
 
- 
+
+            init() {
+              console.log(this.personToOrgConnections);
+            },
             handleSubmit(e) {
               e.preventDefault();
 
