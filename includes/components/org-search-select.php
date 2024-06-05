@@ -13,15 +13,52 @@ $person_to_org_connections = [];
 foreach( $current_connections['data'] as $connection ) {
   $connection_id = $connection['id'];
   if( isset( $connection['attributes']['connection_type'] ) ) {
+    // TODO: Make component configurable to focus on different 'types' of orgs, and also groups
     if( $connection['attributes']['connection_type'] == 'person_to_organization' ) {
+        $org_info = wicket_get_organization( $connection['relationships']['organization']['data']['id'] );
+
+        //wicket_write_log( $org_info, true );
+
+        $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
+        $org_parent_name = '';
+        if( !empty( $org_parent_id ) ) {
+          $org_parent_info = wicket_get_organization( $org_parent_id );
+        }
+
+        if( defined( 'ICL_LANGUAGE_CODE' ) ) {
+          // French
+          if( ICL_LANGUAGE_CODE == 'fr' ) {
+            $org_name = $org_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
+            $org_description = $org_info['data']['attributes']['description_fr'] ?? $org_info['data']['attributes']['description'];
+            
+            if( isset( $org_parent_info ) ) {
+              $org_parent_name = $org_parent_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
+            }
+          } 
+        } else {
+          // English
+          $org_name = $org_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
+          $org_description = $org_info['data']['attributes']['description_en'] ?? $org_info['data']['attributes']['description'];
+
+          if( isset( $org_parent_info ) ) {
+            $org_parent_name = $org_parent_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
+          }
+        }
+
         $person_to_org_connections[] = [
-          'connection_id' => $connection['id'],
-          'starts_at'     => $connection['attributes']['starts_at'],
-          'ends_at'       => $connection['attributes']['ends_at'],
-          'tags'          => $connection['attributes']['tags'],
-          'active'        => $connection['attributes']['active'],
-          'org_id'        => $connection['relationships']['organization']['data']['id'],
-          'person_id'     => $connection['relationships']['person']['data']['id'],
+          'connection_id'   => $connection['id'],
+          'starts_at'       => $connection['attributes']['starts_at'],
+          'ends_at'         => $connection['attributes']['ends_at'],
+          'tags'            => $connection['attributes']['tags'],
+          'active'          => $connection['attributes']['active'],
+          'org_id'          => $connection['relationships']['organization']['data']['id'],
+          'org_name'        => $org_name,
+          'org_description' => $org_description,
+          'org_type'        => $org_info['data']['attributes']['type'] ?? '',
+          'org_status'      => $org_info['data']['attributes']['status'] ?? '',
+          'org_parent_id'   => $org_parent_id ?? '',
+          'org_parent_name' => $org_parent_name ?? '',
+          'person_id'       => $connection['relationships']['person']['data']['id'],
         ];
     }
   }
@@ -39,9 +76,9 @@ foreach( $current_connections['data'] as $connection ) {
       <h2 class="font-bold text-heading-md my-3">Your Current Organization(s)</h2>
       <template x-for="(connection, index) in personToOrgConnections" :key="connection.connection_id">
         <div class="rounded-100 bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
-          <div class="font-bold text-body-md">Org type</div>
+          <div class="font-bold text-body-md" x-text="connection.org_type"></div>
           <div class="flex mb-2 items-center">
-            <div x-text="" class="font-bold text-heading-sm mr-5">Org name</div>
+            <div x-text="connection.org_name" class="font-bold text-heading-sm mr-5"></div>
             <div>
               <template x-if="connection.active">
                 <div>
@@ -55,8 +92,8 @@ foreach( $current_connections['data'] as $connection ) {
               </template>
             </div>
           </div>
-          <div class="mb-3">Parent Organization</div>
-          <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. </div>
+          <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
+          <div x-text="connection.org_descriptino"></div>
         </div>
       </template>
     </div>
@@ -114,7 +151,6 @@ foreach( $current_connections['data'] as $connection ) {
             searchBox: '',
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
-            //personToOrgConnections: JSON.parse(JSON.stringify(<?php echo json_encode( $person_to_org_connections, JSON_FORCE_OBJECT ); ?>)),
             personToOrgConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
 
 
