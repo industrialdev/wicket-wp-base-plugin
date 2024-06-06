@@ -6,6 +6,11 @@ $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
 $searchMode                      = 'org'; // Options: org, groups, ...
 $relationshipTypeUponOrgCreation = 'employee';
+$relationshipMode                = 'person_to_organization';
+
+// TODO: Make component configurable to focus on different 'types' of orgs, and also groups
+
+$current_person_uuid = wicket_current_person_uuid();
 
 // Check if this person already has a connection to this org, and if so delete it first
 $current_connections = wicket_get_person_connections();
@@ -13,54 +18,61 @@ $person_to_org_connections = [];
 foreach( $current_connections['data'] as $connection ) {
   $connection_id = $connection['id'];
   if( isset( $connection['attributes']['connection_type'] ) ) {
-    // TODO: Make component configurable to focus on different 'types' of orgs, and also groups
-    if( $connection['attributes']['connection_type'] == 'person_to_organization' ) {
-        $org_info = wicket_get_organization( $connection['relationships']['organization']['data']['id'] );
+    $org_info = wicket_get_organization( $connection['relationships']['organization']['data']['id'] );
 
-        //wicket_write_log( $org_info, true );
+    //wicket_write_log( $org_info, true );
 
-        $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
-        $org_parent_name = '';
-        if( !empty( $org_parent_id ) ) {
-          $org_parent_info = wicket_get_organization( $org_parent_id );
-        }
-
-        if( defined( 'ICL_LANGUAGE_CODE' ) ) {
-          // French
-          if( ICL_LANGUAGE_CODE == 'fr' ) {
-            $org_name = $org_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
-            $org_description = $org_info['data']['attributes']['description_fr'] ?? $org_info['data']['attributes']['description'];
-            
-            if( isset( $org_parent_info ) ) {
-              $org_parent_name = $org_parent_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
-            }
-          } 
-        } else {
-          // English
-          $org_name = $org_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
-          $org_description = $org_info['data']['attributes']['description_en'] ?? $org_info['data']['attributes']['description'];
-
-          if( isset( $org_parent_info ) ) {
-            $org_parent_name = $org_parent_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
-          }
-        }
-
-        $person_to_org_connections[] = [
-          'connection_id'   => $connection['id'],
-          'starts_at'       => $connection['attributes']['starts_at'],
-          'ends_at'         => $connection['attributes']['ends_at'],
-          'tags'            => $connection['attributes']['tags'],
-          'active'          => $connection['attributes']['active'],
-          'org_id'          => $connection['relationships']['organization']['data']['id'],
-          'org_name'        => $org_name,
-          'org_description' => $org_description,
-          'org_type'        => $org_info['data']['attributes']['type'] ?? '',
-          'org_status'      => $org_info['data']['attributes']['status'] ?? '',
-          'org_parent_id'   => $org_parent_id ?? '',
-          'org_parent_name' => $org_parent_name ?? '',
-          'person_id'       => $connection['relationships']['person']['data']['id'],
-        ];
+    $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
+    $org_parent_name = '';
+    if( !empty( $org_parent_id ) ) {
+      $org_parent_info = wicket_get_organization( $org_parent_id );
     }
+
+    if( defined( 'ICL_LANGUAGE_CODE' ) ) {
+      // French
+      if( ICL_LANGUAGE_CODE == 'fr' ) {
+        $org_name = $org_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
+        $org_description = $org_info['data']['attributes']['description_fr'] ?? $org_info['data']['attributes']['description'];
+        
+        if( isset( $org_parent_info ) ) {
+          $org_parent_name = $org_parent_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
+        }
+      } 
+    } else {
+      // English
+      $org_name = $org_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
+      $org_description = $org_info['data']['attributes']['description_en'] ?? $org_info['data']['attributes']['description'];
+
+      if( isset( $org_parent_info ) ) {
+        $org_parent_name = $org_parent_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
+      }
+    }
+
+    // Org type
+    $org_type = '';
+    if( !empty( $org_info['data']['attributes']['type'] ) ) {
+      // TODO: Dig the proper UI name for the enum out of the schema, if needed in other cases
+      $org_type = $org_info['data']['attributes']['type'];
+      $org_type = str_replace( '_', ' ', $org_type );
+      $org_type = ucfirst( $org_type );
+    }
+
+    $person_to_org_connections[] = [
+      'connection_id'   => $connection['id'],
+      'connection_type' => $connection['attributes']['connection_type'],
+      'starts_at'       => $connection['attributes']['starts_at'],
+      'ends_at'         => $connection['attributes']['ends_at'],
+      'tags'            => $connection['attributes']['tags'],
+      'active'          => $connection['attributes']['active'],
+      'org_id'          => $connection['relationships']['organization']['data']['id'],
+      'org_name'        => $org_name,
+      'org_description' => $org_description,
+      'org_type'        => $org_type,
+      'org_status'      => $org_info['data']['attributes']['status'] ?? '',
+      'org_parent_id'   => $org_parent_id ?? '',
+      'org_parent_name' => $org_parent_name ?? '',
+      'person_id'       => $connection['relationships']['person']['data']['id'],
+    ];
   }
 }
 
@@ -72,32 +84,56 @@ foreach( $current_connections['data'] as $connection ) {
   <?php // TODO: add conditional CTA displaying the currently selected UUID ?>
 
   <form class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3" x-on:submit="handleSubmit">
-    <div x-show="personToOrgConnections.length > 0" x-cloak>
+    <div x-show="currentConnections.length > 0" x-cloak>
       <h2 class="font-bold text-heading-md my-3">Your Current Organization(s)</h2>
-      <template x-for="(connection, index) in personToOrgConnections" :key="connection.connection_id">
-        <div class="rounded-100 bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
-          <div class="font-bold text-body-md" x-text="connection.org_type"></div>
-          <div class="flex mb-2 items-center">
-            <div x-text="connection.org_name" class="font-bold text-heading-sm mr-5"></div>
+
+      <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
+        <div x-show="connection.connection_type == relationshipMode" class="rounded-100 flex justify-between bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
+          <div class="current-org-listing-left">
+            <div class="font-bold text-body-md" x-text="connection.org_type"></div>
+            <div class="flex mb-2 items-center">
+              <div x-text="connection.org_name" class="font-bold text-heading-sm mr-5"></div>
+              <div>
+                <template x-if="connection.active">
+                  <div>
+                    <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span>Active Membership</span>
+                  </div>
+                </template>
+                <template x-if="! connection.active">
+                  <div>
+                    <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span>Inactive Membership</span>
+                  </div>
+                </template>
+              </div>
+            </div>
+            <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
+            <div x-text="connection.org_description"></div>
+          </div>
+          <div class="current-org-listing-right flex items-center">
             <div>
-              <template x-if="connection.active">
-                <div>
-                  <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span>Active Membership</span>
-                </div>
-              </template>
-              <template x-if="! connection.active">
-                <div>
-                  <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span>Inactive Membership</span>
-                </div>
-              </template>
+              <?php get_component( 'button', [ 
+                'variant'  => 'primary',
+                'label'    => __( 'Terminate Relationship', 'wicket' ),
+                'reversed' => true,
+                'type'     => 'button',
+                'classes'  => [ '' ],
+                'atts'     => [ 'x-on:click="terminateRelationship($data.connection.connection_id)"',  ]
+              ] ); ?>
+              <?php get_component( 'button', [ 
+                'variant'  => 'primary',
+                'label'    => __( 'Select Organization', 'wicket' ),
+                'type'     => 'button',
+                'classes'  => [ '' ],
+                'atts'     => [ 'x-on:click="selectOrg($data.connection.org_id)"',  ]
+              ] ); ?>
             </div>
           </div>
-          <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
-          <div x-text="connection.org_descriptino"></div>
         </div>
       </template>
     </div>
     
+    <div class="font-bold text-heading-sm mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different organization?' : 'Search for your organization' "></div>
+
     <div class="flex">
       <input type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" x-model="searchBox" />
       <?php get_component( 'button', [ 
@@ -128,7 +164,7 @@ foreach( $current_connections['data'] as $connection ) {
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ], 
-              'atts'     => [ 'x-on:click="selectOrg($data.result.org_id)"',  ]
+              'atts'     => [ 'x-on:click="selectOrgAndCreateRelationship($data.result.org_id)"',  ]
             ] ); ?>
           </div>
         </template>
@@ -147,15 +183,17 @@ foreach( $current_connections['data'] as $connection ) {
             firstSearchSubmitted: false,
             searchType: '<?php echo $searchMode; ?>',
             relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
+            relationshipMode: '<?php echo $relationshipMode; ?>',
             selectedOrgUuid: '',
             searchBox: '',
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
-            personToOrgConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
+            currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
+            currentPersonUuid: "<?php echo $current_person_uuid; ?>",
 
 
             init() {
-              console.log(this.personToOrgConnections);
+              //console.log(this.currentConnections);
             },
             handleSubmit(e) {
               e.preventDefault();
@@ -170,7 +208,6 @@ foreach( $current_connections['data'] as $connection ) {
               }
             },
             async searchOrgs( searchTerm ) {
-              //console.log(`Searching orgs by term ${searchTerm}`);
               let data = {
                 "searchTerm": searchTerm,
               };
@@ -208,18 +245,95 @@ foreach( $current_connections['data'] as $connection ) {
             selectOrg( orgUuid ) {
               this.selectedOrgUuid = orgUuid;
             },
+            selectOrgAndCreateRelationship( orgUuid ) {
+              this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
+              this.selectOrg( orgUuid );
+            },
             searchGroups( searchTerm ) {
               console.log(`Searching groups by term ${searchTerm}`);
               //
             },
-            createOrgRelationship( userUuid, orgUuid ) {
-                //
+            async createRelationship( fromUuid, toUuid, relationshipType, userRoleInRelationship ) {
+              console.log('Create relationship called');
+
+              let data = {
+                "fromUuid"              : fromUuid,
+                "toUuid"                : toUuid,
+                "relationshipType"      : relationshipType,
+                "userRoleInRelationship": userRoleInRelationship,
+              };
+
+              let results = await fetch(this.apiUrl + 'create-relationship', {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+              }).then(response => response.json())
+                .then(data => { 
+                  if( !data.success ) {
+                    // Handle error
+                  } else {
+                    if( data.success ) {
+                      console.log(data);
+                      //this.removeConnection( connectionId );
+                    }
+
+                  }
+                });
+              
             },
-            terminateOrgRelationship( userUuid, orgUuid ) {
-                //
+
+            async terminateRelationship( connectionId ) {
+              let data = {
+                "connectionId": connectionId,
+              };
+
+              let results = await fetch(this.apiUrl + 'terminate-relationship', {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+              }).then(response => response.json())
+                .then(data => { 
+                  if( !data.success ) {
+                    // Handle error
+                  } else {
+                    if( data.success ) {
+                      this.removeConnection( connectionId );
+                    }
+
+                  }
+                });
+              
             },
             createOrg( name, address ) {
                 //
+            },
+            removeConnection( connectionId ) {
+              let connections = this.currentConnections;
+
+              console.log(connections);
+              connections.forEach( (val, i, array) => {
+                if( val.connection_id == connectionId ) {
+                  array.splice( i, 1 );
+                }
+              } );
+
+              this.currentConnections = connections;
             },
         }))
     })
