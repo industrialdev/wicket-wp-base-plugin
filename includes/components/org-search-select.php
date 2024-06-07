@@ -18,44 +18,8 @@ $person_to_org_connections = [];
 foreach( $current_connections['data'] as $connection ) {
   $connection_id = $connection['id'];
   if( isset( $connection['attributes']['connection_type'] ) ) {
-    $org_info = wicket_get_organization( $connection['relationships']['organization']['data']['id'] );
-
-    //wicket_write_log( $org_info, true );
-
-    $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
-    $org_parent_name = '';
-    if( !empty( $org_parent_id ) ) {
-      $org_parent_info = wicket_get_organization( $org_parent_id );
-    }
-
-    if( defined( 'ICL_LANGUAGE_CODE' ) ) {
-      // French
-      if( ICL_LANGUAGE_CODE == 'fr' ) {
-        $org_name = $org_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
-        $org_description = $org_info['data']['attributes']['description_fr'] ?? $org_info['data']['attributes']['description'];
-        
-        if( isset( $org_parent_info ) ) {
-          $org_parent_name = $org_parent_info['data']['attributes']['legal_name_fr'] ?? $org_info['data']['attributes']['legal_name'];
-        }
-      } 
-    } else {
-      // English
-      $org_name = $org_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
-      $org_description = $org_info['data']['attributes']['description_en'] ?? $org_info['data']['attributes']['description'];
-
-      if( isset( $org_parent_info ) ) {
-        $org_parent_name = $org_parent_info['data']['attributes']['legal_name_en'] ?? $org_info['data']['attributes']['legal_name'];
-      }
-    }
-
-    // Org type
-    $org_type = '';
-    if( !empty( $org_info['data']['attributes']['type'] ) ) {
-      // TODO: Dig the proper UI name for the enum out of the schema, if needed in other cases
-      $org_type = $org_info['data']['attributes']['type'];
-      $org_type = str_replace( '_', ' ', $org_type );
-      $org_type = ucfirst( $org_type );
-    }
+    $org_id = $connection['relationships']['organization']['data']['id'];
+    $org_info = wicket_get_organization_basic_info( $org_id );
 
     $person_to_org_connections[] = [
       'connection_id'   => $connection['id'],
@@ -65,21 +29,26 @@ foreach( $current_connections['data'] as $connection ) {
       'tags'            => $connection['attributes']['tags'],
       'active'          => $connection['attributes']['active'],
       'org_id'          => $connection['relationships']['organization']['data']['id'],
-      'org_name'        => $org_name,
-      'org_description' => $org_description,
-      'org_type'        => $org_type,
-      'org_status'      => $org_info['data']['attributes']['status'] ?? '',
-      'org_parent_id'   => $org_parent_id ?? '',
-      'org_parent_name' => $org_parent_name ?? '',
+      'org_name'        => $org_info['org_name'],
+      'org_description' => $org_info['org_description'],
+      'org_type'        => $org_info['org_type_pretty'],
+      'org_status'      => $org_info['org_status'],
+      'org_parent_id'   => $org_info['org_parent_id'],
+      'org_parent_name' => $org_info['org_parent_name'],
       'person_id'       => $connection['relationships']['person']['data']['id'],
     ];
   }
 }
-
-
 ?>
 
 <div class="container component-org-search-select " x-data="orgss" x-init="init">
+
+  <div x-transition x-cloak 
+    class="flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
+    x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
+    >
+    <i class="fa-solid fa-arrows-rotate fa-spin"></i>
+  </div>
 
   <?php // TODO: add conditional CTA displaying the currently selected UUID ?>
 
@@ -113,18 +82,19 @@ foreach( $current_connections['data'] as $connection ) {
             <div>
               <?php get_component( 'button', [ 
                 'variant'  => 'primary',
-                'label'    => __( 'Terminate Relationship', 'wicket' ),
-                'reversed' => true,
-                'type'     => 'button',
-                'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click="terminateRelationship($data.connection.connection_id)"',  ]
-              ] ); ?>
-              <?php get_component( 'button', [ 
-                'variant'  => 'primary',
                 'label'    => __( 'Select Organization', 'wicket' ),
                 'type'     => 'button',
                 'classes'  => [ '' ],
                 'atts'     => [ 'x-on:click="selectOrg($data.connection.org_id)"',  ]
+              ] ); ?>
+              <?php get_component( 'button', [ 
+                'variant'  => 'primary',
+                'label'    => __( 'Remove', 'wicket' ),
+                'reversed' => true,
+                'suffix_icon' => 'fa-regular fa-trash',
+                'type'     => 'button',
+                'classes'  => [ '' ],
+                'atts'     => [ 'x-on:click="terminateRelationship($data.connection.connection_id)"',  ]
               ] ); ?>
             </div>
           </div>
@@ -146,11 +116,6 @@ foreach( $current_connections['data'] as $connection ) {
      <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching organizations (Selected org: <span x-text="selectedOrgUuid"></span>)</div>
      <div class="orgss-results">
       <div class="flex flex-col bg-white px-4">
-
-        <div x-show="isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10">
-          <i class="fa-solid fa-arrows-rotate fa-spin"></i>
-        </div>
-
         <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-xl py-4">
           Sorry, no organizations match your search. Please try again.
         </div>
@@ -199,7 +164,6 @@ foreach( $current_connections['data'] as $connection ) {
               e.preventDefault();
 
               this.results = [];
-              this.isLoading = true;
              
               if( this.searchType == 'org' ) {
                 this.searchOrgs( this.searchBox );
@@ -208,6 +172,8 @@ foreach( $current_connections['data'] as $connection ) {
               }
             },
             async searchOrgs( searchTerm ) {
+              this.isLoading = true;
+
               let data = {
                 "searchTerm": searchTerm,
               };
@@ -232,7 +198,6 @@ foreach( $current_connections['data'] as $connection ) {
                   if( !data.success ) {
                     // Handle error
                   } else {
-                    console.log(data.data);
                     this.isLoading = false;
                     this.results = data.data;
                     if( !this.firstSearchSubmitted ) {
@@ -254,8 +219,8 @@ foreach( $current_connections['data'] as $connection ) {
               //
             },
             async createRelationship( fromUuid, toUuid, relationshipType, userRoleInRelationship ) {
-              console.log('Create relationship called');
-
+              this.isLoading = true;
+              
               let data = {
                 "fromUuid"              : fromUuid,
                 "toUuid"                : toUuid,
@@ -277,12 +242,12 @@ foreach( $current_connections['data'] as $connection ) {
                 body: JSON.stringify(data),
               }).then(response => response.json())
                 .then(data => { 
+                  this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
                   } else {
                     if( data.success ) {
-                      console.log(data);
-                      //this.removeConnection( connectionId );
+                      this.addConnection( data.data );
                     }
 
                   }
@@ -291,6 +256,8 @@ foreach( $current_connections['data'] as $connection ) {
             },
 
             async terminateRelationship( connectionId ) {
+              this.isLoading = true;
+
               let data = {
                 "connectionId": connectionId,
               };
@@ -309,6 +276,7 @@ foreach( $current_connections['data'] as $connection ) {
                 body: JSON.stringify(data),
               }).then(response => response.json())
                 .then(data => { 
+                  this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
                   } else {
@@ -323,10 +291,12 @@ foreach( $current_connections['data'] as $connection ) {
             createOrg( name, address ) {
                 //
             },
+            addConnection( payload ) {
+              this.currentConnections.push(payload);
+            },
             removeConnection( connectionId ) {
               let connections = this.currentConnections;
 
-              console.log(connections);
               connections.forEach( (val, i, array) => {
                 if( val.connection_id == connectionId ) {
                   array.splice( i, 1 );

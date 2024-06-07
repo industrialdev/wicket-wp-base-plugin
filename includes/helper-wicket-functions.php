@@ -293,6 +293,54 @@ function wicket_get_organization($uuid, $include = null ){
 }
 
 /**------------------------------------------------------------------
+* Get commontly-needed organization info by UUID from Wicket
+* 
+* Grabs info like the correctly-localized legal name and description, as well
+* as the parent org ID (if applicable) and its name. More info can be added
+* to the return payload as it's useful in more scenarios.
+------------------------------------------------------------------*/
+function wicket_get_organization_basic_info( $uuid, $lang = 'en' ) {
+  $org_info = wicket_get_organization( $uuid );
+
+  $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
+  $org_parent_name = '';
+  if( !empty( $org_parent_id ) ) {
+    $org_parent_info = wicket_get_organization( $org_parent_id );
+  }
+
+  // Get language-specific meta
+  $org_name = $org_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
+  $org_description = $org_info['data']['attributes']["description_$lang"] ?? $org_info['data']['attributes']['description'];
+  
+  if( isset( $org_parent_info ) ) {
+    $org_parent_name = $org_parent_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
+  }
+
+  // Org type (also tidying up the slug for presentation if we like)
+  $org_type = '';
+  $org_type_pretty = '';
+  if( !empty( $org_info['data']['attributes']['type'] ) ) {
+    // TODO: Dig the proper UI name for the enum out of the schema, if needed in other cases
+    $org_type = $org_info['data']['attributes']['type'];
+    $org_type_pretty = $org_type;
+    $org_type_pretty = str_replace( '_', ' ', $org_type_pretty );
+    $org_type_pretty = ucfirst( $org_type_pretty );
+  }
+
+  return [
+    'org_id'          => $uuid,
+    'org_name'        => $org_name,
+    'org_description' => $org_description,
+    'org_type'        => $org_type,
+    'org_type_pretty' => $org_type_pretty,
+    'org_status'      => $org_info['data']['attributes']['status'] ?? '',
+    'org_parent_id'   => $org_parent_id ?? '',
+    'org_parent_name' => $org_parent_name ?? '',
+  ];
+
+}
+
+/**------------------------------------------------------------------
 * Get all "connections" (relationships) of a Wicket person
 ------------------------------------------------------------------*/
 function wicket_get_person_connections(){
@@ -1390,7 +1438,8 @@ function wicket_create_connection($payload){
   $client = wicket_api_client();
 
   try {
-    $client->post('connections',['json' => $payload]);
+    $apiCall = $client->post('connections',['json' => $payload]);
+    return $apiCall;
   } catch (\Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
     echo "<pre>";
@@ -1403,6 +1452,29 @@ function wicket_create_connection($payload){
     die;
   }
   return false;
+}
+
+/**------------------------------------------------------------------
+ * Remove connection
+ * $connection_id can be retrieved by using  wicket_get_person_connections_by_id($uuid)
+ * or wicket_get_person_connections().
+ * ------------------------------------------------------------------*/
+function wicket_remove_connection($connection_id) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  try {
+    $removed_connection = $client->delete( 'connections/' . $connection_id );
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  return true;
 }
 
 /**------------------------------------------------------------------

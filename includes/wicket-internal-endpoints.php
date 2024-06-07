@@ -154,19 +154,11 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
 
   $connectionId = $params['connectionId'];
 
-  try {
-    $client = wicket_api_client();
-  } catch (\Exception $e) {
-    wp_send_json_error( $e->getMessage() );
+  if( wicket_remove_connection( $connectionId ) ) {
+    wp_send_json_success();
+  } else {
+    wp_send_json_error( 'Something went wrong removing the connection' );
   }
-
-  try {
-    $removed_connection = $client->delete( 'connections/' . $connectionId );
-  } catch (\Exception $e) {
-    wp_send_json_error( $e->getMessage() );
-  }
-
-  wp_send_json_success();
 }
 
 /**
@@ -239,43 +231,6 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     ]
     ];
 
-  /*
-  {
-  "data": {
-    "type": "connections",
-    "id": null,
-    "attributes": {
-      "connection_type": "person_to_organization",
-      "type": "ceo",
-      "starts_at": null,
-      "ends_at": null,
-      "description": null,
-      "tags": [],
-      "custom_data_field": null
-    },
-    "relationships": {
-      "from": {
-        "data": {
-          "type": "people",
-          "id": "fb93d05a-6b96-4d26-a79f-cf0142f47ca2",
-          "meta": {
-            "can_manage": true,
-            "can_update": true
-          }
-        }
-      },
-      "to": {
-        "data": {
-          "type": "organizations",
-          "id": "ab1b80d0-4e42-4913-a126-09a229ae3476"
-        }
-      }
-    }
-  }
-}
-*/
-  
-
   try {
     $new_connection = wicket_create_connection( $payload );
     wicket_write_log('creating connection:');
@@ -284,27 +239,32 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     wp_send_json_error( $e->getMessage() );
   }
 
+  $new_connection_id = '';
+  if( isset( $new_connection['data'] ) ) {
+    if( isset( $new_connection['data']['id'] ) ) {
+      $new_connection_id = $new_connection['data']['id'];
+    }
+  }
+
   // Grab information about the new org connection to send back
+  $org_info = wicket_get_organization_basic_info( $toUuid );
 
-  // TODO: Flesh out this return payload
-  // TODO: Move both delete_connection and a get_basic_org_info function to base plugin helpers
-  $return = [
-    'connection_id'   => '',
+  $return =  [
+    'connection_id'   => $new_connection['data']['id'] ?? '',
     'connection_type' => $relationshipType,
-    'starts_at'       => '',
-    'ends_at'         => '',
-    'tags'            => '',
-    'active'          => true,
+    'starts_at'       => $new_connection['data']['attributes']['starts_at'] ?? '',
+    'ends_at'         => $new_connection['data']['attributes']['ends_at'] ?? '',
+    'tags'            => $new_connection['data']['attributes']['tags'] ?? '',
+    'active'          => $new_connection['data']['attributes']['active'] ?? true,
     'org_id'          => $toUuid,
-
-    'org_name'        => $org_name,
-    'org_description' => $org_description,
-    'org_type'        => $org_type,
-    'org_status'      => $org_info['data']['attributes']['status'] ?? '',
-    'org_parent_id'   => $org_parent_id ?? '',
-    'org_parent_name' => $org_parent_name ?? '',
-    'person_id'       => $connection['relationships']['person']['data']['id'],
+    'org_name'        => $org_info['org_name'],
+    'org_description' => $org_info['org_description'],
+    'org_type'        => $org_info['org_type_pretty'],
+    'org_status'      => $org_info['org_status'],
+    'org_parent_id'   => $org_info['org_parent_id'],
+    'org_parent_name' => $org_info['org_parent_name'],
+    'person_id'       => $fromUuid,
   ];
 
-  wp_send_json_success($new_connection);
+  wp_send_json_success($return);
 }
