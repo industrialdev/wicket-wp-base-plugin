@@ -19,7 +19,16 @@ foreach( $current_connections['data'] as $connection ) {
   $connection_id = $connection['id'];
   if( isset( $connection['attributes']['connection_type'] ) ) {
     $org_id = $connection['relationships']['organization']['data']['id'];
-    $org_info = wicket_get_organization_basic_info( $org_id );
+
+    $lang = 'en';
+    if( defined( 'ICL_LANGUAGE_CODE' ) ) {
+      $lang = ICL_LANGUAGE_CODE;
+    }
+      
+    $org_info = wicket_get_organization_basic_info( $org_id, $lang );
+
+    // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
+    // in wicket. 
 
     $person_to_org_connections[] = [
       'connection_id'   => $connection['id'],
@@ -41,8 +50,9 @@ foreach( $current_connections['data'] as $connection ) {
 }
 ?>
 
-<div class="container component-org-search-select " x-data="orgss" x-init="init">
+<div class="container component-org-search-select relative" x-data="orgss" x-init="init">
 
+  <?php // Loading overlay ?>
   <div x-transition x-cloak 
     class="flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
