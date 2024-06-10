@@ -44,7 +44,7 @@ $cta_classes          = [ 'cta-card flex-1 p-6 rounded-050 basis-full w-full lg:
 
 if ( $reversed ) {
 	$wrapper_classes[] = 'bg-dark-100 text-white';
-	$cta_classes[]     = 'bg-[#393F46]';
+	$cta_classes[]     = 'bg-dark-050';
 } else {
 	$cta_classes[] = 'bg-light-010';
 }
