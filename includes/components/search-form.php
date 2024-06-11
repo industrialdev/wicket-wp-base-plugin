@@ -9,7 +9,8 @@ $classes     = $args['classes'];
 $placeholder = $args['placeholder'];
 $url_param   = $args['url-param'];
 
-$classes[] = 'component-search-form form';
+$classes[]      = 'component-search-form form';
+$button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' );
 ?>
 
 <div class="<?php echo implode( ' ', $classes ); ?>">
@@ -27,11 +28,11 @@ $classes[] = 'component-search-form form';
 			],
 		] ); ?>
 		<input type="search" id="<?php echo $url_param; ?>" name="<?php echo $url_param; ?>"
-			value="<?php echo isset ( $_GET[$url_param] ) ? $_GET[$url_param] : ''; ?>"
+			value="<?php echo isset( $_GET[ $url_param ] ) ? $_GET[ $url_param ] : ''; ?>"
 			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full" />
 	</div>
 
-	<button class="button inline-flex button--primary">
+	<button class="button inline-flex button--<?php echo $button_variant ?>">
 		<?php echo __( 'Search', 'wicket' ); ?>
 	</button>
 </div>
