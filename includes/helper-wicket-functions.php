@@ -1679,6 +1679,70 @@ function get_org_types_list(){
 }
 
 /**------------------------------------------------------------------
+* Gets all entity types and returns their data array from the API call
+------------------------------------------------------------------*/
+function wicket_get_entity_types() {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  try {
+    $entity_types = $client->get( 'entity_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999999' );
+    if( isset( $entity_types['data'] ) ) {
+      return $entity_types;
+    } else {
+      return false;
+    }
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+}
+
+/**------------------------------------------------------------------
+* Gets the available resource types for the provided $entity_type_slug, or if
+* no slug is provided (or the UUID for it cannot be found), all resource types and
+* their data are returned
+------------------------------------------------------------------*/
+function wicket_get_resource_types( $entity_type_slug = '' ) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  $entity_types = wicket_get_entity_types();
+  
+  $entity_type_uuid = '';
+  if( isset( $entity_types['data'] ) ) {
+    foreach( $entity_types['data'] as $entity ) {
+      if( isset( $entity['attributes'] ) ) {
+        if( isset( $entity['attributes']['code'] ) ) {
+          if( $entity['attributes']['code'] == $entity_type_slug ) {
+            $entity_type_uuid = $entity['attributes']['uuid'];
+          }
+        }
+      }
+    }
+  }
+  // If no $entity_type_slug is provided or the $entity_type_uuid is not found, all recource_types will be returned
+
+  try {
+    $resource_types = $client->get( "resource_types?filter%5Bentity_type_uuid_eq%5D=$entity_type_uuid" );
+    return $resource_types;
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  return false;
+}
+
+/**------------------------------------------------------------------
 * Gets org connection types resource list
 ------------------------------------------------------------------*/
 function get_person_to_organizations_connection_types_list(){

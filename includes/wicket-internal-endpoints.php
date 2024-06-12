@@ -29,6 +29,14 @@ function wicket_base_register_rest_routes(){
       return is_user_logged_in();
     },
   ));
+
+  register_rest_route( 'wicket-base/v1', 'create-org',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_create_org',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
 }
 
 /**
@@ -267,4 +275,36 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   ];
 
   wp_send_json_success($return);
+}
+
+/**
+ * Calls the Wicket helper functions to create an organization.
+ * 
+ * @param WP_REST_Request $request that contains JSON params, notably the following:
+ *  - orgName
+ *  - orgType
+ * 
+ * @return JSON success:false or success:true, along with any related information or notices.
+ */
+function wicket_internal_endpoint_create_org( $request ) {
+  $params = $request->get_json_params();
+
+  if( !isset( $params['orgName'] ) ) {
+    wp_send_json_error( 'Organization name not provided' );
+  }
+  if( !isset( $params['orgType'] ) ) {
+    wp_send_json_error( 'Organization type not provided' );
+  }
+
+  $org_name = $params['orgName'];
+  $org_type = $params['orgType'];
+
+  $create_org_call = wicket_create_organization($org_name, $org_type);
+
+  if( isset( $create_org_call ) && !empty( $create_org_call ) ) {
+    // TODO: Pass back org uuid
+    wp_send_json_success();
+  } else {
+    wp_send_json_error( 'Something went wrong creating the organization' );
+  }
 }

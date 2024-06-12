@@ -7,6 +7,7 @@ $classes                         = $args['classes'];
 $searchMode                      = 'org'; // Options: org, groups, ...
 $relationshipTypeUponOrgCreation = 'employee';
 $relationshipMode                = 'person_to_organization';
+$newOrgTypeOverride              = '';
 
 // TODO: Make component configurable to focus on different 'types' of orgs, and also groups
 
@@ -48,6 +49,10 @@ foreach( $current_connections['data'] as $connection ) {
     ];
   }
 }
+
+// Get list of org types to make available to the user if an admin override is not provided
+$available_org_types = wicket_get_resource_types( 'organizations' );
+
 ?>
 
 <div class="container component-org-search-select relative" x-data="orgss" x-init="init">
@@ -93,7 +98,7 @@ foreach( $current_connections['data'] as $connection ) {
               <?php get_component( 'button', [ 
                 'variant'  => 'primary',
                 'label'    => __( 'Select Organization', 'wicket' ),
-                'type'     => 'button',
+                'type'     => 'primary',
                 'classes'  => [ '' ],
                 'atts'     => [ 'x-on:click="selectOrg($data.connection.org_id)"',  ]
               ] ); ?>
@@ -148,19 +153,50 @@ foreach( $current_connections['data'] as $connection ) {
     </div>
   </form>
 
+  <form x-show="firstSearchSubmitted" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3" x-on:submit="handleOrgCreate">
+    <div class="font-bold text-heading-sm mb-2">Can't find your company / organization?</div>
+    <div class="flex">
+      <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
+        <label>Name of the Organization*</label>
+        <input x-model="newOrgNameBox" type="text" name="company-name" class="w-full" />
+      </div>
+      <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
+        <label>Type of Organization*</label>
+        <select x-model="newOrgTypeSelect" class="w-full">
+          <template x-for="orgType in availableOrgTypes.data">
+            <option x-bind:value="orgType.slug" x-text="orgType['attributes']['name_' + lang]">Org type</option>
+          </template>
+        </select>
+      </div>
+      <div class="flex flex-col w-2/12 items-center justify-end">
+        <?php get_component( 'button', [ 
+            'variant'  => 'primary',
+            'label'    => __( 'Add Details', 'wicket' ),
+            'type'     => 'submit',
+            'classes'  => [ 'w-full', 'justify-center' ],
+          ] ); ?>
+        </div>
+      </div>
+  </form>
+
 </div>
 
 <?php /* Broken-out Alpine data for tidyness */ ?>
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('orgss', () => ({
+            lang: '<?php echo $lang; ?>',
             isLoading: false,
             firstSearchSubmitted: false,
             searchType: '<?php echo $searchMode; ?>',
             relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
             relationshipMode: '<?php echo $relationshipMode; ?>',
+            newOrgTypeOverride: '<?php echo $newOrgTypeOverride; ?>',
+            availableOrgTypes: <?php echo json_encode( $available_org_types ); ?>,
             selectedOrgUuid: '',
             searchBox: '',
+            newOrgNameBox: '',
+            newOrgTypeSelect: '',
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
             currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
@@ -180,6 +216,15 @@ foreach( $current_connections['data'] as $connection ) {
               } else if( this.searchType == 'groups' ) {
                 this.searchGroups( this.searchBox );
               }
+            },
+            handleOrgCreate(e) {
+              e.preventDefault();
+              
+              let newOrgName = this.newOrgNameBox;
+              console.log(`Creating new org ${newOrgName}`);
+
+              //this.createOrganization( newOrgName,  )
+
             },
             async searchOrgs( searchTerm ) {
               this.isLoading = true;
@@ -298,8 +343,40 @@ foreach( $current_connections['data'] as $connection ) {
                 });
               
             },
-            createOrg( name, address ) {
-                //
+            async createOrganization( orgName, orgType ) {
+              this.isLoading = true;
+
+              let data = {
+                "orgName": orgName,
+                "orgType": orgType,
+              };
+
+              let results = await fetch(this.apiUrl + 'create-org', {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+              }).then(response => response.json())
+                .then(data => { 
+                  this.isLoading = false;
+                  if( !data.success ) {
+                    // Handle error
+                  } else {
+                    if( data.success ) {
+                      console.log("Success!");
+                      console.log(data.data);
+                    }
+
+                  }
+                });
+              
             },
             addConnection( payload ) {
               this.currentConnections.push(payload);
