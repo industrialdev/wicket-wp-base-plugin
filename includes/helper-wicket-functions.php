@@ -341,6 +341,21 @@ function wicket_get_organization_basic_info( $uuid, $lang = 'en' ) {
 }
 
 /**------------------------------------------------------------------
+* Get all groups from Wicket
+------------------------------------------------------------------*/
+function wicket_get_groups() {
+  $client = wicket_api_client();
+
+  $groups = $client->get('groups');
+
+  if ($groups) {
+    return $groups;
+  }
+
+  return false;
+}
+
+/**------------------------------------------------------------------
 * Get all "connections" (relationships) of a Wicket person
 ------------------------------------------------------------------*/
 function wicket_get_person_connections(){
@@ -1389,6 +1404,57 @@ function wicket_create_organization_web_address($org_id, $payload){
     // print_r($errors);
     // echo "</pre>";
     // die;
+  }
+  return false;
+}
+
+/**------------------------------------------------------------------
+* Add a user to a Wicket group. 
+* $group_role_slug could be obtained with a function call like wicket_get_entity_types()
+* and then wicket_get_resource_types() using the entity's uuid.
+------------------------------------------------------------------*/
+function wicket_add_group_member( $person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null ) {
+  $client = wicket_api_client();
+
+  $payload = [
+    'data' => [
+      'attributes'   => [
+        'custom_data_field' => null,
+        'end_date'          => $end_date,
+        'person_id'         => $person_id,
+        'start_date'        => $start_date,
+        'type'              => $group_role_slug,
+      ],
+      'id'            => null,
+      'relationships' => [
+        'group' => [
+          'data' => [
+            'id'   => $group_id,
+            // 'meta' => [
+            //   'can_manage' => true,
+            //   'can_update' => true,
+            // ],
+            'type' => 'groups',
+          ],
+        ],
+      ],
+      'type'          => 'group_members',
+    ]
+  ];
+
+  try {
+    $apiCall = $client->post('group_members',['json' => $payload]);
+    return $apiCall;
+  } catch (\Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    echo "<pre>";
+    print_r($e->getMessage());
+    echo "</pre>";
+
+    echo "<pre>";
+    print_r($errors);
+    echo "</pre>";
+    die;
   }
   return false;
 }
