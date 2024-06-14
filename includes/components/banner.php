@@ -93,14 +93,16 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 				<?php if ( $title ) : ?>
 					<div>
 						<?php if ( $show_post_type ) : ?>
-							<div class="text-dark-070 uppercase font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
+							<div
+								class="component-banner__post-type text-dark-070 uppercase font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
 								<?php
 								$post_id = get_the_ID();
 								echo get_related_content_type_term( $post_id );
 								?>
 							</div>
 						<?php endif; ?>
-						<h1 class="text-heading-3xl font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
+						<h1
+							class="component-banner__title text-heading-3xl font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
 							<?php echo esc_html( $title ); ?>
 						</h1>
 					</div>
@@ -111,7 +113,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 				<?php endif; ?>
 
 				<?php if ( $intro ) : ?>
-					<div class="text-body-lg <?php echo esc_attr( $text_alignment_class ); ?>">
+					<div class="component-banner__intro text-body-lg <?php echo esc_attr( $text_alignment_class ); ?>">
 						<?php echo wp_kses_post( $intro ); ?>
 					</div>
 				<?php endif; ?>
@@ -120,7 +122,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					<?php
 					$date = get_the_date( 'F j, Y' );
 					?>
-					<div class="text-body-sm text-dark-070 italic mb-3">
+					<div class="component-banner__date text-body-sm text-dark-070 italic mb-3">
 						<?php echo $date; ?>
 					</div>
 				<?php endif; ?>
