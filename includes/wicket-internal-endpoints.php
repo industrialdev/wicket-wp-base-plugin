@@ -14,6 +14,16 @@ function wicket_base_register_rest_routes(){
     },
   ));
 
+  register_rest_route( 'wicket-base/v1', 'search-groups',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_search_groups',
+    'permission_callback' => function() {
+      //return true;
+      //return current_user_can('edit_posts'); // Can just return true if it's a public endpoint
+      return is_user_logged_in();
+    },
+  ));
+
   register_rest_route( 'wicket-base/v1', 'terminate-relationship',array(
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_terminate_relationship',
@@ -29,13 +39,21 @@ function wicket_base_register_rest_routes(){
       return is_user_logged_in();
     },
   ));
+
+  register_rest_route( 'wicket-base/v1', 'create-org',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_create_org',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
 }
 
 /**
  * Calls the Wicket helper functions to search for a given organization name
  * and provide a list of results.
  * 
- * @param WP_REST_Request $request that contains JSON params, notably a 'searchTerm'.
+ * @param WP_REST_Request $request that contains JSON params, notably a 'searchTerm' and an optional 'lang'.
  * 
  * @return JSON success:false or success:true, along with any related information or notices.
  */
@@ -45,11 +63,20 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   if( !isset( $params['searchTerm'] ) ) {
     wp_send_json_error( 'Search term not provided' );
   }
+  // if( !isset( $params['lang'] ) ) {
+  //   wp_send_json_error( 'Language code not provided' );
+  // }
 
   try {
     $client = wicket_api_client();
   } catch (\Exception $e) {
     wp_send_json_error( $e->getMessage() );
+  }
+
+  $search_term = $params['searchTerm'];
+  $lang        = '';
+  if( isset( $params['lang'] ) ) {
+    $lang = $params['lang'];
   }
 
   $args = [
@@ -59,8 +86,13 @@ function wicket_internal_endpoint_search_orgs( $request ) {
     ],
   ];
 
-  $args['filter']['keywords']['term'] = $params['searchTerm'];
-  $args['filter']['keywords']['fields'] = 'legal_name';
+  $args['filter']['keywords']['term'] = $search_term;
+  if( !empty( $lang ) ) {
+    $args['filter']['keywords']['fields'] = "legal_name_$lang";
+  } else {
+    $args['filter']['keywords']['fields'] = 'legal_name';
+  }
+  
 
   // replace query string page[0] and page[1] etc. with page[] since ruby doesn't like it
   $args = preg_replace('/\%5B\d+\%5D/', '%5B%5D', http_build_query($args));
@@ -70,8 +102,6 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   } catch (\Exception $e) {
     wp_send_json_error( $e->getMessage() );
   }
-
-
 
   $results = [];
 
@@ -122,8 +152,8 @@ function wicket_internal_endpoint_search_orgs( $request ) {
       ------------------------------------------------------------------*/
       $org_memberships = wicket_get_org_memberships($result['id']);
 
-      $results[$result['id']]['org_id'] = $result['id'];
-      $results[$result['id']]['org_name'] = $result['attributes']['organization']['legal_name'];
+      $results[$result['id']]['id'] = $result['id'];
+      $results[$result['id']]['name'] = $result['attributes']['organization']['legal_name'];
       $results[$result['id']]['address1'] = $address1;
       $results[$result['id']]['city'] = $city;
       $results[$result['id']]['zip_code'] = $zip_code;
@@ -132,6 +162,71 @@ function wicket_internal_endpoint_search_orgs( $request ) {
       $results[$result['id']]['web_address'] = $web_address;
       $results[$result['id']]['org_memberships'] = $org_memberships;
       $results[$result['id']]['phone'] = $tel;
+    }
+  }
+
+  wp_send_json_success($results);
+}
+
+/**
+ * Calls the Wicket helper functions to search for a given group name
+ * and provide a list of results.
+ * 
+ * @param WP_REST_Request $request that contains JSON params, notably a 'searchTerm' and a 'lang'.
+ * 
+ * @return JSON success:false or success:true, along with any related information or notices.
+ */
+function wicket_internal_endpoint_search_groups( $request ) {
+  $params = $request->get_json_params();
+
+  if( !isset( $params['searchTerm'] ) ) {
+    wp_send_json_error( 'Search term not provided' );
+  }
+  if( !isset( $params['lang'] ) ) {
+    wp_send_json_error( 'Language code not provided' );
+  }
+
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    wp_send_json_error( $e->getMessage() );
+  }
+
+  $search_term = $params['searchTerm'];
+  $lang        = $params['lang'];
+
+  $args = [
+    'sort' => 'name',
+    'page_size' => 12,
+    'page_number' => 1,
+  ];
+
+  $args['filter']["name_" . $lang . "_cont"] = $search_term;
+
+  // replace query string page[0] and page[1] etc. with page[] since ruby doesn't like it
+  $args = preg_replace('/\%5B\d+\%5D/', '%5B%5D', http_build_query($args));
+
+  try {
+    $search_groups = $client->get('groups?' . $args);
+  } catch (\Exception $e) {
+    wp_send_json_error( $e->getMessage() );
+  }
+
+  // wp_send_json_success( $search_groups );
+  // return;
+
+
+
+  $results = [];
+  wicket_write_log($search_groups);
+  if ($search_groups['meta']['page']['total_items'] > 0) {
+    foreach ($search_groups['data'] as $result) {
+      $results[$result['id']]['id'] = $result['id'];
+      if( isset( $result['attributes']["name_$lang"] ) ) {
+        $results[$result['id']]['name'] = $result['attributes']["name_$lang"];
+      } else {
+        $results[$result['id']]['name'] = $result['attributes']["name"];
+      }
     }
   }
 
@@ -267,4 +362,35 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   ];
 
   wp_send_json_success($return);
+}
+
+/**
+ * Calls the Wicket helper functions to create an organization.
+ * 
+ * @param WP_REST_Request $request that contains JSON params, notably the following:
+ *  - orgName
+ *  - orgType
+ * 
+ * @return JSON success:false or success:true, along with any related information or notices.
+ */
+function wicket_internal_endpoint_create_org( $request ) {
+  $params = $request->get_json_params();
+
+  if( !isset( $params['orgName'] ) ) {
+    wp_send_json_error( 'Organization name not provided' );
+  }
+  if( !isset( $params['orgType'] ) ) {
+    wp_send_json_error( 'Organization type not provided' );
+  }
+
+  $org_name = $params['orgName'];
+  $org_type = $params['orgType'];
+
+  $create_org_call = wicket_create_organization($org_name, $org_type);
+
+  if( isset( $create_org_call ) && !empty( $create_org_call ) ) {
+    wp_send_json_success($create_org_call);
+  } else {
+    wp_send_json_error( 'Something went wrong creating the organization' );
+  }
 }

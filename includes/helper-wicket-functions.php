@@ -341,6 +341,21 @@ function wicket_get_organization_basic_info( $uuid, $lang = 'en' ) {
 }
 
 /**------------------------------------------------------------------
+* Get all groups from Wicket
+------------------------------------------------------------------*/
+function wicket_get_groups() {
+  $client = wicket_api_client();
+
+  $groups = $client->get('groups');
+
+  if ($groups) {
+    return $groups;
+  }
+
+  return false;
+}
+
+/**------------------------------------------------------------------
 * Get all "connections" (relationships) of a Wicket person
 ------------------------------------------------------------------*/
 function wicket_get_person_connections(){
@@ -1394,6 +1409,57 @@ function wicket_create_organization_web_address($org_id, $payload){
 }
 
 /**------------------------------------------------------------------
+* Add a user to a Wicket group. 
+* $group_role_slug could be obtained with a function call like wicket_get_entity_types()
+* and then wicket_get_resource_types() using the entity's uuid.
+------------------------------------------------------------------*/
+function wicket_add_group_member( $person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null ) {
+  $client = wicket_api_client();
+
+  $payload = [
+    'data' => [
+      'attributes'   => [
+        'custom_data_field' => null,
+        'end_date'          => $end_date,
+        'person_id'         => $person_id,
+        'start_date'        => $start_date,
+        'type'              => $group_role_slug,
+      ],
+      'id'            => null,
+      'relationships' => [
+        'group' => [
+          'data' => [
+            'id'   => $group_id,
+            // 'meta' => [
+            //   'can_manage' => true,
+            //   'can_update' => true,
+            // ],
+            'type' => 'groups',
+          ],
+        ],
+      ],
+      'type'          => 'group_members',
+    ]
+  ];
+
+  try {
+    $apiCall = $client->post('group_members',['json' => $payload]);
+    return $apiCall;
+  } catch (\Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    echo "<pre>";
+    print_r($e->getMessage());
+    echo "</pre>";
+
+    echo "<pre>";
+    print_r($errors);
+    echo "</pre>";
+    die;
+  }
+  return false;
+}
+
+/**------------------------------------------------------------------
  * Create connection
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
  * an example might be the following:
@@ -1676,6 +1742,70 @@ function get_org_types_list(){
           });
 
   return $found;
+}
+
+/**------------------------------------------------------------------
+* Gets all entity types and returns their data array from the API call
+------------------------------------------------------------------*/
+function wicket_get_entity_types() {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  try {
+    $entity_types = $client->get( 'entity_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999999' );
+    if( isset( $entity_types['data'] ) ) {
+      return $entity_types;
+    } else {
+      return false;
+    }
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+}
+
+/**------------------------------------------------------------------
+* Gets the available resource types for the provided $entity_type_slug, or if
+* no slug is provided (or the UUID for it cannot be found), all resource types and
+* their data are returned
+------------------------------------------------------------------*/
+function wicket_get_resource_types( $entity_type_slug = '' ) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  $entity_types = wicket_get_entity_types();
+  
+  $entity_type_uuid = '';
+  if( isset( $entity_types['data'] ) ) {
+    foreach( $entity_types['data'] as $entity ) {
+      if( isset( $entity['attributes'] ) ) {
+        if( isset( $entity['attributes']['code'] ) ) {
+          if( $entity['attributes']['code'] == $entity_type_slug ) {
+            $entity_type_uuid = $entity['attributes']['uuid'];
+          }
+        }
+      }
+    }
+  }
+  // If no $entity_type_slug is provided or the $entity_type_uuid is not found, all recource_types will be returned
+
+  try {
+    $resource_types = $client->get( "resource_types?filter%5Bentity_type_uuid_eq%5D=$entity_type_uuid" );
+    return $resource_types;
+  } catch (\Exception $e) {
+    error_log( $e->getMessage() );
+    return false;
+  }
+
+  return false;
 }
 
 /**------------------------------------------------------------------
