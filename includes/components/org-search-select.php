@@ -60,15 +60,20 @@
 
 
 $defaults  = array(
-	'classes'               => [],
+	'classes'                             => [],
+  'search_mode'                         => 'org', // Options: org, groups, ...
+  'search_org_type'                     => '',
+  'relationship_type_upon_org_creation' => 'employee',
+  'relationship_mode'                   => 'person_to_organization',
+  'new_org_type_override'               => '',
 );
 $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
-$searchMode                      = 'org'; // Options: org, groups, ...
-$searchOrgType                   = '';
-$relationshipTypeUponOrgCreation = 'employee';
-$relationshipMode                = 'person_to_organization';
-$newOrgTypeOverride              = '';
+$searchMode                      = $args['search_mode'];
+$searchOrgType                   = $args['search_org_type'];
+$relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
+$relationshipMode                = $args['relationship_mode'];
+$newOrgTypeOverride              = $args['new_org_type_override'];
 
 $current_person_uuid = wicket_current_person_uuid();
 
