@@ -203,6 +203,7 @@ if ( $highlight_featured_posts ) {
 					$featured_image_id  = get_post_thumbnail_id( $post_id );
 					$featured_image_alt = get_post_meta( $featured_image_id,
 						'_wp_attachment_image_alt', true );
+					$date               = get_the_date( 'F j, Y', $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
 						$image = [ 
@@ -211,13 +212,17 @@ if ( $highlight_featured_posts ) {
 						];
 					}
 
+					if ( $post_type == 'tribe_events' ) {
+						$date = tribe_get_start_date( $post_id, false, 'F j, Y' );
+					}
+
 					get_component( 'card-featured', [ 
 						'classes'        => [ 'p-4' ],
 						'post_type'      => $post_type,
 						'content_type'   => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
 						'title'          => get_the_title( $post_id ),
 						'excerpt'        => ! $hide_excerpt ? get_the_excerpt( $post_id ) : '',
-						'date'           => ! $hide_date ? get_the_date( 'F j, Y', $post_id ) : '',
+						'date'           => ! $hide_date ? $date : '',
 						'image'          => $image,
 						'image_position' => $column_count == '1' ? 'right' : 'top',
 						'member_only'    => is_member_only( $post_id ),
