@@ -7,6 +7,8 @@
  * 2024-06-13 - CoulterPeterson
  * 
  * [X] DONE Allow component to be used with (or focus on) different 'types' of orgs via a component param
+ * [X] DONE Emitting custom JS event on org selection with relevant information, so it can be intercepted
+ *     by its various intended wrappers.
  * 
  * 2024-06-13 - CoulterPeterson
  * 
@@ -38,13 +40,14 @@
  *  [] Create and connect an internal endpoint for adding a user to a group when they press 'select'
  *     on one in search, using wicket_add_group_member()
  *  [] Misc. UI adjustments related to these changes, such as ensuring that the list of "current groups"
- *     at the top of the component gets updated after the user is successfully added to a group.
+ *     at the top of the component gets updated after the user is successfully added to a group. (Like
+ *     in selectOrgAndCreateRelationship() )
  * 
  * General TODOs:
  *  [X] Allow component to be used with (or focus on) different 'types' of orgs via a component param
  *  [] Update the 'active connection' logic to check for an active membership status rather than an 
  *     active connection
- *  [] Determine how to cleanly trigger a "next step" in various contexts while providing the selected UUID
+ *  [X] Determine how to cleanly trigger a "next step" in various contexts while providing the selected UUID
  *     and any other needed information. For example, if it's used on a custom template, we may want to emit
  *     a custom JS event or call a specified function name after the user has completed the needed operations,
  *     whereas in a Gravity Form, we'll need to talk to our wrapper so the wrapper can make the GF-specific calls
@@ -79,6 +82,9 @@ if( defined( 'ICL_LANGUAGE_CODE' ) ) {
 $person_to_org_connections = [];
 if( $searchMode == 'org' ) {
   $current_connections = wicket_get_person_connections();
+  // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
+      // in wicket. 
+  // $current_memberships = wicket_get_current_person_memberships();
 
   foreach( $current_connections['data'] as $connection ) {
     $connection_id = $connection['id'];
@@ -86,9 +92,6 @@ if( $searchMode == 'org' ) {
       $org_id = $connection['relationships']['organization']['data']['id'];
         
       $org_info = wicket_get_organization_basic_info( $org_id, $lang );
-  
-      // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
-      // in wicket. 
   
       $person_to_org_connections[] = [
         'connection_id'   => $connection['id'],
@@ -118,6 +121,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 ?>
 
 <div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss" x-init="init">
+
+  <?php // Debug log of the selection custom event when fired ?>
+  <pre x-on:orgss-selection-made.window="console.log($event.detail)"></pre>
 
   <?php // Loading overlay ?>
   <div x-transition x-cloak 
@@ -185,7 +191,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <?php endif; ?>
 
     <div class="flex">
-      <input type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" x-model="searchBox" />
+      <?php // Can add `@keyup="if($el.value.length > 3){ handleSubmit(); } "` to get autocomplete, but it's not quite fast enough ?>
+      <input x-model="searchBox" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" />
       <?php get_component( 'button', [ 
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
@@ -230,7 +237,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label
           x-text=" searchType=='groups' ? 'Type of Group*' : 'Type of Organization*' "></label>
-        <select x-model="newOrgTypeSelect" x-init="console.log()" class="w-full">
+        <select x-model="newOrgTypeSelect" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]" 
               >Org type</option>
@@ -279,15 +286,17 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               // Set an initial value for the dynamic select 
               this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
             },
-            handleSubmit(e) {
-              e.preventDefault();
+            handleSubmit(e = null) {
+              if(e) {
+                e.preventDefault();
+              }
 
               this.results = [];
              
               if( this.searchType == 'org' ) {
-                this.searchOrgs( this.searchBox );
+                this.searchOrgs( this.searchBox, false );
               } else if( this.searchType == 'groups' ) {
-                this.searchGroups( this.searchBox );
+                this.searchGroups( this.searchBox, false );
               }
             },
             handleOrgCreate(e) {
@@ -298,7 +307,6 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               } else {
                 // Creating an org
                 let newOrgName = this.newOrgNameBox;
-                console.log(`Creating new org ${newOrgName}`);
 
                 let newOrgType = '';
                 if( this.newOrgTypeOverride.length > 0 ) {
@@ -311,8 +319,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               }
 
             },
-            async searchOrgs( searchTerm ) {
-              this.isLoading = true;
+            async searchOrgs( searchTerm, showLoading = true ) {
+              if(showLoading) {
+                this.isLoading = true;
+              }
 
               let orgType = this.searchOrgType;
               let data = {};
@@ -344,11 +354,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 body: JSON.stringify(data), // body data type must match "Content-Type" header
               }).then(response => response.json())
                 .then(data => { 
-                  console.log(data);
                   if( !data.success ) {
                     // Handle error
                   } else {
-                    this.isLoading = false;
+                    if(showLoading) {
+                      this.isLoading = false;
+                    }
                     this.results = data.data;
                     if( !this.firstSearchSubmitted ) {
                       this.firstSearchSubmitted = true;
@@ -358,7 +369,22 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               
             },
             selectOrg( orgUuid ) {
+              // Update state 
               this.selectedOrgUuid = orgUuid;
+
+              // selectOrg() is the last function call used in the process, whether selecting an existing
+              // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
+              let orgInfo = this.getOrgFromConnectionsByUuid( orgUuid );
+
+              event = new CustomEvent("orgss-selection-made", {
+                detail: {
+                  uuid: orgUuid,
+                  searchType: this.searchType,
+                  orgDetails: orgInfo,
+                }
+              });
+
+              window.dispatchEvent(event);
             },
             selectOrgAndCreateRelationship( orgUuid ) {
               // TODO: Handle when a Group is selected instead of an org
@@ -366,8 +392,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
               this.selectOrg( orgUuid );
             },
-            async searchGroups( searchTerm ) {
-              this.isLoading = true;
+            async searchGroups( searchTerm, showLoading = true ) {
+              if(showLoading) {
+                this.isLoading = true;
+              }
 
               let data = {
                 "searchTerm": searchTerm,
@@ -391,8 +419,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   if( !data.success ) {
                     // Handle error
                   } else {
-                    this.isLoading = false;
-                    console.log(data.data);
+                    if(showLoading) {
+                      this.isLoading = false;
+                    }
                     this.results = data.data;
                     if( !this.firstSearchSubmitted ) {
                       this.firstSearchSubmitted = true;
@@ -484,8 +513,6 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 "orgType": orgType,
               };
 
-              console.log(data);
-
               let results = await fetch(this.apiUrl + 'create-org', {
                 method: "POST",
                 mode: "cors",
@@ -526,6 +553,16 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
               this.currentConnections = connections;
             },
+            getOrgFromConnectionsByUuid( uuid ) {
+              let found = {};
+              this.currentConnections.forEach( (connection, index) => {
+                if( connection.org_id == uuid ) {
+                  found = connection;
+                  return;
+                }
+              });
+              return found;
+            }
         }))
     })
 </script>
