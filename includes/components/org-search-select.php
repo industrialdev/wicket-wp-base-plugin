@@ -6,6 +6,10 @@
  * 
  * 2024-06-13 - CoulterPeterson
  * 
+ * [X] DONE Allow component to be used with (or focus on) different 'types' of orgs via a component param
+ * 
+ * 2024-06-13 - CoulterPeterson
+ * 
  * Component can currently provide search UI and functionality for searching
  * organizations, creating a relationship between the current user and that 
  * organization, and creating a new organization if not initially found (a 
@@ -37,7 +41,7 @@
  *     at the top of the component gets updated after the user is successfully added to a group.
  * 
  * General TODOs:
- *  [] Allow component to be used with (or focus on) different 'types' of orgs via a component param
+ *  [X] Allow component to be used with (or focus on) different 'types' of orgs via a component param
  *  [] Update the 'active connection' logic to check for an active membership status rather than an 
  *     active connection
  *  [] Determine how to cleanly trigger a "next step" in various contexts while providing the selected UUID
@@ -58,11 +62,10 @@ $defaults  = array(
 $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
 $searchMode                      = 'org'; // Options: org, groups, ...
+$searchOrgType                   = '';
 $relationshipTypeUponOrgCreation = 'employee';
 $relationshipMode                = 'person_to_organization';
 $newOrgTypeOverride              = '';
-
-// TODO: Make component configurable to focus on different 'types' of orgs, and also groups
 
 $current_person_uuid = wicket_current_person_uuid();
 
@@ -258,6 +261,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
             relationshipMode: '<?php echo $relationshipMode; ?>',
             newOrgTypeOverride: '<?php echo $newOrgTypeOverride; ?>',
+            searchOrgType: '<?php echo $searchOrgType; ?>',
             availableOrgTypes: <?php echo json_encode( $available_org_types ); ?>,
             selectedOrgUuid: '',
             searchBox: '',
@@ -310,9 +314,18 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             async searchOrgs( searchTerm ) {
               this.isLoading = true;
 
-              let data = {
-                "searchTerm": searchTerm,
-              };
+              let orgType = this.searchOrgType;
+              let data = {};
+              if( orgType.length > 0 ) {
+                data = {
+                  "searchTerm": searchTerm,
+                  "orgType": orgType,
+                };
+              } else {
+                data = {
+                  "searchTerm": searchTerm
+                };
+              }
 
               // Ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
               // Ref 2: https://stackoverflow.com/a/43263012
@@ -331,6 +344,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 body: JSON.stringify(data), // body data type must match "Content-Type" header
               }).then(response => response.json())
                 .then(data => { 
+                  console.log(data);
                   if( !data.success ) {
                     // Handle error
                   } else {
