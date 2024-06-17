@@ -4,6 +4,12 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-06-17 - CoulterPeterson
+ * 
+ * Moved away from <form> tags and "submit" buttons so that the component will play nicer with Gravity Forms
+ * and other methods of embedding it. Added a hidden text field where the selected UUID will be updated,
+ * and the name of that field can be changed with a new component parameter. Various bug fixes.
+ * 
  * 2024-06-13 - CoulterPeterson
  * 
  * [X] DONE Allow component to be used with (or focus on) different 'types' of orgs via a component param
@@ -66,6 +72,7 @@ $defaults  = array(
   'relationship_type_upon_org_creation' => 'employee',
   'relationship_mode'                   => 'person_to_organization',
   'new_org_type_override'               => '',
+  'selected_uuid_hidden_field_name'     => 'orgss-selected-uuid',
 );
 $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
@@ -74,6 +81,7 @@ $searchOrgType                   = $args['search_org_type'];
 $relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
 $relationshipMode                = $args['relationship_mode'];
 $newOrgTypeOverride              = $args['new_org_type_override'];
+$selectedUuidHiddenFieldName     = $args['selected_uuid_hidden_field_name'];
 
 $current_person_uuid = wicket_current_person_uuid();
 
@@ -138,7 +146,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
   </div>
 
-  <form class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3" x-on:submit="handleSubmit">
+  <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
       <h2 class="font-bold text-heading-md my-3"
         x-text=" searchType == 'groups' ? 'Your Current Group(s)' : 'Your Current Organization(s)' "></h2>
@@ -172,7 +180,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'label'    => __( 'Select Organization', 'wicket' ),
                 'type'     => 'primary',
                 'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click="selectOrg($data.connection.org_id)"',  ]
+                'atts'     => [ 'x-on:click.prevent="selectOrg($data.connection.org_id)"',  ]
               ] ); ?>
               <?php get_component( 'button', [ 
                 'variant'  => 'primary',
@@ -181,7 +189,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'suffix_icon' => 'fa-regular fa-trash',
                 'type'     => 'button',
                 'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click="terminateRelationship($data.connection.connection_id)"',  ]
+                'atts'     => [ 'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',  ]
               ] ); ?>
             </div>
           </div>
@@ -196,13 +204,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <?php endif; ?>
 
     <div class="flex">
-      <?php // Can add `@keyup="if($el.value.length > 3){ handleSubmit(); } "` to get autocomplete, but it's not quite fast enough ?>
-      <input x-model="searchBox" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" />
+      <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
+      <input x-model="searchBox" @keyup.enter.prevent="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" />
       <?php get_component( 'button', [ 
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
-        'type'     => 'submit',
-        'classes'  => [ '' ],
+        'type'     => 'button',
+        'atts'  => [ 'x-on:click.prevent="handleSearch()"' ],
       ] ); ?>
      </div>
      <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching organizations (Selected org: <span x-text="selectedOrgUuid"></span>)</div>
@@ -221,23 +229,23 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ], 
-              'atts'     => [ 'x-on:click="selectOrgAndCreateRelationship($data.result.id)"',  ]
+              'atts'     => [ 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',  ]
             ] ); ?>
           </div>
         </template>
 
       </div>
     </div>
-  </form>
+  </div>
 
-  <form x-show="firstSearchSubmitted" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3" x-on:submit="handleOrgCreate">
+  <div x-show="firstSearchSubmitted" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div class="font-bold text-heading-sm mb-2"
     x-text=" searchType=='groups' ? 'Can\'t find your group?' : 'Can\'t find your company / organization?' "></div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label
           x-text=" searchType=='groups' ? 'Name of the Group*' : 'Name of the Organization*' "></label>
-        <input x-model="newOrgNameBox" type="text" name="company-name" class="w-full" />
+        <input x-model="newOrgNameBox" @keyup.enter.prevent="handleOrgCreate()" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label
@@ -253,12 +261,16 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         <?php get_component( 'button', [ 
             'variant'  => 'primary',
             'label'    => __( 'Add Details', 'wicket' ),
-            'type'     => 'submit',
+            'type'     => 'button',
             'classes'  => [ 'w-full', 'justify-center' ],
+            'atts'  => [ 'x-on:click.prevent="handleOrgCreate()"' ],
           ] ); ?>
         </div>
       </div>
-  </form>
+    </div>
+
+    <?php // Hidden form field that can be used to pass the selected UUID along, like in Gravity Forms ?>
+    <input x-ref="orgssSelectedUuid" type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="" />
 
 </div>
 
@@ -291,7 +303,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               // Set an initial value for the dynamic select 
               this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
             },
-            handleSubmit(e = null) {
+            handleSearch(e = null) {
               if(e) {
                 e.preventDefault();
               }
@@ -299,13 +311,15 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               this.results = [];
              
               if( this.searchType == 'org' ) {
-                this.searchOrgs( this.searchBox, false );
+                this.searchOrgs( this.searchBox );
               } else if( this.searchType == 'groups' ) {
-                this.searchGroups( this.searchBox, false );
+                this.searchGroups( this.searchBox );
               }
             },
-            handleOrgCreate(e) {
-              e.preventDefault();
+            handleOrgCreate(e = null) {
+              if(e) {
+                e.preventDefault();
+              }              
 
               if( this.searchType == 'groups' ) {
                 // Handle group creation
@@ -376,6 +390,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             selectOrg( orgUuid ) {
               // Update state 
               this.selectedOrgUuid = orgUuid;
+              this.$refs.orgssSelectedUuid.value = orgUuid;
 
               // selectOrg() is the last function call used in the process, whether selecting an existing
               // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
