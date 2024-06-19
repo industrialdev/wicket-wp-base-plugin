@@ -1575,7 +1575,7 @@ function wicket_get_current_user_touchpoints($service_id){
 //   'details' => 'these are some details',
 //   'data' => ['test' => 'thing']
 // ];
-// write_touchpoint($params);
+// write_touchpoint($params, get_create_touchpoint_service_id('[service name]', '[service description]'));
 // ----------------------------------------------------------------
 function write_touchpoint($params, $wicket_service_id){
   $client = wicket_api_client();
@@ -1637,12 +1637,11 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
   $client = wicket_api_client();
 
   // check for existing service, return service ID
-  $existing_services = $client->get('services')['data'];
-  $existing_service = reset(array_filter($existing_services, function($service) use ($service_name) {
-    return isset($service['attributes']['name']) && $service['attributes']['name'] === $service_name;
-  }));
+  $existing_services = $client->get("services?filter[name_eq]=$service_name");
+  $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
+    
   if ($existing_service) {
-    return $existing_service['id'];
+    return $existing_service;
   }
 
   // if no existing service, create one and return service ID
