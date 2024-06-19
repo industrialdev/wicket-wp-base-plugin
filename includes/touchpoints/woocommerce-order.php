@@ -6,8 +6,6 @@
 add_action('woocommerce_order_status_changed', 'woocommerce_order_touchpoint');
 add_action('woocommerce_new_order', 'woocommerce_order_touchpoint');
 
-$service = get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.');
-
 function woocommerce_order_touchpoint($order_id) {
 
   // ---------------------------------------------------------------------------------------
