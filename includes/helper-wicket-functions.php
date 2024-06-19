@@ -1574,6 +1574,7 @@ function wicket_get_current_user_touchpoints($service_id){
 //   'action' => 'test action',
 //   'details' => 'these are some details',
 //   'data' => ['test' => 'thing']
+//   'external_event_id' => 'some unique value used when you dont want duplicate touchpoints but cant control how they are triggered'
 // ];
 // write_touchpoint($params, get_create_touchpoint_service_id('[service name]', '[service description]'));
 // ----------------------------------------------------------------
@@ -1623,6 +1624,9 @@ function build_touchpoint_payload($params, $wicket_service_id){
   ];
   if (isset($params['data'])) {
     $payload['data']['attributes']['data'] = $params['data'];
+  }
+  if (isset($params['external_event_id'])) {
+    $payload['data']['attributes']['external_event_id'] = $params['external_event_id'];
   }
   return $payload;
 }
