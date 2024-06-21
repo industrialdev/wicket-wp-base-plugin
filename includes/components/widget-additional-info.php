@@ -90,7 +90,7 @@ $wicket_settings = get_wicket_settings();
                 });
 
                 window.dispatchEvent(event);
-                widgetProfileIndUpdateHiddenFields(payload);
+                widgetAiUpdateHiddenFields(payload);
               });
               widget.listen(widget.eventTypes.SAVE_SUCCESS, function (payload) {
                 let event = new CustomEvent("wwidget-component-additional-info-save-success", {
@@ -98,7 +98,7 @@ $wicket_settings = get_wicket_settings();
                 });
 
                 window.dispatchEvent(event);
-                widgetProfileIndUpdateHiddenFields(payload);
+                widgetAiUpdateHiddenFields(payload);
               });
               widget.listen(widget.eventTypes.DELETE_SUCCESS, function (payload) {
                 let event = new CustomEvent("wwidget-component-additional-info-delete-success", {
@@ -110,18 +110,19 @@ $wicket_settings = get_wicket_settings();
             });
         });
 
-        function widgetProfileIndUpdateHiddenFields(payload) {
+        function widgetAiUpdateHiddenFields(payload) {
           let aiDataField = document.querySelector('input[name="<?php echo $additional_info_data_field_name; ?>"]');
           let validationDataField = document.querySelector('input[name="<?php echo $additional_info_validation; ?>"]');
 
           aiDataField.value = JSON.stringify(payload);
 
           validationDataField.value = true;
-          if( payload.incompleteRequiredFields ) {
-            if( payload.incompleteRequiredFields.length > 0 ) {
-              validationDataField.value = false;
-            }
-          }
+          // TODO: Update with AI-widget specific validation logic
+          // if( payload.incompleteRequiredFields ) {
+          //   if( payload.incompleteRequiredFields.length > 0 ) {
+          //     validationDataField.value = false;
+          //   }
+          // }
         }
     })()
 </script>
