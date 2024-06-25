@@ -88,7 +88,8 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   $language = !empty($lang) ? $lang : "en";
 
   // Autocomplete is limited to 100 results total.
-  $max_results = 10;
+  $max_results = 100; // TODO: Handle edge case where there are more than 100 results and 
+                      // we need to filter by a specific org type, thus they wouldn't all show
   $autocomplete_results = $client->get('/search/autocomplete', [
     'query' => [
       // Autocomplete lookup query, can filter based on name, membership number, email etc.
@@ -113,7 +114,9 @@ function wicket_internal_endpoint_search_orgs( $request ) {
     $tmp = [];
     if( isset( $result['attributes']['type'] ) && !empty( $orgType ) ) {
       $result_type = $result['attributes']['type'];
+      wicket_write_log($result_type . ' vs ' . $orgType);
       if( $result_type != $orgType ) {
+        wicket_write_log('Skipped');
         // Skip this record if an org type filter was passed to this endpoint
         // and it doesn't match
         continue;
@@ -157,7 +160,7 @@ function wicket_internal_endpoint_search_groups( $request ) {
 
   $args = [
     'sort' => 'name',
-    'page_size' => 12,
+    'page_size' => 100,
     'page_number' => 1,
   ];
 

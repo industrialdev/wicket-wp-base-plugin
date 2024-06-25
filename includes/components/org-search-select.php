@@ -4,6 +4,15 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-06-25
+ * 
+ * Added the 'key' paremeter so a unique identifier can be passed to the component to distinguish it from
+ * other components used on the page, if necessary. If the parameter is not passed, a random number is 
+ * generated and assigned as the components key, making the chance of a conflict extremely low.
+ * 
+ * Also added parameters 'org_term_singular' and 'org_term_plural' so the implementor can change the
+ * verbiage used to describe what they're searching for and selecting.
+ * 
  * 2024-06-17 - CoulterPeterson
  * 
  * Moved away from <form> tags and "submit" buttons so that the component will play nicer with Gravity Forms
@@ -73,6 +82,9 @@ $defaults  = array(
   'relationship_mode'                   => 'person_to_organization',
   'new_org_type_override'               => '',
   'selected_uuid_hidden_field_name'     => 'orgss-selected-uuid',
+  'key'                                 => rand(0,99999999),
+  'org_term_singular'                   => '',
+  'org_term_plural'                     => '',
 );
 $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
@@ -82,6 +94,26 @@ $relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
 $relationshipMode                = $args['relationship_mode'];
 $newOrgTypeOverride              = $args['new_org_type_override'];
 $selectedUuidHiddenFieldName     = $args['selected_uuid_hidden_field_name'];
+$key                             = $args['key'];
+$orgTermSingular                 = $args['org_term_singular'];
+$orgTermPlural                   = $args['org_term_plural'];
+
+if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
+  $orgTermSingular = 'Organization'; 
+}
+if( empty( $orgTermSingular ) && $searchMode == 'groups' ) { 
+  $orgTermSingular = 'Group'; 
+}
+$orgTermSingularCap              = ucfirst(strtolower( $orgTermSingular ));
+$orgTermSingularLower            = strtolower( $orgTermSingular );
+if( empty( $orgTermPlural  ) && $searchMode == 'org' ) { 
+  $orgTermPlural  = 'Organizations'; 
+}
+if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) { 
+  $orgTermPlural  = 'Groups'; 
+}
+$orgTermPluralCap              = ucfirst(strtolower( $orgTermPlural ));
+$orgTermPluralLower            = strtolower( $orgTermPlural );
 
 $current_person_uuid = wicket_current_person_uuid();
 
@@ -133,7 +165,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
 ?>
 
-<div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss" x-init="init">
+<div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
 
   <?php // Debug log of the selection custom event when fired ?>
   <pre x-on:orgss-selection-made.window="console.log($event.detail)"></pre>
@@ -148,8 +180,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="font-bold text-heading-md my-3"
-        x-text=" searchType == 'groups' ? 'Your Current Group(s)' : 'Your Current Organization(s)' "></h2>
+      <h2 class="font-bold text-heading-md my-3">Your current <?php echo $orgTermPluralCap; ?></h2>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div x-show="connection.connection_type == relationshipMode" class="rounded-100 flex justify-between bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
@@ -177,7 +208,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             <div>
               <?php get_component( 'button', [ 
                 'variant'  => 'primary',
-                'label'    => __( 'Select Organization', 'wicket' ),
+                'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
                 'type'     => 'primary',
                 'classes'  => [ '' ],
                 'atts'     => [ 'x-on:click.prevent="selectOrg($data.connection.org_id)"',  ]
@@ -197,15 +228,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       </template>
     </div>
     
-    <?php if($searchMode == 'groups'):?>
-      <div class="font-bold text-heading-sm mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different group?' : 'Search for your group' "></div>
-    <?php else: ?>
-      <div class="font-bold text-heading-sm mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different organization?' : 'Search for your organization' "></div>
-    <?php endif; ?>
+    <div class="font-bold text-heading-sm mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
-      <input x-model="searchBox" @keyup.enter.prevent="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by organization name" />
+      <input x-model="searchBox" @keyup.enter.prevent="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
       <?php get_component( 'button', [ 
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
@@ -213,11 +240,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         'atts'  => [ 'x-on:click.prevent="handleSearch()"' ],
       ] ); ?>
      </div>
-     <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching organizations (Selected org: <span x-text="selectedOrgUuid"></span>)</div>
+     <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
      <div class="orgss-results">
-      <div class="flex flex-col bg-white px-4">
+      <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
         <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-xl py-4">
-          Sorry, no organizations match your search. Please try again.
+          Sorry, no <?php echo $orgTermPluralLower; ?> match your search. Please try again.
         </div>
 
         <template x-for="(result, uuid) in results" x-cloak>
@@ -239,17 +266,14 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
   </div>
 
   <div x-show="firstSearchSubmitted" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
-    <div class="font-bold text-heading-sm mb-2"
-    x-text=" searchType=='groups' ? 'Can\'t find your group?' : 'Can\'t find your company / organization?' "></div>
+    <div class="font-bold text-heading-sm mb-2">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
-        <label
-          x-text=" searchType=='groups' ? 'Name of the Group*' : 'Name of the Organization*' "></label>
+        <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
         <input x-model="newOrgNameBox" @keyup.enter.prevent="handleOrgCreate()" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
-      <label
-          x-text=" searchType=='groups' ? 'Type of Group*' : 'Type of Organization*' "></label>
+      <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
         <select x-model="newOrgTypeSelect" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]" 
@@ -277,7 +301,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 <?php /* Broken-out Alpine data for tidyness */ ?>
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('orgss', () => ({
+        Alpine.data('orgss_<?php echo $key; ?>', () => ({
             lang: '<?php echo $lang; ?>',
             isLoading: false,
             firstSearchSubmitted: false,
