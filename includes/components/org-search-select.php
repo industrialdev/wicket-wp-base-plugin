@@ -4,7 +4,14 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
- * 2024-06-25
+ * 2024-06-26 - CoulterPeterson
+ * 
+ * Adding visual indicator for the currently selected organization. Also allowing multiple hidden
+ * data fields to exist on the page at once by passing the value of 'selected_uuid_hidden_field_name'
+ * to the JS element selector. Lastly, filtered the user's current org relationships by the org type filter,
+ * if set.
+ * 
+ * 2024-06-25 - CoulterPeterson
  * 
  * Added the 'key' paremeter so a unique identifier can be passed to the component to distinguish it from
  * other components used on the page, if necessary. If the parameter is not passed, a random number is 
@@ -148,7 +155,8 @@ if( $searchMode == 'org' ) {
         'org_id'          => $connection['relationships']['organization']['data']['id'],
         'org_name'        => $org_info['org_name'],
         'org_description' => $org_info['org_description'],
-        'org_type'        => $org_info['org_type_pretty'],
+        'org_type_pretty' => $org_info['org_type_pretty'],
+        'org_type'        => $org_info['org_type'],
         'org_status'      => $org_info['org_status'],
         'org_parent_id'   => $org_info['org_parent_id'],
         'org_parent_name' => $org_info['org_parent_name'],
@@ -183,9 +191,15 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       <h2 class="font-bold text-heading-md my-3">Your current <?php echo $orgTermPluralCap; ?></h2>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
-        <div x-show="connection.connection_type == relationshipMode" class="rounded-100 flex justify-between bg-white border border-dark-100 border-opacity-5 p-4 mb-3">
-          <div class="current-org-listing-left">
-            <div class="font-bold text-body-md" x-text="connection.org_type"></div>
+        <div 
+          x-show="connection.connection_type == relationshipMode && 
+                 ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )" 
+          class="rounded-100 flex justify-between bg-white p-4 mb-3"
+          x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
+        >
+        
+        <div class="current-org-listing-left">
+            <div class="font-bold text-body-md" x-text="connection.org_type_pretty"></div>
             <div class="flex mb-2 items-center">
               <div x-text="connection.org_name" class="font-bold text-heading-sm mr-5"></div>
               <div>
@@ -294,7 +308,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     </div>
 
     <?php // Hidden form field that can be used to pass the selected UUID along, like in Gravity Forms ?>
-    <input x-ref="orgssSelectedUuid" type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="" />
+    <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="" />
 
 </div>
 
@@ -414,7 +428,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             selectOrg( orgUuid ) {
               // Update state 
               this.selectedOrgUuid = orgUuid;
-              this.$refs.orgssSelectedUuid.value = orgUuid;
+              document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]').value = orgUuid;
 
               // selectOrg() is the last function call used in the process, whether selecting an existing
               // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
