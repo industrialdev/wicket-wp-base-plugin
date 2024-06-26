@@ -308,7 +308,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     </div>
 
     <?php // Hidden form field that can be used to pass the selected UUID along, like in Gravity Forms ?>
-    <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="" />
+    <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if(isset($_POST[$selectedUuidHiddenFieldName])){echo $_POST[$selectedUuidHiddenFieldName];} ?>" />
 
 </div>
 
