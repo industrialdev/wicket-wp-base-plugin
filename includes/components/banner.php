@@ -132,24 +132,26 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						<?php
 						if ( ! empty( $download_file ) ) {
 							get_component( 'button', [ 
-								'variant'     => 'primary',
-								'label'       => 'Download',
-								'suffix_icon' => 'fa-solid fa-arrow-down-to-bracket',
-								'a_tag'       => true,
-								'link'        => $download_file['url'],
-								'atts'        => [ 'download' ],
+								'variant'            => 'primary',
+								'label'              => 'Download',
+								'suffix_icon'        => 'fa-solid fa-arrow-down-to-bracket',
+								'a_tag'              => true,
+								'link'               => $download_file['url'],
+								'atts'               => [ 'download' ],
+								'screen_reader_text' => $download_file['title'],
 							] );
 						}
 
 						if ( ! empty( $helper_link ) ) {
 							get_component( 'button', [ 
-								'variant'     => 'secondary',
-								'label'       => $helper_link['title'],
-								'suffix_icon' => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
-								'a_tag'       => true,
-								'link'        => $helper_link['url'],
-								'link_target' => $helper_link['target'],
-								'reversed'    => $reversed,
+								'variant'            => 'secondary',
+								'label'              => $helper_link['title'],
+								'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
+								'a_tag'              => true,
+								'link'               => $helper_link['url'],
+								'link_target'        => $helper_link['target'],
+								'reversed'           => $reversed,
+								'screen_reader_text' => $helper_link['target'] === '_blank' ? __( '(opens in new tab)', 'wicket' ) : '',
 							] );
 						}
 
