@@ -1,41 +1,45 @@
 <?php
-$defaults         = array(
-	'classes'          => [],
-	'title '           => '',
-	'intro'            => '',
-	'show_breadcrumbs' => false,
-	'show_post_type'   => false,
-	'show_share'       => false,
-	'show_date'        => false,
-	'member_only'      => false,
-	'text_alignment'   => 'left',
-	'image'            => '',
-	'custom_image'     => '',
-	'call_to_action'   => '',
-	'background_style' => 'light',
-	'background_image' => '',
-	'back_link'        => '',
-	'download_file'    => '',
-	'helper_link'      => '',
+$defaults                 = array(
+	'classes'                  => [],
+	'title '                   => '',
+	'intro'                    => '',
+	'show_breadcrumbs'         => false,
+	'show_post_type'           => false,
+	'show_share'               => false,
+	'show_date'                => false,
+	'member_only'              => false,
+	'text_alignment'           => 'left',
+	'image'                    => '',
+	'custom_image'             => '',
+	'call_to_action'           => '',
+	'background_style'         => 'light',
+	'background_image'         => '',
+	'back_link'                => '',
+	'download_file'            => '',
+	'download_button_style'    => 'primary',
+	'helper_link'              => '',
+	'helper_link_button_style' => 'secondary',
 );
-$args             = wp_parse_args( $args, $defaults );
-$classes          = $args['classes'];
-$title            = $args['title'];
-$intro            = $args['intro'];
-$show_breadcrumbs = $args['show_breadcrumbs'];
-$show_post_type   = $args['show_post_type'];
-$show_share       = $args['show_share'];
-$show_date        = $args['show_date'];
-$member_only      = $args['member_only'];
-$text_alignment   = $args['text_alignment'];
-$image            = $args['image'];
-$custom_image     = $args['custom_image'];
-$call_to_action   = $args['call_to_action'];
-$background_style = $args['background_style'];
-$background_image = $args['background_image'];
-$back_link        = $args['back_link'];
-$download_file    = $args['download_file'];
-$helper_link      = $args['helper_link'];
+$args                     = wp_parse_args( $args, $defaults );
+$classes                  = $args['classes'];
+$title                    = $args['title'];
+$intro                    = $args['intro'];
+$show_breadcrumbs         = $args['show_breadcrumbs'];
+$show_post_type           = $args['show_post_type'];
+$show_share               = $args['show_share'];
+$show_date                = $args['show_date'];
+$member_only              = $args['member_only'];
+$text_alignment           = $args['text_alignment'];
+$image                    = $args['image'];
+$custom_image             = $args['custom_image'];
+$call_to_action           = $args['call_to_action'];
+$background_style         = $args['background_style'];
+$background_image         = $args['background_image'];
+$back_link                = $args['back_link'];
+$download_file            = $args['download_file'];
+$download_button_style    = $args['download_button_style'];
+$helper_link              = $args['helper_link'];
+$helper_link_button_style = $args['helper_link_button_style'];
 
 $text_alignment_class = 'text-' . $text_alignment;
 $wrapper_classes      = [ 'component-banner py-8 px-4 mb-16 relative' ]; // border-b border-light-020
@@ -132,7 +136,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						<?php
 						if ( ! empty( $download_file ) ) {
 							get_component( 'button', [ 
-								'variant'            => 'primary',
+								'variant'            => $download_button_style,
 								'label'              => 'Download',
 								'suffix_icon'        => 'fa-solid fa-arrow-down-to-bracket',
 								'a_tag'              => true,
@@ -144,7 +148,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 
 						if ( ! empty( $helper_link ) ) {
 							get_component( 'button', [ 
-								'variant'            => 'secondary',
+								'variant'            => $helper_link_button_style,
 								'label'              => $helper_link['title'],
 								'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
 								'a_tag'              => true,
