@@ -252,19 +252,9 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			]);
 
 			$section->add_option('checkbox', [
-			    'name' => 'wicket_admin_settings_tp_create_account',
-			    'label' => __('Create Account', 'wicket'),
-			    'description' => __('Enable Create Account touchpoint and send new account details to Wicket', 'wicket')
-			]);
-			$section->add_option('checkbox', [
-			    'name' => 'wicket_admin_settings_tp_verify_account',
-			    'label' => __('Verified Account', 'wicket'),
-			    'description' => __('Enable Verified Account touchpoint and send account verification details to Wicket', 'wicket')
-			]);
-			$section->add_option('checkbox', [
 			    'name' => 'wicket_admin_settings_tp_woo_order',
 			    'label' => __('WooCommerce Order', 'wicket'),
-			    'description' => __('Enable Order touchpoint and send purchase details to Wicket', 'wicket')
+			    'description' => __('Enable Order touchpoint and send details to Wicket MDP.', 'wicket')
 			]);
 
 			//Custom Touchpoints Section

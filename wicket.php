@@ -78,6 +78,11 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			// Include Mailtrap settings for stage
 			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
+			// Include woo order touchpoints
+			if ( wicket_get_option('wicket_admin_settings_tp_woo_order') === '1') {
+				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce-order.php';
+			} 
+
 			// Include wp-cassify sync
 			if ( is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1') ) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';

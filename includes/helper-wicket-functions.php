@@ -1574,8 +1574,9 @@ function wicket_get_current_user_touchpoints($service_id){
 //   'action' => 'test action',
 //   'details' => 'these are some details',
 //   'data' => ['test' => 'thing']
+//   'external_event_id' => 'some unique value used when you dont want duplicate touchpoints but cant control how they are triggered'
 // ];
-// write_touchpoint($params);
+// write_touchpoint($params, get_create_touchpoint_service_id('[service name]', '[service description]'));
 // ----------------------------------------------------------------
 function write_touchpoint($params, $wicket_service_id){
   $client = wicket_api_client();
@@ -1624,6 +1625,9 @@ function build_touchpoint_payload($params, $wicket_service_id){
   if (isset($params['data'])) {
     $payload['data']['attributes']['data'] = $params['data'];
   }
+  if (isset($params['external_event_id'])) {
+    $payload['data']['attributes']['external_event_id'] = $params['external_event_id'];
+  }
   return $payload;
 }
 
@@ -1637,12 +1641,11 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
   $client = wicket_api_client();
 
   // check for existing service, return service ID
-  $existing_services = $client->get('services')['data'];
-  $existing_service = reset(array_filter($existing_services, function($service) use ($service_name) {
-    return isset($service['attributes']['name']) && $service['attributes']['name'] === $service_name;
-  }));
+  $existing_services = $client->get("services?filter[name_eq]=$service_name");
+  $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
+    
   if ($existing_service) {
-    return $existing_service['id'];
+    return $existing_service;
   }
 
   // if no existing service, create one and return service ID
