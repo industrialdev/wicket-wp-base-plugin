@@ -85,7 +85,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						'text'       => 'Back',
 						'icon_start' => [ 
 							'icon' => 'fa-solid fa-arrow-left',
-							'text' => 'Icon text',
+							'text' => 'Go back to ' . $back_link,
 						],
 					] );
 				} ?>
