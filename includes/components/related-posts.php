@@ -128,7 +128,7 @@ if ( $highlight_featured_posts ) {
 	<div class="<?php echo implode( ' ', $classes ) ?>">
 		<div class="container">
 			<?php if ( $title && ! $hide_block_title ) : ?>
-				<div class="mb-4 lg:mb-12">
+				<div class="mb-10">
 					<span class="text-heading-sm font-bold">
 						<?php echo $title; ?>
 					</span>
