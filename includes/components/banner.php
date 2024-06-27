@@ -17,6 +17,7 @@ $defaults                 = array(
 	'back_link'                => '',
 	'download_file'            => '',
 	'download_button_style'    => 'primary',
+	'download_button_label'    => __( 'Download', 'wicket' ),
 	'helper_link'              => '',
 	'helper_link_button_style' => 'secondary',
 );
@@ -38,6 +39,7 @@ $background_image         = $args['background_image'];
 $back_link                = $args['back_link'];
 $download_file            = $args['download_file'];
 $download_button_style    = $args['download_button_style'];
+$download_button_label    = $args['download_button_label'];
 $helper_link              = $args['helper_link'];
 $helper_link_button_style = $args['helper_link_button_style'];
 
@@ -137,7 +139,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						if ( ! empty( $download_file ) ) {
 							get_component( 'button', [ 
 								'variant'            => $download_button_style,
-								'label'              => 'Download',
+								'label'              => $download_button_label,
 								'suffix_icon'        => 'fa-solid fa-arrow-down-to-bracket',
 								'a_tag'              => true,
 								'link'               => $download_file['url'],
