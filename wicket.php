@@ -83,6 +83,29 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce-order.php';
 			} 
 
+			// Include event tickets attendee registered touchpoints
+			if ( wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1') {
+				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce_payment_complete_event_ticket_attendees.php';
+			} 
+
+			// Include event tickets attendee registered touchpoints
+			if ( wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1') {
+				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_checkin.php';
+			} 
+
+			// Include event tickets attendee registered touchpoints
+			if ( wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_rsvp') === '1') {
+				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_rsvp.php';
+			} 
+
+			// Include event tickets attendee field hooks to provide last name field by default, rename 'name' field to first name and re-sort fields
+			// Not sure if this applies to rsvp fields as well or just attendee registration, but will include it if any of the above options are enabled 
+			if ( wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1' ||
+					 wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1' ||
+					 wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_rsvp') === '1') {
+				include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_field_hooks.php';
+			} 
+
 			// Include wp-cassify sync
 			if ( is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1') ) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';

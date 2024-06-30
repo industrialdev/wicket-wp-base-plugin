@@ -256,6 +256,22 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'label' => __('WooCommerce Order', 'wicket'),
 			    'description' => __('Enable Order touchpoint and send details to Wicket MDP.', 'wicket')
 			]);
+			$section->add_option('checkbox', [
+				'name' => 'wicket_admin_settings_tp_event_ticket_attendees',
+				'label' => __('Event Tickets attendee registered for an event', 'wicket'),
+				'description' => __('Enable a touchpoint to be written when attendees register for an event. <br><small>Touchpoint is written on order complete</small>', 'wicket')
+			]);
+			$section->add_option('checkbox', [
+			    'name' => 'wicket_admin_settings_tp_event_ticket_attendees_checkin',
+			    'label' => __('Event Tickets attendee check-in for an event', 'wicket'),
+			    'description' => __('Enable a touchpoint to be written when attendees check-in for an event', 'wicket')
+			]);
+			$section->add_option('checkbox', [
+			    'name' => 'wicket_admin_settings_tp_event_ticket_attendees_rsvp',
+			    'label' => __('Event Tickets attendee RSVP for an event', 'wicket'),
+			    'description' => __('Enable a touchpoint to be written when attendees RSVP for an event', 'wicket')
+			]);
+			
 
 			//Custom Touchpoints Section
 			$section = $tab_tp->add_section('Custom', ['as_link' => true]);
