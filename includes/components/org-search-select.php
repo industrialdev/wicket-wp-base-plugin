@@ -4,6 +4,10 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-07-04 - CoulterPeterson
+ * 
+ * Added disable_create_org_ui param.
+ * 
  * 2024-06-26 - CoulterPeterson
  * 
  * Adding visual indicator for the currently selected organization. Also allowing multiple hidden
@@ -92,6 +96,7 @@ $defaults  = array(
   'key'                                 => rand(0,99999999),
   'org_term_singular'                   => '',
   'org_term_plural'                     => '',
+  'disable_create_org_ui'               => false,
 );
 $args                            = wp_parse_args( $args, $defaults );
 $classes                         = $args['classes'];
@@ -104,6 +109,7 @@ $selectedUuidHiddenFieldName     = $args['selected_uuid_hidden_field_name'];
 $key                             = $args['key'];
 $orgTermSingular                 = $args['org_term_singular'];
 $orgTermPlural                   = $args['org_term_plural'];
+$disable_create_org_ui           = $args['disable_create_org_ui'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -279,7 +285,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     </div>
   </div>
 
-  <div x-show="firstSearchSubmitted" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
+  <div x-show="firstSearchSubmitted && !disableCreateOrgUi" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div class="font-bold text-heading-sm mb-2">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
@@ -325,6 +331,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             newOrgTypeOverride: '<?php echo $newOrgTypeOverride; ?>',
             searchOrgType: '<?php echo $searchOrgType; ?>',
             availableOrgTypes: <?php echo json_encode( $available_org_types ); ?>,
+            disableCreateOrgUi: '<?php echo $disable_create_org_ui; ?>',
             selectedOrgUuid: '',
             searchBox: '',
             newOrgNameBox: '',
