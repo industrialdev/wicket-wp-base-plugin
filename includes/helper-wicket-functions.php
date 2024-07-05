@@ -1843,3 +1843,91 @@ function get_individual_memberships(){
   //var_dump($search_organizations);exit;
   return $search_organizations;
 }
+
+/**
+ * Enables writing a single AI value for a person based on a single key/value pair.
+ * Example usage: `wicket_update_schema_single_value( wicket_current_person_uuid(), 'membership_mgmt',
+ * 'application_status', 'not_submitted');`
+ * To pass a custom payload for multiple value updates, pass null for $key and True for $pass_raw_value,
+ * then you can pass your custom payload to $value.
+ */
+// TODO: Update this function to use the new 'schema slug' update to Wicket Member, instead of looking up the ID with wicket_get_schema()
+function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw_value = false, $person_uuid = 0) {
+  $client = wicket_api_client();
+  $schema = wicket_get_schema($schema_slug);
+  if( $person_uuid == 0 ) {
+    $wicket_person = wicket_current_person();
+    $person_uuid = $wicket_person->id;
+  } else {
+    $wicket_person = wicket_get_person_by_id($person_uuid);
+  }
+
+  if( empty($client) || empty($schema) || empty($wicket_person) ) {
+    return false;
+  }
+
+  $schema_uuid = $schema['id'];
+  $schema_values = wicket_get_field_from_data_fields($wicket_person->data_fields, $schema_slug)['value'];
+  $sub_payload = array();
+  if( !$pass_raw_value ) {
+    $schema_values[$key] = $value;
+    $sub_payload = $schema_values;
+  } else {
+    $sub_payload = $value;
+  }
+
+  // Cleaning up values
+  // TODO: Potentially include more cleanup conditions found in wicket_add_data_field(),
+  //  or reference it directly
+  foreach( $sub_payload as $key => $value ) {
+    // remove empty arrays (likely select fields with the "choose option" set)
+    if ( is_array( $value ) && empty( $value ) ) {
+      unset( $sub_payload[$key] );
+    }
+  }
+
+  try {
+    $payload = [
+      'data' => [
+        'type' => 'people',
+        'id' => "$person_uuid",
+        'attributes' => [
+          'data_fields' => [[
+            '$schema' => "urn:uuid:$schema_uuid",
+            'value' => $sub_payload,
+          ]]
+        ]
+      ]
+    ];
+
+    // error_log("people_ai_write_single_value payload");
+    // error_log( json_encode($payload, JSON_PRETTY_PRINT) );
+
+    $client->patch("people/$person_uuid", ['json' => $payload]);
+    return array(true);
+  } catch (Exception $e) {
+    // error_log("Error in people_ai_write_single_value - see details:");
+    // error_log( print_r( $e->getMessage(), true ) );
+    return array(false, $e->getMessage());
+  }
+}
+
+function wicket_get_field_from_data_fields($data_fields, $key) {
+  // get matches
+  $matches = array_filter($data_fields, function($field) use ($key) {
+    return isset($field['key']) && $field['key'] == $key;
+  });
+
+  // return first match
+  return reset($matches);
+}
+
+function wicket_get_schema($schema_slug) {
+  $schemas = wicket_get_schemas();
+  if ($schemas) {
+    $result = array_filter($schemas['data'], function($schema) use ($schema_slug) {
+      return $schema['attributes']['key'] == $schema_slug;
+    });
+    return reset($result);
+  }
+}
