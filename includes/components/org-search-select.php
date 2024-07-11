@@ -4,6 +4,12 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-07-11 - CoulterPeterson
+ * 
+ * Added checkbox_id_new_org param so that a checkbox field ID can be passed into the component, which will
+ * get checked if a new org ends up being created in the process. This way other conditional fields can be
+ * shown or hidden based on the value of that checkbox.
+ * 
  * 2024-07-04 - CoulterPeterson
  * 
  * Added disable_create_org_ui param.
@@ -93,6 +99,7 @@ $defaults  = array(
   'relationship_mode'                   => 'person_to_organization',
   'new_org_type_override'               => '',
   'selected_uuid_hidden_field_name'     => 'orgss-selected-uuid',
+  'checkbox_id_new_org'                 => '',
   'key'                                 => rand(0,99999999),
   'org_term_singular'                   => '',
   'org_term_plural'                     => '',
@@ -106,6 +113,7 @@ $relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
 $relationshipMode                = $args['relationship_mode'];
 $newOrgTypeOverride              = $args['new_org_type_override'];
 $selectedUuidHiddenFieldName     = $args['selected_uuid_hidden_field_name'];
+$checkboxIdNewOrg                = $args['checkbox_id_new_org'];
 $key                             = $args['key'];
 $orgTermSingular                 = $args['org_term_singular'];
 $orgTermPlural                   = $args['org_term_plural'];
@@ -598,6 +606,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     if( data.success ) {
                       let newOrgUuid = data.data.data.id;
                       this.selectOrgAndCreateRelationship( newOrgUuid );
+
+                      // Check a user-defined checkbox (if provided) so the form an respond to a new org
+                      // being created or not
+                      if( "<?php echo $checkboxIdNewOrg; ?>" !== "" ) {
+                        document.getElementById("<?php echo $checkboxIdNewOrg; ?>").checked = true;
+                      }
                     }
 
                   }
