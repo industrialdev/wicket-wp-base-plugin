@@ -198,6 +198,30 @@ function wicket_get_person_by_id($uuid){
   return false;
 }
 
+/**
+ * Return a person object by email
+ *
+ * @param string $email The email address of the person
+ *
+ * @return object|bool The person object or false if not found
+ */
+function wicket_get_person_by_email($email = '')
+{
+  if (!$email) {
+    return false;
+  }
+
+  $client = wicket_api_client();
+  $person = $client->get('/people?filter[emails_primary_eq]=true&filter[emails_address_eq]=' . urlencode($email));
+
+  // Return the first person if found
+  if (isset($person['data'][0])) {
+    return $person['data'][0];
+  }
+
+  return false;
+}
+
 /**------------------------------------------------------------------
 * Get email by id
 ------------------------------------------------------------------*/
@@ -1912,6 +1936,7 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
   }
 }
 
+// Helper for wicket_update_schema_single_value
 function wicket_get_field_from_data_fields($data_fields, $key) {
   // get matches
   $matches = array_filter($data_fields, function($field) use ($key) {
@@ -1922,6 +1947,7 @@ function wicket_get_field_from_data_fields($data_fields, $key) {
   return reset($matches);
 }
 
+// Finds the schema ID using a provided schema slug. 
 function wicket_get_schema($schema_slug) {
   $schemas = wicket_get_schemas();
   if ($schemas) {
