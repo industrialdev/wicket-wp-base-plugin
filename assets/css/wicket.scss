@@ -11,6 +11,9 @@
 @import 'components/breadcrumbs';
 @import 'components/social-links';
 @import 'components/footer';
+@import 'components/product-card';
 
 /* AlpineJS Helpers */
-[x-cloak] { display: none !important; }
+[x-cloak] {
+  display: none !important;
+}

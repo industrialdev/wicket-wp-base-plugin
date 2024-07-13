@@ -1,0 +1,39 @@
+.component-card-product {
+  .onsale {
+    background-color: var(--wp--preset--color--white);
+    padding: var(--wp--preset--spacing--100);
+    border-radius: var(--wp--custom--border-radius--100);
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .price {
+    font-size: var(--wp--preset--font-size--heading-xs);
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+
+    ins {
+      font-weight: bold;
+      text-decoration: none;
+    }
+  }
+
+  .button {
+    @extend .button--primary;
+
+    &.product_type_external {
+      @include add-external-icon;
+    }
+  }
+}
+
+.component-card-product__title {
+  font-weight: bold;
+  text-align: center;
+  font-size: var(--wp--preset--font-size--heading-xs);
+  line-height: 1.2;
+}
