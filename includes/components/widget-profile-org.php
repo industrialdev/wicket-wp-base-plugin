@@ -3,7 +3,7 @@ $defaults        = array(
 	'classes'                    => [],
   'org_id'                     => '',
   'org_info_data_field_name'   => 'profile-org-info',
-  'validation_data_field_name' => 'profile-validation',
+  'validation_data_field_name' => 'profile-org-validation',
 );
 $args                       = wp_parse_args( $args, $defaults );
 $classes                    = $args['classes'];
