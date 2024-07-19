@@ -4,6 +4,17 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-07-17 - CoulterPeterson
+ * 
+ * Updated the 'active connection' logic to check for an active org membership status rather than an 
+ * active connection. Also made it so orgs with active connections can't be selected, if a
+ * 'disable_selecting_orgs_with_active_membership' param is passed as true.
+ * 
+ * Also added new param 'grant_roster_man_on_purchase' that, if true, willcall to a new internal endpoint 
+ * that uses wicket_internal_endpoint_flag_for_rm_access()
+ * which sets a temporary piece of user meta (roster_man_org_to_grant) so that the user will get 
+ * Roster Mangement access for the given org UUID on the next order_complete containing a membership product.
+ * 
  * 2024-07-11 - CoulterPeterson
  * 
  * Added checkbox_id_new_org param so that a checkbox field ID can be passed into the component, which will
@@ -77,7 +88,7 @@
  * 
  * General TODOs:
  *  [X] Allow component to be used with (or focus on) different 'types' of orgs via a component param
- *  [] Update the 'active connection' logic to check for an active membership status rather than an 
+ *  [x] Update the 'active connection' logic to check for an active membership status rather than an 
  *     active connection
  *  [X] Determine how to cleanly trigger a "next step" in various contexts while providing the selected UUID
  *     and any other needed information. For example, if it's used on a custom template, we may want to emit
@@ -90,34 +101,37 @@
  */
 
 
-
 $defaults  = array(
-	'classes'                             => [],
-  'search_mode'                         => 'org', // Options: org, groups, ...
-  'search_org_type'                     => '',
-  'relationship_type_upon_org_creation' => 'employee',
-  'relationship_mode'                   => 'person_to_organization',
-  'new_org_type_override'               => '',
-  'selected_uuid_hidden_field_name'     => 'orgss-selected-uuid',
-  'checkbox_id_new_org'                 => '',
-  'key'                                 => rand(0,99999999),
-  'org_term_singular'                   => '',
-  'org_term_plural'                     => '',
-  'disable_create_org_ui'               => false,
+	'classes'                                       => [],
+  'search_mode'                                   => 'org', // Options: org, groups, ...
+  'search_org_type'                               => '',
+  'relationship_type_upon_org_creation'           => 'employee',
+  'relationship_mode'                             => 'person_to_organization',
+  'new_org_type_override'                         => '',
+  'selected_uuid_hidden_field_name'               => 'orgss-selected-uuid',
+  'checkbox_id_new_org'                           => '',
+  'key'                                           => rand(0,99999999),
+  'org_term_singular'                             => '',
+  'org_term_plural'                               => '',
+  'disable_create_org_ui'                         => false,
+  'disable_selecting_orgs_with_active_membership' => false,
+  'grant_roster_man_on_purchase'                  => false,
 );
-$args                            = wp_parse_args( $args, $defaults );
-$classes                         = $args['classes'];
-$searchMode                      = $args['search_mode'];
-$searchOrgType                   = $args['search_org_type'];
-$relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
-$relationshipMode                = $args['relationship_mode'];
-$newOrgTypeOverride              = $args['new_org_type_override'];
-$selectedUuidHiddenFieldName     = $args['selected_uuid_hidden_field_name'];
-$checkboxIdNewOrg                = $args['checkbox_id_new_org'];
-$key                             = $args['key'];
-$orgTermSingular                 = $args['org_term_singular'];
-$orgTermPlural                   = $args['org_term_plural'];
-$disable_create_org_ui           = $args['disable_create_org_ui'];
+$args                                          = wp_parse_args( $args, $defaults );
+$classes                                       = $args['classes'];
+$searchMode                                    = $args['search_mode'];
+$searchOrgType                                 = $args['search_org_type'];
+$relationshipTypeUponOrgCreation               = $args['relationship_type_upon_org_creation'];
+$relationshipMode                              = $args['relationship_mode'];
+$newOrgTypeOverride                            = $args['new_org_type_override'];
+$selectedUuidHiddenFieldName                   = $args['selected_uuid_hidden_field_name'];
+$checkboxIdNewOrg                              = $args['checkbox_id_new_org'];
+$key                                           = $args['key'];
+$orgTermSingular                               = $args['org_term_singular'];
+$orgTermPlural                                 = $args['org_term_plural'];
+$disable_create_org_ui                         = $args['disable_create_org_ui'];
+$disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
+$grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -151,6 +165,8 @@ if( $searchMode == 'org' ) {
   // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
       // in wicket. 
   // $current_memberships = wicket_get_current_person_memberships();
+  // wicket_get_org_memberships
+  
 
   foreach( $current_connections['data'] as $connection ) {
     $connection_id = $connection['id'];
@@ -158,15 +174,30 @@ if( $searchMode == 'org' ) {
       $org_id = $connection['relationships']['organization']['data']['id'];
         
       $org_info = wicket_get_organization_basic_info( $org_id, $lang );
-  
+      $org_memberships = wicket_get_org_memberships($org_id );
+
+      $has_active_membership = false;
+      if( !empty( $org_memberships ) ) {
+        foreach( $org_memberships as $membership ) {
+          if( isset( $membership['membership'] ) ) {
+            if( isset( $membership['membership']['attributes'] ) ) {
+              if( isset( $membership['membership']['attributes']['active'] ) ) {
+                if( $membership['membership']['attributes']['active'] ) {
+                  $has_active_membership = true;
+                }
+              }
+            }
+          }
+        } 
+      }  
       $person_to_org_connections[] = [
         'connection_id'   => $connection['id'],
         'connection_type' => $connection['attributes']['connection_type'],
         'starts_at'       => $connection['attributes']['starts_at'],
         'ends_at'         => $connection['attributes']['ends_at'],
         'tags'            => $connection['attributes']['tags'],
-        'active'          => $connection['attributes']['active'],
-        'org_id'          => $connection['relationships']['organization']['data']['id'],
+        'active'          => $has_active_membership,
+        'org_id'          => $org_id,
         'org_name'        => $org_info['org_name'],
         'org_description' => $org_info['org_description'],
         'org_type_pretty' => $org_info['org_type_pretty'],
@@ -186,6 +217,15 @@ if( $searchMode == 'org' ) {
 $available_org_types = wicket_get_resource_types( 'organizations' );
 
 ?>
+
+<style>
+  .orgss_disabled_button {
+    background: #efefef;
+    color: #a3a3a3;
+    border-color: #efefef;
+    pointer-events: none;
+  }
+</style>
 
 <div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
 
@@ -239,7 +279,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
                 'type'     => 'primary',
                 'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click.prevent="selectOrg($data.connection.org_id)"',  ]
+                'atts'     => [ 
+                  'x-on:click.prevent="selectOrg($data.connection.org_id)"',
+                  'x-bind:class="connection.active && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
+                ]
               ] ); ?>
               <?php get_component( 'button', [ 
                 'variant'  => 'primary',
@@ -339,7 +382,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             newOrgTypeOverride: '<?php echo $newOrgTypeOverride; ?>',
             searchOrgType: '<?php echo $searchOrgType; ?>',
             availableOrgTypes: <?php echo json_encode( $available_org_types ); ?>,
-            disableCreateOrgUi: '<?php echo $disable_create_org_ui; ?>',
+            disableCreateOrgUi: <?php echo $disable_create_org_ui ? 'true' : 'false'; ?>,
+            disableSelectingOrgsWithActiveMembership: <?php echo $disable_selecting_orgs_with_active_membership ? 'true' : 'false'; ?>,
             selectedOrgUuid: '',
             searchBox: '',
             newOrgNameBox: '',
@@ -348,6 +392,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
             currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
             currentPersonUuid: "<?php echo $current_person_uuid; ?>",
+            grantRosterManOnPurchase: <?php echo $grant_roster_man_on_purchase ? 'true' : 'false'; ?>,
 
 
             init() {
@@ -458,12 +503,42 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               });
 
               window.dispatchEvent(event);
+
+              if(this.grantRosterManOnPurchase) {
+                this.flagForRosterManagementAccess(orgUuid);
+              }
             },
             selectOrgAndCreateRelationship( orgUuid ) {
               // TODO: Handle when a Group is selected instead of an org
 
               this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
               this.selectOrg( orgUuid );
+            },
+            async flagForRosterManagementAccess( orgUuid ) {
+              let data = {
+                "orgUuid": orgUuid,
+              };
+
+              let results = await fetch(this.apiUrl + 'flag-for-rm-access', {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+              }).then(response => response.json())
+                .then(data => { 
+                  if( !data.success ) {
+                    // Handle error
+                  } else {
+                    // Handle success if needed
+                  }
+              });
             },
             async searchGroups( searchTerm, showLoading = true ) {
               if(showLoading) {
