@@ -4,6 +4,7 @@ $defaults        = array(
   'additional_info_data_field_name'  => 'additional-info-data',
   'validation_data_field_name'       => 'additional-info-validation',
   'resource_type'                    => 'people',
+  'org_uuid'                         => '',
   'schemas_and_overrides'            => [],
 );
 $args                             = wp_parse_args( $args, $defaults );
@@ -11,6 +12,7 @@ $classes                          = $args['classes'];
 $additional_info_data_field_name  = $args['additional_info_data_field_name'];
 $additional_info_validation       = $args['validation_data_field_name'];
 $resource_type                    = $args['resource_type'];
+$org_uuid                         = $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
 
 // DEMO
@@ -61,7 +63,7 @@ $wicket_settings = get_wicket_settings();
               accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
               resource: {
                 type: '<?php echo $resource_type; ?>',
-                id: '<?php echo wicket_current_person_uuid(); ?>'
+                id: '<?php if( $resource_type == 'people' ) { echo wicket_current_person_uuid();} else if( $resource_type == 'organizations' ){ echo $org_uuid; } ?>',
               },
               lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
               schemas: [
