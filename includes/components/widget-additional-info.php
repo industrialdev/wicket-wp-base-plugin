@@ -14,6 +14,7 @@ $additional_info_validation       = $args['validation_data_field_name'];
 $resource_type                    = $args['resource_type'];
 $org_uuid                         = $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
+$unique_widget_id                 = rand( 1, 9999999 );
 
 // DEMO
 // $schemas_and_overrides = [
@@ -41,7 +42,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode( ' ', $classes ); ?>" role="complementary">
   <h2>Additional Info</h2>
-  <div id="additional-info"></div>
+  <div id="additional-info-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden" name="<?php echo $additional_info_data_field_name; ?>" />
   <input type="hidden" name="<?php echo $additional_info_validation; ?>" />
 </div>
@@ -55,7 +56,7 @@ $wicket_settings = get_wicket_settings();
 <script>
     (function (){
         Wicket.ready(function () {
-            var widgetRoot = document.getElementById('additional-info');
+            var widgetRoot = document.getElementById('additional-info-<?php echo $unique_widget_id; ?>');
             Wicket.widgets.editAdditionalInfo({
               loadIcons: true,
               rootEl: widgetRoot,

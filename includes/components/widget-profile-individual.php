@@ -8,6 +8,7 @@ $args                       = wp_parse_args( $args, $defaults );
 $classes                    = $args['classes'];
 $user_info_data_field_name  = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
+$unique_widget_id           = rand( 1, 9999999 );
 
 $wicket_settings = get_wicket_settings(); 
 
@@ -15,7 +16,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode( ' ', $classes ); ?>" role="complementary">
   <h2>Profile</h2>
-  <div id="profile"></div>
+  <div id="profile-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden" name="<?php echo $user_info_data_field_name; ?>" />
   <input type="hidden" name="<?php echo $validation_data_field_name; ?>" />
 </div>
@@ -29,7 +30,7 @@ $wicket_settings = get_wicket_settings();
 <script>
     (function (){
         Wicket.ready(function () {
-            var widgetRoot = document.getElementById('profile');
+            var widgetRoot = document.getElementById('profile-<?php echo $unique_widget_id; ?>');
             Wicket.widgets.createPersonProfile({
             rootEl: widgetRoot,
             apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',

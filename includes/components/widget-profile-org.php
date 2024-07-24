@@ -10,6 +10,7 @@ $classes                    = $args['classes'];
 $org_id                     = $args['org_id'];
 $org_info_data_field_name   = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
+$unique_widget_id           = rand( 1, 9999999 );
 
 if( empty( $org_id ) ) {
   //echo '<div>Error: Organization ID must be provided</div>';
@@ -22,7 +23,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode( ' ', $classes ); ?>" role="complementary">
   <h2>Organization Profile</h2>
-  <div id="org-profile-widget"></div>
+  <div id="org-profile-widget-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden" name="<?php echo $org_info_data_field_name; ?>" />
   <input type="hidden" name="<?php echo $validation_data_field_name; ?>" />
 </div>
@@ -36,7 +37,7 @@ $wicket_settings = get_wicket_settings();
 <script type="text/javascript">
   (function (){
     Wicket.ready(function () {
-      var widgetRoot = document.getElementById('org-profile-widget');
+      var widgetRoot = document.getElementById('org-profile-widget-<?php echo $unique_widget_id; ?>');
       Wicket.widgets.editOrganizationProfile({
         rootEl: widgetRoot,
         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',

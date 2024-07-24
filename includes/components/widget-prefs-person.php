@@ -7,6 +7,7 @@ $defaults        = array(
 $args                         = wp_parse_args( $args, $defaults );
 $classes                      = $args['classes'];
 $preferences_data_field_name  = $args['preferences_data_field_name'];
+$unique_widget_id             = rand( 1, 9999999 );
 
 $wicket_settings = get_wicket_settings(); 
 
@@ -14,7 +15,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode( ' ', $classes ); ?>" role="complementary">
   <h2>Preferences</h2>
-  <div id="preferences-widget"></div>
+  <div id="preferences-widget-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden" name="<?php echo $preferences_data_field_name; ?>" />
   <?php /* No hidden validation field as the preferences widget doesn't need validation */ ?>
 </div>
@@ -28,7 +29,7 @@ $wicket_settings = get_wicket_settings();
 <script>
     (function (){
         Wicket.ready(function () {
-            var widgetRoot = document.getElementById('preferences-widget');
+            var widgetRoot = document.getElementById('preferences-widget-<?php echo $unique_widget_id; ?>');
 
             Wicket.widgets.editPersonPreferences({
               rootEl: widgetRoot,
