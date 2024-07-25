@@ -242,7 +242,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="font-bold text-heading-md my-3">Your current <?php echo $orgTermPluralCap; ?></h2>
+      <h2 class="font-bold text-body-lg my-3">Your current <?php echo $orgTermPluralCap; ?></h2>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div 
@@ -253,18 +253,18 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         >
         
         <div class="current-org-listing-left">
-            <div class="font-bold text-body-md" x-text="connection.org_type_pretty"></div>
+            <div class="font-bold text-body-xs" x-text="connection.org_type_pretty"></div>
             <div class="flex mb-2 items-center">
-              <div x-text="connection.org_name" class="font-bold text-heading-sm mr-5"></div>
+              <div x-text="connection.org_name" class="font-bold text-body-sm mr-5"></div>
               <div>
                 <template x-if="connection.active">
                   <div>
-                    <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span>Active Membership</span>
+                    <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span class="text-body-xs">Active Membership</span>
                   </div>
                 </template>
                 <template x-if="! connection.active">
                   <div>
-                    <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span>Inactive Membership</span>
+                    <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span class="text-body-xs">Inactive Membership</span>
                   </div>
                 </template>
               </div>
@@ -299,7 +299,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       </template>
     </div>
     
-    <div class="font-bold text-heading-sm mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
+    <div class="font-bold text-body-md mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
@@ -314,7 +314,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
      <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
      <div class="orgss-results">
       <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
-        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-xl py-4">
+        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-md py-4">
           Sorry, no <?php echo $orgTermPluralLower; ?> match your search. Please try again.
         </div>
 
@@ -337,7 +337,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
   </div>
 
   <div x-show="firstSearchSubmitted && !disableCreateOrgUi" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
-    <div class="font-bold text-heading-sm mb-2">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
+    <div class="font-bold text-body-md mb-2">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
