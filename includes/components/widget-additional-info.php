@@ -16,23 +16,16 @@ $org_uuid                         = $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
 $unique_widget_id                 = rand( 1, 9999999 );
 
-// DEMO
-// $schemas_and_overrides = [
-//   [
-//     '779c8b9b-22b4-4ad2-8e25-a9f640b55f5a'
-//   ],
-// ];
-
 // Example $schemas_and_overrides:
 /* 
 [
   [
-    '1234-1234-1234-1234',
-    '1234-1234-1234-1234' // The optional override
+    'slug'           => '1234-1234-1234-1234', // If present, will take precedence over id
+    'id'             => '1234-1234-1234-1234',
+    'resourceSlug'   => '1234-1234-1234-1234', // If present, will take precedence over id
+    'resourceId'     => '1234-1234-1234-1234',
+    'showAsRequired' => true,
   ],
-  [
-    '1234-1234-1234-1234' // Just a schema no override
-  ]
 ]
 */
 
@@ -73,13 +66,43 @@ $wicket_settings = get_wicket_settings();
                 // To access resource schema overrides, login to wicket using a wicket.io email -> settings -> additional info
                 
                 <?php foreach( $schemas_and_overrides as $schema ) {
-                  $output = "{ id: '".$schema[0]."'";
-                  if( isset( $schema[1] ) ) {
-                    $output .= ", resourceId: '".$schema[1]."' },";
+                  if( isset( $schema['slug'] ) && !empty( $schema['slug'] ) ) {
+                    // Using the slug option
+                    $output = "{ slug: '" . $schema['slug'] . "'";
+                    if( isset( $schema['resourceSlug'] ) && !empty( $schema['resourceSlug'] ) ) {
+                      $output .= ", resourceSlug: '" . $schema['resourceSlug'] . "' ";
+                    }
+                    // TODO: There's an option to only provide resourceSlug and let it infer the slug - support if needed
+                    if( isset( $schema['showAsRequired'] ) ) {
+                      if( $schema['showAsRequired'] ) {
+                        $output .= ", showAsRequired: true },";
+                      } else {
+                        $output .= "},";
+                      }
+                    } else {
+                      $output .= "},";
+                    }
+
+                    echo $output;
                   } else {
-                    $output .= "},";
+                    // Using the legacy ID option
+                    $output = "{ id: '" . $schema['id'] . "'";
+                    if( isset( $schema['resourceId'] ) && !empty( $schema['resourceId'] ) ) {
+                      $output .= ", resourceId: '" . $schema['resourceId'] . "' ";
+                    }
+                    if( isset( $schema['showAsRequired'] ) ) {
+                      if( $schema['showAsRequired'] ) {
+                        $output .= ", showAsRequired: true },";
+                      } else {
+                        $output .= "},";
+                      }
+                    } else {
+                      $output .= "},";
+                    }
+
+                    echo $output;
                   }
-                  echo $output;
+
                 } ?>
               ],
             }).then(function (widget) {
