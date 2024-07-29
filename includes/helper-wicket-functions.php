@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Wicket Helper Functions for Wicket Base Plugin
  *
@@ -6,12 +7,25 @@
 
 use Wicket\Client;
 
-/**------------------------------------------------------------------
-* Get wicket environment info from Wicket settings page in the admin
-------------------------------------------------------------------*/
-function get_wicket_settings($environment = null) {
-  $settings = [];
+/**
+ * Get Wicket settings based on the current environment.
+ *
+ * This function retrieves the Wicket API settings for the specified environment.
+ * The environment is determined by the 'wicket_admin_settings_environment' option.
+ *
+ * @param string|null $environment The environment to get settings for. Default is null.
+ * @return array                   The settings for the specified environment, including:
+ *                                 - 'api_endpoint' (string): The API endpoint URL.
+ *                                 - 'jwt' (string): The secret key for JWT authentication.
+ *                                 - 'person_id' (string): The person ID.
+ *                                 - 'parent_org' (string): The parent organization ID.
+ *                                 - 'wicket_admin' (string): The Wicket admin setting.
+ */
+function get_wicket_settings($environment = null)
+{
+  $settings    = [];
   $environment = wicket_get_option('wicket_admin_settings_environment');
+
   switch ($environment) {
     case 'prod':
       $settings['api_endpoint'] = wicket_get_option('wicket_admin_settings_prod_api_endpoint');
@@ -28,13 +42,20 @@ function get_wicket_settings($environment = null) {
       $settings['wicket_admin'] = wicket_get_option('wicket_admin_settings_stage_wicket_admin');
       break;
   }
+
   return $settings;
 }
 
-/**------------------------------------------------------------------
-* Loads the PHP SDK
-------------------------------------------------------------------*/
-function wicket_api_client() {
+/**
+ * Loads the Wicket API client.
+ *
+ * This function initializes the Wicket API client using the settings for the current environment.
+ * It connects to the Wicket API and authorizes the client with the provided JWT and person ID.
+ *
+ * @return \Wicket\Client|false The initialized Wicket API client, or false if the client could not be initialized.
+ */
+function wicket_api_client()
+{
   try {
     if (!class_exists('\Wicket\Client')) {
       // No SDK available!
@@ -45,19 +66,23 @@ function wicket_api_client() {
     $wicket_settings = get_wicket_settings();
     $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
     $client->authorize($wicket_settings['person_id']);
-  }catch (Exception $e) {
+  } catch (Exception $e) {
     // don't return the $client unless the API is up.
     return false;
   }
   return $client;
 }
 
-/**------------------------------------------------------------------
-* Get wicket client, authorized as the current user.
-* You'll want to use this most of the time, to give context to person
-* operations as well as respect permissions on the Wicket side
-------------------------------------------------------------------*/
-function wicket_api_client_current_user() {
+/**
+ * Get Wicket client, authorized as the current user.
+ *
+ * This function initializes the Wicket API client and authorizes it as the current user.
+ * This is useful for giving context to person operations and respecting permissions on the Wicket side.
+ *
+ * @return \Wicket\Client|null The initialized and authorized Wicket API client, or null if authorization fails.
+ */
+function wicket_api_client_current_user()
+{
   $client = wicket_api_client();
 
   if ($client) {
@@ -74,10 +99,11 @@ function wicket_api_client_current_user() {
 }
 
 /**------------------------------------------------------------------
-* Get wicket client, authorized as the current user.
-* Taken from the wicket SDK (it's used as a protected method there)
+ * Get wicket client, authorized as the current user.
+ * Taken from the wicket SDK (it's used as a protected method there)
 ------------------------------------------------------------------*/
-function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8) {
+function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8)
+{
   $settings = get_wicket_settings();
   $iat = time();
 
@@ -91,11 +117,12 @@ function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8) {
 }
 
 /**------------------------------------------------------------------
-* Generate access token for Org widgets
-* This endpoint will return an access token that lets you use the profile + additional info widget on any org. 
-* You will need to know the person uuid (the person currently logged into the website) and the organization uuid so you can provide it to the widget_tokens endpoint
+ * Generate access token for Org widgets
+ * This endpoint will return an access token that lets you use the profile + additional info widget on any org.
+ * You will need to know the person uuid (the person currently logged into the website) and the organization uuid so you can provide it to the widget_tokens endpoint
 ------------------------------------------------------------------*/
-function wicket_get_access_token($person_id, $org_uuid){
+function wicket_get_access_token($person_id, $org_uuid)
+{
   $client = wicket_api_client();
 
   $payload = [
@@ -123,73 +150,87 @@ function wicket_get_access_token($person_id, $org_uuid){
 
   try {
     $token = $client->post("widget_tokens", ['json' => $payload]);
+
     return $token['token'];
   } catch (Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
-    // echo "<pre>";
-    // print_r($e->getMessage());
-    // echo "</pre>";
-    //
-    // echo "<pre>";
-    // print_r($errors);
-    // echo "</pre>";
-    // die;
+
+    error_log($e->getMessage());
+  }
+
+  return false;
+}
+
+/**
+ * Get the current person's Wicket person UUID.
+ *
+ * This function retrieves the UUID of the current person based on their WordPress user login.
+ *
+ * @return string|null The UUID of the current person, or null if the function `wicket_api_client` is not available.
+ */
+function wicket_current_person_uuid()
+{
+  // Get the SDK client from the wicket module.
+  if (function_exists('wicket_api_client')) {
+    $person_id = wp_get_current_user()->user_login;
+
+    return $person_id;
+  }
+}
+
+/**
+ * Get the current person from Wicket.
+ *
+ * This function retrieves the current person's details from Wicket.
+ *
+ * @return object|null The current person object if found, or null if not found.
+ */
+function wicket_current_person()
+{
+  static $person = null;
+
+  if (is_null($person)) {
+    $person_id = wicket_current_person_uuid();
+
+    if ($person_id) {
+      $client = wicket_api_client_current_user();
+      $person = $client->people->fetch($person_id);
+
+      return $person;
+    }
+  }
+
+  return $person;
+}
+
+/**------------------------------------------------------------------
+ * Check if user is a Wicket person (compare UUID format)
+------------------------------------------------------------------*/
+function wicket_person_has_uuid()
+{
+  $user_id = get_current_user_id();
+  $user_info = get_userdata($user_id);
+  if (is_string($user_info->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user_info->user_login) == 1)) {
+    return true;
   }
   return false;
 }
 
 /**------------------------------------------------------------------
-* Get current person wicket personUuid
+ * Gets all people from wicket
 ------------------------------------------------------------------*/
-function wicket_current_person_uuid(){
-  // get the SDK client from the wicket module.
-  if (function_exists('wicket_api_client')) {
-    $person_id = wp_get_current_user()->user_login;
-    return $person_id;
-  }
-}
-
-/**------------------------------------------------------------------
-* Get current person wicket
-------------------------------------------------------------------*/
-function wicket_current_person(){
-  static $person = null;
-  if(is_null($person)) {
-    $person_id = wicket_current_person_uuid();
-    if ($person_id) {
-      $client = wicket_api_client_current_user();
-      $person = $client->people->fetch($person_id);
-      return $person;
-    }
-  }
-  return $person;
-}
-
-/**------------------------------------------------------------------
-* Check if user is a Wicket person (compare UUID format)
-------------------------------------------------------------------*/
-function wicket_person_has_uuid() {
-    $user_id = get_current_user_id();
-    $user_info = get_userdata($user_id);
-    if (is_string($user_info->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user_info->user_login) == 1)) {
-        return true;
-    }
-    return false;
-}
-
-/**------------------------------------------------------------------
-* Gets all people from wicket
-------------------------------------------------------------------*/
-function wicket_get_all_people(){
+function wicket_get_all_people()
+{
   $client = wicket_api_client();
   $person = $client->people->all();
   return $person;
 }
 
 /**------------------------------------------------------------------
-* Get person by UUID
+ * Get person by UUID
 ------------------------------------------------------------------*/
-function wicket_get_person_by_id($uuid){
+function wicket_get_person_by_id($uuid)
+{
   if ($uuid) {
     $client = wicket_api_client();
     $person = $client->people->fetch($uuid);
@@ -223,11 +264,12 @@ function wicket_get_person_by_email($email = '')
 }
 
 /**------------------------------------------------------------------
-* Get email by id
+ * Get email by id
 ------------------------------------------------------------------*/
-function wicket_get_address($id){
+function wicket_get_address($id)
+{
   static $address = null;
-  if(is_null($address)) {
+  if (is_null($address)) {
     if ($id) {
       $client = wicket_api_client();
       $address = $client->addresses->fetch($id);
@@ -238,11 +280,12 @@ function wicket_get_address($id){
 }
 
 /**------------------------------------------------------------------
-* Get Interval by id
+ * Get Interval by id
 ------------------------------------------------------------------*/
-function wicket_get_interval($id){
+function wicket_get_interval($id)
+{
   static $interval = null;
-  if(is_null($interval)) {
+  if (is_null($interval)) {
     if ($id) {
       $client = wicket_api_client();
       try {
@@ -257,11 +300,12 @@ function wicket_get_interval($id){
 }
 
 /**------------------------------------------------------------------
-* Check if current logged in person has the 'member' role
+ * Check if current logged in person has the 'member' role
 ------------------------------------------------------------------*/
-function wicket_is_member(){
+function wicket_is_member()
+{
   static $has_membership = null;
-  if(is_null($has_membership)) {
+  if (is_null($has_membership)) {
     $person = wicket_current_person();
     $roles = $person->role_names;
     $has_membership = in_array('member', $roles);
@@ -270,26 +314,29 @@ function wicket_is_member(){
 }
 
 /**------------------------------------------------------------------
-* Build firstname/lastname from person object of current user
+ * Build firstname/lastname from person object of current user
 ------------------------------------------------------------------*/
-function wicket_person_name(){
+function wicket_person_name()
+{
   $person = wicket_current_person();
-  return $person->given_name.' '.$person->family_name;
+  return $person->given_name . ' ' . $person->family_name;
 }
 
 /**------------------------------------------------------------------
-* Get Wicket orders for person by person UUID
+ * Get Wicket orders for person by person UUID
 ------------------------------------------------------------------*/
-function wicket_get_order($uuid){
+function wicket_get_order($uuid)
+{
   $client = wicket_api_client();
   $order = $client->orders->fetch($uuid); // uuid of the order
   return $order;
 }
 
 /**------------------------------------------------------------------
-* Get all organizations from Wicket
+ * Get all organizations from Wicket
 ------------------------------------------------------------------*/
-function wicket_get_organizations(){
+function wicket_get_organizations()
+{
   $client = wicket_api_client();
   static $organizations = null;
   // prepare and memoize all organizations from Wicket
@@ -302,53 +349,55 @@ function wicket_get_organizations(){
 }
 
 /**------------------------------------------------------------------
-* Get organization by UUID from Wicket
+ * Get organization by UUID from Wicket
 ------------------------------------------------------------------*/
-function wicket_get_organization($uuid, $include = null ){
+function wicket_get_organization($uuid, $include = null)
+{
   $query_string = '';
   $client = wicket_api_client();
-  if( !empty( $include ) ) {
+  if (!empty($include)) {
     $query_string = '/?include=' . $include;
   }
-  $organization = $client->get('organizations/' . $uuid . $query_string );
+  $organization = $client->get('organizations/' . $uuid . $query_string);
   if ($organization) {
     return $organization;
   }
 }
 
 /**------------------------------------------------------------------
-* Get commontly-needed organization info by UUID from Wicket
-* 
-* Grabs info like the correctly-localized legal name and description, as well
-* as the parent org ID (if applicable) and its name. More info can be added
-* to the return payload as it's useful in more scenarios.
+ * Get commontly-needed organization info by UUID from Wicket
+ *
+ * Grabs info like the correctly-localized legal name and description, as well
+ * as the parent org ID (if applicable) and its name. More info can be added
+ * to the return payload as it's useful in more scenarios.
 ------------------------------------------------------------------*/
-function wicket_get_organization_basic_info( $uuid, $lang = 'en' ) {
-  $org_info = wicket_get_organization( $uuid );
+function wicket_get_organization_basic_info($uuid, $lang = 'en')
+{
+  $org_info = wicket_get_organization($uuid);
 
   $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
   $org_parent_name = '';
-  if( !empty( $org_parent_id ) ) {
-    $org_parent_info = wicket_get_organization( $org_parent_id );
+  if (!empty($org_parent_id)) {
+    $org_parent_info = wicket_get_organization($org_parent_id);
   }
 
   // Get language-specific meta
   $org_name = $org_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
   $org_description = $org_info['data']['attributes']["description_$lang"] ?? $org_info['data']['attributes']['description'];
-  
-  if( isset( $org_parent_info ) ) {
+
+  if (isset($org_parent_info)) {
     $org_parent_name = $org_parent_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
   }
 
   // Org type (also tidying up the slug for presentation if we like)
   $org_type = '';
   $org_type_pretty = '';
-  if( !empty( $org_info['data']['attributes']['type'] ) ) {
+  if (!empty($org_info['data']['attributes']['type'])) {
     // TODO: Dig the proper UI name for the enum out of the schema, if needed in other cases
     $org_type = $org_info['data']['attributes']['type'];
     $org_type_pretty = $org_type;
-    $org_type_pretty = str_replace( '_', ' ', $org_type_pretty );
-    $org_type_pretty = ucfirst( $org_type_pretty );
+    $org_type_pretty = str_replace('_', ' ', $org_type_pretty);
+    $org_type_pretty = ucfirst($org_type_pretty);
   }
 
   return [
@@ -361,13 +410,13 @@ function wicket_get_organization_basic_info( $uuid, $lang = 'en' ) {
     'org_parent_id'   => $org_parent_id ?? '',
     'org_parent_name' => $org_parent_name ?? '',
   ];
-
 }
 
 /**------------------------------------------------------------------
-* Get all groups from Wicket
+ * Get all groups from Wicket
 ------------------------------------------------------------------*/
-function wicket_get_groups() {
+function wicket_get_groups()
+{
   $client = wicket_api_client();
 
   $groups = $client->get('groups');
@@ -380,9 +429,10 @@ function wicket_get_groups() {
 }
 
 /**------------------------------------------------------------------
-* Get all "connections" (relationships) of a Wicket person
+ * Get all "connections" (relationships) of a Wicket person
 ------------------------------------------------------------------*/
-function wicket_get_person_connections(){
+function wicket_get_person_connections()
+{
   $client = wicket_api_client();
   $person_id = wicket_current_person_uuid();
   if ($person_id) {
@@ -392,7 +442,7 @@ function wicket_get_person_connections(){
   static $connections = null;
   // prepare and memoize all connections from Wicket
   if (is_null($connections)) {
-    $connections = $client->get('people/'.$person->id.'/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    $connections = $client->get('people/' . $person->id . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
   }
   if ($connections) {
     return $connections;
@@ -400,14 +450,15 @@ function wicket_get_person_connections(){
 }
 
 /**------------------------------------------------------------------
-* Get all "connections" (relationships) of a Wicket person by UUID
+ * Get all "connections" (relationships) of a Wicket person by UUID
 ------------------------------------------------------------------*/
-function wicket_get_person_connections_by_id($uuid){
+function wicket_get_person_connections_by_id($uuid)
+{
   $client = wicket_api_client();
   static $connections = null;
   // prepare and memoize all connections from Wicket
   if (is_null($connections)) {
-    $connections = $client->get('people/'.$uuid.'/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    $connections = $client->get('people/' . $uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
   }
   if ($connections) {
     return $connections;
@@ -415,14 +466,15 @@ function wicket_get_person_connections_by_id($uuid){
 }
 
 /**------------------------------------------------------------------
-* Get all "connections" (relationships) of a Wicket org by UUID
+ * Get all "connections" (relationships) of a Wicket org by UUID
 ------------------------------------------------------------------*/
-function wicket_get_org_connections_by_id($uuid){
+function wicket_get_org_connections_by_id($uuid)
+{
   $client = wicket_api_client();
   static $connections = null;
   // prepare and memoize all connections from Wicket
   if (is_null($connections)) {
-    $connections = $client->get('organizations/'.$uuid.'/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    $connections = $client->get('organizations/' . $uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
   }
   if ($connections) {
     return $connections;
@@ -430,9 +482,10 @@ function wicket_get_org_connections_by_id($uuid){
 }
 
 /**------------------------------------------------------------------
-* Get all JSON Schemas from Wicket
+ * Get all JSON Schemas from Wicket
 ------------------------------------------------------------------*/
-function wicket_get_schemas(){
+function wicket_get_schemas()
+{
   $client = wicket_api_client();
   static $schemas = null;
   // prepare and memoize all schemas from Wicket
@@ -445,10 +498,11 @@ function wicket_get_schemas(){
 }
 
 /**------------------------------------------------------------------
-* Load options from a schema based
-* on a schema entry found using wicket_get_schemas()
+ * Load options from a schema based
+ * on a schema entry found using wicket_get_schemas()
 ------------------------------------------------------------------*/
-function wicket_get_schemas_options($schema, $field, $sub_field){
+function wicket_get_schemas_options($schema, $field, $sub_field)
+{
   $language = strtok(get_bloginfo("language"), '-');
   $return = [];
 
@@ -546,20 +600,21 @@ function wicket_get_schemas_options($schema, $field, $sub_field){
  * Field is a field within the accordion
  * Sub Field is optional. Would be needed if using repeater fields with objects as values
  ------------------------------------------------------------------*/
-function wicket_get_schema_field_values($parent_field, $field, $sub_field = ''){
-	$schemas = wicket_get_schemas();
-	if ($schemas) {
-		foreach ($schemas['data'] as $key => $schema) {
-			if ($schema['attributes']['key'] == $parent_field) {
-				$schema = $schemas['data'][$key];
-				break;
-			}
-		}
-		$options = wicket_get_schemas_options($schema, $field, $sub_field);
-		if ($options) {
-			return $options;
-		}
-	}
+function wicket_get_schema_field_values($parent_field, $field, $sub_field = '')
+{
+  $schemas = wicket_get_schemas();
+  if ($schemas) {
+    foreach ($schemas['data'] as $key => $schema) {
+      if ($schema['attributes']['key'] == $parent_field) {
+        $schema = $schemas['data'][$key];
+        break;
+      }
+    }
+    $options = wicket_get_schemas_options($schema, $field, $sub_field);
+    if ($options) {
+      return $options;
+    }
+  }
 }
 
 /**------------------------------------------------------------------
@@ -571,19 +626,20 @@ function wicket_get_schema_field_values($parent_field, $field, $sub_field = ''){
  * $type = string, array, int, boolean, object or readonly
  * $entity = usually the preloaded org or person object from the API
  ------------------------------------------------------------------*/
-function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = ''){
+function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = '')
+{
   if (isset($_POST[$field])) {
     $value = $_POST[$field];
 
-		// remove empty arrays (likely select fields with the "choose option" set)
-		if ($type == 'array' && empty(array_filter($value))) {
-			return false;
-		}
+    // remove empty arrays (likely select fields with the "choose option" set)
+    if ($type == 'array' && empty(array_filter($value))) {
+      return false;
+    }
 
-		// remove empty strings (likely select fields with the "choose option" set)
-		if ($type == 'string' && $value == '') {
-			return false;
-		}
+    // remove empty strings (likely select fields with the "choose option" set)
+    if ($type == 'string' && $value == '') {
+      return false;
+    }
 
     // add conversion for booleans
     if ($type == 'boolean' && $_POST[$field] == '1') {
@@ -596,26 +652,26 @@ function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = 
     if ($type == 'boolean' && $_POST[$field] == '') {
       return false;
     }
-		// cast ints for the API (like year values)
+    // cast ints for the API (like year values)
     if ($type == 'int' && $value) {
       $value = (int)$value;
-    }elseif($type == 'int' && !$value) {
+    } elseif ($type == 'int' && !$value) {
       // dont include int fields if we want to blank them out
       return false;
     }
 
-		// convert object to arrays, replacing passed-in values looping over by reference
+    // convert object to arrays, replacing passed-in values looping over by reference
     if ($type == 'object' && $value) {
-			foreach ($value as $key => &$index) {
-				$index = (array)json_decode(stripslashes($index));
-			}
+      foreach ($value as $key => &$index) {
+        $index = (array)json_decode(stripslashes($index));
+      }
     }
 
     // keep the fields for each schema together by keying the data_fields array by the schema id
     // It still seems to work through the API this way, even though the wicket admin uses zero based array indexes
     $data_fields[$schema]['value'][$field] = $value;
     $data_fields[$schema]['$schema'] = $schema;
-  }else {
+  } else {
     // pass empty array for multi-value fields to clear them out if no options are present
     if ($type == 'array' || $type == 'object') {
       $value = [];
@@ -631,9 +687,9 @@ function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = 
     }
 
     // don't return a field if array is being used using "oneOf" to clear them out if no options are present
-		// these are typically used in Wicket for initial yes/no radios followed by a field if choose "yes"
+    // these are typically used in Wicket for initial yes/no radios followed by a field if choose "yes"
     if ($type == 'array_oneof') {
-			return false;
+      return false;
     }
 
     // if this field is being used as a "readonly" value on the edit form page,
@@ -647,12 +703,12 @@ function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = 
             // look for existing value, if there is one, else ignore this field
             if (isset($df['value'][$field])) {
               $value = $df['value'][$field];
-            }else {
+            } else {
               return false;
             }
           }
         }
-      }else {
+      } else {
         return false;
       }
     }
@@ -663,89 +719,92 @@ function wicket_add_data_field(&$data_fields, $field, $schema, $type, $entity = 
 }
 
 /**------------------------------------------------------------------
-* Assign a person to a membership on an org
+ * Assign a person to a membership on an org
 ------------------------------------------------------------------*/
-function wicket_assign_person_to_org_membership($person_id, $membership_id, $org_membership_id, $org_membership){
-	$client = wicket_api_client();
-	// build payload to assign person to the membership on the org
+function wicket_assign_person_to_org_membership($person_id, $membership_id, $org_membership_id, $org_membership)
+{
+  $client = wicket_api_client();
+  // build payload to assign person to the membership on the org
 
-	$payload = [
-		'data' => [
-			'type' => 'person_memberships',
-			'attributes' => [
-				'starts_at' => $org_membership['data']['attributes']['starts_at'],
-				"ends_at" => $org_membership['data']['attributes']['ends_at'],
-				"status" => 'Active'
-			],
-			'relationships' => [
-				'person' => [
-					'data' => [
-						'id' => $person_id,
-						'type' => 'people'
-					]
-				],
-				'membership' => [
-					'data' => [
-						'id' => $membership_id,
-						'type' => 'memberships'
-					]
-				],
-				'organization_membership' => [
-					'data' => [
-						'id' => $org_membership_id,
-						'type' => 'organization_memberships'
-					]
-				]
-			]
-		]
-	];
+  $payload = [
+    'data' => [
+      'type' => 'person_memberships',
+      'attributes' => [
+        'starts_at' => $org_membership['data']['attributes']['starts_at'],
+        "ends_at" => $org_membership['data']['attributes']['ends_at'],
+        "status" => 'Active'
+      ],
+      'relationships' => [
+        'person' => [
+          'data' => [
+            'id' => $person_id,
+            'type' => 'people'
+          ]
+        ],
+        'membership' => [
+          'data' => [
+            'id' => $membership_id,
+            'type' => 'memberships'
+          ]
+        ],
+        'organization_membership' => [
+          'data' => [
+            'id' => $org_membership_id,
+            'type' => 'organization_memberships'
+          ]
+        ]
+      ]
+    ]
+  ];
 
-	try {
-		$client->post('person_memberships', ['json' => $payload]);
-		return true;
-	} catch (Exception $e) {
-		$errors = json_decode($e->getResponse()->getBody())->errors;
-		// echo "<pre>";
-		// print_r($errors);
-		// echo "</pre>";
-		// die;
-	}
+  try {
+    $client->post('person_memberships', ['json' => $payload]);
+    return true;
+  } catch (Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+    // die;
+  }
 }
 
 /**------------------------------------------------------------------
-* Unassign a person from a membership on an org
+ * Unassign a person from a membership on an org
 ------------------------------------------------------------------*/
-function wicket_unassign_person_from_org_membership($person_membership_id){
-	$client = wicket_api_client();
-	try {
-		$client->delete("person_memberships/$person_membership_id");
-		return true;
-	} catch (Exception $e) {
-		$errors = json_decode($e->getResponse()->getBody())->errors;
-		// echo "<pre>";
-		// print_r($errors);
-		// echo "</pre>";
-	}
+function wicket_unassign_person_from_org_membership($person_membership_id)
+{
+  $client = wicket_api_client();
+  try {
+    $client->delete("person_memberships/$person_membership_id");
+    return true;
+  } catch (Exception $e) {
+    $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+  }
 }
 
 /**------------------------------------------------------------------
  * Send email to user letting them know of a team assignment
  * for their account by an organization manager
  ------------------------------------------------------------------*/
-function send_person_to_team_assignment_email($user, $org_id){
+function send_person_to_team_assignment_email($user, $org_id)
+{
   $org = wicket_get_organization($org_id);
   $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
   $person = wicket_get_person_by_id($user->data->user_login);
 
-	if ($org) {
-	  $organization_name = $org['data']['attributes']['legal_name_'.$lang];
-	}
+  if ($org) {
+    $organization_name = $org['data']['attributes']['legal_name_' . $lang];
+  }
 
-	$to = $person->primary_email_address;
-	$first_name = $person->given_name;
+  $to = $person->primary_email_address;
+  $first_name = $person->given_name;
   $last_name = $person->family_name;
-	$subject = "Welcome to NJBIA!";
-	$body = "Hi $first_name, <br><br>
+  $subject = "Welcome to NJBIA!";
+  $body = "Hi $first_name, <br><br>
 	You have been assigned a membership as part of $organization_name.
 	<br>
 	<br>
@@ -756,26 +815,27 @@ function send_person_to_team_assignment_email($user, $org_id){
 	<br>
 	<br>
 	New Jersey Business & Industry Association";
-	$headers = array('Content-Type: text/html; charset=UTF-8');
-	$headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
-	wp_mail($to,$subject,$body,$headers);
+  $headers = array('Content-Type: text/html; charset=UTF-8');
+  $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
+  wp_mail($to, $subject, $body, $headers);
 }
 
 /**------------------------------------------------------------------
  * Send email to NEW user letting them know of a team assignment
  * for their account by an organization manager
  ------------------------------------------------------------------*/
-function send_new_person_to_team_assignment_email($first_name, $last_name, $email, $org_id){
+function send_new_person_to_team_assignment_email($first_name, $last_name, $email, $org_id)
+{
   $org = wicket_get_organization($org_id);
   $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
 
-	if ($org) {
-	  $organization_name = $org['data']['attributes']['legal_name_'.$lang];
-	}
+  if ($org) {
+    $organization_name = $org['data']['attributes']['legal_name_' . $lang];
+  }
 
-	$to = $email;
-	$subject = "Welcome to NJBIA!";
-	$body = "Hi $first_name, <br><br>
+  $to = $email;
+  $subject = "Welcome to NJBIA!";
+  $body = "Hi $first_name, <br><br>
 	You have been assigned a membership as part of $organization_name.
 	<br>
 	<br>
@@ -787,33 +847,35 @@ function send_new_person_to_team_assignment_email($first_name, $last_name, $emai
 	<br>
 	<br>
 	New Jersey Business & Industry Association";
-	$headers = array('Content-Type: text/html; charset=UTF-8');
-	$headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
-	wp_mail($to,$subject,$body,$headers);
+  $headers = array('Content-Type: text/html; charset=UTF-8');
+  $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
+  wp_mail($to, $subject, $body, $headers);
 }
 
 /**------------------------------------------------------------------
  * Send email to Tier Contact Address for new membership pending approval
  ------------------------------------------------------------------*/
- function send_approval_required_email( $email, $membership_link ){
+function send_approval_required_email($email, $membership_link)
+{
   $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
-	$to = $email;
-	$subject = "Membership Pending Approval";
-	$body = "You have a membership pending approval.
+  $to = $email;
+  $subject = "Membership Pending Approval";
+  $body = "You have a membership pending approval.
 	<br>
   Please login with the following link to process the membership request.
   <br>
   $membership_link";
-	$headers = array('Content-Type: text/html; charset=UTF-8');
-	$headers[] = 'From:' . get_bloginfo('admin_email') . '<' . get_bloginfo('admin_email') . '>';
-	wp_mail($to,$subject,$body,$headers);
+  $headers = array('Content-Type: text/html; charset=UTF-8');
+  $headers[] = 'From:' . get_bloginfo('admin_email') . '<' . get_bloginfo('admin_email') . '>';
+  wp_mail($to, $subject, $body, $headers);
 }
 
 
 /**------------------------------------------------------------------
  * Create basic person record, no password
  ------------------------------------------------------------------*/
- function wicket_create_person($given_name, $family_name, $address = '', $password = '', $password_confirmation = '', $job_title = '', $gender = '', $additional_info = []){
+function wicket_create_person($given_name, $family_name, $address = '', $password = '', $password_confirmation = '', $job_title = '', $gender = '', $additional_info = [])
+{
   $client = wicket_api_client();
 
   $wicket_settings = get_wicket_settings();
@@ -886,7 +948,8 @@ function send_new_person_to_team_assignment_email($first_name, $last_name, $emai
  * Will create the role with matching name if it doesnt exist yet.
  * $org_uuid is for adding a relationship to this role
  ------------------------------------------------------------------*/
-function wicket_assign_role($person_uuid, $role_name, $org_uuid = ''){
+function wicket_assign_role($person_uuid, $role_name, $org_uuid = '')
+{
   $client = wicket_api_client();
 
   // build role payload
@@ -926,14 +989,15 @@ function wicket_assign_role($person_uuid, $role_name, $org_uuid = ''){
  * $role_name is the text name of the role
  * The lookup is case sensitive so "prospective AO" and "prospective ao" would be considered different roles
  ------------------------------------------------------------------*/
-function wicket_remove_role($person_uuid, $role_name){
+function wicket_remove_role($person_uuid, $role_name)
+{
   $client = wicket_api_client();
   $person = wicket_get_person_by_id($person_uuid);
 
   $role_id = '';
   if ($person) {
     foreach ($person->included() as $included) {
-      if ($included['type'] == 'roles' && $included['attributes']['name'] == $role_name ) {
+      if ($included['type'] == 'roles' && $included['attributes']['name'] == $role_name) {
         // get the role id for use in the payload below
         $role_id = $included['id'];
         break;
@@ -974,118 +1038,121 @@ function wicket_remove_role($person_uuid, $role_name){
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0, $grace_period_days = 0 ){
+function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0, $grace_period_days = 0)
+{
   $client = wicket_api_client();
 
-  if( empty( $starts_at ) ) {
+  if (empty($starts_at)) {
     $starts_at = date('c', time());
   }
-  if( empty( $ends_at ) ) {
+  if (empty($ends_at)) {
     $ends_at = date('c', strtotime('+1 year'));
   }
 
   // build membership payload
   $payload = [
-		'data' => [
-			'type' => 'organization_memberships',
-			'attributes' => [
-				'starts_at' => $starts_at,
-				"ends_at" => $ends_at,
+    'data' => [
+      'type' => 'organization_memberships',
+      'attributes' => [
+        'starts_at' => $starts_at,
+        "ends_at" => $ends_at,
         "max_assignments" => $max_seats,
         "grace_period_days" => $grace_period_days,
-			],
-			'relationships' => [
-				'owner' => [
-					'data' => [
-						'id' => $person_uuid,
-						'type' => 'people'
-					]
-				],
-				'membership' => [
-					'data' => [
-						'id' => $membership_id,
-						'type' => 'memberships'
-					]
-				],
-				'organization' => [
-					'data' => [
-						'id' => $org_id,
-						'type' => 'organizations'
-					]
-				]
-			]
-		]
-	];
+      ],
+      'relationships' => [
+        'owner' => [
+          'data' => [
+            'id' => $person_uuid,
+            'type' => 'people'
+          ]
+        ],
+        'membership' => [
+          'data' => [
+            'id' => $membership_id,
+            'type' => 'memberships'
+          ]
+        ],
+        'organization' => [
+          'data' => [
+            'id' => $org_id,
+            'type' => 'organizations'
+          ]
+        ]
+      ]
+    ]
+  ];
 
   try {
     $response = $client->post("organization_memberships", ['json' => $payload]);
   } catch (Exception $e) {
-    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
   }
   return $response;
 }
 
 /**
- * Check for matching membership for person 
+ * Check for matching membership for person
  * Option: filter by date
  */
- function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '' ) {
-    $client = wicket_api_client();
-	  try{
-			$response = $client->get("people/$person_uuid/membership_entries?include=membership&filter[starts_at_eq]=$starts_at&filter[ends_at_eq]=$ends_at&page[size]=2000");
-      foreach($response['data'] as $record) {
-        if( $record['relationships']['membership']['data']['id'] == $membership_uuid ) {
-          return $record['id'];
-        } 
+function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '')
+{
+  $client = wicket_api_client();
+  try {
+    $response = $client->get("people/$person_uuid/membership_entries?include=membership&filter[starts_at_eq]=$starts_at&filter[ends_at_eq]=$ends_at&page[size]=2000");
+    foreach ($response['data'] as $record) {
+      if ($record['relationships']['membership']['data']['id'] == $membership_uuid) {
+        return $record['id'];
       }
-    } catch (Exception $e){
-      $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
     }
- }
+  } catch (Exception $e) {
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
+  }
+}
 
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at ='', $ends_at = '', $grace_period_days = 0) {
+function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = 0)
+{
   $client = wicket_api_client();
 
-  if( empty( $starts_at ) ) {
+  if (empty($starts_at)) {
     $starts_at = date('c', time());
   }
-  if( empty( $ends_at ) ) {
+  if (empty($ends_at)) {
     $ends_at = date('c', strtotime('+1 year'));
   }
-  
+
   // build membership payload
   $payload = [
-		'data' => [
-			'type' => 'person_memberships',
-			'attributes' => [
-				'starts_at' => $starts_at,
-				'ends_at' => $ends_at,
+    'data' => [
+      'type' => 'person_memberships',
+      'attributes' => [
+        'starts_at' => $starts_at,
+        'ends_at' => $ends_at,
         "grace_period_days" => $grace_period_days,
-			],
-			'relationships' => [
-				'person' => [
-					'data' => [
-						'id' => $person_uuid,
-						'type' => 'people'
-					]
-				],
-				'membership' => [
-					'data' => [
-						'id' => $membership_uuid,
-						'type' => 'memberships'
-					]
-				]
-			]
-		]
-	];
+      ],
+      'relationships' => [
+        'person' => [
+          'data' => [
+            'id' => $person_uuid,
+            'type' => 'people'
+          ]
+        ],
+        'membership' => [
+          'data' => [
+            'id' => $membership_uuid,
+            'type' => 'memberships'
+          ]
+        ]
+      ]
+    ]
+  ];
 
   try {
     $response = $client->post("person_memberships", ['json' => $payload]);
   } catch (Exception $e) {
-    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
   }
   return $response;
 }
@@ -1093,35 +1160,36 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Update individual membership dates
  ------------------------------------------------------------------*/
- function wicket_update_individual_membership_dates($membership_uuid, $starts_at ='', $ends_at = '', $grace_period_days = false ) {
+function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false)
+{
   $client = wicket_api_client();
 
-  if( empty( $starts_at ) ) {
+  if (empty($starts_at)) {
     $starts_at = date('c', time());
   }
-  if( empty( $ends_at ) ) {
+  if (empty($ends_at)) {
     $ends_at = date('c', strtotime('+1 year'));
   }
-  
+
   // build membership payload
   $payload = [
-		'data' => [
-			'type' => 'person_memberships',
-			'attributes' => [
-				'starts_at' => $starts_at,
-				'ends_at' => $ends_at
+    'data' => [
+      'type' => 'person_memberships',
+      'attributes' => [
+        'starts_at' => $starts_at,
+        'ends_at' => $ends_at
       ],
-		]
-	];
+    ]
+  ];
 
-  if( $grace_period_days !== false ) {
+  if ($grace_period_days !== false) {
     $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
   }
 
   try {
     $response = $client->patch("/person_memberships/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
-    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
   }
   return $response;
 }
@@ -1130,39 +1198,40 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Update organization membership dates
  ------------------------------------------------------------------*/
- function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false ){
+function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false)
+{
   $client = wicket_api_client();
 
-  if( empty( $starts_at ) ) {
+  if (empty($starts_at)) {
     $starts_at = date('c', time());
   }
-  if( empty( $ends_at ) ) {
+  if (empty($ends_at)) {
     $ends_at = date('c', strtotime('+1 year'));
   }
 
   // build membership payload
   $payload = [
-		'data' => [
-			'type' => 'organization_memberships',
-			'attributes' => [
-				'starts_at' => $starts_at,
-				"ends_at" => $ends_at
-			],
-		]
-	];
-  
-  if( $max_seats !== false ) {
+    'data' => [
+      'type' => 'organization_memberships',
+      'attributes' => [
+        'starts_at' => $starts_at,
+        "ends_at" => $ends_at
+      ],
+    ]
+  ];
+
+  if ($max_seats !== false) {
     $payload['data']['attributes']['max_assignments'] = $max_seats;
   }
 
-  if( $grace_period_days !== false ) {
+  if ($grace_period_days !== false) {
     $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
   }
 
   try {
     $response = $client->patch("organization_memberships/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
-    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
   }
   return $response;
 }
@@ -1175,27 +1244,28 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
  * @param int $external_id post_id
  * @return object | \WP_Error
  */
-function wicket_update_membership_external_id( $membership_uuid, $membership_type, $external_id ) {
+function wicket_update_membership_external_id($membership_uuid, $membership_type, $external_id)
+{
   $client = wicket_api_client();
 
-  if( !in_array( $membership_type, ['organization_memberships', 'person_memberships'] ) ) {
-    new \WP_Error( 'wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )' );
+  if (!in_array($membership_type, ['organization_memberships', 'person_memberships'])) {
+    new \WP_Error('wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )');
   }
 
   // build membership payload
   $payload = [
-		'data' => [
-			'type' => $membership_type,
-			'attributes' => [
+    'data' => [
+      'type' => $membership_type,
+      'attributes' => [
         'external_id' => $external_id
       ],
-		]
-	];
-  
+    ]
+  ];
+
   try {
     $response = $client->patch("$membership_type/$membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
-    $response = new \WP_Error( 'wicket_api_error', $e->getMessage() );
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
   }
   return $response;
 }
@@ -1204,20 +1274,21 @@ function wicket_update_membership_external_id( $membership_uuid, $membership_typ
  * Gets the current person memberships
  * using the person membership entries endpoint
  ------------------------------------------------------------------*/
-function wicket_get_current_person_memberships(){
-	$client = wicket_api_client();
-	$uuid = wicket_current_person_uuid();
-	static $memberships = null;
-	// prepare and memoize all connections from Wicket
-	if (is_null($memberships)) {
-	  try{
-			$memberships = $client->get('people/'.$uuid.'/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
-    }catch (Exception $e){
+function wicket_get_current_person_memberships()
+{
+  $client = wicket_api_client();
+  $uuid = wicket_current_person_uuid();
+  static $memberships = null;
+  // prepare and memoize all connections from Wicket
+  if (is_null($memberships)) {
+    try {
+      $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
+    } catch (Exception $e) {
     }
-	}
-	if ($memberships) {
-		return $memberships;
-	}
+  }
+  if ($memberships) {
+    return $memberships;
+  }
 }
 
 /**------------------------------------------------------------------
@@ -1225,19 +1296,20 @@ function wicket_get_current_person_memberships(){
  * $additional_info is data_fields. An array of arrays to get the number based indexing needed
  * $org_type will be the machine name of the different org types available for the wicket instance
  ------------------------------------------------------------------*/
-function wicket_create_organization($org_name, $org_type, $additional_info = []){
+function wicket_create_organization($org_name, $org_type, $additional_info = [])
+{
   $client = wicket_api_client();
 
   // build org payload
   $payload = [
-		'data' => [
-			'type' => 'organizations',
-			'attributes' => [
-				'type' => $org_type,
-				'legal_name' => $org_name,
-			]
-		]
-	];
+    'data' => [
+      'type' => 'organizations',
+      'attributes' => [
+        'type' => $org_type,
+        'legal_name' => $org_name,
+      ]
+    ]
+  ];
 
   if (!empty($additional_info)) {
     $payload['data']['attributes']['data_fields'] = $additional_info;
@@ -1278,7 +1350,8 @@ function wicket_create_organization($org_name, $org_type, $additional_info = [])
    ]
  ];
  ------------------------------------------------------------------*/
-function wicket_create_organization_address($org_id, $payload){
+function wicket_create_organization_address($org_id, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1316,7 +1389,8 @@ function wicket_create_organization_address($org_id, $payload){
    ]
  ];
  ------------------------------------------------------------------*/
-function wicket_create_person_address($person_uuid, $payload){
+function wicket_create_person_address($person_uuid, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1340,7 +1414,8 @@ function wicket_create_person_address($person_uuid, $payload){
  * Create organization email
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
  ------------------------------------------------------------------*/
-function wicket_create_organization_email($org_id, $payload){
+function wicket_create_organization_email($org_id, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1364,7 +1439,8 @@ function wicket_create_organization_email($org_id, $payload){
  * Create organization phone
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
  ------------------------------------------------------------------*/
-function wicket_create_organization_phone($org_id, $payload){
+function wicket_create_organization_phone($org_id, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1388,7 +1464,8 @@ function wicket_create_organization_phone($org_id, $payload){
  * Create person phone
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
  ------------------------------------------------------------------*/
-function wicket_create_person_phone($person_uuid, $payload){
+function wicket_create_person_phone($person_uuid, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1412,7 +1489,8 @@ function wicket_create_person_phone($person_uuid, $payload){
  * Create organization website
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
  ------------------------------------------------------------------*/
-function wicket_create_organization_web_address($org_id, $payload){
+function wicket_create_organization_web_address($org_id, $payload)
+{
   $client = wicket_api_client();
 
   try {
@@ -1433,11 +1511,12 @@ function wicket_create_organization_web_address($org_id, $payload){
 }
 
 /**------------------------------------------------------------------
-* Add a user to a Wicket group. 
-* $group_role_slug could be obtained with a function call like wicket_get_entity_types()
-* and then wicket_get_resource_types() using the entity's uuid.
+ * Add a user to a Wicket group.
+ * $group_role_slug could be obtained with a function call like wicket_get_entity_types()
+ * and then wicket_get_resource_types() using the entity's uuid.
 ------------------------------------------------------------------*/
-function wicket_add_group_member( $person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null ) {
+function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null)
+{
   $client = wicket_api_client();
 
   $payload = [
@@ -1467,7 +1546,7 @@ function wicket_add_group_member( $person_id, $group_id, $group_role_slug, $star
   ];
 
   try {
-    $apiCall = $client->post('group_members',['json' => $payload]);
+    $apiCall = $client->post('group_members', ['json' => $payload]);
     return $apiCall;
   } catch (\Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
@@ -1524,11 +1603,12 @@ $relationship_payload = [
     ]
   ];
  ------------------------------------------------------------------*/
-function wicket_create_connection($payload){
+function wicket_create_connection($payload)
+{
   $client = wicket_api_client();
 
   try {
-    $apiCall = $client->post('connections',['json' => $payload]);
+    $apiCall = $client->post('connections', ['json' => $payload]);
     return $apiCall;
   } catch (\Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
@@ -1549,70 +1629,84 @@ function wicket_create_connection($payload){
  * $connection_id can be retrieved by using  wicket_get_person_connections_by_id($uuid)
  * or wicket_get_person_connections().
  * ------------------------------------------------------------------*/
-function wicket_remove_connection($connection_id) {
+function wicket_remove_connection($connection_id)
+{
   try {
     $client = wicket_api_client();
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 
   try {
-    $removed_connection = $client->delete( 'connections/' . $connection_id );
+    $removed_connection = $client->delete('connections/' . $connection_id);
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 
   return true;
 }
 
-/**------------------------------------------------------------------
- * Get Touchpoints
- ------------------------------------------------------------------*/
-function wicket_get_current_user_touchpoints($service_id){
-  $client = wicket_api_client();
+/**
+ * Get Touchpoints for the Current User.
+ *
+ * This function retrieves touchpoints for the current user based on the provided service ID.
+ *
+ * @param string $service_id The ID of the service to filter touchpoints by.
+ * @return array|false       The touchpoints if successful, or false on failure.
+ */
+function wicket_get_current_user_touchpoints($service_id)
+{
+  $client    = wicket_api_client();
   $person_id = wicket_current_person_uuid();
 
   try {
     $touchpoints = $client->get("people/$person_id/touchpoints?page[size]=100&filter[service_id]=$service_id", ['json']);
+
     return $touchpoints;
   } catch (Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
-    // echo "<pre>";
-    // print_r($e->getMessage());
-    // echo "</pre>";
-    //
-    // echo "<pre>";
-    // print_r($errors);
-    // echo "</pre>";
-    // die;
   }
   return false;
 }
 
-// ----------------------------------------------------------------
-// USAGE:
-// $params = [
-//   'person_id' => '[uuid from wicket]',
-//   'action' => 'test action',
-//   'details' => 'these are some details',
-//   'data' => ['test' => 'thing']
-//   'external_event_id' => 'some unique value used when you dont want duplicate touchpoints but cant control how they are triggered'
-// ];
-// write_touchpoint($params, get_create_touchpoint_service_id('[service name]', '[service description]'));
-// ----------------------------------------------------------------
-function write_touchpoint($params, $wicket_service_id){
-  $client = wicket_api_client();
+/**
+ * Write a Touchpoint.
+ *
+ * This function sends a touchpoint to the Wicket API based on the provided parameters and service ID.
+ *
+ * USAGE:
+ * ```php
+ * $params = [
+ *   'person_id' => '[uuid from wicket]',
+ *   'action' => 'test action',
+ *   'details' => 'these are some details',
+ *   'data' => ['test' => 'thing'],
+ *   'external_event_id' => 'some unique value used when you dont want duplicate touchpoints but cant control how they are triggered'
+ * ];
+ * write_touchpoint($params, get_create_touchpoint_service_id('[service name]', '[service description]'));
+ * ```
+ *
+ * @param array  $params            The parameters for the touchpoint, including:
+ *                                  - 'person_id' (string): The UUID of the person from Wicket.
+ *                                  - 'action' (string): The action of the touchpoint.
+ *                                  - 'details' (string): Details about the touchpoint.
+ *                                  - 'data' (array): Additional data for the touchpoint.
+ *                                  - 'external_event_id' (string): A unique value to prevent duplicate touchpoints.
+ * @param string $wicket_service_id The ID of the Wicket service.
+ * @return bool                     True if the touchpoint was successfully written, false otherwise.
+ */
+function write_touchpoint($params, $wicket_service_id)
+{
+  $client  = wicket_api_client();
   $payload = build_touchpoint_payload($params, $wicket_service_id);
 
   if ($payload) {
     try {
-      $res = $client->post('touchpoints',['json' => $payload]);
+      $res = $client->post('touchpoints', ['json' => $payload]);
     } catch (\Exception $e) {
-      // echo "<pre>";
-      // print_r($e->getMessage());
-      // echo "</pre>";
+      error_log($e->getMessage());
     }
     if (isset($res)) {
       return true;
@@ -1620,15 +1714,29 @@ function write_touchpoint($params, $wicket_service_id){
   }
 }
 
-function build_touchpoint_payload($params, $wicket_service_id){
-
+/**
+ * Build Touchpoint Payload.
+ *
+ * This function constructs the payload for a touchpoint based on the provided parameters and service ID.
+ *
+ * @param array  $params            The parameters for the touchpoint, including:
+ *                                  - 'person_id' (string): The UUID of the person from Wicket.
+ *                                  - 'action' (string): The action of the touchpoint.
+ *                                  - 'details' (string): Details about the touchpoint.
+ *                                  - 'data' (array): Additional data for the touchpoint (optional).
+ *                                  - 'external_event_id' (string): A unique value to prevent duplicate touchpoints (optional).
+ * @param string $wicket_service_id The ID of the Wicket service.
+ * @return array                    The constructed payload for the touchpoint.
+ */
+function build_touchpoint_payload($params, $wicket_service_id)
+{
   $payload = [
     'data' => [
       'type' => 'touchpoints',
       'attributes' => [
         'action' => $params['action'],
         'details' => html_entity_decode($params['details']),
-        'code' => str_replace(' ','_',strtolower($params['action'])),
+        'code' => str_replace(' ', '_', strtolower($params['action'])),
       ],
       'relationships' => [
         'person' => [
@@ -1646,28 +1754,43 @@ function build_touchpoint_payload($params, $wicket_service_id){
       ],
     ]
   ];
+
   if (isset($params['data'])) {
     $payload['data']['attributes']['data'] = $params['data'];
   }
+
   if (isset($params['external_event_id'])) {
     $payload['data']['attributes']['external_event_id'] = $params['external_event_id'];
   }
+
   return $payload;
 }
 
-// ----------------------------------------------------------------
-// use this to get/create a service id to then pass into the write_touchpoint() function
-// example:
-// $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
-// write_touchpoint($params, $service_id);
-// ----------------------------------------------------------------
-function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP') {
+/**
+ * Get or create a touchpoint service ID.
+ *
+ * This function retrieves an existing service ID by the given service name.
+ * If the service does not exist, it creates a new service with the specified
+ * name and description and returns the newly created service ID.
+ *
+ * Example usage:
+ * ```php
+ * $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
+ * write_touchpoint($params, $service_id);
+ * ```
+ *
+ * @param string $service_name        The name of the service.
+ * @param string $service_description The description of the service. Default is 'Custom from WP'.
+ * @return string|false               The service ID if successful, or false on failure.
+ */
+function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP')
+{
   $client = wicket_api_client();
 
   // check for existing service, return service ID
   $existing_services = $client->get("services?filter[name_eq]=$service_name");
   $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
-    
+
   if ($existing_service) {
     return $existing_service;
   }
@@ -1679,27 +1802,23 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
     'status' => 'active',
     'integration_type' => "custom",
   ];
+
   try {
     $service = $client->post("/services", ['json' => $payload]);
+
     return $service['data']['id'];
   } catch (Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;
-    // echo "<pre>";
-    // print_r($e->getMessage());
-    // echo "</pre>";
-    //
-    // echo "<pre>";
-    // print_r($errors);
-    // echo "</pre>";
-    // die;
   }
+
   return false;
 }
 
 /**------------------------------------------------------------------
  * Get active org memberships current user owns
  ------------------------------------------------------------------*/
-function wicket_get_active_org_memberships(){
+function wicket_get_active_org_memberships()
+{
   $client = wicket_api_client();
   $person_id = wicket_current_person_uuid();
   if ($person_id) {
@@ -1713,7 +1832,7 @@ function wicket_get_active_org_memberships(){
       }
     }
     return $active_memberships;
-  }else {
+  } else {
     return [];
   }
 }
@@ -1721,7 +1840,8 @@ function wicket_get_active_org_memberships(){
 /**------------------------------------------------------------------
  * Get org memberships
  ------------------------------------------------------------------*/
-function wicket_get_org_memberships($org_id){
+function wicket_get_org_memberships($org_id)
+{
   $client = wicket_api_client();
   if ($org_id) {
     $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
@@ -1738,84 +1858,88 @@ function wicket_get_org_memberships($org_id){
       }
     }
     return $memberships;
-  }else {
+  } else {
     return [];
   }
 }
 
 /**------------------------------------------------------------------
-* Gets spoken languages resource list (used in account center comm. prefs)
+ * Gets spoken languages resource list (used in account center comm. prefs)
 ------------------------------------------------------------------*/
-function get_spoken_languages_list(){
+function get_spoken_languages_list()
+{
   $client = wicket_api_client();
   $resource_types = $client->resource_types->all()->toArray();
   $resource_types = collect($resource_types);
   $found = $resource_types->filter(function ($item) {
-              return $item->resource_type == 'shared_written_spoken_languages';
-          });
+    return $item->resource_type == 'shared_written_spoken_languages';
+  });
 
   return $found;
 }
 
 /**------------------------------------------------------------------
-* Gets org types resource list
+ * Gets org types resource list
 ------------------------------------------------------------------*/
-function get_org_types_list(){
+function get_org_types_list()
+{
   $client = wicket_api_client();
   $resource_types = $client->resource_types->all()->toArray();
   $resource_types = collect($resource_types);
   $found = $resource_types->filter(function ($item) {
-              return $item->resource_type == 'organizations';
-          });
+    return $item->resource_type == 'organizations';
+  });
 
   return $found;
 }
 
 /**------------------------------------------------------------------
-* Gets all entity types and returns their data array from the API call
+ * Gets all entity types and returns their data array from the API call
 ------------------------------------------------------------------*/
-function wicket_get_entity_types() {
+function wicket_get_entity_types()
+{
   try {
     $client = wicket_api_client();
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 
   try {
-    $entity_types = $client->get( 'entity_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999999' );
-    if( isset( $entity_types['data'] ) ) {
+    $entity_types = $client->get('entity_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999999');
+    if (isset($entity_types['data'])) {
       return $entity_types;
     } else {
       return false;
     }
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 }
 
 /**------------------------------------------------------------------
-* Gets the available resource types for the provided $entity_type_slug, or if
-* no slug is provided (or the UUID for it cannot be found), all resource types and
-* their data are returned
+ * Gets the available resource types for the provided $entity_type_slug, or if
+ * no slug is provided (or the UUID for it cannot be found), all resource types and
+ * their data are returned
 ------------------------------------------------------------------*/
-function wicket_get_resource_types( $entity_type_slug = '' ) {
+function wicket_get_resource_types($entity_type_slug = '')
+{
   try {
     $client = wicket_api_client();
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 
   $entity_types = wicket_get_entity_types();
-  
+
   $entity_type_uuid = '';
-  if( isset( $entity_types['data'] ) ) {
-    foreach( $entity_types['data'] as $entity ) {
-      if( isset( $entity['attributes'] ) ) {
-        if( isset( $entity['attributes']['code'] ) ) {
-          if( $entity['attributes']['code'] == $entity_type_slug ) {
+  if (isset($entity_types['data'])) {
+    foreach ($entity_types['data'] as $entity) {
+      if (isset($entity['attributes'])) {
+        if (isset($entity['attributes']['code'])) {
+          if ($entity['attributes']['code'] == $entity_type_slug) {
             $entity_type_uuid = $entity['attributes']['uuid'];
           }
         }
@@ -1825,10 +1949,10 @@ function wicket_get_resource_types( $entity_type_slug = '' ) {
   // If no $entity_type_slug is provided or the $entity_type_uuid is not found, all recource_types will be returned
 
   try {
-    $resource_types = $client->get( "resource_types?filter%5Bentity_type_uuid_eq%5D=$entity_type_uuid" );
+    $resource_types = $client->get("resource_types?filter%5Bentity_type_uuid_eq%5D=$entity_type_uuid");
     return $resource_types;
   } catch (\Exception $e) {
-    error_log( $e->getMessage() );
+    error_log($e->getMessage());
     return false;
   }
 
@@ -1836,25 +1960,27 @@ function wicket_get_resource_types( $entity_type_slug = '' ) {
 }
 
 /**------------------------------------------------------------------
-* Gets org connection types resource list
+ * Gets org connection types resource list
 ------------------------------------------------------------------*/
-function get_person_to_organizations_connection_types_list(){
+function get_person_to_organizations_connection_types_list()
+{
   $client = wicket_api_client();
   $resource_types = $client->resource_types->all()->toArray();
   $resource_types = collect($resource_types);
   $found = $resource_types->filter(function ($item) {
-              return $item->resource_type == 'connection_person_to_organizations';
-          });
+    return $item->resource_type == 'connection_person_to_organizations';
+  });
 
   return $found;
 }
 
 
 /**------------------------------------------------------------------
-* Gets all individual memberships
-* Documentation: https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
+ * Gets all individual memberships
+ * Documentation: https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
 ------------------------------------------------------------------*/
-function get_individual_memberships(){
+function get_individual_memberships()
+{
   $client = wicket_api_client();
   try {
     $search_organizations = $client->get('memberships');
@@ -1870,30 +1996,43 @@ function get_individual_memberships(){
 
 /**
  * Enables writing a single AI value for a person based on a single key/value pair.
- * Example usage: `wicket_update_schema_single_value( wicket_current_person_uuid(), 'membership_mgmt',
- * 'application_status', 'not_submitted');`
+ *
+ * This function updates a person's data field with a specified key/value pair within a schema.
  * To pass a custom payload for multiple value updates, pass null for $key and True for $pass_raw_value,
  * then you can pass your custom payload to $value.
+ *
+ * Example usage:
+ * ```php
+ * wicket_update_schema_single_value(wicket_current_person_uuid(), 'membership_mgmt', 'application_status', 'not_submitted');
+ * ```
+ *
+ * @param string  $schema_slug     The schema slug to identify the schema.
+ * @param string  $key             The key to update within the schema. Pass null to update multiple values.
+ * @param mixed   $value           The value to set for the specified key, or the custom payload if $pass_raw_value is true.
+ * @param bool    $pass_raw_value  Set to true to pass a custom payload in $value. Default is false.
+ * @param string  $person_uuid     The UUID of the person to update. Default is 0, which means the current user.
+ * @return array                   Returns an array with a boolean indicating success, and an error message if failed.
  */
 // TODO: Update this function to use the new 'schema slug' update to Wicket Member, instead of looking up the ID with wicket_get_schema()
-function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw_value = false, $person_uuid = 0) {
+function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw_value = false, $person_uuid = 0)
+{
   $client = wicket_api_client();
   $schema = wicket_get_schema($schema_slug);
-  if( $person_uuid == 0 ) {
+  if ($person_uuid == 0) {
     $wicket_person = wicket_current_person();
     $person_uuid = $wicket_person->id;
   } else {
     $wicket_person = wicket_get_person_by_id($person_uuid);
   }
 
-  if( empty($client) || empty($schema) || empty($wicket_person) ) {
+  if (empty($client) || empty($schema) || empty($wicket_person)) {
     return false;
   }
 
   $schema_uuid = $schema['id'];
   $schema_values = wicket_get_field_from_data_fields($wicket_person->data_fields, $schema_slug)['value'];
   $sub_payload = array();
-  if( !$pass_raw_value ) {
+  if (!$pass_raw_value) {
     $schema_values[$key] = $value;
     $sub_payload = $schema_values;
   } else {
@@ -1903,10 +2042,10 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
   // Cleaning up values
   // TODO: Potentially include more cleanup conditions found in wicket_add_data_field(),
   //  or reference it directly
-  foreach( $sub_payload as $key => $value ) {
+  foreach ($sub_payload as $key => $value) {
     // remove empty arrays (likely select fields with the "choose option" set)
-    if ( is_array( $value ) && empty( $value ) ) {
-      unset( $sub_payload[$key] );
+    if (is_array($value) && empty($value)) {
+      unset($sub_payload[$key]);
     }
   }
 
@@ -1937,9 +2076,10 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
 }
 
 // Helper for wicket_update_schema_single_value
-function wicket_get_field_from_data_fields($data_fields, $key) {
+function wicket_get_field_from_data_fields($data_fields, $key)
+{
   // get matches
-  $matches = array_filter($data_fields, function($field) use ($key) {
+  $matches = array_filter($data_fields, function ($field) use ($key) {
     return isset($field['key']) && $field['key'] == $key;
   });
 
@@ -1947,11 +2087,12 @@ function wicket_get_field_from_data_fields($data_fields, $key) {
   return reset($matches);
 }
 
-// Finds the schema ID using a provided schema slug. 
-function wicket_get_schema($schema_slug) {
+// Finds the schema ID using a provided schema slug.
+function wicket_get_schema($schema_slug)
+{
   $schemas = wicket_get_schemas();
   if ($schemas) {
-    $result = array_filter($schemas['data'], function($schema) use ($schema_slug) {
+    $result = array_filter($schemas['data'], function ($schema) use ($schema_slug) {
       return $schema['attributes']['key'] == $schema_slug;
     });
     return reset($result);

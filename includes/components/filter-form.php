@@ -2,11 +2,13 @@
 $defaults         = array(
 	'classes'          => [],
 	'taxonomies'       => [],
+	'post_types'       => [],
 	'hide_date_filter' => false,
 );
 $args             = wp_parse_args( $args, $defaults );
 $classes          = $args['classes'];
 $taxonomies       = $args['taxonomies'];
+$post_types       = $args['post_types'];
 $hide_date_filter = $args['hide_date_filter'];
 $classes[]        = 'component-filter-form';
 ?>
@@ -45,6 +47,76 @@ $classes[]        = 'component-filter-form';
 	</div>
 
 	<div <?php if ( wp_is_mobile() ) : ?>x-show="showFilters" <?php endif; ?> class="mt-8">
+		<?php if ( ! empty($post_types) ) : ?>
+			<?php $post_type_filter_key = 'post_type' ?>
+			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}" class="pb-3 mb-3 border-b border-light-020">
+				<button @click="open = ! open" id="<?php echo $post_type_filter_key; ?>-dropdown-toggle" type="button"
+					class="flex w-full gap-3 items-center">
+					<span class="font-bold">
+						<?php _e( 'Content Types', 'wicket' ); ?>
+					</span>
+					<span class="ml-auto">
+						<template x-if="selectedItemsCount">
+							<span x-text="`(${selectedItemsCount})`" class="font-bold text-dark-070 mr-3"></span>
+						</template>
+						<template x-if="open">
+							<i class="fas fa-caret-up"></i>
+						</template>
+						<template x-if="!open">
+							<i class="fas fa-caret-down"></i>
+						</template>
+					</span>
+				</button>
+				<div id="<?php echo $post_type_filter_key; ?>-dropdown" x-show="open">
+					<?php
+					$post_type_query = isset( $_GET[ $post_type_filter_key ] ) ? $_GET[ $post_type_filter_key ] : '';
+					?>
+					<ul class="mt-3">
+						<?php
+						$index = 0;
+						foreach ( $post_types as $post_type ) :
+							$post_type_obj = get_post_type_object( $post_type['key'] );
+							$index++; ?>
+							<li class="mb-3" <?php if ( $index > 5 ) : ?>:class="showAll || 'hidden'" <?php endif; ?>>
+								<?php
+								$checkedState = false;
+								if ( is_array( $post_type_query ) ) {
+									if ( in_array( $post_type['key'], $post_type_query ) ) {
+										$checkedState = true;
+									}
+								}
+								?>
+								<div class="flex gap-2 items-center">
+									<input id="<?php echo $post_type_filter_key . '_' . $post_type['key']; ?>" class="!m-0 w-4 h-4" type="checkbox"
+										x-init="selectedItemsCount = selectedItemsCount + <?php echo $checkedState ? 1 : 0; ?>"
+										x-on:change="selectedItemsCount = $event.target.checked ? selectedItemsCount + 1 : selectedItemsCount - 1"
+										name="<?php echo $post_type_filter_key; ?>[]" value="<?php echo $post_type['key']; ?>" <?php if ( $checkedState ) : ?>checked<?php endif; ?>>
+									<label for="<?php echo$post_type_filter_key . '_' . $post_type['key']; ?>" class="font-normal mb-0 leading-none">
+										<?php echo $post_type_obj->labels->name; ?>
+									</label>
+								</div>
+							</li>
+							<?php
+						endforeach; ?>
+					</ul>
+					<?php if ( count( $post_types ) > 5 ) : ?>
+						<button class="underline" type="button" @click="showAll = !showAll">
+							<template x-if="showAll">
+								<span>
+									<?php echo __( 'See Less', 'wicket' ) ?>
+								</span>
+							</template>
+							<template x-if="!showAll">
+								<span>
+									<?php echo __( 'See More', 'wicket' ) ?>
+								</span>
+							</template>
+						</button>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php endif; ?>
+
 		<?php
 		foreach ( $taxonomies as $taxonomy ) : ?>
 			<?php

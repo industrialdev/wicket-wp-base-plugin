@@ -75,6 +75,9 @@ if ( ! class_exists( 'Wicket_Main' ) ) {
 			// Include wicket components
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
 
+			// Include custom code snippets, such as those that additional functionality to complex components
+			include_once WICKET_PLUGIN_DIR . 'includes/custom/woocommerce.php';
+
 			// Include Mailtrap settings for stage
 			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
