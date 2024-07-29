@@ -44,7 +44,7 @@ $helper_link              = $args['helper_link'];
 $helper_link_button_style = $args['helper_link_button_style'];
 
 $text_alignment_class = 'text-' . $text_alignment;
-$wrapper_classes      = [ 'component-banner py-8 px-4 mb-16 relative' ]; // border-b border-light-020
+$wrapper_classes      = [ 'component-banner py-8 px-4 relative' ]; // border-b border-light-020
 $reversed             = ( $background_style === 'reversed' || $background_style === 'image' );
 $cta_classes          = [ 'cta-card flex-1 p-6 rounded-050 basis-full w-full lg:basis-3/12' ];
 

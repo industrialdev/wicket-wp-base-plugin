@@ -23,7 +23,7 @@ $cta             = $args['cta'];
 $cta_label       = $args['cta_label'];
 $add_to_cart_url = '';
 
-$classes[]             = 'component-card-product bg-white shadow-4 flex flex-col items-center gap-4 relative';
+$classes[]             = 'component-card-product bg-white shadow-4 flex flex-col items-center gap-4 relative h-full';
 $image_wrapper_classes = [];
 $title_classes         = [ 'component-card-product__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
 
@@ -40,7 +40,9 @@ if ( ! class_exists( 'WooCommerce' ) ) {
 			<?php woocommerce_show_product_loop_sale_flash(); ?>
 			<?php woocommerce_template_loop_product_thumbnail(); ?>
 		</a>
-		<h2 class="component-card-product__title"><?php the_title(); ?></h2>
+		<a href="<?php the_permalink(); ?>">
+			<h2 class="component-card-product__title"><?php the_title(); ?></h2>
+		</a>
 		<?php woocommerce_template_loop_price(); ?>
 		<?php woocommerce_template_loop_add_to_cart(); ?>
 	</div>

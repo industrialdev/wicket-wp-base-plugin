@@ -24,9 +24,28 @@
 
   .button {
     @extend .button--primary;
+    display: inline-flex;
 
     &.product_type_external {
       @include add-external-icon;
+    }
+
+    .add_to_cart_button__text-added {
+      display: none;
+    }
+
+    .add_to_cart_button__text {
+      display: block;
+    }
+
+    &.added {
+      .add_to_cart_button__text-added {
+        display: block;
+      }
+
+      .add_to_cart_button__text {
+        display: none;
+      }
     }
   }
 }

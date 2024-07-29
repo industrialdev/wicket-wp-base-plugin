@@ -329,6 +329,12 @@ footer .menu-item > a[target=_blank]:after {
   font-weight: bold;
   text-decoration: none;
 }
+.component-card-product .button {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+}
 .component-card-product .button.product_type_external:after {
   display: inline-block;
   content: "\f35d";
@@ -336,6 +342,18 @@ footer .menu-item > a[target=_blank]:after {
   font-weight: inherit;
   margin-left: 4px;
   font-size: 90%;
+}
+.component-card-product .button .add_to_cart_button__text-added {
+  display: none;
+}
+.component-card-product .button .add_to_cart_button__text {
+  display: block;
+}
+.component-card-product .button.added .add_to_cart_button__text-added {
+  display: block;
+}
+.component-card-product .button.added .add_to_cart_button__text {
+  display: none;
 }
 
 .component-card-product__title {
