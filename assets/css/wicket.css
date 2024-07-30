@@ -355,6 +355,12 @@ footer .menu-item > a[target=_blank]:after {
 .component-card-product .button.added .add_to_cart_button__text {
   display: none;
 }
+.component-card-product .button.button--disabled {
+  background-color: var(--wp--preset--color--light-020);
+  color: var(--wp--preset--color--dark-060);
+  border-color: var(--wp--preset--color--light-020);
+  pointer-events: none;
+}
 
 .component-card-product__title {
   font-weight: bold;
