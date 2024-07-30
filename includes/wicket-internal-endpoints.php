@@ -1,6 +1,17 @@
 <?php 
 
-add_action('rest_api_init', 'wicket_base_register_rest_routes' );
+add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
+// Keep this constant array up to date as more routes are added to wicket_base_register_rest_routes(),
+// as it's used to whitelist these endpoints from things like API rate limiting
+const WICKET_ENDPOINTS = array(
+  '/wp-json/wicket-base/v1/search-orgs',
+  '/wp-json/wicket-base/v1/search-groups',
+  '/wp-json/wicket-base/v1/terminate-relationship',
+  '/wp-json/wicket-base/v1/create-relationship',
+  '/wp-json/wicket-base/v1/create-org',
+  '/wp-json/wicket-base/v1/flag-for-rm-access',
+  '/wp-json/wicket-base/v1/grant-org-editor',
+);
 
 // Ref: https://developer.wordpress.org/reference/functions/register_rest_route/
 function wicket_base_register_rest_routes(){
@@ -51,6 +62,14 @@ function wicket_base_register_rest_routes(){
   register_rest_route( 'wicket-base/v1', 'flag-for-rm-access',array(
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_flag_for_rm_access',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
+
+  register_rest_route( 'wicket-base/v1', 'grant-org-editor',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_grant_org_editor',
     'permission_callback' => function() {
       return is_user_logged_in();
     },
@@ -122,9 +141,9 @@ function wicket_internal_endpoint_search_orgs( $request ) {
     $tmp = [];
     if( isset( $result['attributes']['type'] ) && !empty( $orgType ) ) {
       $result_type = $result['attributes']['type'];
-      wicket_write_log($result_type . ' vs ' . $orgType);
+      //wicket_write_log($result_type . ' vs ' . $orgType);
       if( $result_type != $orgType ) {
-        wicket_write_log('Skipped');
+        //wicket_write_log('Skipped');
         // Skip this record if an org type filter was passed to this endpoint
         // and it doesn't match
         continue;
@@ -189,7 +208,7 @@ function wicket_internal_endpoint_search_groups( $request ) {
 
 
   $results = [];
-  wicket_write_log($search_groups);
+  //wicket_write_log($search_groups);
   if ($search_groups['meta']['page']['total_items'] > 0) {
     foreach ($search_groups['data'] as $result) {
       $results[$result['id']]['id'] = $result['id'];
@@ -299,8 +318,8 @@ function wicket_internal_endpoint_create_relationship( $request ) {
 
   try {
     $new_connection = wicket_create_connection( $payload );
-    wicket_write_log('creating connection:');
-    wicket_write_log($new_connection);
+    //wicket_write_log('creating connection:');
+    //wicket_write_log($new_connection);
   } catch (\Exception $e) {
     wp_send_json_error( $e->getMessage() );
   }
@@ -387,4 +406,26 @@ function wicket_internal_endpoint_flag_for_rm_access( $request ) {
   update_user_meta( get_current_user_id(), 'roster_man_org_to_grant', $org_uuid );
 
   wp_send_json_success();
+}
+
+function wicket_internal_endpoint_grant_org_editor( $request ) {
+  $params = $request->get_json_params();
+
+  if( !isset( $params['orgUuid'] ) ) {
+    wp_send_json_error( 'Organization uuid not provided' );
+  }
+  if( !isset( $params['personUuid'] ) ) {
+    wp_send_json_error( 'Person uuid not provided' );
+  }
+
+  $org_uuid = $params['orgUuid'];
+  $person_uuid = $params['personUuid'];
+
+  $result = wicket_assign_role($person_uuid, 'org_editor', $org_uuid);
+
+  if( $result ) {
+    wp_send_json_success($result);
+  } else {
+    wp_send_json_error('There was a problem assigning the org_editor role.');
+  }
 }
