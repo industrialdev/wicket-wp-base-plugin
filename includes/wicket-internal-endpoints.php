@@ -1,17 +1,6 @@
 <?php 
 
 add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
-// Keep this constant array up to date as more routes are added to wicket_base_register_rest_routes(),
-// as it's used to whitelist these endpoints from things like API rate limiting
-const WICKET_ENDPOINTS = array(
-  '/wp-json/wicket-base/v1/search-orgs',
-  '/wp-json/wicket-base/v1/search-groups',
-  '/wp-json/wicket-base/v1/terminate-relationship',
-  '/wp-json/wicket-base/v1/create-relationship',
-  '/wp-json/wicket-base/v1/create-org',
-  '/wp-json/wicket-base/v1/flag-for-rm-access',
-  '/wp-json/wicket-base/v1/grant-org-editor',
-);
 
 // Ref: https://developer.wordpress.org/reference/functions/register_rest_route/
 function wicket_base_register_rest_routes(){
