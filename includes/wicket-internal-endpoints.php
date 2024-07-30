@@ -10,7 +10,7 @@ const WICKET_ENDPOINTS = array(
   '/wp-json/wicket-base/v1/create-relationship',
   '/wp-json/wicket-base/v1/create-org',
   '/wp-json/wicket-base/v1/flag-for-rm-access',
-  '/wp-json/wicket-base/v1/grant-org-edit',
+  '/wp-json/wicket-base/v1/grant-org-editor',
 );
 
 // Ref: https://developer.wordpress.org/reference/functions/register_rest_route/
@@ -67,9 +67,9 @@ function wicket_base_register_rest_routes(){
     },
   ));
 
-  register_rest_route( 'wicket-base/v1', 'grant-org-edit',array(
+  register_rest_route( 'wicket-base/v1', 'grant-org-editor',array(
     'methods'  => 'POST',
-    'callback' => 'wicket_internal_endpoint_grant_org_edit',
+    'callback' => 'wicket_internal_endpoint_grant_org_editor',
     'permission_callback' => function() {
       return is_user_logged_in();
     },
@@ -408,7 +408,7 @@ function wicket_internal_endpoint_flag_for_rm_access( $request ) {
   wp_send_json_success();
 }
 
-function wicket_internal_endpoint_grant_org_edit( $request ) {
+function wicket_internal_endpoint_grant_org_editor( $request ) {
   $params = $request->get_json_params();
 
   if( !isset( $params['orgUuid'] ) ) {
@@ -421,11 +421,11 @@ function wicket_internal_endpoint_grant_org_edit( $request ) {
   $org_uuid = $params['orgUuid'];
   $person_uuid = $params['personUuid'];
 
-  $result = wicket_assign_role($person_uuid, 'org_edit', $org_uuid);
+  $result = wicket_assign_role($person_uuid, 'org_editor', $org_uuid);
 
   if( $result ) {
     wp_send_json_success($result);
   } else {
-    wp_send_json_error('There was a problem assigning the org_edit role.');
+    wp_send_json_error('There was a problem assigning the org_editor role.');
   }
 }

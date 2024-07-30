@@ -6,7 +6,7 @@
  * 
  * 2024-07-30 - CoulterPeterson
  * 
- * Added grant_org_edit_on_select param to component.
+ * Added grant_org_editor_on_select param to component.
  * 
  * 2024-07-17 - CoulterPeterson
  * 
@@ -120,7 +120,7 @@ $defaults  = array(
   'disable_create_org_ui'                         => false,
   'disable_selecting_orgs_with_active_membership' => false,
   'grant_roster_man_on_purchase'                  => false,
-  'grant_org_edit_on_select'                      => false,
+  'grant_org_editor_on_select'                      => false,
 );
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
@@ -137,7 +137,7 @@ $orgTermPlural                                 = $args['org_term_plural'];
 $disable_create_org_ui                         = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
-$grant_org_edit_on_select                      = $args['grant_org_edit_on_select'];
+$grant_org_editor_on_select                      = $args['grant_org_editor_on_select'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -399,7 +399,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
             currentPersonUuid: "<?php echo $current_person_uuid; ?>",
             grantRosterManOnPurchase: <?php echo $grant_roster_man_on_purchase ? 'true' : 'false'; ?>,
-            grantOrgEditOnSelect: <?php echo $grant_org_edit_on_select  ? 'true' : 'false'; ?>,
+            grantOrgEditorOnSelect: <?php echo $grant_org_editor_on_select  ? 'true' : 'false'; ?>,
 
 
             init() {
@@ -514,8 +514,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               if(this.grantRosterManOnPurchase) {
                 this.flagForRosterManagementAccess(orgUuid);
               }
-              if(this.grantOrgEditOnSelect) {
-                this.grantOrgEdit( this.currentPersonUuid, orgUuid );
+              if(this.grantOrgEditorOnSelect) {
+                this.grantOrgEditor( this.currentPersonUuid, orgUuid );
               }
             },
             selectOrgAndCreateRelationship( orgUuid ) {
@@ -550,13 +550,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   }
               });
             },
-            async grantOrgEdit( personUuid, orgUuid ) {
+            async grantOrgEditor( personUuid, orgUuid ) {
               let data = {
                 "personUuid": personUuid,
                 "orgUuid": orgUuid,
               };
 
-              let results = await fetch(this.apiUrl + 'grant-org-edit', {
+              let results = await fetch(this.apiUrl + 'grant-org-editor', {
                 method: "POST",
                 mode: "cors",
                 cache: "no-cache",
