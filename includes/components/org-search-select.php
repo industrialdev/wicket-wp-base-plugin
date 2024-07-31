@@ -226,9 +226,15 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
 <style>
   .orgss_disabled_button {
-    background: #efefef;
-    color: #a3a3a3;
-    border-color: #efefef;
+    background: #efefef !important;
+    color: #a3a3a3 !important;
+    border-color: #efefef !important;
+    pointer-events: none;
+  }
+  .orgss_disabled_button_hollow {
+    background: rgba(0,0,0,0) !important;
+    color: #a3a3a3 !important;
+    border-color: rgba(0,0,0,0) !important;
     pointer-events: none;
   }
 </style>
@@ -325,7 +331,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         </div>
 
         <template x-for="(result, uuid) in results" x-cloak>
-          <div class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center">
+          <div
+            class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center"
+          >
             <div class="font-bold" x-text="result.name"></div>
             <?php get_component( 'button', [ 
               'variant'  => 'primary',
@@ -333,7 +341,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ], 
-              'atts'     => [ 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',  ]
+              'atts'     => [ 
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',
+                'x-bind:class="isOrgAlreadyAConnection( $data.result.id ) ? \'orgss_disabled_button_hollow\' : \'\' "'
+              ]
             ] ); ?>
           </div>
         </template>
@@ -484,6 +495,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     if(showLoading) {
                       this.isLoading = false;
                     }
+
                     this.results = data.data;
                     if( !this.firstSearchSubmitted ) {
                       this.firstSearchSubmitted = true;
@@ -743,6 +755,21 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               } );
 
               this.currentConnections = connections;
+            },
+            isOrgAlreadyAConnection( uuid ) {
+              let connections = this.currentConnections;
+              let isOrgAlreadyAConnection = false;
+
+              connections.forEach( (val, i, array) => {
+                let org_id = val.org_id;
+                //console.log(`Checking if already a connection: incoming ${uuid} vs existing ${org_id}`);
+                if( org_id == uuid ) {
+                  //console.log('Is already a connection');
+                  isOrgAlreadyAConnection = true;
+                }
+              } );
+
+              return isOrgAlreadyAConnection;
             },
             getOrgFromConnectionsByUuid( uuid ) {
               let found = {};
