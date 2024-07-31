@@ -323,13 +323,29 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   // Grab information about the new org connection to send back
   $org_info = wicket_get_organization_basic_info( $toUuid );
 
+  $org_memberships = wicket_get_org_memberships( $toUuid );
+  $has_active_membership = false;
+  if( !empty( $org_memberships ) ) {
+    foreach( $org_memberships as $membership ) {
+      if( isset( $membership['membership'] ) ) {
+        if( isset( $membership['membership']['attributes'] ) ) {
+          if( isset( $membership['membership']['attributes']['active'] ) ) {
+            if( $membership['membership']['attributes']['active'] ) {
+              $has_active_membership = true;
+            }
+          }
+        }
+      }
+    } 
+  }  
+
   $return =  [
     'connection_id'   => $new_connection['data']['id'] ?? '',
     'connection_type' => $relationshipType,
     'starts_at'       => $new_connection['data']['attributes']['starts_at'] ?? '',
     'ends_at'         => $new_connection['data']['attributes']['ends_at'] ?? '',
     'tags'            => $new_connection['data']['attributes']['tags'] ?? '',
-    'active'          => $new_connection['data']['attributes']['active'] ?? true,
+    'active'          => $has_active_membership,
     'org_id'          => $toUuid,
     'org_name'        => $org_info['org_name'],
     'org_description' => $org_info['org_description'],

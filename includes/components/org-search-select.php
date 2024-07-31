@@ -309,7 +309,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
-      <input x-model="searchBox" @keyup.enter.prevent="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
+      <input x-model="searchBox" @keyup.enter.prevent.stop="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
       <?php get_component( 'button', [ 
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
@@ -347,7 +347,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
-        <input x-model="newOrgNameBox" @keyup.enter.prevent="handleOrgCreate()" type="text" name="company-name" class="w-full" />
+        <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate()" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
