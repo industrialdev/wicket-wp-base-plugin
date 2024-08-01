@@ -1648,6 +1648,85 @@ function wicket_remove_connection($connection_id)
   return true;
 }
 
+/**------------------------------------------------------------------
+ * Set start and/or end date of a connection
+ * It's expected that the dates are formatted YYYY-MM-DD
+ * ------------------------------------------------------------------*/
+function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', $start_date = '' ) {
+  
+  if( empty( $end_date ) && empty( $start_date ) ) {
+    return false;
+  }
+  
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  try {
+    $current_connection_info = wicket_get_connection_by_id( $connection_id );
+
+    if( empty( $current_connection_info ) ) {
+      return false;
+    }
+
+    $attributes = $current_connection_info['data']['attributes'];
+
+    $attributes['starts_at'] = !empty( $start_date ) ? strval($start_date) : null;
+    $attributes['ends_at']   = !empty( $end_date ) ? strval($end_date) : null;
+
+    // Ensure empty fields stay null, which the MDP likes
+    $attributes['description'] = !empty( $attributes['description'] ) ? $attributes['description'] : null;
+    $attributes['custom_data_field'] = !empty( $attributes['custom_data_field'] ) ? $attributes['custom_data_field'] : null;
+    $attributes['tags'] = !empty( $attributes['tags'] ) ? $attributes['tags'] : null;
+
+    $payload = [
+      'data' => [
+        'attributes'    => $attributes,
+        'id'            => $connection_id,
+        'relationships' => [
+          'from' => $current_connection_info['data']['relationships']['from'],
+          'to'   => $current_connection_info['data']['relationships']['to'],
+        ],
+        'type'          => $current_connection_info['data']['type'],
+      ]
+    ];
+    wicket_write_log('payload before send:');
+    wicket_write_log($payload);
+
+    $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
+    return $updated_connection;
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  return;
+}
+
+/**------------------------------------------------------------------
+ * Gets array of information from the MDP API by querying a GET 
+ * on the provided $connection_id
+ * ------------------------------------------------------------------*/
+function wicket_get_connection_by_id( $connection_id ) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  try {
+    $connection = $client->get('connections/' . $connection_id);
+    return $connection;
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+}
+
 /**
  * Get Touchpoints for the Current User.
  *

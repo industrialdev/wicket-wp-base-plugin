@@ -216,6 +216,8 @@ function wicket_internal_endpoint_search_groups( $request ) {
  * Calls the Wicket helper functions to terminate a relationship.
  * 
  * @param WP_REST_Request $request that contains JSON params, notably a 'connectionId'.
+ * Optionally 'removeRelationship' can be provided, which will delete the relationship altogether
+ * instead of set the end date to today's date.
  * 
  * @return JSON success:false or success:true, along with any related information or notices.
  */
@@ -227,12 +229,23 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
   }
 
   $connectionId = $params['connectionId'];
+  $removeRelationship = $params['removeRelationship'] ?? false;
 
-  if( wicket_remove_connection( $connectionId ) ) {
-    wp_send_json_success();
+  if( $removeRelationship ) {
+    if( wicket_remove_connection( $connectionId ) ) {
+      wp_send_json_success();
+    } else {
+      wp_send_json_error( 'Something went wrong removing the connection.' );
+    }
   } else {
-    wp_send_json_error( 'Something went wrong removing the connection' );
-  }
+    // Set the relationship end date to today's date
+    $set_end_date = wicket_set_connection_start_end_dates( $connectionId, date('Y-m-d') );
+    if( $set_end_date ) {
+      wp_send_json_success();
+    } else {
+      wp_send_json_error( 'Something wrong setting the end date of the connection.' );
+    }
+  }  
 }
 
 /**
