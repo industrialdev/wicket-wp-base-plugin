@@ -168,11 +168,6 @@ if( defined( 'ICL_LANGUAGE_CODE' ) ) {
 $person_to_org_connections = [];
 if( $searchMode == 'org' ) {
   $current_connections = wicket_get_person_connections();
-  // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
-      // in wicket. 
-  // $current_memberships = wicket_get_current_person_memberships();
-  // wicket_get_org_memberships
-  
 
   foreach( $current_connections['data'] as $connection ) {
     $connection_id = $connection['id'];
@@ -197,21 +192,22 @@ if( $searchMode == 'org' ) {
         } 
       }  
       $person_to_org_connections[] = [
-        'connection_id'   => $connection['id'],
-        'connection_type' => $connection['attributes']['connection_type'],
-        'starts_at'       => $connection['attributes']['starts_at'],
-        'ends_at'         => $connection['attributes']['ends_at'],
-        'tags'            => $connection['attributes']['tags'],
-        'active'          => $has_active_membership,
-        'org_id'          => $org_id,
-        'org_name'        => $org_info['org_name'],
-        'org_description' => $org_info['org_description'],
-        'org_type_pretty' => $org_info['org_type_pretty'],
-        'org_type'        => $org_info['org_type'],
-        'org_status'      => $org_info['org_status'],
-        'org_parent_id'   => $org_info['org_parent_id'],
-        'org_parent_name' => $org_info['org_parent_name'],
-        'person_id'       => $connection['relationships']['person']['data']['id'],
+        'connection_id'     => $connection['id'],
+        'connection_type'   => $connection['attributes']['connection_type'],
+        'starts_at'         => $connection['attributes']['starts_at'],
+        'ends_at'           => $connection['attributes']['ends_at'],
+        'tags'              => $connection['attributes']['tags'],
+        'active_membership' => $has_active_membership,
+        'active_connection' => $connection['attributes']['active'],
+        'org_id'            => $org_id,
+        'org_name'          => $org_info['org_name'],
+        'org_description'   => $org_info['org_description'],
+        'org_type_pretty'   => $org_info['org_type_pretty'],
+        'org_type'          => $org_info['org_type'],
+        'org_status'        => $org_info['org_status'],
+        'org_parent_id'     => $org_info['org_parent_id'],
+        'org_parent_name'   => $org_info['org_parent_name'],
+        'person_id'         => $connection['relationships']['person']['data']['id'],
       ];
     }
   }  
@@ -258,8 +254,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div 
-          x-show="connection.connection_type == relationshipMode && 
-                 ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )" 
+          x-show="connection.connection_type == relationshipMode 
+                && ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )
+                && connection.active_connection" 
           class="rounded-100 flex justify-between bg-white p-4 mb-3"
           x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
         >
@@ -269,12 +266,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             <div class="flex mb-2 items-center">
               <div x-text="connection.org_name" class="font-bold text-body-sm mr-5"></div>
               <div>
-                <template x-if="connection.active">
+                <template x-if="connection.active_membership">
                   <div>
                     <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span class="text-body-xs">Active Membership</span>
                   </div>
                 </template>
-                <template x-if="! connection.active">
+                <template x-if="! connection.active_membership">
                   <div>
                     <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span class="text-body-xs">Inactive Membership</span>
                   </div>
@@ -293,7 +290,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'classes'  => [ '' ],
                 'atts'     => [ 
                   'x-on:click.prevent="selectOrg($data.connection.org_id)"',
-                  'x-bind:class="connection.active && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
+                  'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
                 ]
               ] ); ?>
               <?php get_component( 'button', [ 
