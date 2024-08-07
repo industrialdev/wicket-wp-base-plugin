@@ -233,6 +233,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     border-color: rgba(0,0,0,0) !important;
     pointer-events: none;
   }
+  .orgss_error {
+    color: red;
+    font-size: .8em;
+    margin-top: 5px;
+  }
 </style>
 
 <div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
@@ -320,6 +325,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         'atts'  => [ 'x-on:click.prevent="handleSearch()"' ],
       ] ); ?>
      </div>
+     <div id="orgss_search_message" class="orgss_error" x-cloak x-show="showSearchMessage"></div>
      <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
      <div class="orgss-results">
       <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
@@ -402,6 +408,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             searchBox: '',
             newOrgNameBox: '',
             newOrgTypeSelect: '',
+            showSearchMessage: false,
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
             currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
@@ -419,6 +426,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             handleSearch(e = null) {
               if(e) {
                 e.preventDefault();
+              }
+
+              if( this.searchBox.length < 1 ) {
+                this.setSearchMessage('Please provide a search term');
+                return;
+              } else {
+                this.showSearchMessage = false; // Clear notice in case its visible
               }
 
               this.results = [];
@@ -450,6 +464,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 this.createOrganization( newOrgName, newOrgType );
               }
 
+            },
+            setSearchMessage(message) {
+              document.getElementById('orgss_search_message').innerHTML = message;
+              this.showSearchMessage = true;
             },
             async searchOrgs( searchTerm, showLoading = true ) {
               if(showLoading) {
