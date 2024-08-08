@@ -168,11 +168,6 @@ if( defined( 'ICL_LANGUAGE_CODE' ) ) {
 $person_to_org_connections = [];
 if( $searchMode == 'org' ) {
   $current_connections = wicket_get_person_connections();
-  // TODO: change 'active' to 'connection_active' and retrive if the org has an active membership tier/status
-      // in wicket. 
-  // $current_memberships = wicket_get_current_person_memberships();
-  // wicket_get_org_memberships
-  
 
   foreach( $current_connections['data'] as $connection ) {
     $connection_id = $connection['id'];
@@ -197,21 +192,22 @@ if( $searchMode == 'org' ) {
         } 
       }  
       $person_to_org_connections[] = [
-        'connection_id'   => $connection['id'],
-        'connection_type' => $connection['attributes']['connection_type'],
-        'starts_at'       => $connection['attributes']['starts_at'],
-        'ends_at'         => $connection['attributes']['ends_at'],
-        'tags'            => $connection['attributes']['tags'],
-        'active'          => $has_active_membership,
-        'org_id'          => $org_id,
-        'org_name'        => $org_info['org_name'],
-        'org_description' => $org_info['org_description'],
-        'org_type_pretty' => $org_info['org_type_pretty'],
-        'org_type'        => $org_info['org_type'],
-        'org_status'      => $org_info['org_status'],
-        'org_parent_id'   => $org_info['org_parent_id'],
-        'org_parent_name' => $org_info['org_parent_name'],
-        'person_id'       => $connection['relationships']['person']['data']['id'],
+        'connection_id'     => $connection['id'],
+        'connection_type'   => $connection['attributes']['connection_type'],
+        'starts_at'         => $connection['attributes']['starts_at'],
+        'ends_at'           => $connection['attributes']['ends_at'],
+        'tags'              => $connection['attributes']['tags'],
+        'active_membership' => $has_active_membership,
+        'active_connection' => $connection['attributes']['active'],
+        'org_id'            => $org_id,
+        'org_name'          => $org_info['org_name'],
+        'org_description'   => $org_info['org_description'],
+        'org_type_pretty'   => $org_info['org_type_pretty'],
+        'org_type'          => $org_info['org_type'],
+        'org_status'        => $org_info['org_status'],
+        'org_parent_id'     => $org_info['org_parent_id'],
+        'org_parent_name'   => $org_info['org_parent_name'],
+        'person_id'         => $connection['relationships']['person']['data']['id'],
       ];
     }
   }  
@@ -226,10 +222,21 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
 <style>
   .orgss_disabled_button {
-    background: #efefef;
-    color: #a3a3a3;
-    border-color: #efefef;
+    background: #efefef !important;
+    color: #a3a3a3 !important;
+    border-color: #efefef !important;
     pointer-events: none;
+  }
+  .orgss_disabled_button_hollow {
+    background: rgba(0,0,0,0) !important;
+    color: #a3a3a3 !important;
+    border-color: rgba(0,0,0,0) !important;
+    pointer-events: none;
+  }
+  .orgss_error {
+    color: red;
+    font-size: .8em;
+    margin-top: 5px;
   }
 </style>
 
@@ -252,8 +259,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div 
-          x-show="connection.connection_type == relationshipMode && 
-                 ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )" 
+          x-show="connection.connection_type == relationshipMode 
+                && ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )
+                && connection.active_connection" 
           class="rounded-100 flex justify-between bg-white p-4 mb-3"
           x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
         >
@@ -263,12 +271,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             <div class="flex mb-2 items-center">
               <div x-text="connection.org_name" class="font-bold text-body-sm mr-5"></div>
               <div>
-                <template x-if="connection.active">
+                <template x-if="connection.active_membership">
                   <div>
                     <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span class="text-body-xs">Active Membership</span>
                   </div>
                 </template>
-                <template x-if="! connection.active">
+                <template x-if="! connection.active_membership">
                   <div>
                     <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span class="text-body-xs">Inactive Membership</span>
                   </div>
@@ -287,7 +295,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'classes'  => [ '' ],
                 'atts'     => [ 
                   'x-on:click.prevent="selectOrg($data.connection.org_id)"',
-                  'x-bind:class="connection.active && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
+                  'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
                 ]
               ] ); ?>
               <?php get_component( 'button', [ 
@@ -309,7 +317,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
-      <input x-model="searchBox" @keyup.enter.prevent="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
+      <input x-model="searchBox" @keyup.enter.prevent.stop="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
       <?php get_component( 'button', [ 
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
@@ -317,6 +325,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         'atts'  => [ 'x-on:click.prevent="handleSearch()"' ],
       ] ); ?>
      </div>
+     <div id="orgss_search_message" class="orgss_error" x-cloak x-show="showSearchMessage"></div>
      <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
      <div class="orgss-results">
       <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
@@ -325,7 +334,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         </div>
 
         <template x-for="(result, uuid) in results" x-cloak>
-          <div class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center">
+          <div
+            class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center"
+          >
             <div class="font-bold" x-text="result.name"></div>
             <?php get_component( 'button', [ 
               'variant'  => 'primary',
@@ -333,7 +344,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ], 
-              'atts'     => [ 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',  ]
+              'atts'     => [ 
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',
+                'x-bind:class="isOrgAlreadyAConnection( $data.result.id ) ? \'orgss_disabled_button_hollow\' : \'\' "'
+              ]
             ] ); ?>
           </div>
         </template>
@@ -347,7 +361,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
-        <input x-model="newOrgNameBox" @keyup.enter.prevent="handleOrgCreate()" type="text" name="company-name" class="w-full" />
+        <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate()" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
@@ -394,6 +408,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             searchBox: '',
             newOrgNameBox: '',
             newOrgTypeSelect: '',
+            showSearchMessage: false,
             results: [],
             apiUrl: "<?php echo get_rest_url( null, 'wicket-base/v1/' ); ?>",
             currentConnections: <?php echo json_encode( $person_to_org_connections ); ?>,
@@ -411,6 +426,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             handleSearch(e = null) {
               if(e) {
                 e.preventDefault();
+              }
+
+              if( this.searchBox.length < 1 ) {
+                this.setSearchMessage('Please provide a search term');
+                return;
+              } else {
+                this.showSearchMessage = false; // Clear notice in case its visible
               }
 
               this.results = [];
@@ -442,6 +464,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 this.createOrganization( newOrgName, newOrgType );
               }
 
+            },
+            setSearchMessage(message) {
+              document.getElementById('orgss_search_message').innerHTML = message;
+              this.showSearchMessage = true;
             },
             async searchOrgs( searchTerm, showLoading = true ) {
               if(showLoading) {
@@ -484,6 +510,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     if(showLoading) {
                       this.isLoading = false;
                     }
+
                     this.results = data.data;
                     if( !this.firstSearchSubmitted ) {
                       this.firstSearchSubmitted = true;
@@ -743,6 +770,21 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               } );
 
               this.currentConnections = connections;
+            },
+            isOrgAlreadyAConnection( uuid ) {
+              let connections = this.currentConnections;
+              let isOrgAlreadyAConnection = false;
+
+              connections.forEach( (val, i, array) => {
+                let org_id = val.org_id;
+                //console.log(`Checking if already a connection: incoming ${uuid} vs existing ${org_id}`);
+                if( org_id == uuid ) {
+                  //console.log('Is already a connection');
+                  isOrgAlreadyAConnection = true;
+                }
+              } );
+
+              return isOrgAlreadyAConnection;
             },
             getOrgFromConnectionsByUuid( uuid ) {
               let found = {};

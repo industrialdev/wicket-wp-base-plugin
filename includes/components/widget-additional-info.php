@@ -16,6 +16,10 @@ $org_uuid                         = $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
 $unique_widget_id                 = rand( 1, 9999999 );
 
+if( $resource_type == 'organizations' && strlen(strval($org_uuid)) < 4 ) {
+  return; // Bail out if an improper org_uuid has been passed in, like a placeholder field ID in the GF wrapper
+}
+
 // Example $schemas_and_overrides:
 /* 
 [

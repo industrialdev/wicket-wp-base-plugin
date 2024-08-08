@@ -16,6 +16,9 @@ if( empty( $org_id ) ) {
   //echo '<div>Error: Organization ID must be provided</div>';
   return; // Returning nothing in case this needs to be dynamically reloaded, so the user doesn't see the error
 }
+if( strlen(strval($org_id)) < 4 ) {
+  return; // Bail out if an improper org_id has been passed in, like a placeholder field ID in the GF wrapper
+}
 
 $wicket_settings = get_wicket_settings(); 
 

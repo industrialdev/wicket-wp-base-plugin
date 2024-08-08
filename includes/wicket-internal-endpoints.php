@@ -1,17 +1,6 @@
 <?php 
 
 add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
-// Keep this constant array up to date as more routes are added to wicket_base_register_rest_routes(),
-// as it's used to whitelist these endpoints from things like API rate limiting
-const WICKET_ENDPOINTS = array(
-  '/wp-json/wicket-base/v1/search-orgs',
-  '/wp-json/wicket-base/v1/search-groups',
-  '/wp-json/wicket-base/v1/terminate-relationship',
-  '/wp-json/wicket-base/v1/create-relationship',
-  '/wp-json/wicket-base/v1/create-org',
-  '/wp-json/wicket-base/v1/flag-for-rm-access',
-  '/wp-json/wicket-base/v1/grant-org-editor',
-);
 
 // Ref: https://developer.wordpress.org/reference/functions/register_rest_route/
 function wicket_base_register_rest_routes(){
@@ -227,6 +216,8 @@ function wicket_internal_endpoint_search_groups( $request ) {
  * Calls the Wicket helper functions to terminate a relationship.
  * 
  * @param WP_REST_Request $request that contains JSON params, notably a 'connectionId'.
+ * Optionally 'removeRelationship' can be provided, which will delete the relationship altogether
+ * instead of set the end date to today's date.
  * 
  * @return JSON success:false or success:true, along with any related information or notices.
  */
@@ -238,12 +229,23 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
   }
 
   $connectionId = $params['connectionId'];
+  $removeRelationship = $params['removeRelationship'] ?? false;
 
-  if( wicket_remove_connection( $connectionId ) ) {
-    wp_send_json_success();
+  if( $removeRelationship ) {
+    if( wicket_remove_connection( $connectionId ) ) {
+      wp_send_json_success();
+    } else {
+      wp_send_json_error( 'Something went wrong removing the connection.' );
+    }
   } else {
-    wp_send_json_error( 'Something went wrong removing the connection' );
-  }
+    // Set the relationship end date to today's date
+    $set_end_date = wicket_set_connection_start_end_dates( $connectionId, date('Y-m-d') );
+    if( $set_end_date ) {
+      wp_send_json_success();
+    } else {
+      wp_send_json_error( 'Something wrong setting the end date of the connection.' );
+    }
+  }  
 }
 
 /**
@@ -334,21 +336,38 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   // Grab information about the new org connection to send back
   $org_info = wicket_get_organization_basic_info( $toUuid );
 
+  $org_memberships = wicket_get_org_memberships( $toUuid );
+  $has_active_membership = false;
+  if( !empty( $org_memberships ) ) {
+    foreach( $org_memberships as $membership ) {
+      if( isset( $membership['membership'] ) ) {
+        if( isset( $membership['membership']['attributes'] ) ) {
+          if( isset( $membership['membership']['attributes']['active'] ) ) {
+            if( $membership['membership']['attributes']['active'] ) {
+              $has_active_membership = true;
+            }
+          }
+        }
+      }
+    } 
+  }  
+
   $return =  [
-    'connection_id'   => $new_connection['data']['id'] ?? '',
-    'connection_type' => $relationshipType,
-    'starts_at'       => $new_connection['data']['attributes']['starts_at'] ?? '',
-    'ends_at'         => $new_connection['data']['attributes']['ends_at'] ?? '',
-    'tags'            => $new_connection['data']['attributes']['tags'] ?? '',
-    'active'          => $new_connection['data']['attributes']['active'] ?? true,
-    'org_id'          => $toUuid,
-    'org_name'        => $org_info['org_name'],
-    'org_description' => $org_info['org_description'],
-    'org_type'        => $org_info['org_type_pretty'],
-    'org_status'      => $org_info['org_status'],
-    'org_parent_id'   => $org_info['org_parent_id'],
-    'org_parent_name' => $org_info['org_parent_name'],
-    'person_id'       => $fromUuid,
+    'connection_id'     => $new_connection['data']['id'] ?? '',
+    'connection_type'   => $relationshipType,
+    'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+    'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+    'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+    'active_membership' => $has_active_membership,
+    'active_connection' => $new_connection['data']['attributes']['active'],
+    'org_id'            => $toUuid,
+    'org_name'          => $org_info['org_name'],
+    'org_description'   => $org_info['org_description'],
+    'org_type'          => $org_info['org_type_pretty'],
+    'org_status'        => $org_info['org_status'],
+    'org_parent_id'     => $org_info['org_parent_id'],
+    'org_parent_name'   => $org_info['org_parent_name'],
+    'person_id'         => $fromUuid,
   ];
 
   wp_send_json_success($return);
