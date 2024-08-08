@@ -14,6 +14,7 @@ $defaults       = array(
 	'link_type'      => 'title',
 	'member_only'    => false,
 	'featured_image' => '',
+	'document'       => '',
 );
 $args           = wp_parse_args( $args, $defaults );
 $classes        = $args['classes'];
@@ -26,6 +27,7 @@ $link           = $args['link'];
 $link_type      = $args['link_type'];
 $member_only    = $args['member_only'];
 $featured_image = $args['featured_image'];
+$document       = $args['document'];
 $image          = '';
 
 $classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
@@ -60,8 +62,9 @@ if ( $featured_image ) {
 				<?php echo $title; ?>
 			</a>
 		<?php } else if ( $title ) { ?>
-			<div class="block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
-				<?php echo $title; ?></div>
+				<div class="block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
+				<?php echo $title; ?>
+				</div>
 		<?php } ?>
 
 		<?php if ( $excerpt ) { ?>
@@ -88,7 +91,7 @@ if ( $featured_image ) {
 			</div>
 		<?php } ?>
 
-		<?php if ( $link['url'] != '#' && $link_type == 'button' ) { 
+		<?php if ( $link['url'] != '#' && $link_type == 'button' ) {
 			get_component( 'button', [ 
 				'link'        => $link['url'],
 				'label'       => $link['text'],
@@ -96,13 +99,24 @@ if ( $featured_image ) {
 				'link_target' => $link['target'],
 				'suffix_icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
 				'variant'     => 'secondary',
-			] );	
+			] );
 		} ?>
 	</div>
 
-	<?php if ( $image ) { ?>
+	<?php if ( $image && ! $document ) { ?>
 		<div class="flex-none md:basis-[200px] lg:basis-[300px]">
 			<?php echo $image; ?>
+		</div>
+	<?php } ?>
+
+	<?php if ( $document ) { ?>
+		<div class="flex-none md:basis-[90px] ">
+			<a href="<?php echo $document ?>" download="true"
+				class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
+				<?php get_component( 'icon', [ 
+					'icon' => 'fa-regular fa-file-lines',
+				] ); ?>
+			</a>
 		</div>
 	<?php } ?>
 </div>

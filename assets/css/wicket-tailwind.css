@@ -1059,6 +1059,10 @@
     padding-left: 1rem;
     padding-right: 1rem
 }
+.px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem
+}
 .py-10 {
     padding-top: 2.5rem;
     padding-bottom: 2.5rem
@@ -1904,6 +1908,11 @@
         -webkit-flex-basis: 200px;
         -ms-flex-preferred-size: 200px;
         flex-basis: 200px
+    }
+    .md\:basis-\[90px\] {
+        -webkit-flex-basis: 90px;
+        -ms-flex-preferred-size: 90px;
+        flex-basis: 90px
     }
     .md\:flex-row {
         -webkit-box-orient: horizontal;
