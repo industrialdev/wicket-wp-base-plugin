@@ -15,6 +15,9 @@ $defaults       = array(
 	'member_only'    => false,
 	'featured_image' => '',
 	'document'       => '',
+	'download_label' => __( 'Download', 'wicket' ),
+	'link_label'     => __( 'View Page', 'wicket' ),
+	'helper_link'    => [],
 );
 $args           = wp_parse_args( $args, $defaults );
 $classes        = $args['classes'];
@@ -29,6 +32,9 @@ $member_only    = $args['member_only'];
 $featured_image = $args['featured_image'];
 $document       = $args['document'];
 $image          = '';
+$download_label = $args['download_label'];
+$link_label     = $args['link_label'];
+$helper_link    = $args['helper_link'];
 
 $classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
 
@@ -79,6 +85,19 @@ if ( $featured_image ) {
 			</div>
 		<?php } ?>
 
+		<?php if ( $helper_link ) {
+			get_component( 'button', [ 
+				'variant'            => '',
+				'label'              => $helper_link['title'],
+				'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
+				'a_tag'              => true,
+				'link'               => $helper_link['url'],
+				'link_target'        => $helper_link['target'],
+				'screen_reader_text' => $helper_link['target'] === '_blank' ? __( '(opens in new tab)', 'wicket' ) : '',
+				'classes'            => [ 'mb-4' ],
+			] );
+		} ?>
+
 		<?php if ( $topics ) { ?>
 			<div class="card__topics">
 				<?php foreach ( $topics as $topic ) { ?>
@@ -115,6 +134,7 @@ if ( $featured_image ) {
 				class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
 				<?php get_component( 'icon', [ 
 					'icon' => 'fa-regular fa-file-lines',
+					'text' => $download_label,
 				] ); ?>
 			</a>
 		</div>
