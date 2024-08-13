@@ -542,6 +542,14 @@ function wicket_get_schemas_options($schema, $field, $sub_field)
       $counter++;
     }
   }
+  // if field is using a repeater type field with repeater field inside, get keys
+  if (isset($schema['attributes']['schema']['properties'][$field]['items']['properties'][$sub_field]['items']['enum'])) {
+    $counter = 0;
+    foreach ($schema['attributes']['schema']['properties'][$field]['items']['properties'][$sub_field]['items']['enum'] as $key => $value) {
+      $return[$counter]['key'] = $value;
+      $counter++;
+    }
+  }
   // if field is using an object type field, get keys
   if (isset($schema['attributes']['schema']['properties'][$field]['oneOf'][0]['properties'][$sub_field]['enum'])) {
     $counter = 0;
