@@ -24,8 +24,8 @@ $url        = $args['url'];
 $text       = $args['text'];
 $target     = $args['target'];
 $reversed     = $args['reversed'];
-$icon_start = ( $args['icon_start']['icon'] ? get_component( 'icon', $args['icon_start'], false ) : '' );
-$icon_end   = ( $args['icon_end']['icon'] ? get_component( 'icon', $args['icon_end'], false ) : '' );
+$icon_start = ( isset($args['icon_start']['icon']) ? get_component( 'icon', $args['icon_start'], false ) : '' );
+$icon_end   = ( isset($args['icon_end']['icon']) ? get_component( 'icon', $args['icon_end'], false ) : '' );
 $atts       = $args['atts'];
 $classes[]  = 'component-link';
 
