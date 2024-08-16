@@ -89,7 +89,8 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					get_component( 'link', [ 
 						'url'        => $back_link,
 						'text'       => 'Back',
-						'icon_start' => [ 
+						'reversed'   => $reversed,
+						'icon_start' => [
 							'icon' => 'fa-solid fa-arrow-left',
 							'text' => 'Go back to ' . $back_link,
 						],
