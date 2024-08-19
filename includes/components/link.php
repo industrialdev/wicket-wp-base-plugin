@@ -34,7 +34,7 @@ if ( ! $icon_start && ! $icon_end ) {
 }
 
 if ( $icon_start || $icon_end ) {
-	$classes[] = 'inline-flex items-center gap-2 font-bold hover:underline focus:shadow-focus';
+	$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
 }
 
 if ( $reversed ) {

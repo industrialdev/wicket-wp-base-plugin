@@ -206,6 +206,9 @@
 .pointer-events-auto {
     pointer-events: auto
 }
+.visible {
+    visibility: visible
+}
 .absolute {
     position: absolute
 }
