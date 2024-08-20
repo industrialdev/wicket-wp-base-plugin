@@ -206,6 +206,9 @@
 .pointer-events-auto {
     pointer-events: auto
 }
+.visible {
+    visibility: visible
+}
 .absolute {
     position: absolute
 }
@@ -1892,6 +1895,17 @@
     }
     .\@2xl\:text-heading-md {
         font-size: clamp(1.5rem, 2vw + 1rem, 1.75rem)
+    }
+}
+@media not all and (min-width: 768px) {
+    .max-md\:w-full {
+        width: 100%
+    }
+    .max-md\:justify-center {
+        -webkit-box-pack: center;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center
     }
 }
 @media (min-width: 768px) {

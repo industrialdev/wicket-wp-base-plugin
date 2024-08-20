@@ -94,7 +94,18 @@ if ( $featured_image ) {
 				'link'               => $helper_link['url'],
 				'link_target'        => $helper_link['target'],
 				'screen_reader_text' => $helper_link['target'] === '_blank' ? __( '(opens in new tab)', 'wicket' ) : '',
-				'classes'            => [ 'mb-4' ],
+				'classes'            => [ 'max-md:w-full max-md:justify-center mb-4 mr-2' ],
+			] );
+		} ?>
+
+		<?php if ( $document ) {
+			get_component( 'button', [ 
+				'variant'     => '',
+				'link'        => $document,
+				'label'       => $download_label,
+				'a_tag'       => true,
+				'suffix_icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
+				'classes'     => [ 'max-md:w-full max-md:justify-center mb-4' ],
 			] );
 		} ?>
 
@@ -130,13 +141,12 @@ if ( $featured_image ) {
 
 	<?php if ( $document ) { ?>
 		<div class="flex-none md:basis-[90px] ">
-			<a href="<?php echo $document ?>" download="true"
-				class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
+			<div class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
 				<?php get_component( 'icon', [ 
 					'icon' => 'fa-regular fa-file-lines',
 					'text' => $download_label,
 				] ); ?>
-			</a>
+			</div>
 		</div>
 	<?php } ?>
 </div>
