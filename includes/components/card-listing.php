@@ -6,7 +6,7 @@ $defaults       = array(
 	'excerpt'        => '',
 	'date'           => '',
 	'topics'         => [],
-	'link'           => [ 
+	'link'           => [
 		'url'    => '#',
 		'text'   => 'Go somewhere',
 		'target' => '_self',
@@ -47,7 +47,7 @@ if ( $featured_image ) {
 	<div class="flex-auto">
 		<?php if ( $member_only ) { ?>
 			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-				<?php get_component( 'tag', [ 
+				<?php get_component( 'tag', [
 					'label' => __( 'Members Only', 'wicket' ),
 					'icon'  => 'fa fa-lock',
 					'link'  => '',
@@ -86,7 +86,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $helper_link ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'variant'            => '',
 				'label'              => $helper_link['title'],
 				'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
@@ -99,13 +99,14 @@ if ( $featured_image ) {
 		} ?>
 
 		<?php if ( $document ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'variant'     => '',
 				'link'        => $document,
 				'label'       => $download_label,
 				'a_tag'       => true,
 				'suffix_icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
 				'classes'     => [ 'max-md:w-full max-md:justify-center mb-4' ],
+				'atts'        => [ 'download' ],
 			] );
 		} ?>
 
@@ -113,7 +114,7 @@ if ( $featured_image ) {
 			<div class="card__topics">
 				<?php foreach ( $topics as $topic ) { ?>
 					<?php
-					get_component( 'tag', [ 
+					get_component( 'tag', [
 						'label' => $topic->name,
 						'link'  => get_term_link( $topic->term_id ),
 					] ); ?>
@@ -122,7 +123,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $link['url'] != '#' && $link_type == 'button' ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'link'        => $link['url'],
 				'label'       => $link['text'],
 				'a_tag'       => true,
@@ -142,7 +143,7 @@ if ( $featured_image ) {
 	<?php if ( $document ) { ?>
 		<div class="flex-none md:basis-[90px] ">
 			<div class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
-				<?php get_component( 'icon', [ 
+				<?php get_component( 'icon', [
 					'icon' => 'fa-regular fa-file-lines',
 					'text' => $download_label,
 				] ); ?>

@@ -67,7 +67,9 @@ if ( $disabled ) {
 	class="
 	<?php echo implode( ' ', $classes ) ?>"
 	<?php echo $href_markup; ?>
-	<?php if(!$a_tag) { echo "type='".$type."'"; } ?>
+	<?php if ( ! $a_tag ) {
+		echo "type='" . $type . "'";
+	} ?>
 	>
 	<?php
 	if ( $prefix ) {
