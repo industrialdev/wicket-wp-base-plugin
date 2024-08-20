@@ -4,7 +4,8 @@ $defaults = array(
 	'url'        => '',
 	'text'       => 'Link',
 	'target'     => '_self',
-	'icon_start' => [ 
+	'reversed'   => false,
+	'icon_start' => [
 		'classes' => [],
 		'icon'    => '', // Font Awesome classes
 		'text'    => '' // This will be for screenreaders only
@@ -22,8 +23,9 @@ $classes    = $args['classes'];
 $url        = $args['url'];
 $text       = $args['text'];
 $target     = $args['target'];
-$icon_start = ( $args['icon_start']['icon'] ? get_component( 'icon', $args['icon_start'], false ) : '' );
-$icon_end   = ( $args['icon_end']['icon'] ? get_component( 'icon', $args['icon_end'], false ) : '' );
+$reversed     = $args['reversed'];
+$icon_start = ( isset($args['icon_start']['icon']) ? get_component( 'icon', $args['icon_start'], false ) : '' );
+$icon_end   = ( isset($args['icon_end']['icon']) ? get_component( 'icon', $args['icon_end'], false ) : '' );
 $atts       = $args['atts'];
 $classes[]  = 'component-link';
 
@@ -32,7 +34,11 @@ if ( ! $icon_start && ! $icon_end ) {
 }
 
 if ( $icon_start || $icon_end ) {
-	$classes[] = 'inline-flex items-center gap-2 font-bold hover:underline focus:shadow-focus';
+	$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
+}
+
+if ( $reversed ) {
+	$classes[] = 'link--reversed';
 }
 ?>
 

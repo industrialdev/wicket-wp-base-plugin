@@ -542,6 +542,14 @@ function wicket_get_schemas_options($schema, $field, $sub_field)
       $counter++;
     }
   }
+  // if field is using a repeater type field with repeater field inside, get keys
+  if (isset($schema['attributes']['schema']['properties'][$field]['items']['properties'][$sub_field]['items']['enum'])) {
+    $counter = 0;
+    foreach ($schema['attributes']['schema']['properties'][$field]['items']['properties'][$sub_field]['items']['enum'] as $key => $value) {
+      $return[$counter]['key'] = $value;
+      $counter++;
+    }
+  }
   // if field is using an object type field, get keys
   if (isset($schema['attributes']['schema']['properties'][$field]['oneOf'][0]['properties'][$sub_field]['enum'])) {
     $counter = 0;
@@ -1648,16 +1656,22 @@ function wicket_remove_connection($connection_id)
   return true;
 }
 
-/**------------------------------------------------------------------
+/**
  * Set start and/or end date of a connection
  * It's expected that the dates are formatted YYYY-MM-DD
- * ------------------------------------------------------------------*/
+ *
+ * @param string $connection_id The connection ID to update.
+ * @param string $end_date The end date to set. Format: YYYY-MM-DD.
+ * @param string $start_date Optional. The start date to set. Format: YYYY-MM-DD. Leave empty to keep the current start date.
+ *
+ * @return mixed Response from the API call on success, false otherwise.
+ */
 function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', $start_date = '' ) {
-  
-  if( empty( $end_date ) && empty( $start_date ) ) {
+
+  if( empty( $end_date ) ) {
     return false;
   }
-  
+
   try {
     $client = wicket_api_client();
   } catch (\Exception $e) {
@@ -1674,7 +1688,11 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
 
     $attributes = $current_connection_info['data']['attributes'];
 
-    $attributes['starts_at'] = !empty( $start_date ) ? strval($start_date) : null;
+    // Only if we received a start date, set it
+    if( !empty( $start_date ) ) {
+      $attributes['starts_at'] = strval($start_date);
+    }
+
     $attributes['ends_at']   = !empty( $end_date ) ? strval($end_date) : null;
 
     // Ensure empty fields stay null, which the MDP likes
@@ -1697,17 +1715,19 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
     wicket_write_log($payload);
 
     $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
+
     return $updated_connection;
   } catch (\Exception $e) {
     error_log($e->getMessage());
+
     return false;
   }
 
-  return;
+  return false;
 }
 
 /**------------------------------------------------------------------
- * Gets array of information from the MDP API by querying a GET 
+ * Gets array of information from the MDP API by querying a GET
  * on the provided $connection_id
  * ------------------------------------------------------------------*/
 function wicket_get_connection_by_id( $connection_id ) {
