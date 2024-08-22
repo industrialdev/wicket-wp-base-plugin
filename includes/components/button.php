@@ -63,10 +63,11 @@ if ( $disabled ) {
 ?>
 
 <<?php echo $tag_type; ?>
+	<?php echo $href_markup; ?>
 	<?php echo implode( ' ', $atts ); ?>
 	class="
 	<?php echo implode( ' ', $classes ) ?>"
-	<?php echo $href_markup; ?>
+
 	<?php if ( ! $a_tag ) {
 		echo "type='" . $type . "'";
 	} ?>
