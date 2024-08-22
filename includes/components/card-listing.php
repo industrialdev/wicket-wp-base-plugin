@@ -106,7 +106,7 @@ if ( $featured_image ) {
 				'link'        => $document,
 				'label'       => $download_label,
 				'a_tag'       => true,
-				'suffix_icon' => $link['target'] === '_blank' ? 'fa fa-external-link-alt' : 'fa-solid fa-arrow-right',
+				'suffix_icon' => 'fa-solid fa-arrow-down-to-bracket',
 				'classes'     => [ 'max-md:w-full max-md:justify-center mb-4' ],
 				'atts'        => [ 'download' ],
 			] );
