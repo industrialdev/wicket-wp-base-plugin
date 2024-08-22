@@ -2094,6 +2094,10 @@ function get_individual_memberships()
 }
 
 /**
+ * -!-!-!-!-!-!-
+ * DEPRECATED - Use wicket_update_schema_by_slug() instead as it supports MDP slugs and more than updating persons.
+ * -!-!-!-!-!-!-
+ * 
  * Enables writing a single AI value for a person based on a single key/value pair.
  *
  * This function updates a person's data field with a specified key/value pair within a schema.
@@ -2112,7 +2116,6 @@ function get_individual_memberships()
  * @param string  $person_uuid     The UUID of the person to update. Default is 0, which means the current user.
  * @return array                   Returns an array with a boolean indicating success, and an error message if failed.
  */
-// TODO: Update this function to use the new 'schema slug' update to Wicket Member, instead of looking up the ID with wicket_get_schema()
 function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw_value = false, $person_uuid = 0)
 {
   $client = wicket_api_client();
@@ -2173,6 +2176,110 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
     return array(false, $e->getMessage());
   }
 }
+
+/**
+ * Enables writing a single AI value for a person based on a single key/value pair.
+ * 
+ * Is essentially a v2 of wicket_update_schema_single_value() but uses *actual MDP-supported slugs and not
+ * the old fake ones that would get converted into IDs via an API call, and makes some improvements based on that.
+ * This updated version also allows updating both person and organization record types.
+ * 
+ * Example usage:
+ * ```php
+ * wicket_update_schema_by_slug('orgadvocacy', 'fedRiding', "2");
+ * wicket_update_schema_by_slug('orginterests', 'interests', ['advocacy'], false, '4b4e4594-70d3-4402-9b33-a528bca82e26', 'org');
+ * ```
+ * 
+ * @param string $schema_slug      The MDP slug for that schema.
+ * @param string $key              The key to update within the schema's value array. Pass null to update multiple values. using $pass_raw_value.
+ * @param mixed  $value            The value to set for the specified key, or the custom payload if $pass_raw_value is true.
+ * @param bool   $pass_raw_value   (Optional) Set to true to pass a custom payload in $value. Default is false.
+ * @param string $target_uuid      (Optional) UUID of the person or org to update. If not passed, will default to current user.
+ * @param string $type             (Optional) Type of record to update. Can be set to 'person' or 'org'.
+ * 
+ * @return array                   Returns an array with a boolean indicating success, and an error message if failed.
+ */
+function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_value = false, $target_uuid = '', $type = 'person') {
+  $client = wicket_api_client();
+  if (empty($target_uuid) && $type == 'person') {
+    $wicket_person = wicket_current_person();
+    $target_uuid = $wicket_person->id;
+  } else if ($type == 'person'){
+    $wicket_person = wicket_get_person_by_id($target_uuid);
+  } else if ($type == 'org') {
+    $wicket_org = wicket_get_organization($target_uuid);
+  } else {
+    return array(false, 'Please provide all parameters.');
+  }
+
+  if (empty($client)) {
+    return array(false, 'Could not obtain client.');
+  }
+
+  // Set schema values depending on the type of entity we're working with
+  $schema_values;
+  if($type == 'person') {
+    $schema_values = wicket_get_field_from_data_fields($wicket_person->data_fields, $schema_slug)['value'];
+  } else if ($type == 'org'){
+    $data_fields = $wicket_org['data']['attributes']['data_fields'];
+    $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
+  }
+
+  // --------------------------------------------------------------------
+  // Do the setting, cleanup, and API calls, which apply to both entities:
+  // --------------------------------------------------------------------
+
+  // Set new value
+  $sub_payload = array();
+  if (!$pass_raw_value) {
+    $schema_values[$key] = $value;
+    $sub_payload = $schema_values;
+  } else {
+    $sub_payload = $value;
+  }
+
+  // Cleaning up values
+  // TODO: Potentially include more cleanup conditions found in wicket_add_data_field(),
+  //  or reference it directly
+  foreach ($sub_payload as $key => $value) {
+    // remove empty arrays (likely select fields with the "choose option" set)
+    if (is_array($value) && empty($value)) {
+      unset($sub_payload[$key]);
+    }
+  }
+
+  // wicket_write_log($schema_values);
+  // wicket_write_log($sub_payload);
+
+  // Make the API call
+  $api_path = $type == 'org' ? 'organizations' : 'people';
+  try {
+    $payload = [
+      'data' => [
+        'type' => "$api_path",
+        'id' => "$target_uuid",
+        'attributes' => [
+          'data_fields' => [[
+            'schema_slug' => "$schema_slug",
+            'value' => $sub_payload,
+          ]]
+        ]
+      ]
+    ];
+
+    // wicket_write_log('wicket_update_schema_by_slug before send');
+    // wicket_write_log($payload);
+
+    $output = $client->patch("$api_path/$target_uuid", ['json' => $payload]);
+    return array(true, $output);
+  } catch (Exception $e) {
+    // wicket_write_log("Error in wicket_update_schema_by_slug - see details:");
+    // wicket_write_log($e->getMessage());
+    return array(false, $e->getMessage());
+  }
+  return array(false, 'Something went wrong.');
+}
+
 
 // Helper for wicket_update_schema_single_value
 function wicket_get_field_from_data_fields($data_fields, $key)

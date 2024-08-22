@@ -4,6 +4,7 @@ $defaults  = array(
   'title'            => '',
 	'use-fa-codes'     => false,
 	'use-drop-shadows' => false,
+	'show-arrow-icon' => false,
 	'icons'            => [],
 );
 $args             = wp_parse_args( $args, $defaults );
@@ -11,6 +12,7 @@ $classes          = $args['classes'];
 $title            = $args['title'];
 $use_fa_codes     = $args['use-fa-codes'];
 $use_drop_shadows = $args['use-drop-shadows'];
+$show_arrow_icon  = $args['show-arrow-icon'];
 $icons            = $args['icons'];
 
 $classes[] = 'component-icon-grid @container';
@@ -49,6 +51,15 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 						?>
 					<?php endif; ?>
 					<div class="font-semibold"><?php echo $icon['icon_grid_text']; ?></div>
+
+					<?php if( $show_arrow_icon ): ?>
+						<?php 
+							get_component( 'icon', [ 
+								'icon' => 'fa-solid fa-chevron-right',
+								'classes'=> ['ml-auto', 'text-heading-sm', 'px-5'],
+							] );
+						?>
+					<?php endif; ?>
 				</a>
 			</div>
 		<?php endforeach; ?>
