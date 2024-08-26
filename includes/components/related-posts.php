@@ -160,7 +160,8 @@ if ( $highlight_featured_posts ) {
 					$image              = [];
 					$featured_image_id  = get_post_thumbnail_id( $post_id );
 					$featured_image_alt = get_post_meta( $featured_image_id, '_wp_attachment_image_alt', true );
-					$date               = get_the_date( 'F j, Y', $post_id );
+					$date_format        = apply_filters( 'wicket_general_date_format', 'F j, Y' );
+					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
 						$image = [ 
@@ -170,7 +171,7 @@ if ( $highlight_featured_posts ) {
 					}
 
 					if ( $post_type == 'tribe_events' ) {
-						$date = tribe_get_start_date( $post_id, false, 'F j, Y' );
+						$date = tribe_get_start_date( $post_id, false, $date_format );
 					}
 
 					get_component( 'card-featured', [ 
@@ -203,7 +204,8 @@ if ( $highlight_featured_posts ) {
 					$featured_image_id  = get_post_thumbnail_id( $post_id );
 					$featured_image_alt = get_post_meta( $featured_image_id,
 						'_wp_attachment_image_alt', true );
-					$date               = get_the_date( 'F j, Y', $post_id );
+					$date_format        = apply_filters( 'wicket_general_date_format', 'F j, Y' );
+					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
 						$image = [ 
@@ -213,7 +215,7 @@ if ( $highlight_featured_posts ) {
 					}
 
 					if ( $post_type == 'tribe_events' ) {
-						$date = tribe_get_start_date( $post_id, false, 'F j, Y' );
+						$date = tribe_get_start_date( $post_id, false, $date_format );
 					}
 
 					get_component( 'card-featured', [ 

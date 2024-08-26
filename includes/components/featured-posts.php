@@ -22,6 +22,7 @@ $hide_content_type   = $args['hide_content_type'];
 $style               = $args['style'];
 $column_count        = $args['column_count'];
 $classes[]           = 'component-featured-posts';
+$date_format         = apply_filters( 'wicket_general_date_format', 'F j, Y' );
 
 if ( empty( $posts ) ) {
 	return;
@@ -45,7 +46,7 @@ if ( empty( $posts ) ) {
 				$image                = [];
 				$related_content_type = get_related_content_type( get_post_type( $post_id ) );
 				$content_type         = ! is_wp_error( get_the_terms( $post_id, $related_content_type ) ) ? get_the_terms( $post_id, $related_content_type ) : [];
-				$post_date            = get_the_date( 'F j, Y', $post_id );
+				$post_date            = get_the_date( $date_format, $post_id );
 
 				if ( ! $hide_featured_image ) {
 					$featured_image_id  = get_post_thumbnail_id( $post_id );
@@ -76,7 +77,7 @@ if ( empty( $posts ) ) {
 					foreach ( $posts as $post ) {
 						$index++;
 						$post_id              = $post->ID;
-						$post_date            = get_the_date( 'F j, Y', $post_id );
+						$post_date            = get_the_date( $date_format, $post_id );
 						$image                = [];
 						$related_content_type = get_related_content_type( get_post_type( $post_id ) );
 						$content_type         = ! is_wp_error( get_the_terms( $post_id, $related_content_type ) ) ? get_the_terms( $post_id, $related_content_type ) : [];
@@ -114,7 +115,7 @@ if ( empty( $posts ) ) {
 			<?php
 			foreach ( $posts as $post ) {
 				$post_id   = $post->ID;
-				$post_date = get_the_date( 'F j, Y', $post_id );
+				$post_date = get_the_date( $date_format, $post_id );
 				$image     = [];
 				if ( ! $hide_featured_image ) {
 					$featured_image_id  = get_post_thumbnail_id( $post_id );
