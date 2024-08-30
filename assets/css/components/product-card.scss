@@ -1,4 +1,5 @@
-.component-card-product {
+.component-card-product,
+.product {
   .onsale {
     background-color: var(--wp--preset--color--white);
     padding: var(--wp--preset--spacing--100);
@@ -57,7 +58,8 @@
   }
 }
 
-.component-card-product__title {
+.component-card-product__title,
+.woocommerce-loop-product__title {
   font-weight: bold;
   text-align: center;
   font-size: var(--wp--preset--font-size--heading-xs);

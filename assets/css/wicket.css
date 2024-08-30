@@ -78,46 +78,55 @@
  * BUTTON VARIANTS
  * ------------------------------------------------------------------------- */
 /* Primary Button */
-.button--primary, .component-card-product .button {
+.button--primary, .component-card-product .button,
+.product .button {
   background-color: var(--wp--preset--color--primary);
   color: var(--wp--preset--color--white);
   /* Primary Button Reversed */
 }
-.button--primary:hover, .component-card-product .button:hover {
+.button--primary:hover, .component-card-product .button:hover,
+.product .button:hover {
   background-color: transparent;
   color: var(--wp--preset--color--dark);
   text-decoration: underline;
 }
-.button--primary:focus, .component-card-product .button:focus {
+.button--primary:focus, .component-card-product .button:focus,
+.product .button:focus {
   -webkit-box-shadow: 0px 0px 1px 2px #0997ff;
   box-shadow: 0px 0px 1px 2px #0997ff;
   text-decoration: underline;
 }
-.button--primary:active, .component-card-product .button:active {
+.button--primary:active, .component-card-product .button:active,
+.product .button:active {
   background-color: var(--wp--preset--color--light-030);
   color: var(--wp--preset--color--dark);
   border-color: var(--wp--preset--color--light-030);
 }
-.button--primary:disabled, .component-card-product .button:disabled {
+.button--primary:disabled, .component-card-product .button:disabled,
+.product .button:disabled {
   background-color: var(--wp--preset--color--light-020);
   color: var(--wp--preset--color--dark-060);
   border-color: var(--wp--preset--color--light-020);
 }
-.button--primary.button--reversed, .component-card-product .button--reversed.button {
+.button--primary.button--reversed, .component-card-product .button--reversed.button,
+.product .button--reversed.button {
   background-color: var(--wp--preset--color--white);
   color: var(--wp--preset--color--primary);
   border-color: var(--wp--preset--color--white);
 }
-.button--primary.button--reversed:hover, .component-card-product .button--reversed.button:hover {
+.button--primary.button--reversed:hover, .component-card-product .button--reversed.button:hover,
+.product .button--reversed.button:hover {
   background-color: var(--wp--preset--color--primary);
   color: var(--wp--preset--color--white);
   text-decoration: underline;
 }
-.button--primary.button--reversed:active, .component-card-product .button--reversed.button:active {
+.button--primary.button--reversed:active, .component-card-product .button--reversed.button:active,
+.product .button--reversed.button:active {
   background-color: var(--wp--preset--color--primary-080);
   color: var(--wp--preset--color--white);
 }
-.button--primary.button--reversed:disabled, .component-card-product .button--reversed.button:disabled {
+.button--primary.button--reversed:disabled, .component-card-product .button--reversed.button:disabled,
+.product .button--reversed.button:disabled {
   background-color: var(--wp--preset--color--primary-090);
   color: var(--wp--preset--color--dark-060);
   border-color: var(--wp--preset--color--primary-090);
@@ -302,7 +311,8 @@ footer .menu-item > a[target=_blank]:after {
   font-size: 90%;
 }
 
-.component-card-product .onsale {
+.component-card-product .onsale,
+.product .onsale {
   background-color: var(--wp--preset--color--white);
   padding: var(--wp--preset--spacing--100);
   -webkit-border-radius: var(--wp--custom--border-radius--100);
@@ -313,7 +323,8 @@ footer .menu-item > a[target=_blank]:after {
   font-weight: bold;
   text-transform: uppercase;
 }
-.component-card-product .price {
+.component-card-product .price,
+.product .price {
   font-size: var(--wp--preset--font-size--heading-xs);
   display: -webkit-box;
   display: -webkit-flex;
@@ -325,17 +336,20 @@ footer .menu-item > a[target=_blank]:after {
   justify-content: center;
   gap: 0.5rem;
 }
-.component-card-product .price ins {
+.component-card-product .price ins,
+.product .price ins {
   font-weight: bold;
   text-decoration: none;
 }
-.component-card-product .button {
+.component-card-product .button,
+.product .button {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
   display: inline-flex;
 }
-.component-card-product .button.product_type_external:after {
+.component-card-product .button.product_type_external:after,
+.product .button.product_type_external:after {
   display: inline-block;
   content: "\f35d";
   font-family: var(--fa-style-family, "Font Awesome 6 Pro");
@@ -343,26 +357,32 @@ footer .menu-item > a[target=_blank]:after {
   margin-left: 4px;
   font-size: 90%;
 }
-.component-card-product .button .add_to_cart_button__text-added {
+.component-card-product .button .add_to_cart_button__text-added,
+.product .button .add_to_cart_button__text-added {
   display: none;
 }
-.component-card-product .button .add_to_cart_button__text {
+.component-card-product .button .add_to_cart_button__text,
+.product .button .add_to_cart_button__text {
   display: block;
 }
-.component-card-product .button.added .add_to_cart_button__text-added {
+.component-card-product .button.added .add_to_cart_button__text-added,
+.product .button.added .add_to_cart_button__text-added {
   display: block;
 }
-.component-card-product .button.added .add_to_cart_button__text {
+.component-card-product .button.added .add_to_cart_button__text,
+.product .button.added .add_to_cart_button__text {
   display: none;
 }
-.component-card-product .button.button--disabled {
+.component-card-product .button.button--disabled,
+.product .button.button--disabled {
   background-color: var(--wp--preset--color--light-020);
   color: var(--wp--preset--color--dark-060);
   border-color: var(--wp--preset--color--light-020);
   pointer-events: none;
 }
 
-.component-card-product__title {
+.component-card-product__title,
+.woocommerce-loop-product__title {
   font-weight: bold;
   text-align: center;
   font-size: var(--wp--preset--font-size--heading-xs);
