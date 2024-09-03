@@ -255,7 +255,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="font-bold text-body-lg my-3">Your current <?php echo $orgTermPluralCap; ?></h2>
+      <h2 class="font-bold text-body-lg my-3">Your current <?php echo $orgTermPluralLower; ?></h2>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div 
