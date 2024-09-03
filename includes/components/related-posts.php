@@ -109,7 +109,7 @@ if ( $highlight_featured_posts ) {
 		if ( ! function_exists( 'tribe_get_events' ) ) {
 			return;
 		}
-		$sticky_posts   = tribe_get_events( [ 
+		$sticky_posts   = tribe_get_events( [
 			'start_date'     => 'now',
 			'posts_per_page' => 8,
 			'featured'       => true,
@@ -136,12 +136,12 @@ if ( $highlight_featured_posts ) {
 					<?php if ( $show_view_all ) : ?>
 						<?php if ( $set_custom_view_all && isset( $view_all_link['url'] ) ) : ?>
 							<a href="<?php echo $view_all_link['url'] ?>" target="<?php echo $view_all_link['target'] ?>"
-								class="underline ml-4 pl-4 border-l border-dark-070">
+								class="component-related-posts__view-all underline ml-4 pl-4 border-l border-dark-070">
 								<?php echo $view_all_link['title'] ?>
 							</a>
 						<?php else : ?>
 							<a href="<?php echo $post_type_archive_link ?>"
-								class="underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
+								class="component-related-posts__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
 								<?php echo __( 'View All', 'wicket' ) ?>
 							</a>
 						<?php endif; ?>
@@ -164,7 +164,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [ 
+						$image = [
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -174,7 +174,7 @@ if ( $highlight_featured_posts ) {
 						$date = tribe_get_start_date( $post_id, false, $date_format );
 					}
 
-					get_component( 'card-featured', [ 
+					get_component( 'card-featured', [
 						'classes'        => [ 'p-4', 'mb-4' ],
 						'post_type'      => $post_type,
 						'content_type'   => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
@@ -208,7 +208,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [ 
+						$image = [
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -218,7 +218,7 @@ if ( $highlight_featured_posts ) {
 						$date = tribe_get_start_date( $post_id, false, $date_format );
 					}
 
-					get_component( 'card-featured', [ 
+					get_component( 'card-featured', [
 						'classes'        => [ 'p-4' ],
 						'post_type'      => $post_type,
 						'content_type'   => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
@@ -242,7 +242,7 @@ if ( $highlight_featured_posts ) {
 <?php elseif ( is_admin() ) : ?>
 	<div class="container">
 		<?php
-		get_component( 'alert', [ 
+		get_component( 'alert', [
 			'content' => __( 'No related posts found.', 'wicket' ),
 		] );
 		?>
