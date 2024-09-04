@@ -232,7 +232,7 @@ $classes[]        = 'component-filter-form';
 							<label for="end_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
 								<?php echo __( 'To:', 'wicket' ); ?>
 							</label>
-							<input id="end_date" class="w-full italic pl-10 text-light-040 group-[.has-value]:text-dark-100" type="date"
+							<input id="end_date" class="w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100" type="date"
 								name="end_date" value="<?php echo $end_date; ?>">
 						</div>
 					</div>
