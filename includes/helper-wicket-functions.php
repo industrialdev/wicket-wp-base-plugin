@@ -1632,6 +1632,69 @@ function wicket_create_connection($payload)
   return false;
 }
 
+function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type)
+{
+  $payload = [
+    'data' => [
+      'type' => 'connections',
+      'attributes' => [
+        'connection_type'   => 'person_to_organization',
+        'type'              => $relationship_type,
+        'starts_at'         => null,
+        'ends_at'           => null,
+        'description'       => null,
+        'tags'              => [],
+      ],
+      'relationships' => [
+        'from' => [
+          'data' => [
+            'type' => 'people',
+            'id'   => $person_uuid,
+            'meta' => [
+              'can_manage' => false,
+              'can_update' => false,
+            ],
+          ],
+        ],
+        'to' => [
+          'data' => [
+            'type' => 'organizations',
+            'id'   => $org_uuid,
+          ],
+        ],
+      ],
+    ]
+  ];
+
+  try {
+    $new_connection = wicket_create_connection( $payload );
+  } catch (\Exception $e) {
+    wicket_write_log($e->getMessage());
+  }
+
+  $new_connection_id = '';
+  if( isset( $new_connection['data'] ) ) {
+    if( isset( $new_connection['data']['id'] ) ) {
+      $new_connection_id = $new_connection['data']['id'];
+    }
+  }
+
+  if(empty($new_connection_id)) {
+    return false;
+  }
+
+  return [
+    'connection_id'     => $new_connection['data']['id'] ?? '',
+    'connection_type'   => $relationship_type,
+    'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+    'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+    'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+    'active_connection' => $new_connection['data']['attributes']['active'],
+    'org_id'            => $org_uuid,
+    'person_id'         => $person_uuid,
+  ];
+}
+
 /**------------------------------------------------------------------
  * Remove connection
  * $connection_id can be retrieved by using  wicket_get_person_connections_by_id($uuid)
