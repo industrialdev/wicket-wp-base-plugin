@@ -1811,6 +1811,142 @@ function wicket_get_connection_by_id( $connection_id ) {
 }
 
 /**
+ * Adds a tag(s) to an organization.
+ * 
+ * @param String $org_uuid
+ * @param Mixed $tags could be a single tag as a String, or an
+ * array of Strings.
+ * 
+ * @return Array payload response from API.
+ */
+function wicket_add_tag_organization($org_uuid, $tags) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  if(!is_array($tags)) {
+    $tags = [ $tags ];
+  }
+
+  // Grab current tags, if any
+  $org_data = wicket_get_organization($org_uuid);
+  $existing_tags = $org_data['data']['attributes']['tags'] ?? [];
+
+  $tags = array_merge($existing_tags, $tags);
+
+  // Add new tags to current tags
+
+  $payload = [
+    'data' => [
+      'type' => 'organizations',
+      'id' => "$org_uuid",
+      'attributes' => [
+        'tags' => $tags
+      ]
+    ]
+  ];
+
+  try {
+    return $client->patch("organizations/$org_uuid", ['json' => $payload]);
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+}
+
+/**
+ * Overwrites the tags for an organization.
+ * 
+ * @param String $org_uuid
+ * @param Mixed $tags could be a single tag as a String, or an
+ * array of Strings.
+ * 
+ * @return Array payload response from API.
+ */
+function wicket_set_tag_organization($org_uuid, $tags) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  if(!is_array($tags)) {
+    $tags = [ $tags ];
+  }
+
+  // Add new tags to current tags
+
+  $payload = [
+    'data' => [
+      'type' => 'organizations',
+      'id' => "$org_uuid",
+      'attributes' => [
+        'tags' => $tags
+      ]
+    ]
+  ];
+
+  try {
+    return $client->patch("organizations/$org_uuid", ['json' => $payload]);
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+}
+
+/**
+ * Removes a tag(s) from an organization.
+ * 
+ * @param String $org_uuid
+ * @param Mixed $tags could be a single tag as a String, or an
+ * array of Strings.
+ * 
+ * @return Array payload response from API.
+ */
+function wicket_remove_tag_organization($org_uuid, $tags) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    error_log($e->getMessage());
+    return false;
+  }
+
+  if(!is_array($tags)) {
+    $tags = [ $tags ];
+  }
+
+  // Grab current tags, if any
+  $org_data = wicket_get_organization($org_uuid);
+  $existing_tags = $org_data['data']['attributes']['tags'] ?? [];
+
+  // Remove elements from $tags found in $existing_tags
+  $tags = array_diff($existing_tags, $tags);
+  $tags = array_values($tags);
+
+  $payload = [
+    'data' => [
+      'type' => 'organizations',
+      'id' => "$org_uuid",
+      'attributes' => [
+        'tags' => $tags
+      ]
+    ]
+  ];
+
+  try {
+    $result = $client->patch("organizations/$org_uuid", ['json' => $payload]);
+    return $result;
+  } catch (\Exception $e) {
+    wicket_write_log($e->getMessage());
+    return false;
+  }
+}
+
+/**
  * Get Touchpoints for the Current User.
  *
  * This function retrieves touchpoints for the current user based on the provided service ID.
