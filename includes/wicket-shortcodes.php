@@ -33,3 +33,14 @@ function wicket_get_component_shortcode($atts) {
 
 }
 add_shortcode('wicket_get_component', 'wicket_get_component_shortcode');
+
+function wicket_get_org_name_from_org_uuid($atts) {
+  $the_atts = shortcode_atts([
+    "uuid" => "",
+  ], $atts);
+
+  $org_info = wicket_get_organization_basic_info($the_atts['uuid']);
+
+  return $org_info['org_name'];
+}
+add_shortcode('wicket_org_name_from_uuid', 'wicket_get_org_name_from_org_uuid');
