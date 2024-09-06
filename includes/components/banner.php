@@ -135,7 +135,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					</div>
 				<?php endif; ?>
 
-				<?php if ( is_single() && ( $download_file || $helper_link ) ) : ?>
+				<?php if ( $download_file || $helper_link ) : ?>
 					<div class="flex items-start gap-4">
 						<?php
 						if ( ! empty( $download_file ) ) {
