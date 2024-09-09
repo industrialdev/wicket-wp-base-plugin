@@ -5,6 +5,7 @@ $defaults = array(
 	'text'       => 'Link',
 	'target'     => '_self',
 	'reversed'   => false,
+	'default_link_style' => false,
 	'icon_start' => [
 		'classes' => [],
 		'icon'    => '', // Font Awesome classes
@@ -24,6 +25,7 @@ $url        = $args['url'];
 $text       = $args['text'];
 $target     = $args['target'];
 $reversed     = $args['reversed'];
+$default_link_style = $args['default_link_style'];
 $icon_start = ( isset($args['icon_start']['icon']) ? get_component( 'icon', $args['icon_start'], false ) : '' );
 $icon_end   = ( isset($args['icon_end']['icon']) ? get_component( 'icon', $args['icon_end'], false ) : '' );
 $atts       = $args['atts'];
@@ -34,7 +36,11 @@ if ( ! $icon_start && ! $icon_end ) {
 }
 
 if ( $icon_start || $icon_end ) {
-	$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
+	if ( $default_link_style ) {
+		$classes[] = 'inline-flex items-center gap-2 underline hover:no-underline focus:shadow-focus';
+	} else {
+		$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
+	}
 }
 
 if ( $reversed ) {
