@@ -85,14 +85,14 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					get_component( 'breadcrumbs' );
 				} ?>
 
-				<?php if ( is_single() && $back_link ) {
+				<?php if ( $back_link ) {
 					get_component( 'link', [ 
 						'url'        => $back_link,
-						'text'       => 'Back',
+						'text'       => __( 'Back', 'wicket' ),
 						'reversed'   => $reversed,
 						'icon_start' => [ 
 							'icon' => 'fa-solid fa-arrow-left',
-							'text' => 'Go back to ' . $back_link,
+							'text' => __( 'Go back to ', 'wicket' ) . $back_link,
 						],
 					] );
 				} ?>
