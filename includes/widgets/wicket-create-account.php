@@ -220,6 +220,7 @@ class wicket_create_account extends WP_Widget
 	private function build_form()
 	{
 ?>
+	<div class="wicket-base-plugin-form" >
 		<script src='https://www.google.com/recaptcha/api.js?hl=en'></script>
 		<?php if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) : ?>
 			<div class='alert alert-danger' role="alert">
@@ -366,6 +367,7 @@ class wicket_create_account extends WP_Widget
 			<input type="hidden" name="wicket_create_account" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 			<input class="button button--primary" type="submit" value="<?php _e('Submit', 'wicket') ?>">
 		</form>
+	</div>
 <?php
 	}
 }
