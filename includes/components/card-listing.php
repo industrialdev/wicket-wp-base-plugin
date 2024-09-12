@@ -51,7 +51,7 @@ if ( $featured_image ) {
 			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
 				<?php get_component( 'tag', [ 
 					'label' => __( 'Members Only', 'wicket' ),
-					'icon'  => 'fa fa-lock',
+					'icon'  => 'fa-regular fa-lock',
 					'link'  => '',
 				] ); ?>
 			</div>
