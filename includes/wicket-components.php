@@ -40,3 +40,6 @@ function component_exists( $slug ) {
 function get_components_dir() {
 	return __DIR__ . "/components/";
 }
+
+// Remove WP content filter that sometimes breaks component rendering
+remove_filter('the_content', 'wptexturize');
