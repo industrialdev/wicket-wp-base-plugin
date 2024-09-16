@@ -93,7 +93,11 @@ class wicket_create_account extends WP_Widget
 	public function process_wicket_create_account_form()
 	{
 		$errors = [];
-		if (!session_id()) session_start();
+
+		if(!headers_sent()){
+			if (!session_id()) session_start();
+		}
+
 		if (isset($_POST['wicket_create_account'])) {
 
 			$client = wicket_api_client();
