@@ -40,7 +40,7 @@ $classes[] = 'component-card p-4 bg-white shadow-4 flex flex-col gap-4 relative 
 			</div>
 		<?php } ?>
 
-		<div class="component-card__container flex flex-col gap-4">
+		<div class="component-card__container flex flex-col gap-4 <?php echo $image ? '@2xl:basis-1/2' : '' ?>">
 
 			<?php if ( $pre_heading ) { ?>
 				<div class="block uppercase text-dark-060 font-semibold leading-7 text-body-md @2xl:text-body-lg -mb-3">
