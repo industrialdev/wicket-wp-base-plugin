@@ -1,11 +1,13 @@
 <?php
 $defaults        = array(
-	'classes'                    => [],
+	'classes'                      => [],
+  'hide_comm_prefs'              => false,
   'preferences_data_field_name'  => 'preferences-info',
-  'validation_data_field_name' => 'preferences-validation',
+  'validation_data_field_name'   => 'preferences-validation',
 );
 $args                         = wp_parse_args( $args, $defaults );
 $classes                      = $args['classes'];
+$hide_comm_prefs              = $args['hide_comm_prefs'];
 $preferences_data_field_name  = $args['preferences_data_field_name'];
 $unique_widget_id             = rand( 1, 9999999 );
 
@@ -36,7 +38,8 @@ $wicket_settings = get_wicket_settings();
               apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
               accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
               personId: '<?php echo wicket_current_person_uuid(); ?>',
-              lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>"
+              lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
+              hideCommunicationPreferences: <?php echo $hide_comm_prefs ? 'true' : 'false' ?>,
             }).then(function (widget) {
               // Dispatch custom events to the page on each available widget listener,
               // so that actions can be taken based on that information if needed,
