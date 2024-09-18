@@ -243,7 +243,6 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 <div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
 
   <?php // Debug log of the selection custom event when fired ?>
-  <pre x-on:orgss-selection-made.window="console.log($event.detail)"></pre>
 
   <?php // Loading overlay ?>
   <div x-transition x-cloak 
@@ -294,7 +293,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'type'     => 'primary',
                 'classes'  => [ '' ],
                 'atts'     => [ 
-                  'x-on:click.prevent="selectOrg($data.connection.org_id)"',
+                  'x-on:click.prevent="selectOrg($data.connection.org_id, $event)"',
                   'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
                 ]
               ] ); ?>
@@ -345,7 +344,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'type'     => 'button',
               'classes'  => [ '' ], 
               'atts'     => [ 
-                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id)"',
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event)"',
                 'x-bind:class="isOrgAlreadyAConnection( $data.result.id ) ? \'orgss_disabled_button_hollow\' : \'\' "'
               ]
             ] ); ?>
@@ -361,7 +360,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
-        <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate()" type="text" name="company-name" class="w-full" />
+        <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate($event)" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
@@ -378,7 +377,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             'label'    => __( 'Add Details', 'wicket' ),
             'type'     => 'button',
             'classes'  => [ 'w-full', 'justify-center' ],
-            'atts'  => [ 'x-on:click.prevent="handleOrgCreate()"' ],
+            'atts'  => [ 'x-on:click.prevent="handleOrgCreate($event)"' ],
           ] ); ?>
         </div>
       </div>
@@ -461,7 +460,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   newOrgType = this.newOrgTypeSelect;
                 }
 
-                this.createOrganization( newOrgName, newOrgType );
+                this.createOrganization( newOrgName, newOrgType, e );
               }
 
             },
@@ -519,7 +518,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 });
               
             },
-            selectOrg( orgUuid ) {
+            selectOrg( orgUuid, incomingEvent = null ) {
               // Update state 
               this.selectedOrgUuid = orgUuid;
               document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]').value = orgUuid;
@@ -528,15 +527,16 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
               let orgInfo = this.getOrgFromConnectionsByUuid( orgUuid );
 
-              event = new CustomEvent("orgss-selection-made", {
+              newEvent = new CustomEvent("orgss-selection-made", {
                 detail: {
                   uuid: orgUuid,
                   searchType: this.searchType,
                   orgDetails: orgInfo,
+                  event: incomingEvent,
                 }
               });
 
-              window.dispatchEvent(event);
+              window.dispatchEvent(newEvent);
 
               if(this.grantRosterManOnPurchase) {
                 this.flagForRosterManagementAccess(orgUuid);
@@ -545,11 +545,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 this.grantOrgEditor( this.currentPersonUuid, orgUuid );
               }
             },
-            selectOrgAndCreateRelationship( orgUuid ) {
+            selectOrgAndCreateRelationship( orgUuid, event = null ) {
               // TODO: Handle when a Group is selected instead of an org
 
               this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
-              this.selectOrg( orgUuid );
+              this.selectOrg( orgUuid, event );
             },
             async flagForRosterManagementAccess( orgUuid ) {
               let data = {
@@ -712,7 +712,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 });
               
             },
-            async createOrganization( orgName, orgType ) {
+            async createOrganization( orgName, orgType, event = null ) {
               this.isLoading = true;
 
               if( orgName.length <= 0 || orgType.length <= 0 ) {
@@ -744,7 +744,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   } else {
                     if( data.success ) {
                       let newOrgUuid = data.data.data.id;
-                      this.selectOrgAndCreateRelationship( newOrgUuid );
+                      this.selectOrgAndCreateRelationship( newOrgUuid, event );
 
                       // Check a user-defined checkbox (if provided) so the form an respond to a new org
                       // being created or not
