@@ -1,12 +1,13 @@
 <?php
 $defaults                  = array(
 	'classes'                   => [],
+	'post_type'                 => '',
 	'content_type'              => '',
 	'title'                     => '',
 	'excerpt'                   => '',
 	'date'                      => '',
 	'topics'                    => [],
-	'link'                      => [
+	'link'                      => [ 
 		'url'    => '#',
 		'text'   => 'Go somewhere',
 		'target' => '_self',
@@ -22,6 +23,7 @@ $defaults                  = array(
 );
 $args                      = wp_parse_args( $args, $defaults );
 $classes                   = $args['classes'];
+$post_type                 = $args['post_type'];
 $content_type              = $args['content_type'];
 $title                     = $args['title'];
 $excerpt                   = $args['excerpt'];
@@ -39,6 +41,7 @@ $helper_link               = $args['helper_link'];
 $hide_document_format_icon = $args['hide_document_format_icon'];
 
 $classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
+$classes[] = 'component-card-listing--' . $post_type;
 
 if ( $featured_image ) {
 	$image = wp_get_attachment_image( $featured_image, 'large' );
@@ -49,7 +52,7 @@ if ( $featured_image ) {
 	<div class="flex-auto">
 		<?php if ( $member_only ) { ?>
 			<div class="component-card-listing__member-only absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-				<?php get_component( 'tag', [
+				<?php get_component( 'tag', [ 
 					'label' => __( 'Members Only', 'wicket' ),
 					'icon'  => 'fa-regular fa-lock',
 					'link'  => '',
@@ -88,7 +91,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $helper_link ) {
-			get_component( 'button', [
+			get_component( 'button', [ 
 				'variant'            => '',
 				'label'              => $helper_link['title'],
 				'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
@@ -101,7 +104,7 @@ if ( $featured_image ) {
 		} ?>
 
 		<?php if ( $document ) {
-			get_component( 'button', [
+			get_component( 'button', [ 
 				'variant'     => '',
 				'link'        => $document,
 				'label'       => $download_label,
@@ -116,7 +119,7 @@ if ( $featured_image ) {
 			<div class="card__topics">
 				<?php foreach ( $topics as $topic ) { ?>
 					<?php
-					get_component( 'tag', [
+					get_component( 'tag', [ 
 						'label' => $topic->name,
 						'link'  => get_term_link( $topic->term_id ),
 					] ); ?>
@@ -125,7 +128,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $link['url'] != '#' && $link_type == 'button' ) {
-			get_component( 'button', [
+			get_component( 'button', [ 
 				'link'        => $link['url'],
 				'label'       => $link['text'],
 				'a_tag'       => true,
@@ -145,7 +148,7 @@ if ( $featured_image ) {
 	<?php if ( $document && ! $hide_document_format_icon ) { ?>
 		<div class="flex-none md:basis-[90px] ">
 			<div class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
-				<?php get_component( 'icon', [
+				<?php get_component( 'icon', [ 
 					'icon' => 'fa-regular fa-file-lines',
 					'text' => $download_label,
 				] ); ?>
