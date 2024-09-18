@@ -197,7 +197,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						'classes' => [ 'component-banner__featured-image lg:max-h-[425px] ml-auto' ],
 					] ); ?>
 				</div>
-			<?php elseif ( ! empty( $call_to_action ) && ( $call_to_action['title'] || $call_to_action['description'] ) ) : ?>
+			<?php elseif ( ! empty( $call_to_action ) ) : ?>
 				<div class="<?php echo implode( ' ', $cta_classes ) ?>">
 					<?php if ( $call_to_action['title'] ) : ?>
 						<div class="text-[24px] font-bold mb-3">
