@@ -6,7 +6,7 @@ $defaults                  = array(
 	'excerpt'                   => '',
 	'date'                      => '',
 	'topics'                    => [],
-	'link'                      => [ 
+	'link'                      => [
 		'url'    => '#',
 		'text'   => 'Go somewhere',
 		'target' => '_self',
@@ -48,8 +48,8 @@ if ( $featured_image ) {
 <div class="<?php echo implode( ' ', $classes ) ?>">
 	<div class="flex-auto">
 		<?php if ( $member_only ) { ?>
-			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-				<?php get_component( 'tag', [ 
+			<div class="component-card-listing__member-only absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+				<?php get_component( 'tag', [
 					'label' => __( 'Members Only', 'wicket' ),
 					'icon'  => 'fa-regular fa-lock',
 					'link'  => '',
@@ -59,36 +59,36 @@ if ( $featured_image ) {
 
 
 		<?php if ( $content_type ) { ?>
-			<div class="text-dark-070 uppercase font-bold mb-3">
+			<div class="component-card-listing__content-type text-dark-070 uppercase font-bold mb-3">
 				<?php echo $content_type; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $title && $link_type == 'title' ) { ?>
 			<a href="<?php echo $link['url'] ?>" <?php $link['target'] === '_blank' ? 'target="_blank"' : '' ?>
-				class="block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg">
+				class="component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg">
 				<?php echo $title; ?>
 			</a>
 		<?php } else if ( $title ) { ?>
-				<div class="block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
+				<div class="component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
 				<?php echo $title; ?>
 				</div>
 		<?php } ?>
 
 		<?php if ( $excerpt ) { ?>
-			<div class="leading-6 mb-3">
+			<div class="component-card-listing__excerpt leading-6 mb-3">
 				<?php echo $excerpt; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $date ) { ?>
-			<div class="text-body-sm text-dark-070 italic mb-3">
+			<div class="component-card-listing__date text-body-sm text-dark-070 italic mb-3">
 				<?php echo $date; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $helper_link ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'variant'            => '',
 				'label'              => $helper_link['title'],
 				'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
@@ -101,7 +101,7 @@ if ( $featured_image ) {
 		} ?>
 
 		<?php if ( $document ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'variant'     => '',
 				'link'        => $document,
 				'label'       => $download_label,
@@ -116,7 +116,7 @@ if ( $featured_image ) {
 			<div class="card__topics">
 				<?php foreach ( $topics as $topic ) { ?>
 					<?php
-					get_component( 'tag', [ 
+					get_component( 'tag', [
 						'label' => $topic->name,
 						'link'  => get_term_link( $topic->term_id ),
 					] ); ?>
@@ -125,7 +125,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $link['url'] != '#' && $link_type == 'button' ) {
-			get_component( 'button', [ 
+			get_component( 'button', [
 				'link'        => $link['url'],
 				'label'       => $link['text'],
 				'a_tag'       => true,
@@ -145,7 +145,7 @@ if ( $featured_image ) {
 	<?php if ( $document && ! $hide_document_format_icon ) { ?>
 		<div class="flex-none md:basis-[90px] ">
 			<div class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
-				<?php get_component( 'icon', [ 
+				<?php get_component( 'icon', [
 					'icon' => 'fa-regular fa-file-lines',
 					'text' => $download_label,
 				] ); ?>
