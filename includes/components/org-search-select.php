@@ -120,7 +120,8 @@ $defaults  = array(
   'disable_create_org_ui'                         => false,
   'disable_selecting_orgs_with_active_membership' => false,
   'grant_roster_man_on_purchase'                  => false,
-  'grant_org_editor_on_select'                      => false,
+  'grant_org_editor_on_select'                    => false,
+  'hide_remove_buttons'                           => false,
 );
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
@@ -137,7 +138,8 @@ $orgTermPlural                                 = $args['org_term_plural'];
 $disable_create_org_ui                         = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
-$grant_org_editor_on_select                      = $args['grant_org_editor_on_select'];
+$grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
+$hide_remove_buttons                           = $args['hide_remove_buttons']; 
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -304,7 +306,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'suffix_icon' => 'fa-regular fa-trash',
                 'type'     => 'button',
                 'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',  ]
+                'atts'     => [ 'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"', 
+                                'x-show="!hideRemoveButtons"' ]
               ] ); ?>
             </div>
           </div>
@@ -414,7 +417,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             currentPersonUuid: "<?php echo $current_person_uuid; ?>",
             grantRosterManOnPurchase: <?php echo $grant_roster_man_on_purchase ? 'true' : 'false'; ?>,
             grantOrgEditorOnSelect: <?php echo $grant_org_editor_on_select  ? 'true' : 'false'; ?>,
-
+            hideRemoveButtons: <?php echo $hide_remove_buttons  ? 'true' : 'false'; ?>,
 
             init() {
               //console.log(this.currentConnections);
