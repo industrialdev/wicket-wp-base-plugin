@@ -33,7 +33,8 @@ $image_wrapper_classes = [];
 $title_classes         = [ 'component-card-featured__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
 
 if ( $image_position === 'top' ) {
-	$classes[]               = '@2xl:flex-col @2xl:items-center';
+	$classes[]               = '@2xl:flex-col';
+	if ( $image ) { $classes[] = '@2xl:items-center'; }
 	$image_wrapper_classes[] = 'component-card-featured__image-wrapper @2xl:basis-1/2';
 	$title_classes[]         = '@2xl:text-heading-md';
 }

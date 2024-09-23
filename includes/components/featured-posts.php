@@ -130,6 +130,7 @@ if ( empty( $posts ) ) {
 					'classes'      => [ 'p-4' ],
 					'title'        => get_the_title( $post_id ),
 					'excerpt'      => ! $hide_excerpt ? get_the_excerpt( $post_id ) : '',
+					'image_position' => 'right',
 					'image'        => $image,
 					'content_type' => ( ! $content_type['errors'] && ! $hide_content_type ) ? get_related_content_type_term( $post_id ) : '',
 					'date'         => ! $hide_date ? $post_date : '',
