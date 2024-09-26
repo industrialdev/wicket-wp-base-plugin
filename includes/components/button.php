@@ -18,8 +18,8 @@ $defaults           = array(
 );
 $args               = wp_parse_args( $args, $defaults );
 $classes            = $args['classes'];
-$variant            = $args['variant'];
-$size               = $args['size'];
+$variant            = $args['variant']; // primary, secondary, ghost
+$size               = $args['size']; // sm, lg
 $label              = $args['label'];
 $prefix             = $args['prefix_icon'];
 $suffix             = $args['suffix_icon'];
@@ -32,21 +32,89 @@ $type               = $args['type'];
 $disabled           = $args['disabled'];
 $screen_reader_text = $args['screen_reader_text'];
 $classes[]          = 'component-button';
-$classes[]          = 'button';
 $classes[]          = 'inline-flex';
-$classes[]          = 'button--' . $variant;
+$classes[]          = 'items-center';
 $atts               = $args['atts'];
+$icon_size_class 		= '';
+
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	switch ( $variant ) {
+		case 'primary':
+			$classes = array_merge($classes, [
+				'bg-[--bg-interactive]',
+				'border-[length:--border-interactive-md]',
+				'border-transparent',
+				'hover:bg-transparent',
+				'text-[--text-label-button-reversed]',
+				'hover:border-[--border-interactive]',
+				'hover:border-[length:--border-interactive-md]',
+				'hover:underline',
+				'focus:bg-[--highlight-light]',
+				'focus:border-[--border-interactive]',
+				'focus:border-[length:--border-interactive-md]',
+				'focus:text-[--text-button-label]',
+				'focus:underline',
+				'active:bg-[--highlight-light]',
+				'active:border-transparent',
+				'active:text-[--text-button-label]',
+			]);
+			break;
+	}
+} else {
+	$classes[] = 'button';
+	$classes[] = 'button--' . $variant;
+}
 
 if ( $size ) {
-	$classes[] = 'button--' . $size;
+	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+		$icon_size_class = 'text-[16px]';
+
+		switch ( $size ) {
+			case 'sm':
+				$classes = array_merge($classes, [
+					'text-[--button-label-sm]',
+					'rounded-[--interactive-corner-radius-md]',
+					'p-[--space-150]'
+				]);
+				break;
+			case 'lg':
+				$classes = array_merge($classes, [
+					'text-[--button-label-lg]',
+					'rounded-[--interactive-corner-radius-lg]',
+					'p-[--space-250]'
+				]);
+				$icon_size_class = 'text-[24px]';
+				break;
+		}
+	} else {
+		// Legacy sizes
+		$classes[] = 'button--' . $size;
+	}
+} else {
+	// Default size
+	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+		$classes = array_merge($classes, [
+			'rounded-[--interactive-corner-radius-md]',
+			'p-[--space-200]',
+			'text-[--button-label-md]'
+		]);
+	}
 }
 
-if ( $reversed ) {
-	$classes[] = 'button--reversed';
+// Reversed option
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	// TODO:
+} else {
+	if ( $reversed ) {
+		$classes[] = 'button--reversed';
+	}	
 }
 
-if ( $rounded ) {
-	$classes[] = 'button--rounded';
+// Rounded option
+if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
+	if ( $rounded ) {
+		$classes[] = 'button--rounded';
+	}
 }
 
 $tag_type    = 'button';
@@ -57,8 +125,20 @@ if ( $a_tag ) {
 }
 
 if ( $disabled ) {
-	$classes[] = 'button--disabled';
-	$atts[]    = 'disabled';
+	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+		switch ( $variant ) {
+			case 'primary':
+				$classes = array_merge($classes, [
+					'bg-[--bg-disabled]',
+					'text-[--text-disabled]',
+					'border-trasparent',
+				]);
+				break;
+		}	
+	} else {
+		$classes[] = 'button--disabled';
+		$atts[]    = 'disabled';
+	}
 }
 ?>
 
@@ -75,7 +155,7 @@ if ( $disabled ) {
 	<?php
 	if ( $prefix ) {
 		get_component( 'icon', [ 
-			'classes' => [ 'custom-icon-class' ],
+			'classes' => [ 'custom-icon-class', $icon_size_class ],
 			'icon'    => $prefix,
 			'text'    => $screen_reader_text,
 		] );
@@ -85,7 +165,7 @@ if ( $disabled ) {
 
 	if ( $suffix ) {
 		get_component( 'icon', [ 
-			'classes' => [ 'custom-icon-class' ],
+			'classes' => [ 'custom-icon-class', $icon_size_class ],
 			'icon'    => $suffix,
 			'text'    => $screen_reader_text,
 		] );
