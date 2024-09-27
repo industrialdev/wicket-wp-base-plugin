@@ -101,8 +101,8 @@ if ( $disabled ) {
 	<?php
 	if ( $prefix ) {
 		$icon_classes = [ 'custom-icon-class' ];
-		
-		if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+
+		if ( defined( 'WICKET_WP_THEME_V2' ) && ! empty( $label ) ) {
 			$icon_classes[] = 'me-2';
 		}
 
@@ -118,7 +118,7 @@ if ( $disabled ) {
 	if ( $suffix ) {
 		$icon_classes = [ 'custom-icon-class' ];
 
-		if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+		if ( defined( 'WICKET_WP_THEME_V2' ) && ! empty( $label ) ) {
 			$icon_classes[] = 'ms-2';
 		}
 
