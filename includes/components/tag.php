@@ -13,12 +13,16 @@ $icon     = $args['icon'];
 $reversed = $args['reversed'];
 $link     = $args['link'];
 
-$classes[] = 'component-tag p-2 inline-flex gap-2 rounded-050';
-$classes[] = $reversed ? 'bg-dark-080 text-white' : 'bg-light-020 text-dark-080';
-$classes[] = $link ? 'font-normal border-solid border border-light-020 text-sm leading-normal group-hover:underline group-focus:shadow-focus group-focus:underline' : 'font-bold leading-none';
-
-if ( $link ) {
-	$classes[] = '!bg-light-010';
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	$classes[] = 'component-tag-v2';
+} else {
+	$classes[] = 'component-tag p-2 inline-flex gap-2 rounded-050';
+	$classes[] = $reversed ? 'bg-dark-080 text-white' : 'bg-light-020 text-dark-080';
+	$classes[] = $link ? 'font-normal border-solid border border-light-020 text-sm leading-normal group-hover:underline group-focus:shadow-focus group-focus:underline' : 'font-bold leading-none';
+	
+	if ( $link ) {
+		$classes[] = '!bg-light-010';
+	}
 }
 ?>
 
