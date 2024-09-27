@@ -35,80 +35,30 @@ $classes[]          = 'component-button';
 $classes[]          = 'inline-flex';
 $classes[]          = 'items-center';
 $atts               = $args['atts'];
-$icon_size_class 		= '';
 
+/////////////////// VARIANTS ///////////////////
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	switch ( $variant ) {
-		case 'primary':
-			$classes = array_merge($classes, [
-				'bg-[--bg-interactive]',
-				'border-[length:--border-interactive-md]',
-				'border-transparent',
-				'hover:bg-transparent',
-				'text-[--text-label-button-reversed]',
-				'hover:border-[--border-interactive]',
-				'hover:border-[length:--border-interactive-md]',
-				'hover:underline',
-				'focus:bg-[--highlight-light]',
-				'focus:border-[--border-interactive]',
-				'focus:border-[length:--border-interactive-md]',
-				'focus:text-[--text-button-label]',
-				'focus:underline',
-				'active:bg-[--highlight-light]',
-				'active:border-transparent',
-				'active:text-[--text-button-label]',
-			]);
-			break;
-	}
+	$classes[] = 'button-v2';
+	$classes[] = "button-v2--{$variant}";
+
+	if ( $reversed ) { $classes[] = "button-v2--reversed"; }
 } else {
 	$classes[] = 'button';
 	$classes[] = 'button--' . $variant;
+	
+	if ( $reversed ) { $classes[] = 'button--reversed'; }
 }
+/////////////////// END VARIANTS ///////////////////
 
+/////////////////// SIZE ///////////////////
 if ( $size ) {
 	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-		$icon_size_class = 'text-[16px]';
-
-		switch ( $size ) {
-			case 'sm':
-				$classes = array_merge($classes, [
-					'text-[--button-label-sm]',
-					'rounded-[--interactive-corner-radius-md]',
-					'p-[--space-150]'
-				]);
-				break;
-			case 'lg':
-				$classes = array_merge($classes, [
-					'text-[--button-label-lg]',
-					'rounded-[--interactive-corner-radius-lg]',
-					'p-[--space-250]'
-				]);
-				$icon_size_class = 'text-[24px]';
-				break;
-		}
+		$classes[] = "button-v2--{$size}";		
 	} else {
-		// Legacy sizes
 		$classes[] = 'button--' . $size;
 	}
-} else {
-	// Default size
-	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-		$classes = array_merge($classes, [
-			'rounded-[--interactive-corner-radius-md]',
-			'p-[--space-200]',
-			'text-[--button-label-md]'
-		]);
-	}
 }
-
-// Reversed option
-if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	// TODO:
-} else {
-	if ( $reversed ) {
-		$classes[] = 'button--reversed';
-	}	
-}
+/////////////////// END SIZE ///////////////////
 
 // Rounded option
 if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
@@ -124,22 +74,18 @@ if ( $a_tag ) {
 	$href_markup = "href='$link' target='$link_target'";
 }
 
+/////////////////// DISABLED MODE ///////////////////
 if ( $disabled ) {
 	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-		switch ( $variant ) {
-			case 'primary':
-				$classes = array_merge($classes, [
-					'bg-[--bg-disabled]',
-					'text-[--text-disabled]',
-					'border-trasparent',
-				]);
-				break;
-		}	
+		$classes[] = 'button-v2--disabled';
 	} else {
 		$classes[] = 'button--disabled';
-		$atts[]    = 'disabled';
 	}
+
+	$classes[] = 'pointer-events-none';
+	$atts[]    = 'disabled';
 }
+/////////////////// END DISABLED MODE ///////////////////
 ?>
 
 <<?php echo $tag_type; ?>
@@ -154,8 +100,14 @@ if ( $disabled ) {
 	>
 	<?php
 	if ( $prefix ) {
+		$icon_classes = [ 'custom-icon-class' ];
+		
+		if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+			$icon_classes[] = 'me-2';
+		}
+
 		get_component( 'icon', [ 
-			'classes' => [ 'custom-icon-class', $icon_size_class ],
+			'classes' => $icon_classes,
 			'icon'    => $prefix,
 			'text'    => $screen_reader_text,
 		] );
@@ -164,8 +116,14 @@ if ( $disabled ) {
 	echo $label;
 
 	if ( $suffix ) {
+		$icon_classes = [ 'custom-icon-class' ];
+
+		if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+			$icon_classes[] = 'ms-2';
+		}
+
 		get_component( 'icon', [ 
-			'classes' => [ 'custom-icon-class', $icon_size_class ],
+			'classes' => $icon_classes,
 			'icon'    => $suffix,
 			'text'    => $screen_reader_text,
 		] );
