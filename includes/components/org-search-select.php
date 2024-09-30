@@ -338,6 +338,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         <template x-for="(result, uuid) in results" x-cloak>
           <div
             class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center"
+            x-init="console.log(result)"
           >
             <div class="font-bold" x-text="result.name"></div>
             <?php get_component( 'button', [ 
@@ -348,7 +349,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'classes'  => [ '' ], 
               'atts'     => [ 
                 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event)"',
-                'x-bind:class="isOrgAlreadyAConnection( $data.result.id ) ? \'orgss_disabled_button_hollow\' : \'\' "'
+                'x-bind:class="{
+                  \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
+                  \'orgss_disabled_button_hollow\': result.active_membership && disableSelectingOrgsWithActiveMembership
+                }"'
               ]
             ] ); ?>
           </div>
