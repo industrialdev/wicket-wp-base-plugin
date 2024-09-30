@@ -63,8 +63,13 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
     }
     ?>
     <div
-      class="accordion-item p-2 hover:cursor-pointer <?php if($accordion_type == 'card'){ echo 'rounded-100 border border-primary-060 mb-3'; } else { echo 'border-b border-primary-060 border-solid '; } if( $i == 0 && $accordion_type == 'list' ) { echo ' border-t'; } ?>"
-      x-bind:class="openAccordion == <?php echo $i; ?> ? 'border-b-4 bg-tertiary-010 bg-opacity-20 open <?php if($accordion_type == 'card') { echo 'border-light-120'; } ?>' : ''"
+      <?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+        class="accordion-item-v2 <?php echo "accordion-item-v2--{$accordion_type}"; ?>"
+        x-bind:class="openAccordion == <?php echo $i; ?> ? 'open' : ''"
+      <?php else: ?>
+        class="accordion-item p-2 hover:cursor-pointer <?php if($accordion_type == 'card'){ echo 'rounded-100 border border-primary-060 mb-3'; } else { echo 'border-b border-primary-060 border-solid '; } if( $i == 0 && $accordion_type == 'list' ) { echo ' border-t'; } ?>"
+        x-bind:class="openAccordion == <?php echo $i; ?> ? 'border-b-4 bg-tertiary-010 bg-opacity-20 open <?php if($accordion_type == 'card') { echo 'border-light-120'; } ?>' : ''"
+      <?php endif; ?>
       x-bind:aria-expanded="openAccordion == <?php echo $i; ?> ? 'true' : 'false'"
       x-bind:aria-pressed="openAccordion == <?php echo $i; ?> ? 'true' : 'false'"
       x-on:click="if(openAccordion == <?php echo $i; ?>){ openAccordion = 999; }else{ openAccordion = <?php echo $i; ?> }"
@@ -73,7 +78,9 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
       tabindex="0"
     >
       <div class="flex w-full justify-between items-center">
-        <h4 class="font-bold text-body-lg">
+        <h4
+          class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item-v2__title' : 'font-bold text-body-lg' ?>"
+        >
           <?php if( $item['title_is_a_link'] ): ?>
             <a x-on:click.stop href="<?php echo $item['title_link']['url']; ?>" target="<?php echo $item['title_link']['target']; ?>"><?php echo $item['title']; ?></a>
           <?php else : ?>
@@ -82,14 +89,20 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
         </h4>
         <?php
           if( $show_toggle_icon ) {
+            if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+              $icon_classes = [ 'accordion-item-v2__icon' ];
+            } else {
+              $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
+            }
+
             get_component( 'icon', [
               'icon' => $font_awesome_icon_open,
-              'classes' => ['text-heading-md', 'text-primary-100', 'ml-4'],
+              'classes' => $icon_classes,
               'atts' => ["x-show='openAccordion == " . $i . "'"]
             ] );
             get_component( 'icon', [
               'icon' => $font_awesome_icon_closed,
-              'classes' => ['text-heading-md', 'text-primary-100', 'ml-4'],
+              'classes' => $icon_classes,
               'atts' => ["x-show='openAccordion != " . $i . "'"]
             ] );
           }
@@ -97,7 +110,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
       </div>
       <?php if( !$separate_title_body ): ?>
       <div
-        class="mt-1 pr-12"
+        class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item-v2__body' : 'mt-1 pr-12' ?>"
         x-show="openAccordion == <?php echo $i; ?>"
         x-transition
       >
