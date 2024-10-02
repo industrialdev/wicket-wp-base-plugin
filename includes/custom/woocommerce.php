@@ -27,3 +27,10 @@ function wicket_org_search_select_on_order_complete( $order_id ) {
 
   return true;
 }
+
+// Allow admins to view (and use if needed) the 'pay for order' screen for a customer's order
+function allow_admin_to_pay_for_order(){
+  $administrator = get_role('administrator');
+  $administrator->add_cap( 'pay_for_order' );
+}
+add_action('init', 'allow_admin_to_pay_for_order');
