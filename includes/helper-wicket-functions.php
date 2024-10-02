@@ -216,6 +216,57 @@ function wicket_person_has_uuid()
   return false;
 }
 
+/**
+ * Used if a user exists in the MDP but not WP, and you need to sync them
+ * down on a one-off basis, for example processing an order or for roster management.
+ * 
+ * @param string $uuid UUID of their MDP person
+ * @param string $first_name (optional) First name override, if needed
+ * @param string $last_name  (optional) Last name override, if needed
+ * @param string $femail     (optional) Email override, if needed
+ * 
+ * @return bool | int        Will return false if there was a problem, and their new
+ *                           WP user ID if successful.
+ */
+function wicket_create_wp_user_if_not_exist($uuid, $first_name = null, $last_name = null, $email = null) {
+  if(empty($uuid)) {
+    return false;
+  }
+
+  $user = get_user_by('login', $uuid);
+
+  if ($user) {
+    return $user->id;
+  }
+
+  // Grab MDP info if overrides were not provided
+  if(is_null($first_name) && is_null($last_name) && is_null($email)) {
+    $mdp_person = wicket_get_person_by_id($uuid);
+    $first_name = $mdp_person->given_name;
+    $last_name = $mdp_person->family_name;
+    $email = $mdp_person->primary_email_address;
+  }
+
+  // Create the WP user
+  $username = sanitize_user($uuid);
+  $password = wp_generate_password(12, false);
+  //$user_id  = wp_create_user($username, $password, $email);
+  $user_id  = wp_insert_user([
+    'user_pass'    => $password,
+    'user_login'   => $username,
+    'display_name' => $first_name . ' ' . $last_name,
+    'first_name'   => $first_name,
+    'last_name'    => $last_name,
+    'role'         => 'user'
+  ]);
+
+  if (is_wp_error($user_id)) {
+    return false;
+  }
+
+  return $user_id;
+}
+
 /**------------------------------------------------------------------
  * Gets all people from wicket
 ------------------------------------------------------------------*/
