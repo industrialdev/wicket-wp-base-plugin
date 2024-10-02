@@ -8,15 +8,29 @@ $args     = wp_parse_args( $args, $defaults );
 $classes  = $args['classes'];
 $reversed = $args['reversed'];
 
-$classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center';
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	$classes[] = 'component-social-sharing-v2';
+	if ( $reversed ) {
+		$classes[] = 'component-social-sharing-v2--reversed';
+	}
+} else {
+	$classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center';
+}
 ?>
 
 <ul class="<?php echo implode( ' ', $classes ) ?>">
-	<li class="font-bold <?php echo $reversed ? 'text-white' : '' ?>">
+	<li
+		<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+			class="component-social-sharing-v2__label"
+		<?php else: ?>
+			class="font-bold <?php echo $reversed ? 'text-white' : '' ?>"
+		<?php endif; ?>
+	>
 		<?php _e( 'Share', 'wicket' ) ?>
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
+			'classes'            => [ 'component-social-sharing-v2__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -31,6 +45,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
+			'classes'            => [ 'component-social-sharing-v2__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -45,6 +60,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
+			'classes'            => [ 'component-social-sharing-v2__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -59,6 +75,7 @@ $classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
+			'classes'            => [ 'component-social-sharing-v2__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
