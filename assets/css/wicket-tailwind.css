@@ -360,6 +360,9 @@
 .h-4 {
     height: 1rem
 }
+.h-\[70px\] {
+    height: 70px
+}
 .h-full {
     height: 100%
 }
@@ -389,6 +392,9 @@
 }
 .w-6 {
     width: 1.5rem
+}
+.w-\[70px\] {
+    width: 70px
 }
 .w-full {
     width: 100%
@@ -427,6 +433,11 @@
     flex: none
 }
 .flex-shrink-0 {
+    -webkit-flex-shrink: 0;
+    -ms-flex-negative: 0;
+    flex-shrink: 0
+}
+.shrink-0 {
     -webkit-flex-shrink: 0;
     -ms-flex-negative: 0;
     flex-shrink: 0
@@ -2011,6 +2022,14 @@
     }
     .lg\:gap-4 {
         gap: 1rem
+    }
+    .lg\:gap-x-4 {
+        -webkit-column-gap: 1rem;
+        -moz-column-gap: 1rem;
+        column-gap: 1rem
+    }
+    .lg\:gap-y-6 {
+        row-gap: 1.5rem
     }
     .lg\:px-0 {
         padding-left: 0px;
