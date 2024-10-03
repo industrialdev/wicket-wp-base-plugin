@@ -17,6 +17,7 @@ $defaults = array(
 		'text'    => '' // This will be for screenreaders only
 	],
 	'atts'       => [],
+	'size'       => 'md', // 'sm', 'md', 'lg', available in theme v2 only
 );
 
 $args       = wp_parse_args( $args, $defaults );
@@ -26,26 +27,43 @@ $text       = $args['text'];
 $target     = $args['target'];
 $reversed     = $args['reversed'];
 $default_link_style = $args['default_link_style'];
-$icon_start = ( isset($args['icon_start']['icon']) ? get_component( 'icon', $args['icon_start'], false ) : '' );
-$icon_end   = ( isset($args['icon_end']['icon']) ? get_component( 'icon', $args['icon_end'], false ) : '' );
+$icon_start = ( ! empty($args['icon_start']['icon']) ? get_component( 'icon', $args['icon_start'], false ) : '' );
+$icon_end   = ( ! empty($args['icon_end']['icon']) ? get_component( 'icon', $args['icon_end'], false ) : '' );
 $atts       = $args['atts'];
-$classes[]  = 'component-link';
+$size       = $args['size'];
 
-if ( ! $icon_start && ! $icon_end ) {
-	$classes[] = 'underline hover:no-underline focus:shadow-focus';
-}
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	$classes[]  = 'component-link-v2';
+	
+	$classes[]  = "component-link-v2--{$size}";
 
-if ( $icon_start || $icon_end ) {
+	if ( $reversed ) {
+		$classes[] = 'component-link-v2--reversed';
+	}
+
 	if ( $default_link_style ) {
-		$classes[] = 'inline-flex items-center gap-2 underline hover:no-underline focus:shadow-focus';
-	} else {
-		$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
+		$classes[] = 'component-link-v2--default';
+	}
+} else {
+	$classes[]  = 'component-link';
+
+	if ( ! $icon_start && ! $icon_end ) {
+		$classes[] = 'underline hover:no-underline focus:shadow-focus';
+	}
+
+	if ( $icon_start || $icon_end ) {
+		if ( $default_link_style ) {
+			$classes[] = 'inline-flex items-center gap-2 underline hover:no-underline focus:shadow-focus';
+		} else {
+			$classes[] = 'inline-flex items-center gap-2 hover:underline focus:shadow-focus';
+		}
+	}
+
+	if ( $reversed ) {
+		$classes[] = 'link--reversed';
 	}
 }
 
-if ( $reversed ) {
-	$classes[] = 'link--reversed';
-}
 ?>
 
 <a <?php echo implode( ' ', $atts ); ?> class="<?php echo implode( ' ', $classes ) ?>" href="<?php echo $url ?>"

@@ -82,7 +82,9 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			<div class="flex grow flex-col gap-8 basis-full lg:basis-7/12">
 
 				<?php if ( $show_breadcrumbs ) {
-					get_component( 'breadcrumbs' );
+					get_component( 'breadcrumbs', [
+						'style' => ($reversed ? 'reversed' : 'normal'),
+					] );
 				} ?>
 
 				<?php if ( $back_link ) {
