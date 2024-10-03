@@ -44,22 +44,41 @@ $helper_link              = $args['helper_link'];
 $helper_link_button_style = $args['helper_link_button_style'];
 
 $text_alignment_class = 'text-' . $text_alignment;
-$wrapper_classes      = [ 'component-banner py-8 px-4 relative' ]; // border-b border-light-020
 $reversed             = ( $background_style === 'reversed' || $background_style === 'image' );
-$cta_classes          = [ 'cta-card flex-1 p-6 rounded-050 basis-full w-full lg:basis-3/12' ];
 
-if ( $reversed ) {
-	$wrapper_classes[] = 'bg-dark-100 text-white';
-	$cta_classes[]     = 'bg-dark-050';
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	$cta_classes          = [ 'cta-card' ];
+	$wrapper_classes			= [ 'component-banner-v2' ];
+	if ( $reversed ) {
+		$wrapper_classes[] = 'component-banner-v2--reversed';
+	}
+
+	if ( $background_style === 'reversed' ) {
+		$wrapper_classes[] = 'component-banner-v2--reversed';
+	} else if ( $background_style === 'image' ) {
+		$wrapper_classes[] = 'component-banner-v2--image';
+	} else {
+		$wrapper_classes[] = 'component-banner-v2--light';
+	}
+
 } else {
-	$cta_classes[] = 'bg-light-010';
-}
-if ( $background_style === 'reversed' ) {
-	$wrapper_classes[] = 'bg-mode-reversed';
-} else if ( $background_style === 'image' ) {
-	$wrapper_classes[] = 'bg-mode-image';
-} else {
-	$wrapper_classes[] = 'bg-accent-a-100 bg-mode-light';
+	$cta_classes          = [ 'cta-card flex-1 p-6 rounded-050 basis-full w-full lg:basis-3/12' ];
+	$wrapper_classes      = [ 'component-banner py-8 px-4 relative' ]; // border-b border-light-020
+	
+	if ( $reversed ) {
+		$wrapper_classes[] = 'bg-dark-100 text-white';
+		$cta_classes[]     = 'bg-dark-050';
+	} else {
+		$cta_classes[] = 'bg-light-010';
+	}
+	
+	if ( $background_style === 'reversed' ) {
+		$wrapper_classes[] = 'bg-mode-reversed';
+	} else if ( $background_style === 'image' ) {
+		$wrapper_classes[] = 'bg-mode-image';
+	} else {
+		$wrapper_classes[] = 'bg-accent-a-100 bg-mode-light';
+	}
 }
 
 if ( $image === 'featured-image' && has_post_thumbnail() ) {
@@ -192,11 +211,18 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			</div>
 
 			<?php if ( $featured_image ) : ?>
+				<?php
+					$image_classes = [ 'component-banner__featured-image', 'lg:max-h-[425px]', 'ml-auto' ];
+
+					if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+						$image_classes = [ 'component-banner-v2__featured-image' ];
+					}
+				?>
 				<div class="flex-grow-0 flex-shrink-0 basis-full lg:basis-5/12">
 					<?php get_component( 'image', [ 
 						'id'      => $featured_image['id'],
 						'alt'     => $featured_image['alt'],
-						'classes' => [ 'component-banner__featured-image lg:max-h-[425px] ml-auto' ],
+						'classes' => $image_classes,
 					] ); ?>
 				</div>
 			<?php elseif ( ! empty( $call_to_action ) && ! empty( $call_to_action['links'] ) ) : ?>

@@ -141,7 +141,9 @@ if ( $featured_image ) {
 
 	<?php if ( $image && ! $document ) { ?>
 		<div class="flex-none md:basis-[200px] lg:basis-[300px]">
-			<?php echo $image; ?>
+			<?php get_component( 'image', [ 
+					'id'           => $featured_image,
+				] ); ?>
 		</div>
 	<?php } ?>
 
