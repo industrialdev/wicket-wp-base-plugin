@@ -32,7 +32,11 @@ $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' 
 			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full" />
 	</div>
 
-	<button class="button inline-flex button--<?php echo $button_variant ?>">
-		<?php echo __( 'Search', 'wicket' ); ?>
-	</button>
+	<?php
+		get_component( 'button', [ 
+			'label'    => __( 'Search', 'wicket' ),
+			'variant' => $button_variant,
+			'classes' => [ 'button--clear' ],
+		] );
+	?>
 </div>
