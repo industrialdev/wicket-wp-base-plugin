@@ -74,11 +74,11 @@ if ( $show_tags && $tag_taxonomy['taxonomy'] ) {
 	$tags = get_the_terms( $post_id, $tag_taxonomy['taxonomy'] );
 }
 
-$classes[]               = 'component-card-featured bg-white  flex flex-col gap-4 relative items-start';
+$classes[]               = 'component-card-event bg-white flex flex-col gap-4 relative items-start';
 $image_wrapper_classes   = [];
-$title_classes           = [ 'component-card-featured__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
-$classes[]               = 'component-card-featured--events @2xl:flex-row lg:flex-row @2xl:items-start justify-between';
-$image_wrapper_classes[] = 'component-card-featured__image-wrapper hidden @lg:block basis-1/4 flex-none';
+$title_classes           = [ 'component-card-event__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
+$classes[]               = 'component-card-event--events @2xl:flex-row @md:flex-row @2xl:items-start justify-between';
+$image_wrapper_classes[] = 'component-card-event__image-wrapper @xs:basis-full @lg:basis-3/12 @5xl:basis-5/12';
 
 if ( ! $remove_drop_shadow ) {
 	$classes[] = 'shadow-4';
@@ -94,26 +94,26 @@ if ( ! $remove_drop_shadow ) {
 					'label'   => __( 'Members Only', 'wicket' ),
 					'icon'    => 'fa-regular fa-lock',
 					'link'    => '',
-					'classes' => [ 'rounded-b-[0px]' ],
+					'classes' => [ 'rounded-b-[0px] whitespace-nowrap' ],
 				] ); ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( ! $hide_start_date_indicator && $event_day_name ) : ?>
 			<div
-				class="component-card-featured__date-indicator bg-dark-100 text-white font-bold text-center uppercase flex flex-col shrink-0 justify-center items-center w-[70px] h-[70px] rounded-100">
-				<div class="component-card-featured__date-indicator-day text-heading-xs leading-none">
+				class="component-card-event__date-indicator bg-dark-100 text-white font-bold text-center uppercase flex @xs:flex-row @xl:flex-col shrink-0 justify-center items-center @xl:w-[70px] @xl:h-[70px] rounded-100 px-2 py-3 gap-2 @xl:gap-0">
+				<div class="component-card-event__date-indicator-day text-heading-xs leading-none">
 					<?php echo $event_day_name; ?>
 				</div>
-				<div class="component-card-featured__date-indicator-date text-heading-sm leading-none">
+				<div class="component-card-event__date-indicator-date text-heading-sm leading-none">
 					<?php echo $event_day_number; ?>
 				</div>
 			</div>
 		<?php endif; ?>
 
-		<div class="component-card-featured__content-wrapper flex flex-col grow items-start gap-3">
+		<div class="component-card-event__content-wrapper flex flex-col grow items-start gap-3">
 			<?php if ( $event_category ) { ?>
-				<div class="component-card-featured__content-type text-dark-070 uppercase font-bold leading-none">
+				<div class="component-card-event__content-type text-dark-070 uppercase font-bold leading-none">
 					<?php echo $event_category; ?>
 				</div>
 			<?php } ?>
@@ -125,13 +125,13 @@ if ( ! $remove_drop_shadow ) {
 			<?php } ?>
 
 			<?php if ( $event_start_date ) { ?>
-				<div class="component-card-featured__date text-dark-070 font-bold">
+				<div class="component-card-event__date text-dark-070 font-bold">
 					<?php echo $event_start_date; ?>
 				</div>
 			<?php } ?>
 
 			<?php if ( $venue_name ) { ?>
-				<div class="component-card-featured__date text-dark-070">
+				<div class="component-card-event__date text-dark-070">
 					<span class="font-bold"><?php echo $venue_name; ?></span>
 					<?php if ( $venue_address )
 						echo $venue_address ?>
@@ -139,13 +139,13 @@ if ( ! $remove_drop_shadow ) {
 			<?php } ?>
 
 			<?php if ( $excerpt ) { ?>
-				<div class="component-card-featured__excerpt leading-6">
+				<div class="component-card-event__excerpt leading-6">
 					<?php echo $excerpt; ?>
 				</div>
 			<?php } ?>
 
 			<?php if ( $ticket_price ) : ?>
-				<div class="component-card-featured__ticket-price text-dark-070">
+				<div class="component-card-event__ticket-price text-dark-070">
 					<span class="font-bold"><?php echo __( 'Get Tickets', 'wicket' ); ?></span>
 					<?php echo $ticket_price; ?>
 				</div>
@@ -161,7 +161,7 @@ if ( ! $remove_drop_shadow ) {
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
 					'link'    => $link,
-					'classes' => [ 'component-card-featured__cta' ],
+					'classes' => [ 'component-card-event__cta' ],
 				] );
 			} ?>
 
@@ -184,6 +184,7 @@ if ( ! $remove_drop_shadow ) {
 					'id'           => $image['id'],
 					'alt'          => $image['alt'],
 					'aspect_ratio' => '3/2',
+					'classes'      => [ 'w-full' ],
 				] ); ?>
 			</div>
 		<?php } ?>

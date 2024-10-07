@@ -97,7 +97,7 @@ function wicket_internal_endpoint_search_orgs( $request ) {
     }
   } else {
     $return = wicket_internal_endpoint_search_orgs_full($params, $client);
-    if(!$return) {
+    if(gettype($return) == 'boolean' && !$return) {
       wp_send_json_error( 'There was a problem searching orgs.' );
     } else {
       wp_send_json_success($return);
@@ -192,6 +192,7 @@ function wicket_internal_endpoint_search_orgs_full($params, $client) {
   try {
     $search_organizations = $client->get('search/organizations?' . $args);
   } catch (\Exception $e) {
+    wicket_write_log($e->getMessage());
     //wp_send_json_error( $e->getMessage() );
     return false;
   }

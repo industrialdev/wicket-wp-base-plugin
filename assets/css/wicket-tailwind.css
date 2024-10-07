@@ -360,9 +360,6 @@
 .h-4 {
     height: 1rem
 }
-.h-\[70px\] {
-    height: 70px
-}
 .h-full {
     height: 100%
 }
@@ -392,9 +389,6 @@
 }
 .w-6 {
     width: 1.5rem
-}
-.w-\[70px\] {
-    width: 70px
 }
 .w-full {
     width: 100%
@@ -770,6 +764,9 @@
 .overflow-y-scroll {
     overflow-y: scroll
 }
+.whitespace-nowrap {
+    white-space: nowrap
+}
 .rounded-050 {
     -webkit-border-radius: 0.25rem;
     border-radius: 0.25rem
@@ -1068,6 +1065,10 @@
 .px-12 {
     padding-left: 3rem;
     padding-right: 3rem
+}
+.px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem
 }
 .px-4 {
     padding-left: 1rem;
@@ -1849,6 +1850,20 @@
     --tw-text-opacity: 1;
     color: rgb(35 42 49 / var(--tw-text-opacity))
 }
+@container (min-width: 20rem) {
+    .\@xs\:basis-full {
+        -webkit-flex-basis: 100%;
+        -ms-flex-preferred-size: 100%;
+        flex-basis: 100%
+    }
+    .\@xs\:flex-row {
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row
+    }
+}
 @container (min-width: 28rem) {
     .\@md\:flex-row {
         -webkit-box-orient: horizontal;
@@ -1861,6 +1876,29 @@
 @container (min-width: 32rem) {
     .\@lg\:block {
         display: block
+    }
+    .\@lg\:basis-3\/12 {
+        -webkit-flex-basis: 25%;
+        -ms-flex-preferred-size: 25%;
+        flex-basis: 25%
+    }
+}
+@container (min-width: 36rem) {
+    .\@xl\:h-\[70px\] {
+        height: 70px
+    }
+    .\@xl\:w-\[70px\] {
+        width: 70px
+    }
+    .\@xl\:flex-col {
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column
+    }
+    .\@xl\:gap-0 {
+        gap: 0px
     }
 }
 @container (min-width: 42rem) {
@@ -1907,6 +1945,13 @@
     }
     .\@2xl\:text-heading-md {
         font-size: clamp(1.5rem, 2vw + 1rem, 1.75rem)
+    }
+}
+@container (min-width: 64rem) {
+    .\@5xl\:basis-5\/12 {
+        -webkit-flex-basis: 41.666667%;
+        -ms-flex-preferred-size: 41.666667%;
+        flex-basis: 41.666667%
     }
 }
 @media not all and (min-width: 768px) {
