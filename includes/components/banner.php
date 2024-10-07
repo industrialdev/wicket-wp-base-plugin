@@ -22,6 +22,7 @@ $defaults                 = array(
 	'helper_link_button_style' => 'secondary',
 );
 $args                     = wp_parse_args( $args, $defaults );
+
 $classes                  = $args['classes'];
 $title                    = $args['title'];
 $intro                    = $args['intro'];
@@ -48,17 +49,17 @@ $reversed             = ( $background_style === 'reversed' || $background_style 
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	$cta_classes          = [ 'cta-card' ];
-	$wrapper_classes			= [ 'component-banner-v2' ];
+	$wrapper_classes			= [ 'component-banner' ];
 	if ( $reversed ) {
-		$wrapper_classes[] = 'component-banner-v2--reversed';
+		$wrapper_classes[] = 'component-banner--reversed';
 	}
 
 	if ( $background_style === 'reversed' ) {
-		$wrapper_classes[] = 'component-banner-v2--reversed';
+		$wrapper_classes[] = 'component-banner--reversed';
 	} else if ( $background_style === 'image' ) {
-		$wrapper_classes[] = 'component-banner-v2--image';
+		$wrapper_classes[] = 'component-banner--image';
 	} else {
-		$wrapper_classes[] = 'component-banner-v2--light';
+		$wrapper_classes[] = 'component-banner--light';
 	}
 
 } else {
@@ -122,7 +123,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					<div>
 						<?php if ( $show_post_type ) : ?>
 							<div
-								class="component-banner__post-type text-dark-070 uppercase font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
+								class="component-banner__post-type <?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? '' : 'text-dark-070 uppercase font-bold' ?> <?php echo esc_attr( $text_alignment_class ); ?>">
 								<?php
 								$post_id = get_the_ID();
 								echo get_related_content_type_term( $post_id );
@@ -130,18 +131,22 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 							</div>
 						<?php endif; ?>
 						<h1
-							class="component-banner__title text-heading-3xl font-bold <?php echo esc_attr( $text_alignment_class ); ?>">
+							class="component-banner__title <?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? '' : 'text-heading-3xl font-bold' ?> <?php echo esc_attr( $text_alignment_class ); ?>">
 							<?php echo esc_html( $title ); ?>
 						</h1>
 					</div>
 				<?php endif; ?>
 
 				<?php if ( $text_alignment === 'center' ) : ?>
-					<hr class="w-14 mx-auto border-t border-t-4 <?php echo $reversed ? 'border-light-090' : 'border-dark-060' ?>">
+					<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+						<hr class="component-banner__hr">
+					<?php else : ?>
+						<hr class="w-14 mx-auto border-t border-t-4 <?php echo $reversed ? 'border-light-090' : 'border-dark-060' ?>">
+					<?php endif; ?>
 				<?php endif; ?>
 
 				<?php if ( $intro ) : ?>
-					<div class="component-banner__intro text-body-lg <?php echo esc_attr( $text_alignment_class ); ?>">
+					<div class="component-banner__intro <?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? '' : 'text-body-lg' ?> <?php echo esc_attr( $text_alignment_class ); ?>">
 						<?php echo wp_kses_post( $intro ); ?>
 					</div>
 				<?php endif; ?>
@@ -151,7 +156,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					$date_format = apply_filters( 'wicket_general_date_format', 'F j, Y' );
 					$date        = get_the_date( $date_format );
 					?>
-					<div class="component-banner__date text-body-sm text-dark-070 italic mb-3">
+					<div class="component-banner__date <?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? '' : 'text-body-sm text-dark-070 italic mb-3' ?>">
 						<?php echo $date; ?>
 					</div>
 				<?php endif; ?>
@@ -167,6 +172,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 								'a_tag'              => true,
 								'link'               => $download_file['url'],
 								'atts'               => [ 'download' ],
+								'reversed'           => $reversed,
 								'screen_reader_text' => $download_file['title'],
 							] );
 						}
@@ -213,10 +219,6 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			<?php if ( $featured_image ) : ?>
 				<?php
 					$image_classes = [ 'component-banner__featured-image', 'lg:max-h-[425px]', 'ml-auto' ];
-
-					if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-						$image_classes = [ 'component-banner-v2__featured-image' ];
-					}
 				?>
 				<div class="flex-grow-0 flex-shrink-0 basis-full lg:basis-5/12">
 					<?php get_component( 'image', [ 
@@ -228,34 +230,35 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			<?php elseif ( ! empty( $call_to_action ) && ! empty( $call_to_action['links'] ) ) : ?>
 				<div class="<?php echo implode( ' ', $cta_classes ) ?>">
 					<?php if ( $call_to_action['title'] ) : ?>
-						<div class="text-[24px] font-bold mb-3">
+						<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'cta-card__title' : 'text-[24px] font-bold mb-3' ?>">
 							<?php echo esc_html( $call_to_action['title'] ); ?>
 						</div>
 					<?php endif; ?>
 					<?php if ( $call_to_action['description'] ) : ?>
-						<div class="mb-3">
+						<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'cta-card__body' : 'mb-3' ?>">
 							<?php echo wp_kses_post( $call_to_action['description'] ); ?>
 						</div>
 					<?php endif; ?>
 
-					<?php if ( ! empty( $call_to_action['links'] ) ) {
-						echo '<div class="flex flex-col gap-3">';
-						foreach ( $call_to_action['links'] as $cta ) {
-							if ( $cta['link'] ) {
-								get_component( 'button', [ 
-									'variant'     => $cta['variant'],
-									'label'       => $cta['link']['title'],
-									'suffix_icon' => $cta['link']['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
-									'a_tag'       => true,
-									'link'        => $cta['link']['url'],
-									'link_target' => $cta['link']['target'],
-									'classes'     => [ 'w-full', 'justify-center' ],
-									'reversed'    => $reversed,
-								] );
-							}
-						}
-						echo '</div>';
-					} ?>
+					<?php if ( ! empty( $call_to_action['links'] ) ) : ?>
+						<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'cta-card__links' : 'flex flex-col gap-3' ?>">
+							<?php 
+							foreach ( $call_to_action['links'] as $cta ) {
+								if ( $cta['link'] ) {
+									get_component( 'button', [ 
+										'variant'     => $cta['variant'],
+										'label'       => $cta['link']['title'],
+										'suffix_icon' => $cta['link']['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
+										'a_tag'       => true,
+										'link'        => $cta['link']['url'],
+										'link_target' => $cta['link']['target'],
+										'classes'     => [ 'w-full', 'justify-center' ],
+										'reversed'    => $reversed,
+									] );
+								}
+							} ?>
+						</div>
+					<?php endif; ?>
 				</div>
 			<?php endif; ?>
 
