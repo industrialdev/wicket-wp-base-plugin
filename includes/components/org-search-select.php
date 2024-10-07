@@ -338,7 +338,6 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         <template x-for="(result, uuid) in results" x-cloak>
           <div
             class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center"
-            x-init="console.log(result)"
           >
             <div class="font-bold" x-text="result.name"></div>
             <?php get_component( 'button', [ 
@@ -511,16 +510,17 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               }).then(response => response.json())
                 .then(data => { 
                   if( !data.success ) {
-                    // Handle error
+                    this.results = [];
                   } else {
-                    if(showLoading) {
-                      this.isLoading = false;
-                    }
-
                     this.results = data.data;
-                    if( !this.firstSearchSubmitted ) {
-                      this.firstSearchSubmitted = true;
-                    }
+                  }
+
+                  if(showLoading) {
+                    this.isLoading = false;
+                  }
+
+                  if( !this.firstSearchSubmitted ) {
+                    this.firstSearchSubmitted = true;
                   }
                 });
               
