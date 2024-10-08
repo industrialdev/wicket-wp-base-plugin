@@ -23,12 +23,13 @@ $icon_type             = $args['icon_type'];
 $icon                  = $args['icon'];
 $layout_style          = $args['layout_style'];
 $button_label_override = $args['cta_label_override'];
-$classes[]             = 'component-card-related p-4 h-full bg-white border border-light-020 flex gap-4 justify-between';
+$classes[]             = 'component-card-related';
+$classes[]             = defined( 'WICKET_WP_THEME_V2' ) ? '' : 'p-4 h-full bg-white border border-light-020 flex gap-4 justify-between';
 $button_link           = '';
 $button_label          = '';
 $button_icon           = '';
 $button_target         = '_self';
-$button_classes        = [];
+$button_classes        = [ 'whitespace-nowrap' ];
 $icon_id               = $icon['id'] ?? '';
 $rounded_corners       = $args['rounded_corners'];
 
@@ -69,32 +70,34 @@ if ( $content_type === 'link' && $link ) {
 
 // Case: Rounded corners checkbox
 if ( $rounded_corners ) {
-	$classes[] = 'rounded-150';
+	$classes[] = defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-related--rounded' : 'rounded-150';
 }
 ?>
 
 <div class="<?php echo implode( ' ', $classes ) ?>">
 	<div class="top-aligned-content">
-		<?php if ( $icon_id ) {
-			get_component( 'image', [ 
-				'id'      => $icon_id,
-				'classes' => [ $layout_style === 'card' ? 'max-h-8' : 'max-h-6' ],
-			] );
-		} else {
-			get_component( 'icon', [ 
-				'icon'    => $icon,
-				'classes' => [ 
-					$layout_style === 'card' ? 'text-[32px]' : 'text-[24px]',
-					$layout_style === 'list' ? 'w-6' : '',
-					'leading-none',
-					'inline-flex',
-				],
-			] );
-		} ?>
+		<div class="component-card-related__icon" >
+			<?php if ( $icon_id ) {
+				get_component( 'image', [ 
+					'id'      => $icon_id,
+					'classes' => [ $layout_style === 'card' ? 'max-h-8' : 'max-h-6' ],
+				] );
+			} else {
+				get_component( 'icon', [ 
+					'icon'    => $icon,
+					'classes' => [ 
+						$layout_style === 'card' ? 'text-[32px]' : 'text-[24px]',
+						$layout_style === 'list' ? 'w-6' : '',
+						'leading-none',
+						'inline-flex',
+					],
+				] );
+			} ?>
+		</div>
 
 		<div>
 			<?php if ( $display_text ) { ?>
-				<div class="text-heading-xs text-dark-100 font-bold leading-7 mb-1">
+				<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-related__title' : 'text-heading-xs text-dark-100 font-bold leading-7 mb-1' ?>">
 					<?php echo $display_text; ?>
 				</div>
 			<?php } ?>
@@ -102,7 +105,7 @@ if ( $rounded_corners ) {
 		<?php // end top-aligned-content   ?>
 
 		<?php if ( $body_text ) { ?>
-			<p class="text-dark-100">
+			<p class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-related__body' : 'text-dark-100' ?>">
 				<?php echo $body_text; ?>
 			</p>
 		<?php } ?>
