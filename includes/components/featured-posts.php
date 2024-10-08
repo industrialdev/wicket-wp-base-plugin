@@ -1,6 +1,6 @@
 <?php
 $defaults            = array(
-	'classes'             => [ 'px-4', 'lg:px-0' ],
+	'classes'             => defined('WICKET_WP_THEME_V2') ? [] : [ 'px-4', 'lg:px-0' ],
 	'title'               => __( 'Featured', 'wicket' ),
 	'hide_block_title'    => false,
 	'posts'               => [],
@@ -8,7 +8,7 @@ $defaults            = array(
 	'hide_date'           => false,
 	'hide_featured_image' => false,
 	'hide_content_type'   => false,
-	'style'               => 'primary-secondary-level',
+	'style'               => 'primary-secondary-level', // primary-secondary-level, one-level
 	'column_count'        => 3,
 );
 $args                = wp_parse_args( $args, $defaults );
@@ -22,6 +22,7 @@ $hide_content_type   = $args['hide_content_type'];
 $style               = $args['style'];
 $column_count        = $args['column_count'];
 $classes[]           = 'component-featured-posts';
+$classes[]           = 'component-featured-posts--' . $style;
 $date_format         = apply_filters( 'wicket_general_date_format', 'F j, Y' );
 
 if ( empty( $posts ) ) {
@@ -32,14 +33,20 @@ if ( empty( $posts ) ) {
 <div class="<?php echo implode( ' ', $classes ) ?>">
 
 	<?php if ( $title ) : ?>
-		<div class="text-heading-sm font-bold <?php echo $style === 'primary-secondary-level' ? 'mb-4' : 'mb-10' ?>">
-			<?php echo $title; ?>
-		</div>
+		<?php if ( defined('WICKET_WP_THEME_V2') ) : ?>
+			<div class="component-featured-posts__title">
+				<?php echo $title; ?>
+			</div>
+		<?php else: ?>
+			<div class="text-heading-sm font-bold <?php echo $style === 'primary-secondary-level' ? 'mb-4' : 'mb-10' ?>">
+				<?php echo $title; ?>
+			</div>
+		<?php endif; ?>
 	<?php endif; ?>
 
 	<?php if ( $style === 'primary-secondary-level' ) : ?>
-		<div class="flex flex-col gap-10 lg:flex-row lg:gap-4">
-			<div class="flex-1 lg:basis-5/12">
+		<div class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-featured-posts__primary-secondary-level-row' : 'flex flex-col gap-10 lg:flex-row lg:gap-4' ?>">
+			<div class="flex-1 lg:basis-5/12 component-featured-posts__primary-secondary-level-col-1">
 				<?php
 				$post                 = $posts[0];
 				$post_id              = $post->ID;
@@ -59,7 +66,7 @@ if ( empty( $posts ) ) {
 				}
 
 				get_component( 'card-featured', [ 
-					'classes'        => [ 'p-4' ],
+					'classes'        => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
 					'title'          => get_the_title( $post_id ),
 					'image'          => $image,
 					'image_position' => 'top',
@@ -69,7 +76,7 @@ if ( empty( $posts ) ) {
 					'link'           => get_permalink( $post_id ),
 				] ); ?>
 			</div>
-			<div class="flex-1 lg:basis-7/12">
+			<div class="flex-1 lg:basis-7/12 component-featured-posts__primary-secondary-level-col-2">
 				<?php
 				if ( count( $posts ) > 1 ) {
 					$posts = array_slice( $posts, 1 );
@@ -101,7 +108,11 @@ if ( empty( $posts ) ) {
 						] );
 
 						if ( $index < count( $posts ) ) {
-							echo '<hr class="border-t border-light-020 my-4">';
+							if ( defined('WICKET_WP_THEME_V2') ) {
+								echo '<hr class="component-featured-posts__hr">';
+							} else {
+								echo '<hr class="border-t border-light-020 my-4">';
+							}
 						}
 					}
 				}
@@ -111,7 +122,7 @@ if ( empty( $posts ) ) {
 	<?php endif; ?>
 
 	<?php if ( $style === 'one-level' ) : ?>
-		<div class="grid gap-4 grid-cols-1 lg:grid-cols-<?php echo $column_count ?>">
+		<div class="<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'gap-4' ?> component-featured-posts__one-level-row component-featured-posts__one-level-row-cols-<?php echo $column_count; ?> grid grid-cols-1 lg:grid-cols-<?php echo $column_count; ?>">
 			<?php
 			foreach ( $posts as $post ) {
 				$post_id   = $post->ID;
@@ -127,7 +138,7 @@ if ( empty( $posts ) ) {
 				}
 
 				get_component( 'card-featured', [ 
-					'classes'      => [ 'p-4' ],
+					'classes'      => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
 					'title'        => get_the_title( $post_id ),
 					'excerpt'      => ! $hide_excerpt ? get_the_excerpt( $post_id ) : '',
 					'image_position' => 'right',
