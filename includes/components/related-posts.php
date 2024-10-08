@@ -1,6 +1,6 @@
 <?php
 $defaults                 = array(
-	'classes'                  => [ 'px-4', 'lg:px-0' ],
+	'classes'                  => defined( 'WICKET_WP_THEME_V2' ) ? [] : [ 'px-4', 'lg:px-0' ],
 	'title'                    => '',
 	'hide_block_title'         => false,
 	'column_count'             => 3,
@@ -128,22 +128,25 @@ if ( $highlight_featured_posts ) {
 	<div class="<?php echo implode( ' ', $classes ) ?>">
 		<div class="container">
 			<?php if ( $title && ! $hide_block_title ) : ?>
-				<div class="mb-10">
-					<span class="text-heading-sm font-bold">
-						<?php echo $title; ?>
-					</span>
+				<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-related-posts__top-wrap' : 'mb-10' ?>">
+					<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-related-posts__title' : 'text-heading-sm font-bold' ?>"><?php echo $title; ?></span>
 
 					<?php if ( $show_view_all ) : ?>
 						<?php if ( $set_custom_view_all && isset( $view_all_link['url'] ) ) : ?>
-							<a href="<?php echo $view_all_link['url'] ?>" target="<?php echo $view_all_link['target'] ?>"
-								class="component-related-posts__view-all underline ml-4 pl-4 border-l border-dark-070">
-								<?php echo $view_all_link['title'] ?>
-							</a>
+							<?php get_component('link', [
+								'url'        => $view_all_link['url'],
+								'target'     => $view_all_link['target'],
+								'text'       => $view_all_link['title'],
+								'default_link_style' => true,
+								'classes'	   => defined( 'WICKET_WP_THEME_V2' ) ? ['component-related-posts__view-all'] : ['component-related-posts__view-all', 'underline', 'ml-4', 'pl-4', 'border-l', 'border-dark-070'],
+							]); ?>
 						<?php else : ?>
-							<a href="<?php echo $post_type_archive_link ?>"
-								class="component-related-posts__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
-								<?php echo __( 'View All', 'wicket' ) ?>
-							</a>
+							<?php get_component('link', [
+								'url'        => $post_type_archive_link,
+								'text'       => __( 'View All', 'wicket' ),
+								'default_link_style' => true,
+								'classes'	   => defined( 'WICKET_WP_THEME_V2' ) ? ['component-related-posts__view-all'] : ['component-related-posts__view-all', 'underline', 'hover:no-underline', 'ml-4', 'pl-4', 'border-l', 'border-dark-070'],
+							]); ?>
 						<?php endif; ?>
 					<?php endif; ?>
 
@@ -175,7 +178,7 @@ if ( $highlight_featured_posts ) {
 					}
 
 					get_component( 'card-featured', [
-						'classes'        => [ 'p-4', 'mb-4' ],
+						'classes'        => defined( 'WICKET_WP_THEME_V2' ) ? [] : [ 'p-4', 'mb-4' ],
 						'post_type'      => $post_type,
 						'content_type'   => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
 						'title'          => get_the_title( $post_id ),
@@ -192,9 +195,7 @@ if ( $highlight_featured_posts ) {
 				?>
 			<?php endif; ?>
 
-
-
-			<div class="grid gap-10 grid-cols-1 lg:gap-4 lg:grid-cols-<?php echo $column_count ?>">
+			<div class="component-related-posts__col-<?php echo $column_count ?> grid gap-10 grid-cols-1 lg:grid-cols-<?php echo $column_count ?> <?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'lg:gap-[--space-150]' : 'lg:gap-4' ?>">
 				<?php
 				while ( $related_posts->have_posts() ) {
 					$related_posts->the_post();
@@ -219,7 +220,7 @@ if ( $highlight_featured_posts ) {
 					}
 
 					get_component( 'card-featured', [
-						'classes'        => [ 'p-4' ],
+						'classes'        => defined( 'WICKET_WP_THEME_V2' ) ? [] : [ 'p-4' ],
 						'post_type'      => $post_type,
 						'content_type'   => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
 						'title'          => get_the_title( $post_id ),
