@@ -79,9 +79,8 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   if( !isset( $params['searchTerm'] ) ) {
     wp_send_json_error( 'Search term not provided' );
   }
-  // if( !isset( $params['lang'] ) ) {
-  //   wp_send_json_error( 'Language code not provided' );
-  // }
+
+  $lang = $params['lang'] ?? 'en';
 
   try {
     $client = wicket_api_client();
@@ -92,190 +91,21 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   if(isset($params['autocomplete'])) {
     if($params['autocomplete']) {
       // Use autocomplete API instead
-      $return = wicket_internal_endpoint_search_orgs_autocomplete($params, $client);
-      wp_send_json_success($return);
+      $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], true, $lang);
+      if(gettype($return) == 'boolean' && !$return) {
+        wp_send_json_error( 'There was a problem searching orgs.' );
+      } else {
+        wp_send_json_success($return);
+      }
     }
   } else {
-    $return = wicket_internal_endpoint_search_orgs_full($params, $client);
+    $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], false, $lang);
     if(gettype($return) == 'boolean' && !$return) {
       wp_send_json_error( 'There was a problem searching orgs.' );
     } else {
       wp_send_json_success($return);
     }
   }
-
-}
-// Broken out helper function for wicket_internal_endpoint_search_orgs()
-function wicket_internal_endpoint_search_orgs_autocomplete($params, $client) {
-  $search_term = $params['searchTerm'];
-  $lang        = '';
-  if( isset( $params['lang'] ) ) {
-    $lang = $params['lang'];
-  }
-  $orgType     = '';
-  if( isset( $params['orgType'] ) ) {
-    $orgType = $params['orgType'];
-  }
-
-  // Search using the autocomplete endpoint
-  $keywords = $search_term ;
-  $language = !empty($lang) ? $lang : "en";
-
-  // Autocomplete is limited to 100 results total.
-  $max_results = 100; // TODO: Handle edge case where there are more than 100 results and 
-                      // we need to filter by a specific org type, thus they wouldn't all show
-  $autocomplete_results = $client->get('/search/autocomplete', [
-    'query' => [
-      // Autocomplete lookup query, can filter based on name, membership number, email etc.
-      'query' => $keywords,
-      // Skip side-loading of people for faster request time.
-      // 'include' => '',
-      'fields' => [
-        'organizations' => 'legal_name_en,legal_name_fr,type'
-      ],
-      'filter' => [
-        // Limit autocomplete results to only organization resources
-        'resource_type' => 'organizations',
-      ],
-      'page' => [
-        'size' => $max_results
-      ]
-    ]
-  ]);
-
-  $return = [];
-  foreach ($autocomplete_results['included'] as $result) {
-    $tmp = [];
-    if( isset( $result['attributes']['type'] ) && !empty( $orgType ) ) {
-      $result_type = $result['attributes']['type'];
-      //wicket_write_log($result_type . ' vs ' . $orgType);
-      if( $result_type != $orgType ) {
-        //wicket_write_log('Skipped');
-        // Skip this record if an org type filter was passed to this endpoint
-        // and it doesn't match
-        continue;
-      }
-    }
-    $tmp['name'] = $result['attributes']['legal_name_'.$language];
-    $tmp['type'] = $result['attributes']['type'];
-    $tmp['id'] = $result['id'];
-    $return[] = $tmp;
-  }
-
-  return $return;
-}
-// Broken out helper function for wicket_internal_endpoint_search_orgs()
-function wicket_internal_endpoint_search_orgs_full($params, $client) {
-  $search_term = $params['searchTerm'];
-  $lang        = '';
-  if( isset( $params['lang'] ) ) {
-    $lang = $params['lang'];
-  }
-
-  $args = [
-    'sort' => 'legal_name',
-    'page' => [
-      'size' => 10,
-    ],
-  ];
-
-  $args['filter']['keywords']['term'] = $search_term;
-  if( !empty( $lang ) ) {
-    $args['filter']['keywords']['fields'] = "legal_name_$lang";
-  } else {
-    $args['filter']['keywords']['fields'] = 'legal_name';
-  }
-
-  // replace query string page[0] and page[1] etc. with page[] since ruby doesn't like it
-  $args = preg_replace('/\%5B\d+\%5D/', '%5B%5D', http_build_query($args));
-
-  try {
-    $search_organizations = $client->get('search/organizations?' . $args);
-  } catch (\Exception $e) {
-    wicket_write_log($e->getMessage());
-    //wp_send_json_error( $e->getMessage() );
-    return false;
-  }
-
-  $results = [];
-
-  if ($search_organizations['meta']['page']['total_items'] > 0) {
-    foreach ($search_organizations['data'] as $result) {
-      $address1 = '';
-      $city = '';
-      $zip_code = '';
-      $state_name = '';
-      $country_code = '';
-      $web_address = '';
-      $org_memberships = '';
-      $tel = '';
-
-      /**------------------------------------------------------------------
-       * Get Primary Address
-      ------------------------------------------------------------------*/
-      foreach ($result['attributes']['organization']['addresses'] as $addresses) {
-        if ($addresses['primary'] == 1) {
-          $address1 = (isset($addresses["address1"])) ? $addresses["address1"] : '';
-          $city = (isset($addresses["city"])) ? $addresses["city"] : '';
-          $zip_code = (isset($addresses["zip_code"])) ? $addresses["zip_code"] : '';
-          $state_name = (isset($addresses["state_name"])) ? $addresses["state_name"] : '';
-          $country_code = (isset($addresses["country_code"])) ? $addresses["country_code"] : '';
-        }
-      }
-
-      /**------------------------------------------------------------------
-       * Get Primary Phone Number
-      ------------------------------------------------------------------*/
-      foreach ($result['attributes']['organization']['phones'] as $phone) {
-        if ($phone['primary'] == 1) {
-          $tel = $phone['number'];
-        }
-      }
-
-      /**------------------------------------------------------------------
-       * Get org website
-      ------------------------------------------------------------------*/
-      foreach ($result['attributes']['organization']['web_addresses'] as $web_addresses) {
-        if ($web_addresses['type'] == 'website') {
-          $web_address = $web_addresses['address'];
-        }
-      }
-
-      /**------------------------------------------------------------------
-       * Get org memberships
-      ------------------------------------------------------------------*/
-      $org_memberships = wicket_get_org_memberships($result['id']);
-
-      $has_active_membership = false;
-      if( !empty( $org_memberships ) ) {
-        foreach( $org_memberships as $membership ) {
-          if( isset( $membership['membership'] ) ) {
-            if( isset( $membership['membership']['attributes'] ) ) {
-              if( isset( $membership['membership']['attributes']['active'] ) ) {
-                if( $membership['membership']['attributes']['active'] ) {
-                  $has_active_membership = true;
-                }
-              }
-            }
-          }
-        } 
-      }  
-
-      $results[$result['id']]['id'] = $result['id'];
-      $results[$result['id']]['name'] = $result['attributes']['organization']['legal_name'];
-      $results[$result['id']]['address1'] = $address1;
-      $results[$result['id']]['city'] = $city;
-      $results[$result['id']]['zip_code'] = $zip_code;
-      $results[$result['id']]['state_name'] = $state_name;
-      $results[$result['id']]['country_code'] = $country_code;
-      $results[$result['id']]['web_address'] = $web_address;
-      $results[$result['id']]['org_memberships'] = $org_memberships;
-      $results[$result['id']]['phone'] = $tel;
-      $results[$result['id']]['active_membership'] = $has_active_membership;
-    }
-  }
-
-  return $results;
 }
 
 /**
