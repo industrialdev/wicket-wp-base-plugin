@@ -1,15 +1,15 @@
 :root {
-	--wicket-ac-danger-100: #DC3545;
-	--wicket-ac-danger-020: #F5C2C7;
-	--wicket-ac-success-100: #198754;
-	--wicket-ac-success-020: #D1E7DD;
+	--wicket-ac-danger-100: var(--state-error, #DC3545);
+	--wicket-ac-danger-020: var(--state-error-light, #F5C2C7);
+	--wicket-ac-success-100: var(--state-success, #198754);
+	--wicket-ac-success-020: var(--state-success-light, #D1E7DD);
 }
 
 .wicket-base-plugin-form {
 
   .alert {
-    border-left: solid 4px;
-    padding: 20px 15px;
+    border-left: solid var(--border-alert, 4px);
+    padding: var(--space-250, 20px 15px);
     margin-bottom: 40px;
 
     &.alert-danger {

@@ -303,6 +303,11 @@
 .mb-4 {
     margin-bottom: 1rem
 }
+.me-2 {
+    -webkit-margin-end: 0.5rem;
+    -moz-margin-end: 0.5rem;
+    margin-inline-end: 0.5rem
+}
 .ml-4 {
     margin-left: 1rem
 }
@@ -317,6 +322,11 @@
 }
 .mr-5 {
     margin-right: 1.25rem
+}
+.ms-2 {
+    -webkit-margin-start: 0.5rem;
+    -moz-margin-start: 0.5rem;
+    margin-inline-start: 0.5rem
 }
 .mt-1 {
     margin-top: 0.25rem
@@ -1830,11 +1840,6 @@
     -moz-text-decoration-line: underline;
     text-decoration-line: underline
 }
-.group:hover .group-hover\:no-underline {
-    -webkit-text-decoration-line: none;
-    -moz-text-decoration-line: none;
-    text-decoration-line: none
-}
 .group:focus .group-focus\:underline {
     -webkit-text-decoration-line: underline;
     -moz-text-decoration-line: underline;
@@ -2067,6 +2072,9 @@
     }
     .lg\:gap-4 {
         gap: 1rem
+    }
+    .lg\:gap-\[--space-150\] {
+        gap: var(--space-150)
     }
     .lg\:gap-x-4 {
         -webkit-column-gap: 1rem;
