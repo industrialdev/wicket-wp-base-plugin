@@ -63,7 +63,10 @@ function woocommerce_order_touchpoint($order_id) {
   $products_link = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
   $details  = "Order Total: $currency_symbol $order_total $currency_code <br>";
   $details .= "Order Status: ".ucwords($order_status)." <br>";
-  $details .= "Product(s) Ordered: $products_link";
+  // we do not have the products available when the order is pending for some reason, so don't try and write them if it's pending
+  if ($order_status != 'pending') {
+    $details .= "Product(s) Ordered: $products_link";
+  }
 
   // ---------------------------------------------------------------------------------------
   // build data of touchpoint
