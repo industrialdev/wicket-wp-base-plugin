@@ -11,11 +11,18 @@ $taxonomies       = $args['taxonomies'];
 $post_types       = $args['post_types'];
 $hide_date_filter = $args['hide_date_filter'];
 $classes[]        = 'component-filter-form';
+
+if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
+	$classes = array_merge( $classes, [ 'py-4', 'px-4', 'lg:py-8', 'lg:px-0', 'lg:pr-3' ] );
+}
+
 ?>
 
 <div x-data="{showFilters: <?php echo wp_is_mobile() ? 'false' : 'true' ?>}"
-	class="py-4 px-4 lg:py-8 lg:px-0 lg:pr-3 <?php echo implode( ' ', $classes ) ?>">
-	<div class="flex items-center justify-between gap-3" @click="showFilters = !showFilters">
+	class="<?php echo implode( ' ', $classes ) ?>">
+	<div
+		class="flex items-center justify-between gap-3 component-filter-form__top" @click="showFilters = !showFilters"
+		:class="showFilters ? 'open' : 'closed'" >
 		<span class="flex items-center gap-3">
 			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<path
@@ -23,7 +30,7 @@ $classes[]        = 'component-filter-form';
 					fill="#232A31" />
 			</svg>
 
-			<span class="text-heading-xs font-bold">
+			<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__heading' : 'text-heading-xs font-bold' ?>">
 				<?php echo __( 'Refine Results', 'wicket' ); ?>
 			</span>
 		</span>
@@ -46,24 +53,26 @@ $classes[]        = 'component-filter-form';
 
 	</div>
 
-	<div <?php if ( wp_is_mobile() ) : ?>x-show="showFilters" <?php endif; ?> class="mt-8">
+	<div 
+		<?php if ( wp_is_mobile() ) : ?>x-show="showFilters" <?php endif; ?>
+		class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__group' : 'mt-8' ?>" >
 		<?php if ( ! empty($post_types) ) : ?>
 			<?php $post_type_filter_key = 'post_type' ?>
-			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}" class="pb-3 mb-3 border-b border-light-020">
+			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="<?php echo $post_type_filter_key; ?>-dropdown-toggle" type="button"
 					class="flex w-full gap-3 items-center">
-					<span class="font-bold">
+					<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
 						<?php _e( 'Content Types', 'wicket' ); ?>
 					</span>
 					<span class="ml-auto">
 						<template x-if="selectedItemsCount">
-							<span x-text="`(${selectedItemsCount})`" class="font-bold text-dark-070 mr-3"></span>
+							<span x-text="`(${selectedItemsCount})`" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
 						</template>
 						<template x-if="open">
-							<i class="fas fa-caret-up"></i>
+							<i class="fas fa-caret-up component-filter-form__collapse-icon"></i>
 						</template>
 						<template x-if="!open">
-							<i class="fas fa-caret-down"></i>
+							<i class="fas fa-caret-down component-filter-form__expand-icon"></i>
 						</template>
 					</span>
 				</button>
@@ -100,7 +109,7 @@ $classes[]        = 'component-filter-form';
 						endforeach; ?>
 					</ul>
 					<?php if ( count( $post_types ) > 5 ) : ?>
-						<button class="underline" type="button" @click="showAll = !showAll">
+						<button class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__see-more' : 'underline' ?>" type="button" @click="showAll = !showAll">
 							<template x-if="showAll">
 								<span>
 									<?php echo __( 'See Less', 'wicket' ) ?>
@@ -123,10 +132,10 @@ $classes[]        = 'component-filter-form';
 			$taxonomy_obj = get_taxonomy( $taxonomy['slug'] );
 			$terms        = ! is_wp_error( get_terms( $taxonomy['slug'] ) ) ? get_terms( $taxonomy['slug'] ) : [];
 			?>
-			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}" class="pb-3 mb-3 border-b border-light-020">
+			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="<?php echo $taxonomy['slug']; ?>-dropdown-toggle" type="button"
 					class="flex w-full gap-3 items-center">
-					<span class="font-bold">
+					<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
 						<?php echo $taxonomy_obj->labels->singular_name; ?>
 					</span>
 					<?php if ( $taxonomy['tooltip'] ) {
@@ -137,13 +146,13 @@ $classes[]        = 'component-filter-form';
 					} ?>
 					<span class="ml-auto">
 						<template x-if="selectedItemsCount">
-							<span x-text="`(${selectedItemsCount})`" class="font-bold text-dark-070 mr-3"></span>
+							<span x-text="`(${selectedItemsCount})`" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
 						</template>
 						<template x-if="open">
-							<i class="fas fa-caret-up"></i>
+							<i class="fas fa-caret-up component-filter-form__collapse-icon"></i>
 						</template>
 						<template x-if="!open">
-							<i class="fas fa-caret-down"></i>
+							<i class="fas fa-caret-down component-filter-form__expand-icon"></i>
 						</template>
 					</span>
 
@@ -182,7 +191,7 @@ $classes[]        = 'component-filter-form';
 						endforeach; ?>
 					</ul>
 					<?php if ( count( $terms ) > 5 ) : ?>
-						<button class="underline" type="button" @click="showAll = !showAll">
+						<button class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__see-more' : 'underline' ?>" type="button" @click="showAll = !showAll">
 							<template x-if="showAll">
 								<span>
 									<?php echo __( 'See Less', 'wicket' ) ?>
@@ -201,17 +210,17 @@ $classes[]        = 'component-filter-form';
 		endforeach; ?>
 
 		<?php if ( ! $hide_date_filter ) : ?>
-			<div x-data="{open: true}" class="date-range-controls pb-3 mb-3 border-b border-light-020">
+			<div x-data="{open: true}" class="date-range-controls <?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="date-dropdown-toggle" type="button" class="flex w-full gap-3 items-center">
-					<span class="font-bold">
+					<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
 						<?php echo __( 'Date Range', 'wicket' ); ?>
 					</span>
 					<span class="ml-auto">
 						<template x-if="open">
-							<i class="fas fa-caret-up"></i>
+							<i class="fas fa-caret-up component-filter-form__collapse-icon"></i>
 						</template>
 						<template x-if="!open">
-							<i class="fas fa-caret-down"></i>
+							<i class="fas fa-caret-down component-filter-form__expand-icon"></i>
 						</template>
 					</span>
 				</button>
@@ -222,17 +231,17 @@ $classes[]        = 'component-filter-form';
 						$end_date   = isset( $_GET['end_date'] ) ? $_GET['end_date'] : '';
 						?>
 						<div class="group relative mb-3">
-							<label for="start_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
+							<label for="start_date" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
 								<?php echo __( 'From:', 'wicket' ); ?>
 							</label>
-							<input id="start_date" class="w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100"
+							<input id="start_date" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
 								type="date" name="start_date" value="<?php echo $start_date; ?>">
 						</div>
 						<div class="group relative">
-							<label for="end_date" class="font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4">
+							<label for="end_date" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
 								<?php echo __( 'To:', 'wicket' ); ?>
 							</label>
-							<input id="end_date" class="w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100" type="date"
+							<input id="end_date" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>" type="date"
 								name="end_date" value="<?php echo $end_date; ?>">
 						</div>
 					</div>
@@ -241,13 +250,13 @@ $classes[]        = 'component-filter-form';
 		<?php endif; ?>
 
 		<?php
-		get_component( 'button', [ 
-			'variant'  => 'primary',
-			'label'    => __( 'Apply Filters', 'wicket' ),
-			'reversed' => $reversed,
-			'type'     => 'submit',
-			'classes'  => [ 'mt-4' ],
-		] );
+			get_component( 'button', [ 
+				'variant'  => 'primary',
+				'label'    => __( 'Apply Filters', 'wicket' ),
+				'reversed' => $reversed,
+				'type'     => 'submit',
+				'classes'  => defined( 'WICKET_WP_THEME_V2' ) ? [ 'component-filter-form__submit' ] : [ 'mt-4' ],
+			] );
 		?>
 
 		<div>
@@ -257,10 +266,17 @@ $classes[]        = 'component-filter-form';
 					$clear_all_url .= '?s=';
 				}
 			?>
-			<a href="<?php echo $clear_all_url; ?>" class="mt-3 !p-1 button inline-flex button--ghost">
-				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
-				<?php echo __( 'Clear All', 'wicket' ); ?>
-			</a>
+
+			<?php
+				get_component( 'button', [ 
+					'variant'  		=> 'ghost',
+					'label'    		=> __( 'Clear All', 'wicket' ),
+					'a_tag'    		=> true,
+					'prefix_icon' => 'fa-solid fa-xmark',
+					'href'    		=> $clear_all_url,
+					'classes'  		=> defined( 'WICKET_WP_THEME_V2' ) ? [ 'component-filter-form__clear-btn' ] : [ 'mt-3' ],
+				] );
+			?>
 		</div>
 
 	</div>
