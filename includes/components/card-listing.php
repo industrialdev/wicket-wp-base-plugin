@@ -40,7 +40,12 @@ $link_label                = $args['link_label'];
 $helper_link               = $args['helper_link'];
 $hide_document_format_icon = $args['hide_document_format_icon'];
 
-$classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	$classes[] = 'component-card-listing';
+} else {
+	$classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
+}
+
 $classes[] = 'component-card-listing--' . $post_type;
 
 if ( $featured_image ) {
@@ -49,9 +54,9 @@ if ( $featured_image ) {
 ?>
 
 <div class="<?php echo implode( ' ', $classes ) ?>">
-	<div class="flex-auto">
+	<div class="flex-auto component-card-listing__content">
 		<?php if ( $member_only ) { ?>
-			<div class="component-card-listing__member-only absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__member-only' : 'component-card-listing__member-only absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2' ?>">
 				<?php get_component( 'tag', [ 
 					'label' => __( 'Members Only', 'wicket' ),
 					'icon'  => 'fa-regular fa-lock',
@@ -60,39 +65,38 @@ if ( $featured_image ) {
 			</div>
 		<?php } ?>
 
-
 		<?php if ( $content_type ) { ?>
-			<div class="component-card-listing__content-type text-dark-070 uppercase font-bold mb-3">
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__content-type' : 'component-card-listing__content-type text-dark-070 uppercase font-bold mb-3' ?>">
 				<?php echo $content_type; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $title && $link_type == 'title' ) { ?>
 			<a href="<?php echo $link['url'] ?>" <?php $link['target'] === '_blank' ? 'target="_blank"' : '' ?>
-				class="component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg">
+				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__title' : 'component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg' ?>">
 				<?php echo $title; ?>
 			</a>
 		<?php } else if ( $title ) { ?>
-				<div class="component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg">
+				<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__title' : 'component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 text-[18px] lg:text-body-lg' ?>">
 				<?php echo $title; ?>
 				</div>
 		<?php } ?>
 
 		<?php if ( $excerpt ) { ?>
-			<div class="component-card-listing__excerpt leading-6 mb-3">
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__excerpt' : 'component-card-listing__excerpt leading-6 mb-3' ?>">
 				<?php echo $excerpt; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $date ) { ?>
-			<div class="component-card-listing__date text-body-sm text-dark-070 italic mb-3">
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__date' : 'component-card-listing__date text-body-sm text-dark-070 italic mb-3' ?>">
 				<?php echo $date; ?>
 			</div>
 		<?php } ?>
 
 		<?php if ( $helper_link ) {
 			get_component( 'button', [ 
-				'variant'            => '',
+				'variant'     			 => 'primary',
 				'label'              => $helper_link['title'],
 				'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
 				'a_tag'              => true,
@@ -105,7 +109,7 @@ if ( $featured_image ) {
 
 		<?php if ( $document ) {
 			get_component( 'button', [ 
-				'variant'     => '',
+				'variant'     => 'secondary',
 				'link'        => $document,
 				'label'       => $download_label,
 				'a_tag'       => true,
@@ -148,8 +152,8 @@ if ( $featured_image ) {
 	<?php } ?>
 
 	<?php if ( $document && ! $hide_document_format_icon ) { ?>
-		<div class="flex-none md:basis-[90px] ">
-			<div class="flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]">
+		<div class="flex-none md:basis-[90px] component-card-listing__file-icon-wrap">
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__file-icon' : 'flex items-center justify-center h-full px-8 py-4 rounded-100 bg-light-010 text-[32px]' ?>">
 				<?php get_component( 'icon', [ 
 					'icon' => 'fa-regular fa-file-lines',
 					'text' => $download_label,
