@@ -29,7 +29,7 @@ $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' 
 		] ); ?>
 		<input type="search" id="<?php echo $url_param; ?>" name="<?php echo $url_param; ?>"
 			value="<?php echo isset( $_GET[ $url_param ] ) ? $_GET[ $url_param ] : ''; ?>"
-			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full" />
+			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full h-full" />
 	</div>
 
 	<?php
