@@ -4,6 +4,10 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-10-10 - CoulterPeterson
+ * 
+ * Added 'no_results_found_message' param so the no results found message can be overriden.
+ * 
  * 2024-07-30 - CoulterPeterson
  * 
  * Added grant_org_editor_on_select param to component.
@@ -117,6 +121,7 @@ $defaults  = array(
   'key'                                           => rand(0,99999999),
   'org_term_singular'                             => '',
   'org_term_plural'                               => '',
+  'no_results_found_message'                      => '',
   'disable_create_org_ui'                         => false,
   'disable_selecting_orgs_with_active_membership' => false,
   'grant_roster_man_on_purchase'                  => false,
@@ -135,6 +140,7 @@ $checkboxIdNewOrg                              = $args['checkbox_id_new_org'];
 $key                                           = $args['key'];
 $orgTermSingular                               = $args['org_term_singular'];
 $orgTermPlural                                 = $args['org_term_plural'];
+$noResultsFoundMessage                         = $args['no_results_found_message'];
 $disable_create_org_ui                         = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
@@ -157,6 +163,9 @@ if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) {
 }
 $orgTermPluralCap              = ucfirst(strtolower( $orgTermPlural ));
 $orgTermPluralLower            = strtolower( $orgTermPlural );
+if( empty($noResultsFoundMessage) ) {
+  $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.'), $orgTermPluralLower);
+}
 
 $current_person_uuid = wicket_current_person_uuid();
 
@@ -332,7 +341,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
      <div class="orgss-results">
       <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
         <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-md py-4">
-          Sorry, no <?php echo $orgTermPluralLower; ?> match your search. Please try again.
+          <?php echo $noResultsFoundMessage; ?>
         </div>
 
         <template x-for="(result, uuid) in results" x-cloak>
