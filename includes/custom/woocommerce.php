@@ -34,3 +34,15 @@ function allow_admin_to_pay_for_order(){
   $administrator->add_cap( 'pay_for_order' );
 }
 add_action('init', 'allow_admin_to_pay_for_order');
+
+// Allow draft status to be editable
+// Ref: https://stackoverflow.com/a/68256196
+function wicket_filter_wc_order_is_editable( $editable, $order ) {
+  // Compare
+  if ( $order->get_status() == 'checkout-draft' ) {
+      $editable = true;
+  }
+  
+  return $editable;
+}
+add_filter( 'wc_order_is_editable', 'wicket_filter_wc_order_is_editable', 10, 2 );
