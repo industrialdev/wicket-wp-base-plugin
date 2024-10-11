@@ -166,7 +166,7 @@ $orgTermPluralLower            = strtolower( $orgTermPlural );
 if( empty($noResultsFoundMessage) ) {
   $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.', 'wicket'), $orgTermPluralLower);
 } else {
-  $noResultsFoundMessage = sprintf(__('%s', 'wicket'), $orgTermPluralLower);
+  $noResultsFoundMessage = __($noResultsFoundMessage, 'wicket');
 }
 
 $current_person_uuid = wicket_current_person_uuid();
