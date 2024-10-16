@@ -3,20 +3,31 @@
 // ---------------------------------------------------------------------------------------
 // setup order hooks. We need both since status changed only runs for existing orders
 // ---------------------------------------------------------------------------------------
-add_action('woocommerce_order_status_changed', 'woocommerce_order_touchpoint');
-add_action('woocommerce_new_order', 'woocommerce_order_touchpoint');
+add_action('woocommerce_order_status_changed', 'woocommerce_order_touchpoint', 9999);
+add_action('woocommerce_new_order', 'woocommerce_order_touchpoint', 9999, 2);
 
-function woocommerce_order_touchpoint($order_id) {
+function woocommerce_order_touchpoint($order_id, $order = null) {
 
   // ---------------------------------------------------------------------------------------
-  // load order and get the user attached to it so we can write the touchpoint against them
+  // Load the order if we need to. It comes with woocommerce_new_order but not woocommerce_order_status_changed.
+  // This is important because if we try to just load the order using wc_get_order for new orders, the line items aren't yet available for pending status.
+  // Also get the user attached to the order so we can write the touchpoint against them
   // ---------------------------------------------------------------------------------------
-  $order           = wc_get_order($order_id);
+  $order           = $order ?? wc_get_order($order_id);
   $order_user      = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid = $order_user->user_login;
 
   // ---------------------------------------------------------------------------------------
-  // load needed order info
+  // Do not run for subscriptions, which are also considered orders kinda. 
+  // We were getting duplicate touchpoints and it seemed that the hooks above were also running
+  // for subscriptions, likely the woocommerce_new_order one?
+  // ---------------------------------------------------------------------------------------
+  if (get_class($order) == 'WC_Subscription') {
+    return;
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // Load needed order info
   // ---------------------------------------------------------------------------------------
   $order_id             = $order->id;
   $order_status         = $order->status;
@@ -27,7 +38,7 @@ function woocommerce_order_touchpoint($order_id) {
   $currency_symbol      = get_woocommerce_currency_symbol( $currency_code );
 
   // ---------------------------------------------------------------------------------------
-  // build action of touchpoint
+  // Build action of touchpoint
   // ---------------------------------------------------------------------------------------
   $action_map = [
     'completed'  => "Order Marked Completed",
@@ -42,7 +53,7 @@ function woocommerce_order_touchpoint($order_id) {
   $action = $action_map[$order_status];
   
   // ---------------------------------------------------------------------------------------
-  // build details of touchpoint
+  // Build details of touchpoint
   // ---------------------------------------------------------------------------------------
   $line_item_meta = [];
   $products_list  = [];
@@ -64,12 +75,12 @@ function woocommerce_order_touchpoint($order_id) {
   $details  = "Order Total: $currency_symbol $order_total $currency_code <br>";
   $details .= "Order Status: ".ucwords($order_status)." <br>";
   // we do not have the products available when the order is pending for some reason, so don't try and write them if it's pending
-  if ($order_status != 'pending') {
+  // if ($order_status != 'pending') {
     $details .= "Product(s) Ordered: $products_link";
-  }
+  // }
 
   // ---------------------------------------------------------------------------------------
-  // build data of touchpoint
+  // Build data of touchpoint
   // ---------------------------------------------------------------------------------------
   $data = [
     'OrderID'             => $order_id,
@@ -83,7 +94,7 @@ function woocommerce_order_touchpoint($order_id) {
   ];
 
   // ---------------------------------------------------------------------------------------
-  // build touchpoint params
+  // Build touchpoint params
   // ---------------------------------------------------------------------------------------
   $params = [
     'person_id' => $order_user_uuid,
