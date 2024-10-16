@@ -202,7 +202,14 @@ class wicket_update_password extends WP_Widget {
 			</div>
 
 		  <input type="hidden" name="wicket_update_password" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
-			<input class="button button--primary" type="submit" value="<?php _e('Change password') ?>">
+			
+			<?php
+				get_component( 'button', [ 
+					'label'    => __('Change password'),
+					'type'    => 'submit',
+					'variant' => 'primary'
+				] );
+			?>
 		</form>
 		<?php
 	}

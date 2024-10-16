@@ -369,7 +369,14 @@ class wicket_create_account extends WP_Widget
 				<div class="g-recaptcha" data-sitekey="<?php echo $recaptcha_key ?>"></div>
 			<?php endif; ?>
 			<input type="hidden" name="wicket_create_account" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
-			<input class="button button--primary" type="submit" value="<?php _e('Submit', 'wicket') ?>">
+
+			<?php
+				get_component( 'button', [ 
+					'label'    => __('Submit', 'wicket'),
+					'type'    => 'submit',
+					'variant' => 'primary'
+				] );
+			?>
 		</form>
 	</div>
 <?php

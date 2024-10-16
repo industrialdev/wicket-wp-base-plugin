@@ -416,19 +416,26 @@ footer .menu-item > a[target=_blank]:after {
 .wicket-base-plugin-form .alert ul li {
   text-decoration: underline;
 }
+.wicket-base-plugin-form .manage_password_form .form__group small {
+  font-size: var(--body-sm-font-size, 80%);
+  color: var(--text-content-secondary);
+}
+.wicket-base-plugin-form .manage_password_form .g-recaptcha {
+  margin-bottom: var(--space-400, 23px);
+}
 .wicket-base-plugin-form .manage_password_form .form__label {
   display: block;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.5rem;
-  margin-bottom: 6px;
+  font-size: var(--form-label-font-size, 1rem);
+  font-weight: var(--form-label-font-weight, 700);
+  line-height: var(--form-label-line-height, 1.5rem);
+  margin-bottom: var(--space-050, 6px);
 }
 .wicket-base-plugin-form .manage_password_form .form__label span.required {
   color: var(--wicket-ac-danger-100);
 }
 .wicket-base-plugin-form .manage_password_form .form__input {
   width: 100%;
-  margin-bottom: 23px;
+  margin-bottom: var(--space-400, 23px);
 }
 .wicket-base-plugin-form .manage_password_form .form__input.error_input {
   border-color: var(--wicket-ac-danger-100);

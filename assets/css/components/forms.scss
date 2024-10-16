@@ -32,22 +32,33 @@
     }
   }
 
-    .manage_password_form {
-    .form__label {
-        display: block;
-        font-size: 1rem;
-        font-weight: 700;
-        line-height: 1.5rem;
-        margin-bottom: 6px;
-
-        span.required {
-          color: var(--wicket-ac-danger-100);
-        }
+  .manage_password_form {
+    .form__group {
+      small {
+        font-size: var(--body-sm-font-size, 80%);
+        color: var(--text-content-secondary);
       }
+    }
+
+    .g-recaptcha {
+      margin-bottom: var(--space-400, 23px);
+    }
+
+    .form__label {
+      display: block;
+      font-size: var(--form-label-font-size, 1rem);
+      font-weight: var(--form-label-font-weight, 700);
+      line-height: var(--form-label-line-height, 1.5rem);
+      margin-bottom: var(--space-050, 6px);
+
+      span.required {
+        color: var(--wicket-ac-danger-100);
+      }
+    }
 
     .form__input {
       width: 100%;
-      margin-bottom: 23px;
+      margin-bottom: var(--space-400, 23px);
 
       &.error_input {
         border-color: var(--wicket-ac-danger-100);
