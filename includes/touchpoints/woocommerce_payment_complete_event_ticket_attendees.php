@@ -61,8 +61,7 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
   // Also add the person buying the ticket (not an attendee technically) to the attendees array
   // so we can write a touchpoint for them as well
   // ----------------------------------------------------------------------------------------
-  $order_has_event = $order->get_meta('_tribe_has_tickets');
-  if ($order_has_event) {
+  if ($event_info) {
     $order_user = get_user_by('id', $order->get_customer_id());
     $temp = [];
     $temp['name'] = $order_user->first_name ?? '';
