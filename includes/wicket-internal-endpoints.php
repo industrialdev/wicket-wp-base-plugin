@@ -253,7 +253,7 @@ function wicket_internal_endpoint_create_relationship( $request ) {
       'attributes' => [
         'connection_type'   => $relationshipType,
         'type'              => $userRoleInRelationship,
-        'starts_at'         => null,
+        'starts_at'         => date('Y-m-d'),
         'ends_at'           => null,
         'description'       => null,
         'tags'              => [],
