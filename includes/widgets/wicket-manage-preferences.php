@@ -132,7 +132,14 @@ class wicket_preferences extends WP_Widget {
 			</div>
 
 			<input type="hidden" name="wicket_preferences" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
-			<input class="button button--primary" type="submit" value="<?php _e('Update Preferences') ?>">
+
+			<?php
+				get_component( 'button', [ 
+					'label'    => __('Update Preferences'),
+					'type'    => 'submit',
+					'variant' => 'primary'
+				] );
+			?>
 		</form>
 		<?php
 	}
