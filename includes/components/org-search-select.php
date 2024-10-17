@@ -278,7 +278,21 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
           x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
         >
         
-        <div class="current-org-listing-left">
+        <div class="current-org-listing-left" x-data="{
+          description: connection.org_description,
+          cutoffLength: 70,
+
+          init() {
+            // Truncate the description
+            if(this.description) {
+              let addElipses = this.description.length > this.cutoffLength;
+              this.description = this.description.substring(0, this.cutoffLength);
+              if(addElipses) {
+                this.description = this.description.trim() + '...';
+              }
+            }
+          },
+        }">
             <div class="font-bold text-body-xs" x-text="connection.org_type_pretty"></div>
             <div class="flex mb-2 items-center">
               <div x-text="connection.org_name" class="font-bold text-body-sm mr-5"></div>
@@ -296,7 +310,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               </div>
             </div>
             <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
-            <div x-text="connection.org_description"></div>
+            <div x-text="description"></div>
           </div>
           <div class="current-org-listing-right flex items-center">
             <div>
