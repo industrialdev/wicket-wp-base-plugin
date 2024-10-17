@@ -687,6 +687,9 @@
     -ms-flex-pack: justify;
     justify-content: space-between
 }
+.gap-1 {
+    gap: 0.25rem
+}
 .gap-10 {
     gap: 2.5rem
 }
@@ -1194,6 +1197,14 @@
 }
 .leading-normal {
     line-height: 1.6
+}
+.text-\[\#08d608\] {
+    --tw-text-opacity: 1;
+    color: rgb(8 214 8 / var(--tw-text-opacity))
+}
+.text-\[\#A1A1A1\] {
+    --tw-text-opacity: 1;
+    color: rgb(161 161 161 / var(--tw-text-opacity))
 }
 .text-dark-060 {
     --tw-text-opacity: 1;

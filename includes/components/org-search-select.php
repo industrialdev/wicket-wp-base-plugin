@@ -253,7 +253,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
   }
 </style>
 
-<div class="container component-org-search-select relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
+<div class="container component-org-search-select form relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
 
   <?php // Debug log of the selection custom event when fired ?>
 
@@ -265,68 +265,71 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
   </div>
 
-  <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
+  <div class="orgss-search-form <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="font-bold text-body-lg my-3">Your current <?php echo $orgTermPluralLower; ?></h2>
+      <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3' ?>">Your current <?php echo $orgTermPluralLower; ?></h2>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div 
           x-show="connection.connection_type == relationshipMode 
                 && ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )
                 && connection.active_connection" 
-          class="rounded-100 flex justify-between bg-white p-4 mb-3"
-          x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
+          
+          <?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+            class="component-org-search-select__card"
+            x-bind:class="connection.org_id == selectedOrgUuid ? 'component-org-search-select__card--selected' : '' "
+          <?php else : ?>
+            class="rounded-100 flex justify-between bg-white p-4 mb-3"
+            x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
+          <?php endif; ?>
         >
         
         <div class="current-org-listing-left">
-            <div class="font-bold text-body-xs" x-text="connection.org_type_pretty"></div>
-            <div class="flex mb-2 items-center">
-              <div x-text="connection.org_name" class="font-bold text-body-sm mr-5"></div>
+            <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-type' : 'font-bold text-body-xs' ?>" x-text="connection.org_type_pretty"></div>
+            <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__card-top-header' : 'flex mb-2 items-center' ?>">
+              <div x-text="connection.org_name" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-name' : 'font-bold text-body-sm mr-5' ?>"></div>
               <div>
                 <template x-if="connection.active_membership">
-                  <div>
-                    <i class="fa-solid fa-circle" style="color:#08d608;"></i> <span class="text-body-xs">Active Membership</span>
+                  <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__active-membership-label' : '' ?>" >
+                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#08d608]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>">Active Membership</span>
                   </div>
                 </template>
                 <template x-if="! connection.active_membership">
-                  <div>
-                    <i class="fa-solid fa-circle" style="color:#A1A1A1;"></i> <span class="text-body-xs">Inactive Membership</span>
+                  <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__inactive-membership-label' : '' ?>" >
+                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#A1A1A1]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>">Inactive Membership</span>
                   </div>
                 </template>
               </div>
             </div>
-            <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
-            <div x-text="connection.org_description"></div>
+            <div x-show="connection.org_parent_name.length > 0" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-parent-name' : 'mb-3' ?>" x-text="connection.org_parent_name"></div>
+            <div x-text="connection.org_description" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-description' : '' ?>" ></div>
           </div>
-          <div class="current-org-listing-right flex items-center">
-            <div>
-              <?php get_component( 'button', [ 
-                'variant'  => 'primary',
-                'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
-                'type'     => 'button',
-                'classes'  => [ '' ],
-                'atts'     => [ 
-                  'x-on:click.prevent="selectOrg($data.connection.org_id, $event)"',
-                  'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
-                ]
-              ] ); ?>
-              <?php get_component( 'button', [ 
-                'variant'  => 'primary',
-                'label'    => __( 'Remove', 'wicket' ),
-                'reversed' => true,
-                'suffix_icon' => 'fa-regular fa-trash',
-                'type'     => 'button',
-                'classes'  => [ '' ],
-                'atts'     => [ 'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"', 
-                                'x-show="!hideRemoveButtons"' ]
-              ] ); ?>
-            </div>
+          <div class="current-org-listing-right <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex items-center gap-1' ?>">
+            <?php get_component( 'button', [ 
+              'variant'  => 'primary',
+              'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
+              'type'     => 'button',
+              'classes'  => [ 'whitespace-nowrap' ],
+              'atts'     => [ 
+                'x-on:click.prevent="selectOrg($data.connection.org_id, $event)"',
+                'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
+              ]
+            ] ); ?>
+            <?php get_component( 'button', [ 
+              'variant'  => 'ghost',
+              'label'    => __( 'Remove', 'wicket' ),
+              'suffix_icon' => 'fa-regular fa-trash',
+              'type'     => 'button',
+              'classes'  => [ 'whitespace-nowrap' ],
+              'atts'     => [ 'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"', 
+                              'x-show="!hideRemoveButtons"' ]
+            ] ); ?>
           </div>
         </div>
       </template>
     </div>
     
-    <div class="font-bold text-body-md mb-2" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
+    <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'label' : 'font-bold text-body-md mb-2' ?>" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
@@ -339,21 +342,20 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       ] ); ?>
      </div>
      <div id="orgss_search_message" class="orgss_error" x-cloak x-show="showSearchMessage"></div>
-     <div class="mt-4 mb-1" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
-     <div class="orgss-results">
-      <div class="flex flex-col bg-white px-4 max-h-80 overflow-y-scroll">
-        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak class="flex justify-center items-center w-full text-dark-100 text-body-md py-4">
+     <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-orgs-title' : 'mt-4 mb-1' ?>" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
+     <div class="orgss-results" x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' " >
+      <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__search-container' : 'flex flex-col bg-white px-4 max-h-80 overflow-y-scroll' ?>">
+        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak 
+          class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__no-results' : 'flex justify-center items-center w-full text-dark-100 text-body-md py-4' ?>">
           <?php echo $noResultsFoundMessage; ?>
         </div>
-
         <template x-for="(result, uuid) in results" x-cloak>
           <div
-            class="px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center"
+            class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-org-item' : 'px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center' ?>"
           >
-            <div class="font-bold" x-text="result.name"></div>
+            <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-org-title' : 'font-bold' ?>" x-text="result.name"></div>
             <?php get_component( 'button', [ 
-              'variant'  => 'primary',
-              'reversed' => true,
+              'variant'  => 'secondary',
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ], 
@@ -372,8 +374,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     </div>
   </div>
 
-  <div x-show="firstSearchSubmitted && !disableCreateOrgUi" x-cloak class="orgss-create-org-form mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
-    <div class="font-bold text-body-md mb-2">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
+  <div x-show="firstSearchSubmitted && !disableCreateOrgUi" x-cloak class="orgss-create-org-form <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
+    <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__cant-find-org-title' : 'font-bold text-body-md mb-2' ?>">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
         <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
