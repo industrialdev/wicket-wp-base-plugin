@@ -208,23 +208,29 @@ function wicket_current_person()
 ------------------------------------------------------------------*/
 function wicket_person_has_uuid()
 {
-  $user_id = get_current_user_id();
+  $user_id   = get_current_user_id();
   $user_info = get_userdata($user_id);
+
+  if (!$user_info || !is_object($user_info)) {
+    return false;
+  }
+
   if (is_string($user_info->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user_info->user_login) == 1)) {
     return true;
   }
+
   return false;
 }
 
 /**
  * Used if a user exists in the MDP but not WP, and you need to sync them
  * down on a one-off basis, for example processing an order or for roster management.
- * 
+ *
  * @param string $uuid UUID of their MDP person
  * @param string $first_name (optional) First name override, if needed
  * @param string $last_name  (optional) Last name override, if needed
  * @param string $femail     (optional) Email override, if needed
- * 
+ *
  * @return bool | int        Will return false if there was a problem, and their new
  *                           WP user ID if successful.
  */
@@ -466,17 +472,17 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
 /**
  * For searching organizations by a term when you don't have a specific UUID, likely to display
  * search results on the front end.
- * 
+ *
  * @param String $search_term The query term, e.g. 'My company'
- * @param String $search_by   Currently not used, but can be expanded in the future if we want to 
+ * @param String $search_by   Currently not used, but can be expanded in the future if we want to
  *                            differentiate between searching by org name verses some other attribute
  * @param String $org_type    The org type slug you want to filter results down to. Note that autocomplete will
  *                            filter post-search and full will filter pre-search, as it has that option available.
  * @param Bool $autocomplete  Whether or not to use the autocomplete API or the search API.
  * @param String $lang        Language code to utilize, defaults to 'en'. Not fully implemented, especially in full search.
- * 
+ *
  * @return Bool | Array       False if there was a problem, or an array of the results. The fewer terms suppplied by the autocomplete
- *                            endpoint should also be available in the response from the full search, for consistency in usage of the 
+ *                            endpoint should also be available in the response from the full search, for consistency in usage of the
  *                            function (e.g. both have id, name, and type parameters returned).
  */
 function wicket_search_organizations($search_term, $search_by = 'org_name', $org_type = null, $autocomplete = false, $lang = 'en') {
@@ -485,14 +491,14 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
   } catch (\Exception $e) {
     return false;
   }
-  
+
   if($autocomplete) {
     // --------------------------------------
     // Search using the autocomplete endpoint
     // --------------------------------------
 
     // Autocomplete is limited to 100 results total.
-    $max_results = 100; // TODO: Handle edge case where there are more than 100 results and 
+    $max_results = 100; // TODO: Handle edge case where there are more than 100 results and
                         // we need to filter by a specific org type, thus they wouldn't all show
 
     $autocomplete_results = $client->get('/search/autocomplete', [
@@ -513,7 +519,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         ]
       ]
     ]);
-  
+
     $return = [];
     foreach ($autocomplete_results['included'] as $result) {
       $tmp = [];
@@ -531,8 +537,8 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
       $tmp['id'] = $result['id'];
       $return[] = $tmp;
     }
-  
-    return $return;  
+
+    return $return;
   } else {
     // -----------------------------
     // Full search, non-autocomplete
@@ -625,8 +631,8 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
                 }
               }
             }
-          } 
-        }  
+          }
+        }
 
         $results[$result['id']]['id'] = $result['id'];
         $results[$result['id']]['name'] = $result['attributes']['organization']['legal_name'];
@@ -2047,11 +2053,11 @@ function wicket_get_connection_by_id( $connection_id ) {
 
 /**
  * Adds a tag(s) to an organization.
- * 
+ *
  * @param String $org_uuid
  * @param Mixed $tags could be a single tag as a String, or an
  * array of Strings.
- * 
+ *
  * @return Array payload response from API.
  */
 function wicket_add_tag_organization($org_uuid, $tags) {
@@ -2094,11 +2100,11 @@ function wicket_add_tag_organization($org_uuid, $tags) {
 
 /**
  * Overwrites the tags for an organization.
- * 
+ *
  * @param String $org_uuid
  * @param Mixed $tags could be a single tag as a String, or an
  * array of Strings.
- * 
+ *
  * @return Array payload response from API.
  */
 function wicket_set_tag_organization($org_uuid, $tags) {
@@ -2135,11 +2141,11 @@ function wicket_set_tag_organization($org_uuid, $tags) {
 
 /**
  * Removes a tag(s) from an organization.
- * 
+ *
  * @param String $org_uuid
  * @param Mixed $tags could be a single tag as a String, or an
  * array of Strings.
- * 
+ *
  * @return Array payload response from API.
  */
 function wicket_remove_tag_organization($org_uuid, $tags) {
@@ -2531,7 +2537,7 @@ function get_individual_memberships()
  * -!-!-!-!-!-!-
  * DEPRECATED - Use wicket_update_schema_by_slug() instead as it supports MDP slugs and more than updating persons.
  * -!-!-!-!-!-!-
- * 
+ *
  * Enables writing a single AI value for a person based on a single key/value pair.
  *
  * This function updates a person's data field with a specified key/value pair within a schema.
@@ -2613,24 +2619,24 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
 
 /**
  * Enables writing a single AI value for a person based on a single key/value pair.
- * 
+ *
  * Is essentially a v2 of wicket_update_schema_single_value() but uses *actual MDP-supported slugs and not
  * the old fake ones that would get converted into IDs via an API call, and makes some improvements based on that.
  * This updated version also allows updating both person and organization record types.
- * 
+ *
  * Example usage:
  * ```php
  * wicket_update_schema_by_slug('orgadvocacy', 'fedRiding', "2");
  * wicket_update_schema_by_slug('orginterests', 'interests', ['advocacy'], false, '4b4e4594-70d3-4402-9b33-a528bca82e26', 'org');
  * ```
- * 
+ *
  * @param string $schema_slug      The MDP slug for that schema.
  * @param string $key              The key to update within the schema's value array. Pass null to update multiple values. using $pass_raw_value.
  * @param mixed  $value            The value to set for the specified key, or the custom payload if $pass_raw_value is true.
  * @param bool   $pass_raw_value   (Optional) Set to true to pass a custom payload in $value. Default is false.
  * @param string $target_uuid      (Optional) UUID of the person or org to update. If not passed, will default to current user.
  * @param string $type             (Optional) Type of record to update. Can be set to 'person' or 'org'.
- * 
+ *
  * @return array                   Returns an array with a boolean indicating success, and an error message if failed.
  */
 function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_value = false, $target_uuid = '', $type = 'person') {
