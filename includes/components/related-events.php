@@ -169,7 +169,7 @@ if ( $highlight_featured_posts ) {
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
 					get_component( 'card-event', [ 
-						'classes'      => [ 'p-4', 'mb-4' ],
+						'classes'      => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4', 'mb-4' ],
 						'post_type'    => $post_type,
 						'content_type' => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
 						'title'        => get_the_title( $post_id ),
@@ -210,7 +210,7 @@ if ( $highlight_featured_posts ) {
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
 					get_component( 'card-event', [ 
-						'classes'                    => [ 'p-4' ],
+						'classes'                    => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4' ],
 						'post_id'                    => $post_id,
 						'hide_excerpt'               => $hide_excerpt,
 						'hide_date'                  => $hide_date,

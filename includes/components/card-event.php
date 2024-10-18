@@ -65,7 +65,7 @@ if ( class_exists( 'Tribe__Tickets__Tickets' ) ) {
 		$ticket_price = $ticket_currency . $cheapest_ticket_price . ( $expensive_ticket_price ? ' - ' . $ticket_currency . $expensive_ticket_price : '' );
 
 		if ( ! is_user_logged_in() ) {
-			$login_link = '<a href="' . get_login_url() . '"><span class="font-bold underline">' . __( 'Login to Purchase Ticket', 'woocommerce' ) . '</span> <i class="fa-solid fa-arrow-up-right-from-square"></i></a>';
+			$show_login_link = true;
 		}
 	}
 }
@@ -74,16 +74,24 @@ if ( $show_tags && $tag_taxonomy['taxonomy'] ) {
 	$tags = get_the_terms( $post_id, $tag_taxonomy['taxonomy'] );
 }
 
-$classes[]               = 'component-card-event bg-white flex flex-col gap-4 relative items-start';
-$image_wrapper_classes   = [];
-$title_classes           = [ 'component-card-event__title block text-dark-100 font-bold leading-7 text-heading-xs' ];
-$classes[]               = 'component-card-event--events @2xl:flex-row @md:flex-row @2xl:items-start justify-between';
-$image_wrapper_classes[] = 'component-card-event__image-wrapper @xs:basis-full @lg:basis-3/12 @5xl:basis-5/12';
+$classes[] = 'component-card-event component-card-event--events';
+$title_classes = [ 'component-card-event__title' ];
+$image_wrapper_classes = [ 'component-card-event__image-wrapper' ];
 
-if ( ! $remove_drop_shadow ) {
-	$classes[] = 'shadow-4';
+if ( defined( 'WICKET_WP_THEME_V2' ) ) {
+	if ( ! $remove_drop_shadow ) {
+		$classes[] = 'component-card-event--drop-shadow';
+	}
+} else {
+	$classes[] = 'bg-white flex flex-col gap-4 relative items-start';
+	$classes[] = '@2xl:flex-row @md:flex-row @2xl:items-start justify-between';
+	$title_classes[] = 'block text-dark-100 font-bold leading-7 text-heading-xs';
+	$image_wrapper_classes[] = '@xs:basis-full @lg:basis-3/12 @5xl:basis-5/12';
+
+	if ( ! $remove_drop_shadow ) {
+		$classes[] = 'shadow-4';
+	}
 }
-
 ?>
 
 <div class="@container">
@@ -101,19 +109,19 @@ if ( ! $remove_drop_shadow ) {
 
 		<?php if ( ! $hide_start_date_indicator && $event_day_name ) : ?>
 			<div
-				class="component-card-event__date-indicator bg-dark-100 text-white font-bold text-center uppercase flex @xs:flex-row @xl:flex-col shrink-0 justify-center items-center @xl:w-[70px] @xl:h-[70px] rounded-100 px-2 py-3 gap-2 @xl:gap-0">
-				<div class="component-card-event__date-indicator-day text-heading-xs leading-none">
+				class="component-card-event__date-indicator <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'bg-dark-100 text-white font-bold text-center uppercase flex @xs:flex-row @xl:flex-col shrink-0 justify-center items-center @xl:w-[70px] @xl:h-[70px] rounded-100 px-2 py-3 gap-2 @xl:gap-0' ?>">
+				<div class="component-card-event__date-indicator-day <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-heading-xs leading-none' ?>">
 					<?php echo $event_day_name; ?>
 				</div>
-				<div class="component-card-event__date-indicator-date text-heading-sm leading-none">
+				<div class="component-card-event__date-indicator-date <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-heading-sm leading-none' ?>">
 					<?php echo $event_day_number; ?>
 				</div>
 			</div>
 		<?php endif; ?>
 
-		<div class="component-card-event__content-wrapper flex flex-col grow items-start gap-3">
+		<div class="component-card-event__content-wrapper <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex flex-col grow items-start gap-3' ?>">
 			<?php if ( $event_category ) { ?>
-				<div class="component-card-event__content-type text-dark-070 uppercase font-bold leading-none">
+				<div class="component-card-event__content-type <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-dark-070 uppercase font-bold leading-none' ?>">
 					<?php echo $event_category; ?>
 				</div>
 			<?php } ?>
@@ -125,13 +133,13 @@ if ( ! $remove_drop_shadow ) {
 			<?php } ?>
 
 			<?php if ( $event_start_date ) { ?>
-				<div class="component-card-event__date text-dark-070 font-bold">
+				<div class="component-card-event__date <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-dark-070 font-bold' ?>">
 					<?php echo $event_start_date; ?>
 				</div>
 			<?php } ?>
 
 			<?php if ( $venue_name ) { ?>
-				<div class="component-card-event__date text-dark-070">
+				<div class="component-card-event__venue-name <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-dark-070' ?>">
 					<span class="font-bold"><?php echo $venue_name; ?></span>
 					<?php if ( $venue_address )
 						echo $venue_address ?>
@@ -139,20 +147,28 @@ if ( ! $remove_drop_shadow ) {
 			<?php } ?>
 
 			<?php if ( $excerpt ) { ?>
-				<div class="component-card-event__excerpt leading-6">
+				<div class="component-card-event__excerpt <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'leading-6' ?>">
 					<?php echo $excerpt; ?>
 				</div>
 			<?php } ?>
 
 			<?php if ( $ticket_price ) : ?>
-				<div class="component-card-event__ticket-price text-dark-070">
+				<div class="component-card-event__ticket-price <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-dark-070' ?>">
 					<span class="font-bold"><?php echo __( 'Get Tickets', 'wicket' ); ?></span>
 					<?php echo $ticket_price; ?>
 				</div>
 			<?php endif; ?>
 
-			<?php if ( $login_link ) {
-				echo $login_link;
+			<?php if ( $show_login_link ) {
+				get_component(
+					'link', [
+						'default_link_style' => true,
+						'url'        => get_login_url(),
+						'text'       => __( 'Login to Purchase Ticket', 'woocommerce' ),
+						'icon_end' => [
+							'icon' => 'fa-solid fa-arrow-up-right-from-square',
+						]
+					]);
 			} ?>
 
 			<?php if ( $cta && $link ) {
