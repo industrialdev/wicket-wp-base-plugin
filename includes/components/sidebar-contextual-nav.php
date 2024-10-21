@@ -1,7 +1,7 @@
 <?php
 $defaults  = array(
 	'classes'               => [],
-  'icon-type'             => 'chevrons',
+  'icon-type'             => 'carets',
 );
 $args                              = wp_parse_args( $args, $defaults );
 $icon_type                         = $args['icon-type'];
