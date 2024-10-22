@@ -9,7 +9,7 @@ $args           = wp_parse_args( $args, $defaults );
 $classes        = $args['classes'];
 $reversed       = $args['reversed'];
 $button_variant = $args['button-variant'];
-$classes[]      = 'flex gap-2 list-none p-0 m-0 items-center';
+$classes[]      = defined( 'WICKET_WP_THEME_V2' ) ? 'social-links-v2' : 'flex gap-2 list-none p-0 m-0 items-center';
 $field          = get_field_object( 'social_media_links', 'option' );
 $layouts        = $field['layouts'];
 
