@@ -258,6 +258,7 @@ function wicket_create_wp_user_if_not_exist($uuid, $first_name = null, $last_nam
   $password = wp_generate_password(12, false);
   //$user_id  = wp_create_user($username, $password, $email);
   $user_id  = wp_insert_user([
+    'user_email'   => $email,
     'user_pass'    => $password,
     'user_login'   => $username,
     'display_name' => $first_name . ' ' . $last_name,
