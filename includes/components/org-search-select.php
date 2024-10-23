@@ -331,6 +331,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         <div class="current-org-listing-left" x-data="{
           description: connection.org_description,
           cutoffLength: 70,
+          showOrgParentName: false,
+          orgParentName: '',
 
           init() {
             // Truncate the description
@@ -339,6 +341,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               this.description = this.description.substring(0, this.cutoffLength);
               if(addElipses) {
                 this.description = this.description.trim() + '...';
+              }
+            }
+
+            if(connection.org_parent_name) {
+              if(connection.org_parent_name !== null) {
+                this.showOrgParentName = connection.org_parent_name.length > 0;
+                orgParentName = connection.org_parent_name;
               }
             }
           },
@@ -359,7 +368,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 </template>
               </div>
             </div>
-            <div x-show="connection.org_parent_name.length > 0" class="mb-3" x-text="connection.org_parent_name"></div>
+            <div x-show="showOrgParentName" class="mb-3" x-text="orgParentName"></div>
             <div x-text="description"></div>
           </div>
           <div class="current-org-listing-right flex items-center">
@@ -758,12 +767,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     // Handle error
                   } else {
                     if( data.success ) {
-                      if(userRoleInRelationship.includes(',')) {
-                        // We added multiple relationships, and are getting multiple back,
-                        // but we only need the first one
-                        this.addConnection( data.data[0] );
-                      } else {
+                      if(typeof data.data[0] === 'undefined') {
+                        // A single connection array was returned
                         this.addConnection( data.data );
+                      } else {
+                        // An array of connections was returned
+                        // and we'll use the first one for org info
+                        this.addConnection( data.data[0] );
                       }
                     }
                   }
