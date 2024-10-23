@@ -303,6 +303,9 @@
 .mb-4 {
     margin-bottom: 1rem
 }
+.mb-6 {
+    margin-bottom: 1.5rem
+}
 .ml-4 {
     margin-left: 1rem
 }
@@ -676,6 +679,12 @@
     -webkit-justify-content: space-between;
     -ms-flex-pack: justify;
     justify-content: space-between
+}
+.justify-evenly {
+    -webkit-box-pack: space-evenly;
+    -webkit-justify-content: space-evenly;
+    -ms-flex-pack: space-evenly;
+    justify-content: space-evenly
 }
 .gap-10 {
     gap: 2.5rem

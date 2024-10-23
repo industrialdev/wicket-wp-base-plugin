@@ -4,6 +4,11 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  * 
+ * 2024-10-23 - CoulterPeterson
+ * 
+ * Added 'display_removal_alert_message' toggleable parameter to the component, which controls a 
+ * sanity modal prior to the user removing a relationship.
+ * 
  * 2024-10-10 - CoulterPeterson
  * 
  * Added 'no_results_found_message' param so the no results found message can be overriden.
@@ -127,7 +132,8 @@ $defaults  = array(
   'grant_roster_man_on_purchase'                  => false,
   'grant_org_editor_on_select'                    => false,
   'hide_remove_buttons'                           => false,
-  'hide_select_buttons'                           => false,             
+  'hide_select_buttons'                           => false,  
+  'display_removal_alert_message'                 => false,     
 );
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
@@ -148,6 +154,7 @@ $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purc
 $grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
 $hide_remove_buttons                           = $args['hide_remove_buttons']; 
 $hide_select_buttons                           = $args['hide_select_buttons'];
+$display_removal_alert_message                 = $args['display_removal_alert_message'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -265,6 +272,47 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
     >
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
+  </div>
+
+  <?php // Confirmation Popup ?>
+  <div x-transition x-cloak 
+    class="flex justify-center items-center w-full text-dark-100 py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
+    x-bind:class="showingRemoveConfirmation && removeConfirmationIsEnabled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
+    >
+    <div x-transition class="rounded-150 bg-white border flex items-center flex-col p-5">
+      <div class="flex w-full justify-end mb-4">
+        <button class="font-semibold">Close X</button>
+      </div>
+      <div class="font-semibold">Please confirm you'd like to end your relationship with this Organization</div>
+      <div class="mt-4 mb-6">Any assigned membership with the organization will be inactivated.</div>
+      <div class="flex w-full justify-evenly">
+        <?php get_component( 'button', [ 
+          'variant'  => 'secondary',
+          'reversed' => true,
+          'label'    => __( 'Cancel', 'wicket' ),
+          'type'     => 'button',
+          'atts'  => [ 
+            'x-on:click.prevent="showingRemoveConfirmation = false"',
+          ],
+          'classes' => [
+            'items-center',
+            'justify-center',
+            'w-5/12'
+          ]
+        ] ); ?>
+        <?php get_component( 'button', [ 
+          'variant'  => 'primary',
+          'label'    => __( 'Remove Organization', 'wicket' ),
+          'type'     => 'button',
+          'atts'  => [ 'x-on:click.prevent="terminateRelationship()"' ],
+          'classes' => [
+            'items-center',
+            'justify-center',
+            'w-5/12'
+          ],
+        ] ); ?>
+      </div>
+    </div>
   </div>
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
@@ -428,6 +476,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         Alpine.data('orgss_<?php echo $key; ?>', () => ({
             lang: '<?php echo $lang; ?>',
             isLoading: false,
+            showingRemoveConfirmation: false,
+            removeConfirmationIsEnabled: <?php echo $display_removal_alert_message  ? 'true' : 'false'; ?>,
+            connectionIdSelectedForRemoval: '',
             firstSearchSubmitted: false,
             searchType: '<?php echo $searchMode; ?>',
             relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
@@ -720,7 +771,30 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               
             },
 
-            async terminateRelationship( connectionId ) {
+            async terminateRelationship( connectionId = null ) {
+              // If we're using the remove confirmation feature
+              if(this.removeConfirmationIsEnabled) {
+                // If we're already showing the remove confirmation, 
+                // proceed as usual as they've confirmed the action
+                if(this.showingRemoveConfirmation) {
+                  // Just close the modal 
+                  this.showingRemoveConfirmation = false;
+                } else {
+                  this.connectionIdSelectedForRemoval = connectionId;
+                  this.showingRemoveConfirmation = true;
+                  return; // Return to skip any logic executing  yet
+                }
+              }
+
+              // If no connection ID was provided, use the temporary one
+              // stored for the removal confirmation modal
+              if(!connectionId) {
+                if(this.connectionIdSelectedForRemoval) {
+                  connectionId = this.connectionIdSelectedForRemoval;
+                  this.connectionIdSelectedForRemoval = ''; // Clear it for later use
+                }
+              }
+
               this.isLoading = true;
 
               let data = {
