@@ -276,15 +276,13 @@ class wicket_create_account extends WP_Widget
 					if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
 						foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
 							if (isset($error->meta->field) && $error->meta->field == 'user.given_name') {
-								echo "<span class='error'>" . __('First Name', 'wicket') . " {$error->title}</span>";
 								$given_name_err = true;
 							}
 						}
 					}
 					?>
 				</label>
-				<input class="form__input" <?php if (isset($given_name_err) && $given_name_err) : echo "class='error_input'";
-																		endif; ?> required type="text" id="given_name" name="given_name" value="<?php echo isset($_POST['given_name']) ? $_POST['given_name'] : '' ?>">
+				<input class="form__input <?php echo isset($given_name_err) ? 'error_input' : '' ?>" required type="text" id="given_name" name="given_name" value="<?php echo isset($_POST['given_name']) ? $_POST['given_name'] : '' ?>">
 			</div>
 
 			<div class="form__group">
@@ -294,15 +292,13 @@ class wicket_create_account extends WP_Widget
 					if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
 						foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
 							if (isset($error->meta->field) && $error->meta->field == 'user.family_name') {
-								echo "<span class='error'>" . __('Last Name', 'wicket') . " {$error->title}</span>";
 								$last_name_err = true;
 							}
 						}
 					}
 					?>
 				</label>
-				<input class="form__input" <?php if (isset($last_name_err) && $last_name_err) : echo "class='error_input'";
-																		endif; ?> required type="text" id="family_name" name="family_name" value="<?php echo isset($_POST['family_name']) ? $_POST['family_name'] : '' ?>">
+				<input class="form__input <?php echo isset($last_name_err) ? 'error_input' : '' ?>" required type="text" id="family_name" name="family_name" value="<?php echo isset($_POST['family_name']) ? $_POST['family_name'] : '' ?>">
 			</div>
 
 			<div class="form__group">
@@ -312,15 +308,13 @@ class wicket_create_account extends WP_Widget
 					if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
 						foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
 							if (isset($error->meta->field) && $error->meta->field == 'emails.address') {
-								echo "<span class='error'>" . __('Email', 'wicket') . " - {$error->title}</span>";
 								$address_err = true;
 							}
 						}
 					}
 					?>
 				</label>
-				<input class="form__input" <?php if (isset($address_err) && $address_err) : echo "class='error_input'";
-																		endif; ?> required type="text" id="address" name="address" value="<?php echo isset($_POST['address']) ? $_POST['address'] : '' ?>">
+				<input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo isset($_POST['address']) ? $_POST['address'] : '' ?>">
 			</div>
 
 			<div class="form__group">
@@ -330,7 +324,6 @@ class wicket_create_account extends WP_Widget
 					if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
 						foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
 							if (isset($error->meta->field) && $error->meta->field == 'user.password') {
-								echo "<span class='error'>" . __('Password', 'wicket') . " {$error->title}</span>";
 								$password_err = true;
 							}
 						}
@@ -338,8 +331,7 @@ class wicket_create_account extends WP_Widget
 					?>
 				</label>
 				<small id='create_account_form_minimum_char_message'><?php _e('Minimum of 8 characters', 'wicket') ?></small>
-				<input class="form__input" <?php if (isset($password_err) && $password_err) : echo "class='error_input'";
-																		endif; ?> required type="password" name="password" id="password" value="">
+				<input class="form__input <?php echo isset($password_err) ? 'error_input' : '' ?>" required type="password" name="password" id="password" value="">
 			</div>
 
 			<div class="form__group">
@@ -349,15 +341,13 @@ class wicket_create_account extends WP_Widget
 					if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
 						foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
 							if (isset($error->meta->field) && $error->meta->field == 'user.password_confirmation') {
-								echo "<span class='error'>" . __('Confirm password', 'wicket') . " {$error->title}</span>";
 								$password_confirm_err = true;
 							}
 						}
 					}
 					?>
 				</label>
-				<input class="form__input" <?php if (isset($password_confirm_err) && $password_confirm_err) : echo "class='error_input'";
-																		endif; ?> type="password" id="password_confirmation" name="password_confirmation" value="">
+				<input class="form__input <?php echo isset($password_confirm_err) ? 'error_input' : '' ?>" type="password" id="password_confirmation" name="password_confirmation" value="">
 			</div>
 
 			<a name="google"></a>
