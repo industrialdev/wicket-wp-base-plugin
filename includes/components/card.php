@@ -35,8 +35,8 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 <div class="@container">
 	<div class="<?php echo implode( ' ', $classes ) ?>">
 		<?php if ( $image ) { ?>
-			<div class="@2xl:basis-1/2">
-				<?php get_component( 'image', [ 
+			<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card__image' : '@2xl:basis-1/2' ?>">
+				<?php get_component( 'image', [
 					'id'           => $image['id'],
 					'alt'          => $image['alt'],
 					'aspect_ratio' => '3/2',
