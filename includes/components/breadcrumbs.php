@@ -9,7 +9,7 @@ $classes   = $args['classes'];
 $reversed = $args['style'] === 'reversed';
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'component-breadcrumbs-v2';
+	$classes[] = 'component-breadcrumbs';
 } else {
 	$classes = array_merge( $classes, [ 'wicket-breadcrumb', 'component-breadcrumbs', 'hidden', 'md:flex', 'items-center' ] );
 }

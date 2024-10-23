@@ -24,7 +24,7 @@ $cta_label       = $args['cta_label'];
 $add_to_cart_url = '';
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'component-card-product-v2';
+	$classes[] = 'component-card-product';
 } else {
 	$classes = array_merge( $classes, [ 'component-card-product', 'bg-white', 'shadow-4', 'flex', 'flex-col', 'items-center', 'gap-4', 'relative', 'h-full' ] );
 }
@@ -32,7 +32,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 $image_wrapper_classes = [];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$title_classes = [ 'component-card-product-v2__title' ];
+	$title_classes = [ 'component-card-product__title' ];
 } else {
 	$title_classes = [ 'component-card-product__title', 'block', 'text-dark-100', 'font-bold', 'leading-7', 'text-heading-xs' ];
 }

@@ -38,10 +38,10 @@ $atts               = $args['atts'];
 
 /////////////////// VARIANTS ///////////////////
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'button-v2';
-	$classes[] = "button-v2--{$variant}";
+	$classes[] = 'button';
+	$classes[] = "button--{$variant}";
 
-	if ( $reversed ) { $classes[] = "button-v2--reversed"; }
+	if ( $reversed ) { $classes[] = "button--reversed"; }
 } else {
 	$classes[] = 'button';
 	$classes[] = 'button--' . $variant;
@@ -53,7 +53,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 /////////////////// SIZE ///////////////////
 if ( $size ) {
 	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-		$classes[] = "button-v2--{$size}";		
+		$classes[] = "button--{$size}";		
 	} else {
 		$classes[] = 'button--' . $size;
 	}
@@ -77,7 +77,7 @@ if ( $a_tag ) {
 /////////////////// DISABLED MODE ///////////////////
 if ( $disabled ) {
 	if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-		$classes[] = 'button-v2--disabled';
+		$classes[] = 'button--disabled';
 	} else {
 		$classes[] = 'button--disabled';
 	}

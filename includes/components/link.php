@@ -33,16 +33,16 @@ $atts       = $args['atts'];
 $size       = $args['size'];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[]  = 'component-link-v2';
+	$classes[]  = 'component-link';
 	
-	$classes[]  = "component-link-v2--{$size}";
+	$classes[]  = "component-link--{$size}";
 
 	if ( $reversed ) {
-		$classes[] = 'component-link-v2--reversed';
+		$classes[] = 'component-link--reversed';
 	}
 
 	if ( $default_link_style ) {
-		$classes[] = 'component-link-v2--default';
+		$classes[] = 'component-link--default';
 	}
 } else {
 	$classes[]  = 'component-link';

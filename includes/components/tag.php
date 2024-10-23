@@ -14,7 +14,7 @@ $reversed = $args['reversed'];
 $link     = $args['link'];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'component-tag-v2';
+	$classes[] = 'component-tag';
 } else {
 	$classes[] = 'component-tag p-2 inline-flex gap-2 rounded-050';
 	$classes[] = $reversed ? 'bg-dark-080 text-white' : 'bg-light-020 text-dark-080';

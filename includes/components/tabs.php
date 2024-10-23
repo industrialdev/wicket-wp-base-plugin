@@ -9,7 +9,7 @@ $items    = $args['items'] ?? [];
 $id       = uniqid();
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'component-tabs-v2';
+	$classes[] = 'component-tabs';
 } else {
 	$classes[] = 'component-tabs px-4 xl:px-0';
 }
@@ -23,8 +23,8 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 		foreach ( $items as $item ) : ?>
 			<button
 				<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
-					class="component-tabs-v2__tab-button"
-					x-bind:class="activeTab == <?php echo $title_index ?> ? 'component-tabs-v2__tab-button--active' : ''"
+					class="component-tabs__tab-button"
+					x-bind:class="activeTab == <?php echo $title_index ?> ? 'component-tabs__tab-button--active' : ''"
 				<?php else: ?>
 					class="text-body-lg py-3 md:px-8 lg:px-16 bg-white border-b-2 hover:border-dark-100 focus:border-dark-100"
 					x-bind:class="activeTab == <?php echo $title_index ?> ? 'border-dark-100 border-b-4 pb-[10px]' : 'border-light-020'"
@@ -40,7 +40,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 		endforeach; ?>
 	</div>
 
-	<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'component-tabs-v2__tab-content' : 'p-6' ?>">
+	<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'component-tabs__tab-content' : 'p-6' ?>">
 		<?php
 		$content_index = 0;
 		foreach ( $items as $item ) : ?>
@@ -53,7 +53,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 
 				<?php
 				if ( isset( $item['call_to_action'], $item['call_to_action']['link_and_label']['url'] ) ) {
-					$button_classes = ( defined( 'WICKET_WP_THEME_V2' ) ) ? [ 'component-tabs-v2__tab-cta' ] : [ 'mt-4' ];
+					$button_classes = ( defined( 'WICKET_WP_THEME_V2' ) ) ? [ 'component-tabs__tab-cta' ] : [ 'mt-4' ];
 					get_component( 'button', [ 
 						'variant'     => $item['call_to_action']['button_style'],
 						'label'       => $item['call_to_action']['link_and_label']['title'],

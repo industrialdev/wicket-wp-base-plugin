@@ -177,14 +177,16 @@ if (! class_exists('Wicket_Main')) {
 			$base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
 			if (str_contains(strtolower($theme_name), 'wicket')) {
-				// Wicket theme is active, so just enqueue the compiled component styles
-				wp_enqueue_style(
-					'wicket-plugin-base-styles',
-					$base_styles_url,
-					FALSE,
-					filemtime($base_styles_path),
-					'all'
-				);
+				// Wicket deprecated v1 theme is active, so just enqueue the compiled component styles
+				if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
+					wp_enqueue_style(
+						'wicket-plugin-base-styles',
+						$base_styles_url,
+						FALSE,
+						filemtime($base_styles_path),
+						'all'
+					);
+				}
 			} else {
 				// Wicket theme not in use, so enqueue the compiled component styles and
 				// the backup component Tailwind styles and Alpine

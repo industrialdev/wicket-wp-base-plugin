@@ -64,7 +64,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
     ?>
     <div
       <?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
-        class="accordion-item-v2 <?php echo "accordion-item-v2--{$accordion_type}"; ?>"
+        class="accordion-item <?php echo "accordion-item--{$accordion_type}"; ?>"
         x-bind:class="openAccordion == <?php echo $i; ?> ? 'open' : ''"
       <?php else: ?>
         class="accordion-item p-2 hover:cursor-pointer <?php if($accordion_type == 'card'){ echo 'rounded-100 border border-primary-060 mb-3'; } else { echo 'border-b border-primary-060 border-solid '; } if( $i == 0 && $accordion_type == 'list' ) { echo ' border-t'; } ?>"
@@ -79,7 +79,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
     >
       <div class="flex w-full justify-between items-center">
         <h4
-          class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item-v2__title' : 'font-bold text-body-lg' ?>"
+          class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>"
         >
           <?php if( $item['title_is_a_link'] ): ?>
             <a x-on:click.stop href="<?php echo $item['title_link']['url']; ?>" target="<?php echo $item['title_link']['target']; ?>"><?php echo $item['title']; ?></a>
@@ -90,7 +90,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
         <?php
           if( $show_toggle_icon ) {
             if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-              $icon_classes = [ 'accordion-item-v2__icon' ];
+              $icon_classes = [ 'accordion-item__icon' ];
             } else {
               $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
             }
@@ -110,7 +110,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
       </div>
       <?php if( !$separate_title_body ): ?>
       <div
-        class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item-v2__body' : 'mt-1 pr-12' ?>"
+        class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'accordion-item__body' : 'mt-1 pr-12' ?>"
         x-show="openAccordion == <?php echo $i; ?>"
         x-transition
       >

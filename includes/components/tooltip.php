@@ -11,8 +11,8 @@ $position        = $args['position'];
 $caret_classes   = [ 'absolute' ];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[]       = 'component-tooltip-v2';
-	$content_classes = [ 'component-tooltip-v2-content' ];
+	$classes[]       = 'component-tooltip';
+	$content_classes = [ 'component-tooltip-content' ];
 } else {
 	$classes[]       = 'component-tooltip';
 	$content_classes = [ 'bg-dark-100', 'text-body-sm', 'text-white', 'p-2', 'pl-4', 'rounded-100', 'absolute', 'z-10', 'hidden', 'min-w-40', 'text-left' ];

@@ -9,9 +9,9 @@ $classes  = $args['classes'];
 $reversed = $args['reversed'];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes[] = 'component-social-sharing-v2';
+	$classes[] = 'component-social-sharing';
 	if ( $reversed ) {
-		$classes[] = 'component-social-sharing-v2--reversed';
+		$classes[] = 'component-social-sharing--reversed';
 	}
 } else {
 	$classes[] = 'component-social-sharing flex gap-2 list-none p-0 m-0 items-center';
@@ -21,7 +21,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 <ul class="<?php echo implode( ' ', $classes ) ?>">
 	<li
 		<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
-			class="component-social-sharing-v2__label"
+			class="component-social-sharing__label"
 		<?php else: ?>
 			class="font-bold <?php echo $reversed ? 'text-white' : '' ?>"
 		<?php endif; ?>
@@ -30,7 +30,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
-			'classes'            => [ 'component-social-sharing-v2__button' ],
+			'classes'            => [ 'component-social-sharing__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -45,7 +45,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
-			'classes'            => [ 'component-social-sharing-v2__button' ],
+			'classes'            => [ 'component-social-sharing__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -60,7 +60,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
-			'classes'            => [ 'component-social-sharing-v2__button' ],
+			'classes'            => [ 'component-social-sharing__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
@@ -75,7 +75,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	</li>
 	<li>
 		<?php get_component( 'button', [ 
-			'classes'            => [ 'component-social-sharing-v2__button' ],
+			'classes'            => [ 'component-social-sharing__button' ],
 			'size'               => 'sm',
 			'variant'            => 'ghost',
 			'label'              => '',
