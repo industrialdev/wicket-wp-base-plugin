@@ -281,7 +281,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     >
     <div x-transition class="rounded-150 bg-white border flex items-center flex-col p-5">
       <div class="flex w-full justify-end mb-4">
-        <button class="font-semibold">Close X</button>
+        <button x-on:click.prevent="showingRemoveConfirmation = false" class="font-semibold">Close X</button>
       </div>
       <div class="font-semibold">Please confirm you'd like to end your relationship with this Organization</div>
       <div class="mt-4 mb-6">Any assigned membership with the organization will be inactivated.</div>
@@ -815,6 +815,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 body: JSON.stringify(data),
               }).then(response => response.json())
                 .then(data => { 
+                  console.log(data);
                   this.isLoading = false;
                   if( !data.success ) {
                     // Handle error

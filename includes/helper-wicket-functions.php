@@ -1974,6 +1974,7 @@ function wicket_remove_connection($connection_id)
 function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', $start_date = '' ) {
 
   if( empty( $end_date ) ) {
+    //wicket_write_log('End date is empty');
     return false;
   }
 
@@ -1988,6 +1989,7 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
     $current_connection_info = wicket_get_connection_by_id( $connection_id );
 
     if( empty( $current_connection_info ) ) {
+      //wicket_write_log('Current connection info is empty');
       return false;
     }
 
@@ -2016,18 +2018,18 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
         'type'          => $current_connection_info['data']['type'],
       ]
     ];
-    wicket_write_log('payload before send:');
-    wicket_write_log($payload);
+    // wicket_write_log('payload before send:');
+    // wicket_write_log($payload);
 
     $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
 
     return $updated_connection;
   } catch (\Exception $e) {
-    error_log($e->getMessage());
-
+    wicket_write_log($e->getMessage());
     return false;
   }
 
+  //wicket_write_log('wicket_set_connection_start_end_dates() reached the end of the function without success');
   return false;
 }
 
