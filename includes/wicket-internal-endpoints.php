@@ -216,7 +216,7 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
  *  - fromUuid
  *  - toUuid
  *  - relationshipType
- *  - userRoleInRelationship
+ *  - userRoleInRelationship (can be single role, or comma-separated list)
  * 
  * @return JSON success:false or success:true, along with any related information or notices.
  */
@@ -236,10 +236,11 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     wp_send_json_error( 'userRoleInRelationship not provided' );
   }
 
-  $fromUuid                 = $params['fromUuid'];
-  $toUuid                   = $params['toUuid'];
-  $relationshipType         = $params['relationshipType'];
-  $userRoleInRelationship   = $params['userRoleInRelationship'];
+  $fromUuid                    = $params['fromUuid'];
+  $toUuid                      = $params['toUuid'];
+  $relationshipType            = $params['relationshipType'];
+  $userRoleInRelationship      = $params['userRoleInRelationship'];
+  $userRoleInRelationshipArray = explode(',', $userRoleInRelationship );
 
   try {
     $client = wicket_api_client();
@@ -247,89 +248,93 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     wp_send_json_error( $e->getMessage() );
   }
 
-  $payload = [
-    'data' => [
-      'type' => 'connections',
-      'attributes' => [
-        'connection_type'   => $relationshipType,
-        'type'              => $userRoleInRelationship,
-        'starts_at'         => null,
-        'ends_at'           => null,
-        'description'       => null,
-        'tags'              => [],
-      ],
-      'relationships' => [
-        'from' => [
-          'data' => [
-            'type' => 'people',
-            'id'   => $fromUuid ,
-            'meta' => [
-              'can_manage' => false,
-              'can_update' => false,
+  $return = [];
+
+  foreach( $userRoleInRelationshipArray as $userRoleInRelationship ) {
+    $payload = [
+      'data' => [
+        'type' => 'connections',
+        'attributes' => [
+          'connection_type'   => $relationshipType,
+          'type'              => trim($userRoleInRelationship),
+          'starts_at'         => date('Y-m-d'),
+          'ends_at'           => null,
+          'description'       => null,
+          'tags'              => [],
+        ],
+        'relationships' => [
+          'from' => [
+            'data' => [
+              'type' => 'people',
+              'id'   => $fromUuid ,
+              'meta' => [
+                'can_manage' => false,
+                'can_update' => false,
+              ],
+            ],
+          ],
+          'to' => [
+            'data' => [
+              'type' => 'organizations',
+              'id'   => $toUuid ,
             ],
           ],
         ],
-        'to' => [
-          'data' => [
-            'type' => 'organizations',
-            'id'   => $toUuid ,
-          ],
-        ],
-      ],
-    ]
-    ];
-
-  try {
-    $new_connection = wicket_create_connection( $payload );
-    //wicket_write_log('creating connection:');
-    //wicket_write_log($new_connection);
-  } catch (\Exception $e) {
-    wp_send_json_error( $e->getMessage() );
-  }
-
-  $new_connection_id = '';
-  if( isset( $new_connection['data'] ) ) {
-    if( isset( $new_connection['data']['id'] ) ) {
-      $new_connection_id = $new_connection['data']['id'];
+      ]
+      ];
+  
+    try {
+      $new_connection = wicket_create_connection( $payload );
+      //wicket_write_log('creating connection:');
+      //wicket_write_log($new_connection);
+    } catch (\Exception $e) {
+      wp_send_json_error( $e->getMessage() );
     }
-  }
-
-  // Grab information about the new org connection to send back
-  $org_info = wicket_get_organization_basic_info( $toUuid );
-
-  $org_memberships = wicket_get_org_memberships( $toUuid );
-  $has_active_membership = false;
-  if( !empty( $org_memberships ) ) {
-    foreach( $org_memberships as $membership ) {
-      if( isset( $membership['membership'] ) ) {
-        if( isset( $membership['membership']['attributes'] ) ) {
-          if( isset( $membership['membership']['attributes']['active'] ) ) {
-            if( $membership['membership']['attributes']['active'] ) {
-              $has_active_membership = true;
+  
+    $new_connection_id = '';
+    if( isset( $new_connection['data'] ) ) {
+      if( isset( $new_connection['data']['id'] ) ) {
+        $new_connection_id = $new_connection['data']['id'];
+      }
+    }
+  
+    // Grab information about the new org connection to send back
+    $org_info = wicket_get_organization_basic_info( $toUuid );
+  
+    $org_memberships = wicket_get_org_memberships( $toUuid );
+    $has_active_membership = false;
+    if( !empty( $org_memberships ) ) {
+      foreach( $org_memberships as $membership ) {
+        if( isset( $membership['membership'] ) ) {
+          if( isset( $membership['membership']['attributes'] ) ) {
+            if( isset( $membership['membership']['attributes']['active'] ) ) {
+              if( $membership['membership']['attributes']['active'] ) {
+                $has_active_membership = true;
+              }
             }
           }
         }
-      }
-    } 
-  }  
-
-  $return =  [
-    'connection_id'     => $new_connection['data']['id'] ?? '',
-    'connection_type'   => $relationshipType,
-    'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
-    'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
-    'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
-    'active_membership' => $has_active_membership,
-    'active_connection' => $new_connection['data']['attributes']['active'],
-    'org_id'            => $toUuid,
-    'org_name'          => $org_info['org_name'],
-    'org_description'   => $org_info['org_description'],
-    'org_type'          => $org_info['org_type_pretty'],
-    'org_status'        => $org_info['org_status'],
-    'org_parent_id'     => $org_info['org_parent_id'],
-    'org_parent_name'   => $org_info['org_parent_name'],
-    'person_id'         => $fromUuid,
-  ];
+      } 
+    }  
+  
+    $return[] =  [
+      'connection_id'     => $new_connection['data']['id'] ?? '',
+      'connection_type'   => $relationshipType,
+      'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+      'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+      'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+      'active_membership' => $has_active_membership,
+      'active_connection' => $new_connection['data']['attributes']['active'],
+      'org_id'            => $toUuid,
+      'org_name'          => $org_info['org_name'],
+      'org_description'   => $org_info['org_description'],
+      'org_type'          => $org_info['org_type_pretty'],
+      'org_status'        => $org_info['org_status'],
+      'org_parent_id'     => $org_info['org_parent_id'],
+      'org_parent_name'   => $org_info['org_parent_name'],
+      'person_id'         => $fromUuid,
+    ];
+  }
 
   wp_send_json_success($return);
 }

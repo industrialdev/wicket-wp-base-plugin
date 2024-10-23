@@ -127,6 +127,7 @@ $defaults  = array(
   'grant_roster_man_on_purchase'                  => false,
   'grant_org_editor_on_select'                    => false,
   'hide_remove_buttons'                           => false,
+  'hide_select_buttons'                           => false,             
 );
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
@@ -146,6 +147,7 @@ $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_w
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
 $grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
 $hide_remove_buttons                           = $args['hide_remove_buttons']; 
+$hide_select_buttons                           = $args['hide_select_buttons'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
   $orgTermSingular = 'Organization'; 
@@ -284,7 +286,21 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
           <?php endif; ?>
         >
         
-        <div class="current-org-listing-left">
+        <div class="current-org-listing-left" x-data="{
+          description: connection.org_description,
+          cutoffLength: 70,
+
+          init() {
+            // Truncate the description
+            if(this.description) {
+              let addElipses = this.description.length > this.cutoffLength;
+              this.description = this.description.substring(0, this.cutoffLength);
+              if(addElipses) {
+                this.description = this.description.trim() + '...';
+              }
+            }
+          },
+        }">
             <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-type' : 'font-bold text-body-xs' ?>" x-text="connection.org_type_pretty"></div>
             <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__card-top-header' : 'flex mb-2 items-center' ?>">
               <div x-text="connection.org_name" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-name' : 'font-bold text-body-sm mr-5' ?>"></div>
@@ -302,7 +318,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               </div>
             </div>
             <div x-show="connection.org_parent_name.length > 0" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-parent-name' : 'mb-3' ?>" x-text="connection.org_parent_name"></div>
-            <div x-text="connection.org_description" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-description' : '' ?>" ></div>
+            <div x-text="description" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-description' : '' ?>" ></div>
           </div>
           <div class="current-org-listing-right <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex items-center gap-1' ?>">
             <?php get_component( 'button', [ 
@@ -312,7 +328,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'classes'  => [ 'whitespace-nowrap' ],
               'atts'     => [ 
                 'x-on:click.prevent="selectOrg($data.connection.org_id, $event)"',
-                'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "'
+                'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "',
+                'x-show="!hideSelectButtons"',
               ]
             ] ); ?>
             <?php get_component( 'button', [ 
@@ -434,6 +451,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             grantRosterManOnPurchase: <?php echo $grant_roster_man_on_purchase ? 'true' : 'false'; ?>,
             grantOrgEditorOnSelect: <?php echo $grant_org_editor_on_select  ? 'true' : 'false'; ?>,
             hideRemoveButtons: <?php echo $hide_remove_buttons  ? 'true' : 'false'; ?>,
+            hideSelectButtons: <?php echo $hide_select_buttons ? 'true' : 'false'; ?>,
 
             init() {
               //console.log(this.currentConnections);
@@ -691,9 +709,14 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     // Handle error
                   } else {
                     if( data.success ) {
-                      this.addConnection( data.data );
+                      if(userRoleInRelationship.includes(',')) {
+                        // We added multiple relationships, and are getting multiple back,
+                        // but we only need the first one
+                        this.addConnection( data.data[0] );
+                      } else {
+                        this.addConnection( data.data );
+                      }
                     }
-
                   }
                 });
               
