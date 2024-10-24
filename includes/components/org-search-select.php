@@ -114,7 +114,7 @@
  */
 
 
-$defaults  = array(
+$defaults  = [
 	'classes'                                       => [],
   'search_mode'                                   => 'org', // Options: org, groups, ...
   'search_org_type'                               => '',
@@ -134,7 +134,8 @@ $defaults  = array(
   'hide_remove_buttons'                           => false,
   'hide_select_buttons'                           => false,
   'display_removal_alert_message'                 => false,
-);
+  'title'                                         => '',
+];
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
 $searchMode                                    = $args['search_mode'];
@@ -155,6 +156,7 @@ $grant_org_editor_on_select                    = $args['grant_org_editor_on_sele
 $hide_remove_buttons                           = $args['hide_remove_buttons'];
 $hide_select_buttons                           = $args['hide_select_buttons'];
 $display_removal_alert_message                 = $args['display_removal_alert_message'];
+$title                                         = $args['title'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) {
   $orgTermSingular = 'Organization';
@@ -317,7 +319,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="font-bold text-body-lg my-3">Your current <?php echo $orgTermPluralLower; ?></h2>
+      <?php
+      if(empty($title)) : ?>
+        <h2 class="font-bold text-body-lg my-3 orgss-search-form__title">Your current <?php echo $orgTermPluralLower; ?></h2>
+      <?php else: ?>
+        <h2 class="font-bold text-body-lg my-3 orgss-search-form__title"><?php esc_html_e($title, 'wicket'); ?></h2>
+      <?php endif; ?>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div
