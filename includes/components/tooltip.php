@@ -55,7 +55,7 @@ if ( $position === 'bottom' ) {
 		<div class="<?php echo implode( ' ', $content_classes ) ?> group-hover:block">
 			<svg width="23" height="23" class="<?php echo implode( ' ', $caret_classes ) ?>" viewBox="0 0 23 23" fill="none"
 				xmlns="http://www.w3.org/2000/svg">
-				<rect width="15.2965" height="16" transform="translate(11.9137) rotate(45)" fill="#232A31" />
+				<rect width="15.2965" height="16" transform="translate(11.9137) rotate(45)" fill="currentColor" />
 			</svg>
 			<?php echo $content; ?>
 		</div>
