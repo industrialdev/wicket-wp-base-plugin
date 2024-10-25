@@ -42,6 +42,8 @@ $hide_document_format_icon = $args['hide_document_format_icon'];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	$classes[] = 'component-card-listing';
+
+	if ( $member_only ) {  $classes[] = 'component-card-listing--member-only'; }
 } else {
 	$classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
 }

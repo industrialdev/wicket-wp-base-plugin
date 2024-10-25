@@ -1,13 +1,15 @@
 <?php
 $defaults    = array(
-	'classes'     => [ 'flex', 'gap-2', 'w-full' ],
-	'placeholder' => __( 'Search by Keyword', 'wicket' ),
-	'url-param'   => 'keyword',
+	'classes'         => [ 'flex', 'gap-2', 'w-full' ],
+	'placeholder'     => __( 'Search by Keyword', 'wicket' ),
+	'url-param'       => 'keyword',
+	'button_reversed' => false,
 );
-$args        = wp_parse_args( $args, $defaults );
-$classes     = $args['classes'];
-$placeholder = $args['placeholder'];
-$url_param   = $args['url-param'];
+$args            = wp_parse_args( $args, $defaults );
+$classes         = $args['classes'];
+$placeholder     = $args['placeholder'];
+$url_param       = $args['url-param'];
+$button_reversed = $args['button_reversed'];
 
 $classes[]      = 'component-search-form form';
 $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' );
@@ -35,8 +37,9 @@ $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' 
 	<?php
 		get_component( 'button', [ 
 			'label'    => __( 'Search', 'wicket' ),
-			'variant' => $button_variant,
-			'classes' => [ 'button--clear' ],
+			'variant'  => $button_variant,
+			'reversed' => $button_reversed,
+			'classes'  => [ 'button--clear' ],
 		] );
 	?>
 </div>
