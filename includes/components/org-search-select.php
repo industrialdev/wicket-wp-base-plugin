@@ -135,6 +135,7 @@ $defaults  = [
   'hide_select_buttons'                           => false,
   'display_removal_alert_message'                 => false,
   'title'                                         => '',
+  'response_message'                              => '', // class name of the container where the response message will be displayed
 ];
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
@@ -157,6 +158,7 @@ $hide_remove_buttons                           = $args['hide_remove_buttons'];
 $hide_select_buttons                           = $args['hide_select_buttons'];
 $display_removal_alert_message                 = $args['display_removal_alert_message'];
 $title                                         = $args['title'];
+$responseMessage                               = $args['response_message'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) {
   $orgTermSingular = 'Organization';
@@ -755,7 +757,14 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 "userRoleInRelationship": userRoleInRelationship,
               };
 
-              let results = await fetch(this.apiUrl + 'create-relationship', {
+              let endPointUrl = this.apiUrl + 'create-relationship';
+
+              if (data.relationshipType === 'organization_parent') {
+                data.fromUuid = '<?php echo $org_id; ?>';
+                endPointUrl = this.apiUrl + 'organization-parent';
+              }
+
+              let results = await fetch(endPointUrl, {
                 method: "POST",
                 mode: "cors",
                 cache: "no-cache",
@@ -774,6 +783,27 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     // Handle error
                   } else {
                     if( data.success ) {
+                      <?php if ($relationshipMode === 'organization_parent') : ?>
+                        this.results = [];
+                        this.isLoading = false;
+                        this.firstSearchSubmitted = false;
+
+                        let responseText = '<?php esc_attr_e('Organization connected successfully', 'wicket'); ?>';
+
+                        <?php if ($responseMessage) : ?>
+                          let newOrgEvent = new CustomEvent("new-org-connected", {
+                            detail: {
+                              message: responseText
+                            }
+                          });
+                          window.dispatchEvent(newOrgEvent);
+                        <?php else: ?>
+                          alert(responseText);
+                        <?php endif; ?>
+
+                        return;
+                      <?php endif; ?>
+
                       if(typeof data.data[0] === 'undefined') {
                         // A single connection array was returned
                         this.addConnection( data.data );
