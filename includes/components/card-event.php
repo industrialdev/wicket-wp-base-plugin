@@ -79,8 +79,8 @@ $title_classes = [ 'component-card-event__title' ];
 $image_wrapper_classes = [ 'component-card-event__image-wrapper' ];
 
 if ( defined( 'WICKET_WP_THEME_V2' ) ) {
-	if ( ! $remove_drop_shadow ) {
-		$classes[] = 'component-card-event--drop-shadow';
+	if ( $remove_drop_shadow ) {
+		$classes[] = 'component-card-event--no-drop-shadow';
 	}
 } else {
 	$classes[] = 'bg-white flex flex-col gap-4 relative items-start';

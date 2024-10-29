@@ -131,15 +131,34 @@ if ( $highlight_featured_posts ) {
 
 					<?php if ( $show_view_all ) : ?>
 						<?php if ( $set_custom_view_all && isset( $view_all_link['url'] ) ) : ?>
-							<a href="<?php echo $view_all_link['url'] ?>" target="<?php echo $view_all_link['target'] ?>"
-								class="component-related-events__view-all <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'underline ml-4 pl-4 border-l border-dark-070' ?>">
-								<?php echo $view_all_link['title'] ?>
-							</a>
+
+							<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+								<?php get_component('link', [
+									'classes'            => [ 'component-related-events__view-all' ],
+									'default_link_style' => true,
+									'text'               => $view_all_link['title'],
+									'url'                => $view_all_link['url']
+								]) ?>
+							<?php else : ?>
+								<a href="<?php echo $view_all_link['url'] ?>" target="<?php echo $view_all_link['target'] ?>"
+									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070">
+									<?php echo $view_all_link['title'] ?>
+								</a>
+							<?php endif; ?>
 						<?php else : ?>
-							<a href="<?php echo $post_type_archive_link ?>"
-								class="component-related-events__view-all <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'underline ml-4 pl-4 border-l border-dark-070 hover:no-underline' ?>">
-								<?php echo __( 'View All', 'wicket' ) ?>
-							</a>
+							<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
+								<?php get_component('link', [
+									'classes'            => [ 'component-related-events__view-all' ],
+									'default_link_style' => true,
+									'text'               => __( 'View All', 'wicket' ),
+									'url'                => $post_type_archive_link
+								]) ?>
+							<?php else : ?>
+								<a href="<?php echo $post_type_archive_link ?>"
+									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline" >
+									<?php echo __( 'View All', 'wicket' ) ?>
+								</a>
+							<?php endif; ?>
 						<?php endif; ?>
 					<?php endif; ?>
 
@@ -180,6 +199,8 @@ if ( $highlight_featured_posts ) {
 						'link'         => get_permalink( $post_id ),
 						'cta'          => $show_cta ? $cta_style : null,
 						'cta_label'    => $cta_label,
+						'show_tags'    => $show_tags,
+						'tag_taxonomy' => $tag_taxonomy,
 					] );
 				}
 				?>
