@@ -6,6 +6,14 @@ function get_component( $slug, array $args = array(), $output = true ) {
 		ob_start();
 	}
 
+	// Wrap with the wrapper class to the component classes
+	$use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
+
+	if ( $use_legacy_styles ): ?>
+	<div class="wicket-base-plugin">
+	<?php 
+	endif;
+
 	// Try themes first in case an override or custom component was added to the child theme,
 	// otherwise use the component file in the plugin if present
 	$theme_component_file = locate_template( "components/{$slug}.php", false, false );
@@ -18,6 +26,11 @@ function get_component( $slug, array $args = array(), $output = true ) {
 	} else {
 		throw new \RuntimeException( "Could not find component $slug" );
 	}
+
+	if ( $use_legacy_styles ): ?>
+	</div>
+	<?php 
+	endif;
 		
 	if ( ! $output ) {
 		return ob_get_clean();

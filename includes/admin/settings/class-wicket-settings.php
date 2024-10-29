@@ -130,6 +130,14 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    ]
 			]);	
 
+			// Styles section
+			$section = $tab_gen->add_section(__('Styles', 'wicket'));
+			$section->add_option('checkbox', [
+				'name' => 'wicket_admin_settings_legacy_styles_enable',
+				'label' => __('Legacy Styles', 'wicket'),
+				'description' => __('Enable Legacy Styles: Will add missing styles to the site, and wrap everything in a "wicket-base-plugin" class for safer use. Useful for non-Wicket Web sites.', 'wicket'),
+			]);	
+
 			/*
 			 * Start Environments tab
 			 *

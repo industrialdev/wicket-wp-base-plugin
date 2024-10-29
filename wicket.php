@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 1.0.159
+ * Version: 1.0.160
  * Author: Wicket Inc.
  * Author URI: https://wicket.io/
  * Text Domain: wicket
@@ -168,39 +168,37 @@ if (! class_exists('Wicket_Main')) {
 
 			$base_styles_url      = WICKET_URL . 'assets/css/min/wicket.min.css';
 			$base_styles_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
+
+			$base_styles_wrapped_url      = WICKET_URL . 'assets/css/min/wicket-wrapped.min.css';
+			$base_styles_wrapped_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-wrapped.min.css';
+
 			$tailwind_styles_url  = WICKET_URL . 'assets/css/min/wicket-tailwind.min.css';
 			$tailwind_styles_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind.min.css';
+
+			$tailwind_styles_wrapped_url  = WICKET_URL . 'assets/css/min/wicket-tailwind-wrapped.min.css';
+			$tailwind_styles_wrapped_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind-wrapped.min.css';
+
 			$alpine_scripts_url   = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
 			$alpine_scripts_path  = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
 
 			$base_always_script_url  = WICKET_URL . 'assets/js/wicket_base.js';
 			$base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
-			if (str_contains(strtolower($theme_name), 'wicket')) {
-				// Wicket theme is active, so just enqueue the compiled component styles
-				wp_enqueue_style(
-					'wicket-plugin-base-styles',
-					$base_styles_url,
-					FALSE,
-					filemtime($base_styles_path),
-					'all'
-				);
-			} else {
-				// Wicket theme not in use, so enqueue the compiled component styles and
-				// the backup component Tailwind styles and Alpine
+			$use_legacy_styles       = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
 
+			if($use_legacy_styles) {
 				wp_enqueue_style(
-					'wicket-plugin-base-styles',
-					$base_styles_url,
+					'wicket-plugin-base-styles-wrapped',
+					$base_styles_wrapped_url,
 					FALSE,
-					filemtime($base_styles_path),
+					filemtime($base_styles_wrapped_path),
 					'all'
 				);
 				wp_enqueue_style(
-					'wicket-plugin-tailwind-styles',
-					$tailwind_styles_url,
+					'wicket-plugin-tailwind-styles-wrapped',
+					$tailwind_styles_wrapped_url,
 					FALSE,
-					filemtime($tailwind_styles_path),
+					filemtime($tailwind_styles_wrapped_path),
 					'all'
 				);
 				wp_enqueue_script(
@@ -211,6 +209,15 @@ if (! class_exists('Wicket_Main')) {
 					array(
 						'strategy' => 'defer'
 					)
+				);
+			} else {
+				// Regular Wicket Web enqueues
+				wp_enqueue_style(
+					'wicket-plugin-base-styles',
+					$base_styles_url,
+					FALSE,
+					filemtime($base_styles_path),
+					'all'
 				);
 			}
 

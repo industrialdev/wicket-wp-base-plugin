@@ -16,7 +16,8 @@ const // Package Variables
   postcss = require('gulp-postcss'),
   tailwindcss = require('tailwindcss'),
   webpack = require('webpack-stream'),
-  // Former Environment Variables
+  prefixwrap = require("postcss-prefixwrap"),
+
   srcPath = '.',
   assetPath = '/assets',
   componentsPath = '/includes/components',
@@ -47,6 +48,31 @@ function sassTask() {
     .pipe(gulp.dest(srcPath + assetPath + '/css/'));
 }
 
+// TODO: Maybe find a way to create both files from the single sassTask() function
+function sassTaskWrapped() {
+  return gulp.src([
+    srcPath + assetPath + '/css/' + baseStyleName + '.scss',
+  ])
+    .pipe(plumber())
+    .pipe(sourcemaps.init())
+    .pipe(sass({
+      outputStyle: 'expanded',
+      includePaths: ['node_modules'],
+    }))
+    .on('error', onError)
+    .pipe(postcss([prefixwrap(".wicket-base-plugin")]))
+    .pipe(autoprefixer({
+      browsers: ['last 100 versions'],
+      cascade: false,
+    }))
+    .on('error', function (err) {
+      console.log(err.message);
+    })
+    .pipe(sourcemaps.write('../../maps'))
+    .pipe(rename('wicket-wrapped.css'))
+    .pipe(gulp.dest(srcPath + assetPath + '/css/'));
+}
+
 function tailwindTask() {
   return gulp.src([
     srcPath + assetPath + '/css/' + tailwindStyleName + '.scss',
@@ -70,18 +96,24 @@ function tailwindTask() {
     .pipe(gulp.dest(srcPath + assetPath + '/css/'));
 }
 
-// Note: Updated this to minify the .css files that were just compiled from scss. Notify Coulter if this was targetting
-// the original .scss files for any reason
-function minSass() {
+// TODO: Maybe find a way to create both files from the single tailwindTask() function
+function tailwindTaskWrapped() {
   return gulp.src([
-    srcPath + assetPath + '/css/' + baseStyleName + '.css',
+    srcPath + assetPath + '/css/' + tailwindStyleName + '.scss',
   ])
     .pipe(plumber())
     .pipe(sourcemaps.init())
     .pipe(sass({
-      outputStyle: 'compressed',
+      outputStyle: 'expanded',
+      includePaths: ['node_modules'],
     }))
     .on('error', onError)
+    .pipe(postcss(
+      [
+        tailwindcss,
+        prefixwrap(".wicket-base-plugin"),
+      ]
+    ))
     .pipe(autoprefixer({
       browsers: ['last 100 versions'],
       cascade: false,
@@ -89,14 +121,15 @@ function minSass() {
     .on('error', function (err) {
       console.log(err.message);
     })
-    .pipe(rename({ suffix: '.min' }))
     .pipe(sourcemaps.write('../../maps'))
-    .pipe(gulp.dest(srcPath + assetPath + '/css/min'));
+    .pipe(rename('wicket-tailwind-wrapped.css'))
+    .pipe(gulp.dest(srcPath + assetPath + '/css/'));
 }
 
-function minTailwindSass() {
+// Minify all .css files immediately inside the css folder
+function minSass() {
   return gulp.src([
-    srcPath + assetPath + '/css/' + tailwindStyleName + '.css',
+    srcPath + assetPath + '/css/*.css',
   ])
     .pipe(plumber())
     .pipe(sourcemaps.init())
@@ -150,8 +183,8 @@ function watchTask() {
   ];
 
   //gulp.watch(srcPath + assetPath + '/scripts/' + '*.js', gulp.series(scriptsTask, minScripts));
-  gulp.watch(scssLocations, gulp.series(sassTask, minSass));
-  gulp.watch(tailwindLocations, gulp.series(tailwindTask, minTailwindSass));
+  gulp.watch(scssLocations, gulp.series(sassTask, sassTaskWrapped, minSass));
+  gulp.watch(tailwindLocations, gulp.series(tailwindTask, tailwindTaskWrapped));
 }
 
 // error notifications
@@ -166,19 +199,19 @@ var onError = function (err) {
 
 module.exports = {
   sass: gulp.series(
-    sassTask, minSass, tailwindTask, minTailwindSass,
+    sassTask, sassTaskWrapped, minSass, tailwindTask, tailwindTaskWrapped,
   ),
   scripts: gulp.series(
     scriptsAlpineTask, minScripts,
   ),
   watch: gulp.series(watchTask),
   default: gulp.series(
-    sassTask, minSass, tailwindTask, minTailwindSass, scriptsAlpineTask, minScripts, watchTask, // scriptsTask, minScripts, scriptsTaskAdmin, minScriptsAdmin, fontsTask,
+    sassTask, sassTaskWrapped, minSass, tailwindTask, tailwindTaskWrapped, scriptsAlpineTask, minScripts, watchTask, // scriptsTask, minScripts, scriptsTaskAdmin, minScriptsAdmin, fontsTask,
   ),
   serve: gulp.parallel(
     watchTask,
   ),
   build: gulp.series(
-    sassTask, minSass, tailwindTask, minTailwindSass, scriptsAlpineTask, minScripts,//scriptsTask, minScripts, scriptsTaskAdmin, minScriptsAdmin, imagesTask, iconsTask, fontsTask
+    sassTask, sassTaskWrapped, minSass, tailwindTask, tailwindTaskWrapped, scriptsAlpineTask, minScripts,//scriptsTask, minScripts, scriptsTaskAdmin, minScriptsAdmin, imagesTask, iconsTask, fontsTask
   ),
 };
