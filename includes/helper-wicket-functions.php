@@ -524,7 +524,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
     $return = [];
     foreach ($autocomplete_results['included'] as $result) {
       $tmp = [];
-      if( isset( $result['attributes']['type'] ) && !is_null($org_type) ) { 
+      if( isset( $result['attributes']['type'] ) && !is_null($org_type) ) {
         $result_type = $result['attributes']['type'];
         if( $result_type != $org_type ) {
           //wicket_write_log('Skipped');
@@ -1115,8 +1115,12 @@ function send_approval_required_email($email, $membership_link)
   Please login with the following link to process the membership request.
   <br>
   $membership_link";
-  $headers = array('Content-Type: text/html; charset=UTF-8');
-  $headers[] = 'From:' . get_bloginfo('admin_email') . '<' . get_bloginfo('admin_email') . '>';
+
+  $outgoing_email = apply_filters('wicket_approval_email_from', get_bloginfo('admin_email'));
+
+  $headers = ['Content-Type: text/html; charset=UTF-8'];
+  $headers[] = 'From:' . $outgoing_email . '<' . $outgoing_email . '>';
+
   wp_mail($to, $subject, $body, $headers);
 }
 
