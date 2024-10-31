@@ -671,6 +671,25 @@ function wicket_get_groups()
 }
 
 /**------------------------------------------------------------------
+ * Get all groups of a Wicket person
+------------------------------------------------------------------*/
+function wicket_get_person_groups($person_uuid = null)
+{
+  $client = wicket_api_client();
+  if(is_null($person_uuid)) {
+    $person_uuid = wicket_get_person_uuid();
+  }
+
+  $groups = $client->get("group_members/?page%5Bnumber%5D=1&page%5Bsize%5D=9999&filter%5Bperson_uuid_eq%5D=$person_uuid&include=group");
+
+  if ($groups) {
+    return $groups;
+  }
+
+  return false;
+}
+
+/**------------------------------------------------------------------
  * Get all "connections" (relationships) of a Wicket person
 ------------------------------------------------------------------*/
 function wicket_get_person_connections()
