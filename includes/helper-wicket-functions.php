@@ -2440,6 +2440,49 @@ function get_org_types_list()
 }
 
 /**------------------------------------------------------------------
+ * Gets organizations based on certain person to org types selected in the base plugin settings
+------------------------------------------------------------------*/
+function get_organizations_based_on_certain_types()
+{
+  if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {          
+    // Get the current user's organization relationships of only the types defined in the global setting for person-to-organization relationships
+    // Certain applications of this helper may want to boil this down to one ideally, so hence the additional sorting on the query to prefer relationships in this order:
+    // - Greatest Relationship End Date
+    // - Then, Greatest Relationship Start Date
+    // - If neither of those exist, then it just has to go by entry date of the relationships, with the newest relationship being loaded first
+    
+    // remove empty "N/A" value from settings if present
+    $person_to_org_types = array_filter($person_to_org_types);
+
+    $client = wicket_api_client();
+    $current_person_uuid = wicket_current_person_uuid();
+
+    $types_filter = 'filter[resource_type_slug_in][]='.implode('&filter[resource_type_slug_in][]=',$person_to_org_types);
+    $url = "people/$current_person_uuid/connections?filter[to_type_eq]=Organization&$types_filter&filter[active_true]=true&sort=-ends_at,-starts_at,-created_at";
+
+    try {
+      $connections = $client->get($url);
+    } catch (\Exception $e) {
+      error_log($e->getMessage());
+    }
+
+    // boil down list of connections to just an array of id => legal_name of orgs
+    if ($connections) {
+      foreach ($connections['data'] as $connection) {
+        foreach ($connections['included'] as $included) {
+          if ($connection['relationships']['organization']['data']['id'] == $included['id']) {
+            $orgs[$included['id']] = $included['attributes']['legal_name'];
+          }
+        }
+      }
+      return $orgs;
+    }
+    return false;
+  }
+  return false;
+}
+
+/**------------------------------------------------------------------
  * Gets all entity types and returns their data array from the API call
 ------------------------------------------------------------------*/
 function wicket_get_entity_types()
