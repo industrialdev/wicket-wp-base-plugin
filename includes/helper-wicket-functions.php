@@ -2365,7 +2365,7 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
     'name' => $service_name,
     'description' => $service_description,
     'status' => 'active',
-    'integration_type' => "custom",
+    'integration_type' => "woo_commerce",
   ];
 
   try {
