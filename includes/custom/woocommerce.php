@@ -20,7 +20,7 @@ function wicket_org_search_select_on_order_complete( $order_id ) {
 
   // Assign roles
   wicket_assign_role($current_person_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
-  wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_roster_man_access);
+  //wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_roster_man_access);
 
   // Clean up after ourselves now that we've actioned the meta's value
   delete_user_meta( $current_user_wp_id, 'roster_man_org_to_grant' );
