@@ -27,7 +27,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 ?>
 
 <?php if ( $link ) : ?>
-	<a href="<?php echo esc_url( $link ); ?>" class="group">
+	<a href="<?php echo esc_url( $link ); ?>" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-tag-link' : 'group' ?>">
 	<?php endif; ?>
 
 	<span class="<?php echo implode( ' ', $classes ) ?>">
