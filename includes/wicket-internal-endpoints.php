@@ -1,4 +1,6 @@
-<?php 
+<?php
+// No direct access
+defined( 'ABSPATH' ) || exit;
 
 add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
 
@@ -40,6 +42,14 @@ function wicket_base_register_rest_routes(){
     },
   ));
 
+  register_rest_route('wicket-base/v1', 'organization-parent', [
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_organization_parent',
+    'permission_callback' => function () {
+      return is_user_logged_in();
+    }
+  ]);
+
   register_rest_route( 'wicket-base/v1', 'create-org',array(
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_create_org',
@@ -68,9 +78,9 @@ function wicket_base_register_rest_routes(){
 /**
  * Calls the Wicket helper functions to search for a given organization name
  * and provide a list of results.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably a 'searchTerm' and an optional 'lang'.
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_search_orgs( $request ) {
@@ -81,12 +91,6 @@ function wicket_internal_endpoint_search_orgs( $request ) {
   }
 
   $lang = $params['lang'] ?? 'en';
-
-  try {
-    $client = wicket_api_client();
-  } catch (\Exception $e) {
-    wp_send_json_error( $e->getMessage() );
-  }
 
   if(isset($params['autocomplete'])) {
     if($params['autocomplete']) {
@@ -111,9 +115,9 @@ function wicket_internal_endpoint_search_orgs( $request ) {
 /**
  * Calls the Wicket helper functions to search for a given group name
  * and provide a list of results.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably a 'searchTerm' and a 'lang'.
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_search_groups( $request ) {
@@ -175,11 +179,11 @@ function wicket_internal_endpoint_search_groups( $request ) {
 
 /**
  * Calls the Wicket helper functions to terminate a relationship.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably a 'connectionId'.
  * Optionally 'removeRelationship' can be provided, which will delete the relationship altogether
  * instead of set the end date to today's date.
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_terminate_relationship( $request ) {
@@ -206,18 +210,18 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
     } else {
       wp_send_json_error( 'Something wrong setting the end date of the connection.' );
     }
-  }  
+  }
 }
 
 /**
  * Calls the Wicket helper functions to create a relationship.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably the following:
  *  - fromUuid
  *  - toUuid
  *  - relationshipType
  *  - userRoleInRelationship (can be single role, or comma-separated list)
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_create_relationship( $request ) {
@@ -241,12 +245,6 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   $relationshipType            = $params['relationshipType'];
   $userRoleInRelationship      = $params['userRoleInRelationship'];
   $userRoleInRelationshipArray = explode(',', $userRoleInRelationship );
-
-  try {
-    $client = wicket_api_client();
-  } catch (\Exception $e) {
-    wp_send_json_error( $e->getMessage() );
-  }
 
   $return = [];
 
@@ -282,7 +280,7 @@ function wicket_internal_endpoint_create_relationship( $request ) {
         ],
       ]
       ];
-  
+
     try {
       $new_connection = wicket_create_connection( $payload );
       //wicket_write_log('creating connection:');
@@ -290,17 +288,17 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     } catch (\Exception $e) {
       wp_send_json_error( $e->getMessage() );
     }
-  
+
     $new_connection_id = '';
     if( isset( $new_connection['data'] ) ) {
       if( isset( $new_connection['data']['id'] ) ) {
         $new_connection_id = $new_connection['data']['id'];
       }
     }
-  
+
     // Grab information about the new org connection to send back
     $org_info = wicket_get_organization_basic_info( $toUuid );
-  
+
     $org_memberships = wicket_get_org_memberships( $toUuid );
     $has_active_membership = false;
     if( !empty( $org_memberships ) ) {
@@ -314,9 +312,9 @@ function wicket_internal_endpoint_create_relationship( $request ) {
             }
           }
         }
-      } 
-    }  
-  
+      }
+    }
+
     $return[] =  [
       'connection_id'     => $new_connection['data']['id'] ?? '',
       'connection_type'   => $relationshipType,
@@ -341,11 +339,11 @@ function wicket_internal_endpoint_create_relationship( $request ) {
 
 /**
  * Calls the Wicket helper functions to create an organization.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably the following:
  *  - orgName
  *  - orgType
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_create_org( $request ) {
@@ -373,10 +371,10 @@ function wicket_internal_endpoint_create_org( $request ) {
 /**
  * Sets a temporary piece of user meta so that the user will get Roster Mangement
  * access for the given org UUID on the next order_complete containing a membership product.
- * 
+ *
  * @param WP_REST_Request $request that contains JSON params, notably the following:
  *  - orgUuid
- * 
+ *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
 function wicket_internal_endpoint_flag_for_rm_access( $request ) {
@@ -413,4 +411,59 @@ function wicket_internal_endpoint_grant_org_editor( $request ) {
   } else {
     wp_send_json_error('There was a problem assigning the org_editor role.');
   }
+}
+
+/**
+ * Calls the Wicket helper functions to assign an organization a parent relationship.
+ *
+ * @param WP_REST_Request $request that contains JSON params, notably the following:
+ *  - fromUuid
+ *  - toUuid
+ *
+ * @return JSON success:false or success:true, along with any related information or notices.
+ */
+function wicket_internal_endpoint_organization_parent($request)
+{
+  $params = $request->get_json_params();
+
+  if (!isset($params['fromUuid'])) {
+    wp_send_json_error('fromUuid not provided');
+  }
+  if (!isset($params['toUuid'])) {
+    wp_send_json_error('toUuid not provided');
+  }
+
+  $fromUuid = $params['fromUuid'];
+  $toUuid   = $params['toUuid'];
+
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    wp_send_json_error($e->getMessage());
+  }
+
+  $payload = [
+    'data' => [
+      'type' => 'organizations',
+      'id'   => $toUuid,
+      'relationships' => [
+        'parent_organization' => [
+          'data' => [
+            'type' => 'organizations',
+            'id'   => $fromUuid,
+          ],
+        ],
+      ],
+    ]
+  ];
+
+  try {
+    $response = $client->patch('organizations/' . $toUuid, [
+      'json' => $payload
+    ]);
+  } catch (\Exception $e) {
+    wp_send_json_error($e->getMessage());
+  }
+
+  wp_send_json_success($response);
 }

@@ -3,88 +3,93 @@
 
 /**
  * COMPONENT NOTES (Newest to oldest)
- * 
+ *
+ * 2024-10-23 - CoulterPeterson
+ *
+ * Added 'display_removal_alert_message' toggleable parameter to the component, which controls a
+ * sanity modal prior to the user removing a relationship.
+ *
  * 2024-10-10 - CoulterPeterson
- * 
+ *
  * Added 'no_results_found_message' param so the no results found message can be overriden.
- * 
+ *
  * 2024-07-30 - CoulterPeterson
- * 
+ *
  * Added grant_org_editor_on_select param to component.
- * 
+ *
  * 2024-07-17 - CoulterPeterson
- * 
- * Updated the 'active connection' logic to check for an active org membership status rather than an 
+ *
+ * Updated the 'active connection' logic to check for an active org membership status rather than an
  * active connection. Also made it so orgs with active connections can't be selected, if a
  * 'disable_selecting_orgs_with_active_membership' param is passed as true.
- * 
- * Also added new param 'grant_roster_man_on_purchase' that, if true, willcall to a new internal endpoint 
+ *
+ * Also added new param 'grant_roster_man_on_purchase' that, if true, willcall to a new internal endpoint
  * that uses wicket_internal_endpoint_flag_for_rm_access()
- * which sets a temporary piece of user meta (roster_man_org_to_grant) so that the user will get 
+ * which sets a temporary piece of user meta (roster_man_org_to_grant) so that the user will get
  * Roster Mangement access for the given org UUID on the next order_complete containing a membership product.
- * 
+ *
  * 2024-07-11 - CoulterPeterson
- * 
+ *
  * Added checkbox_id_new_org param so that a checkbox field ID can be passed into the component, which will
  * get checked if a new org ends up being created in the process. This way other conditional fields can be
  * shown or hidden based on the value of that checkbox.
- * 
+ *
  * 2024-07-04 - CoulterPeterson
- * 
+ *
  * Added disable_create_org_ui param.
- * 
+ *
  * 2024-06-26 - CoulterPeterson
- * 
+ *
  * Adding visual indicator for the currently selected organization. Also allowing multiple hidden
  * data fields to exist on the page at once by passing the value of 'selected_uuid_hidden_field_name'
  * to the JS element selector. Lastly, filtered the user's current org relationships by the org type filter,
  * if set.
- * 
+ *
  * 2024-06-25 - CoulterPeterson
- * 
+ *
  * Added the 'key' paremeter so a unique identifier can be passed to the component to distinguish it from
- * other components used on the page, if necessary. If the parameter is not passed, a random number is 
+ * other components used on the page, if necessary. If the parameter is not passed, a random number is
  * generated and assigned as the components key, making the chance of a conflict extremely low.
- * 
+ *
  * Also added parameters 'org_term_singular' and 'org_term_plural' so the implementor can change the
  * verbiage used to describe what they're searching for and selecting.
- * 
+ *
  * 2024-06-17 - CoulterPeterson
- * 
+ *
  * Moved away from <form> tags and "submit" buttons so that the component will play nicer with Gravity Forms
  * and other methods of embedding it. Added a hidden text field where the selected UUID will be updated,
  * and the name of that field can be changed with a new component parameter. Various bug fixes.
- * 
+ *
  * 2024-06-13 - CoulterPeterson
- * 
+ *
  * [X] DONE Allow component to be used with (or focus on) different 'types' of orgs via a component param
  * [X] DONE Emitting custom JS event on org selection with relevant information, so it can be intercepted
  *     by its various intended wrappers.
- * 
+ *
  * 2024-06-13 - CoulterPeterson
- * 
+ *
  * Component can currently provide search UI and functionality for searching
- * organizations, creating a relationship between the current user and that 
- * organization, and creating a new organization if not initially found (a 
+ * organizations, creating a relationship between the current user and that
+ * organization, and creating a new organization if not initially found (a
  * relationship is created between the user and the new org after org creation).
  * Pre-existing or new user-to-org relationships can also be terminated from the UI,
  * which calls an internal endpoint for that purpose.
- * 
+ *
  * AlpineJS state variables are leveraged as often as possible when it comes to conditionally
  * displaying certain types of UI, to keep a simple point of truth for the state of the page.
  * PHP component parameters are passed into it, and PHP is only used to conditionally render
  * something if it's a single element where it would be cleaner code to change wording conditionally
  * by using PHP conditionals.
- * 
+ *
  * The relationship type between the user and newly-created org can be set by passing
  * the $relationshipTypeUponOrgCreation component paremeter, and the 'mode' of relationship
  * can be set by passing $relationshipMode. If the $newOrgTypeOverride param is left blank,
  * the user will be able to choose the type of the newly-created organization from the frontend,
  * but if an override org type slug is provided via $newOrgTypeOverride, then the frontend dropdown
  * will be hidden and the override value will be used.
- * 
+ *
  * $searchMode is set to 'org' by default, but 'group' mode is now partially supported. When set to
- * 'group', the UI labels will change to group, and a different search endpoint will be called to 
+ * 'group', the UI labels will change to group, and a different search endpoint will be called to
  * search groups instead of orgs. TODOs for supporting groups mode fully:
  *  [] Search for current user's group memberships on load and populate $person_to_org_connections
  *  [] Create and connect an internal endpoint for creating a new group, if we will be supporting that.
@@ -93,10 +98,10 @@
  *  [] Misc. UI adjustments related to these changes, such as ensuring that the list of "current groups"
  *     at the top of the component gets updated after the user is successfully added to a group. (Like
  *     in selectOrgAndCreateRelationship() )
- * 
+ *
  * General TODOs:
  *  [X] Allow component to be used with (or focus on) different 'types' of orgs via a component param
- *  [x] Update the 'active connection' logic to check for an active membership status rather than an 
+ *  [x] Update the 'active connection' logic to check for an active membership status rather than an
  *     active connection
  *  [X] Determine how to cleanly trigger a "next step" in various contexts while providing the selected UUID
  *     and any other needed information. For example, if it's used on a custom template, we may want to emit
@@ -109,7 +114,7 @@
  */
 
 
-$defaults  = array(
+$defaults  = [
 	'classes'                                       => [],
   'search_mode'                                   => 'org', // Options: org, groups, ...
   'search_org_type'                               => '',
@@ -124,11 +129,14 @@ $defaults  = array(
   'no_results_found_message'                      => '',
   'disable_create_org_ui'                         => false,
   'disable_selecting_orgs_with_active_membership' => false,
-  'grant_roster_man_on_purchase'                  => false,
-  'grant_org_editor_on_select'                    => false,
+  'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
+  'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
   'hide_remove_buttons'                           => false,
-  'hide_select_buttons'                           => false,             
-);
+  'hide_select_buttons'                           => false,
+  'display_removal_alert_message'                 => false,
+  'title'                                         => '',
+  'response_message'                              => '', // class name of the container where the response message will be displayed
+];
 $args                                          = wp_parse_args( $args, $defaults );
 $classes                                       = $args['classes'];
 $searchMode                                    = $args['search_mode'];
@@ -146,22 +154,25 @@ $disable_create_org_ui                         = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
 $grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
-$hide_remove_buttons                           = $args['hide_remove_buttons']; 
+$hide_remove_buttons                           = $args['hide_remove_buttons'];
 $hide_select_buttons                           = $args['hide_select_buttons'];
+$display_removal_alert_message                 = $args['display_removal_alert_message'];
+$title                                         = $args['title'];
+$responseMessage                               = $args['response_message'];
 
-if( empty( $orgTermSingular ) && $searchMode == 'org' ) { 
-  $orgTermSingular = 'Organization'; 
+if( empty( $orgTermSingular ) && $searchMode == 'org' ) {
+  $orgTermSingular = 'Organization';
 }
-if( empty( $orgTermSingular ) && $searchMode == 'groups' ) { 
-  $orgTermSingular = 'Group'; 
+if( empty( $orgTermSingular ) && $searchMode == 'groups' ) {
+  $orgTermSingular = 'Group';
 }
 $orgTermSingularCap              = ucfirst(strtolower( $orgTermSingular ));
 $orgTermSingularLower            = strtolower( $orgTermSingular );
-if( empty( $orgTermPlural  ) && $searchMode == 'org' ) { 
-  $orgTermPlural  = 'Organizations'; 
+if( empty( $orgTermPlural  ) && $searchMode == 'org' ) {
+  $orgTermPlural  = 'Organizations';
 }
-if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) { 
-  $orgTermPlural  = 'Groups'; 
+if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) {
+  $orgTermPlural  = 'Groups';
 }
 $orgTermPluralCap              = ucfirst(strtolower( $orgTermPlural ));
 $orgTermPluralLower            = strtolower( $orgTermPlural );
@@ -188,7 +199,7 @@ if( $searchMode == 'org' ) {
     $connection_id = $connection['id'];
     if( isset( $connection['attributes']['connection_type'] ) ) {
       $org_id = $connection['relationships']['organization']['data']['id'];
-        
+
       $org_info = wicket_get_organization_basic_info( $org_id, $lang );
       $org_memberships = wicket_get_org_memberships($org_id );
 
@@ -204,8 +215,8 @@ if( $searchMode == 'org' ) {
               }
             }
           }
-        } 
-      }  
+        }
+      }
       $person_to_org_connections[] = [
         'connection_id'     => $connection['id'],
         'connection_type'   => $connection['attributes']['connection_type'],
@@ -225,7 +236,7 @@ if( $searchMode == 'org' ) {
         'person_id'         => $connection['relationships']['person']['data']['id'],
       ];
     }
-  }  
+  }
 } else if( $searchMode == 'groups' ) {
   // TODO: Get current MDP org memberships and save to $person_to_org_connections
 }
@@ -255,25 +266,71 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
   }
 </style>
 
-<div class="container component-org-search-select form relative <?php implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
+<div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>" x-data="orgss_<?php echo $key; ?>" x-init="init">
 
   <?php // Debug log of the selection custom event when fired ?>
 
   <?php // Loading overlay ?>
-  <div x-transition x-cloak 
+  <div x-transition x-cloak
     class="flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
     >
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
   </div>
 
-  <div class="orgss-search-form <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
+  <?php // Confirmation Popup ?>
+  <div x-transition x-cloak
+    class="flex justify-center items-center w-full text-dark-100 py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
+    x-bind:class="showingRemoveConfirmation && removeConfirmationIsEnabled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
+    >
+    <div x-transition class="rounded-150 bg-white border flex items-center flex-col p-5">
+      <div class="flex w-full justify-end mb-4">
+        <button x-on:click.prevent="showingRemoveConfirmation = false" class="font-semibold">Close X</button>
+      </div>
+      <div class="font-semibold">Please confirm you'd like to end your relationship with this Organization</div>
+      <div class="mt-4 mb-6">Any assigned membership with the organization will be inactivated.</div>
+      <div class="flex w-full justify-evenly">
+        <?php get_component( 'button', [
+          'variant'  => 'secondary',
+          'reversed' => true,
+          'label'    => __( 'Cancel', 'wicket' ),
+          'type'     => 'button',
+          'atts'  => [
+            'x-on:click.prevent="showingRemoveConfirmation = false"',
+          ],
+          'classes' => [
+            'items-center',
+            'justify-center',
+            'w-5/12'
+          ]
+        ] ); ?>
+        <?php get_component( 'button', [
+          'variant'  => 'primary',
+          'label'    => __( 'Remove Organization', 'wicket' ),
+          'type'     => 'button',
+          'atts'  => [ 'x-on:click.prevent="terminateRelationship()"' ],
+          'classes' => [
+            'items-center',
+            'justify-center',
+            'w-5/12'
+          ],
+        ] ); ?>
+      </div>
+    </div>
+  </div>
+
+  <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
-      <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3' ?>">Your current <?php echo $orgTermPluralLower; ?></h2>
+      <?php
+      if(empty($title)) : ?>
+        <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>">Your current <?php echo $orgTermPluralLower; ?></h2>
+      <?php else: ?>
+        <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"><?php esc_html_e($title, 'wicket'); ?></h2>
+      <?php endif; ?>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
-        <div 
-          x-show="connection.connection_type == relationshipMode 
+        <div
+          x-show="connection.connection_type == relationshipMode
                 && ( connection.org_type.toLowerCase() === searchOrgType.toLowerCase() || searchOrgType === '' )
                 && connection.active_connection" 
           
@@ -285,10 +342,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             x-bind:class="connection.org_id == selectedOrgUuid ? 'border-success-040 border-opacity-100 border-4' : 'border border-dark-100 border-opacity-5' "
           <?php endif; ?>
         >
-        
+
         <div class="current-org-listing-left" x-data="{
           description: connection.org_description,
           cutoffLength: 70,
+          showOrgParentName: false,
+          orgParentName: '',
 
           init() {
             // Truncate the description
@@ -297,6 +356,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               this.description = this.description.substring(0, this.cutoffLength);
               if(addElipses) {
                 this.description = this.description.trim() + '...';
+              }
+            }
+
+            if(connection.org_parent_name) {
+              if(connection.org_parent_name !== null) {
+                this.showOrgParentName = connection.org_parent_name.length > 0;
+                orgParentName = connection.org_parent_name;
               }
             }
           },
@@ -317,7 +383,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 </template>
               </div>
             </div>
-            <div x-show="connection.org_parent_name.length > 0" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-parent-name' : 'mb-3' ?>" x-text="connection.org_parent_name"></div>
+            <div x-show="showOrgParentName" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-parent-name' : 'mb-3' ?>" x-text="orgParentName"></div>
             <div x-text="description" class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__org-description' : '' ?>" ></div>
           </div>
           <div class="current-org-listing-right <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex items-center gap-1' ?>">
@@ -351,7 +417,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
       <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text" class="orgss-search-box w-full mr-2" placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
-      <?php get_component( 'button', [ 
+      <?php get_component( 'button', [
         'variant'  => 'primary',
         'label'    => __( 'Search', 'wicket' ),
         'type'     => 'button',
@@ -371,12 +437,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-org-item' : 'px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center' ?>"
           >
             <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-org-title' : 'font-bold' ?>" x-text="result.name"></div>
-            <?php get_component( 'button', [ 
-              'variant'  => 'secondary',
+            <?php get_component( 'button', [
+              'variant'  => 'primary',
+              'reversed' => true,
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
-              'classes'  => [ '' ], 
-              'atts'     => [ 
+              'classes'  => [ '' ],
+              'atts'     => [
                 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event)"',
                 'x-bind:class="{
                   \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
@@ -402,13 +469,13 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
         <select x-model="newOrgTypeSelect" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
-            <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]" 
+            <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]"
               >Org type</option>
           </template>
         </select>
       </div>
       <div class="flex flex-col w-2/12 items-center justify-end">
-        <?php get_component( 'button', [ 
+        <?php get_component( 'button', [
             'variant'  => 'primary',
             'label'    => __( 'Add Details', 'wicket' ),
             'type'     => 'button',
@@ -430,6 +497,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         Alpine.data('orgss_<?php echo $key; ?>', () => ({
             lang: '<?php echo $lang; ?>',
             isLoading: false,
+            showingRemoveConfirmation: false,
+            removeConfirmationIsEnabled: <?php echo $display_removal_alert_message  ? 'true' : 'false'; ?>,
+            connectionIdSelectedForRemoval: '',
             firstSearchSubmitted: false,
             searchType: '<?php echo $searchMode; ?>',
             relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
@@ -456,7 +526,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             init() {
               //console.log(this.currentConnections);
 
-              // Set an initial value for the dynamic select 
+              // Set an initial value for the dynamic select
               this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
             },
             handleSearch(e = null) {
@@ -472,7 +542,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               }
 
               this.results = [];
-             
+
               if( this.searchType == 'org' ) {
                 this.searchOrgs( this.searchBox );
               } else if( this.searchType == 'groups' ) {
@@ -482,7 +552,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             handleOrgCreate(e = null) {
               if(e) {
                 e.preventDefault();
-              }              
+              }
 
               if( this.searchType == 'groups' ) {
                 // Handle group creation
@@ -539,7 +609,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
                 body: JSON.stringify(data), // body data type must match "Content-Type" header
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   if( !data.success ) {
                     this.results = [];
                   } else {
@@ -554,10 +624,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     this.firstSearchSubmitted = true;
                   }
                 });
-              
+
             },
             selectOrg( orgUuid, incomingEvent = null ) {
-              // Update state 
+              // Update state
               this.selectedOrgUuid = orgUuid;
               document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]').value = orgUuid;
 
@@ -607,7 +677,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   if( !data.success ) {
                     // Handle error
                   } else {
@@ -634,7 +704,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   if( !data.success ) {
                     // Handle error
                   } else {
@@ -665,7 +735,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   if( !data.success ) {
                     // Handle error
                   } else {
@@ -678,11 +748,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                     }
                   }
                 });
-              
+
             },
             async createRelationship( fromUuid, toUuid, relationshipType, userRoleInRelationship ) {
               this.isLoading = true;
-              
+
               let data = {
                 "fromUuid"              : fromUuid,
                 "toUuid"                : toUuid,
@@ -690,7 +760,14 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 "userRoleInRelationship": userRoleInRelationship,
               };
 
-              let results = await fetch(this.apiUrl + 'create-relationship', {
+              let endPointUrl = this.apiUrl + 'create-relationship';
+
+              if (data.relationshipType === 'organization_parent') {
+                data.fromUuid = '<?php echo $org_id; ?>';
+                endPointUrl = this.apiUrl + 'organization-parent';
+              }
+
+              let results = await fetch(endPointUrl, {
                 method: "POST",
                 mode: "cors",
                 cache: "no-cache",
@@ -703,26 +780,71 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
                   } else {
                     if( data.success ) {
-                      if(userRoleInRelationship.includes(',')) {
-                        // We added multiple relationships, and are getting multiple back,
-                        // but we only need the first one
-                        this.addConnection( data.data[0] );
-                      } else {
+                      <?php if ($relationshipMode === 'organization_parent') : ?>
+                        this.results = [];
+                        this.isLoading = false;
+                        this.firstSearchSubmitted = false;
+
+                        let responseText = '<?php esc_attr_e('Organization connected successfully', 'wicket'); ?>';
+
+                        <?php if ($responseMessage) : ?>
+                          let newOrgEvent = new CustomEvent("new-org-connected", {
+                            detail: {
+                              message: responseText
+                            }
+                          });
+                          window.dispatchEvent(newOrgEvent);
+                        <?php else: ?>
+                          alert(responseText);
+                        <?php endif; ?>
+
+                        return;
+                      <?php endif; ?>
+
+                      if(typeof data.data[0] === 'undefined') {
+                        // A single connection array was returned
                         this.addConnection( data.data );
+                      } else {
+                        // An array of connections was returned
+                        // and we'll use the first one for org info
+                        this.addConnection( data.data[0] );
                       }
                     }
                   }
                 });
-              
+
             },
 
-            async terminateRelationship( connectionId ) {
+            async terminateRelationship( connectionId = null ) {
+              // If we're using the remove confirmation feature
+              if(this.removeConfirmationIsEnabled) {
+                // If we're already showing the remove confirmation,
+                // proceed as usual as they've confirmed the action
+                if(this.showingRemoveConfirmation) {
+                  // Just close the modal
+                  this.showingRemoveConfirmation = false;
+                } else {
+                  this.connectionIdSelectedForRemoval = connectionId;
+                  this.showingRemoveConfirmation = true;
+                  return; // Return to skip any logic executing  yet
+                }
+              }
+
+              // If no connection ID was provided, use the temporary one
+              // stored for the removal confirmation modal
+              if(!connectionId) {
+                if(this.connectionIdSelectedForRemoval) {
+                  connectionId = this.connectionIdSelectedForRemoval;
+                  this.connectionIdSelectedForRemoval = ''; // Clear it for later use
+                }
+              }
+
               this.isLoading = true;
 
               let data = {
@@ -742,7 +864,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
+                  console.log(data);
                   this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
@@ -753,7 +876,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
                   }
                 });
-              
+
             },
             async createOrganization( orgName, orgType, event = null ) {
               this.isLoading = true;
@@ -781,7 +904,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(data),
               }).then(response => response.json())
-                .then(data => { 
+                .then(data => {
                   if( !data.success ) {
                     // Handle error
                   } else {
@@ -798,7 +921,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
                   }
                 });
-              
+
             },
             addConnection( payload ) {
               this.currentConnections.push(payload);

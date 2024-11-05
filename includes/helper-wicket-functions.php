@@ -258,6 +258,7 @@ function wicket_create_wp_user_if_not_exist($uuid, $first_name = null, $last_nam
   $password = wp_generate_password(12, false);
   //$user_id  = wp_create_user($username, $password, $email);
   $user_id  = wp_insert_user([
+    'user_email'   => $email,
     'user_pass'    => $password,
     'user_login'   => $username,
     'display_name' => $first_name . ' ' . $last_name,
@@ -523,7 +524,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
     $return = [];
     foreach ($autocomplete_results['included'] as $result) {
       $tmp = [];
-      if( isset( $result['attributes']['type'] ) && !is_null($org_type) ) { 
+      if( isset( $result['attributes']['type'] ) && !is_null($org_type) ) {
         $result_type = $result['attributes']['type'];
         if( $result_type != $org_type ) {
           //wicket_write_log('Skipped');
@@ -661,6 +662,25 @@ function wicket_get_groups()
   $client = wicket_api_client();
 
   $groups = $client->get('groups');
+
+  if ($groups) {
+    return $groups;
+  }
+
+  return false;
+}
+
+/**------------------------------------------------------------------
+ * Get all groups of a Wicket person
+------------------------------------------------------------------*/
+function wicket_get_person_groups($person_uuid = null)
+{
+  $client = wicket_api_client();
+  if(is_null($person_uuid)) {
+    $person_uuid = wicket_get_person_uuid();
+  }
+
+  $groups = $client->get("group_members/?page%5Bnumber%5D=1&page%5Bsize%5D=9999&filter%5Bperson_uuid_eq%5D=$person_uuid&include=group");
 
   if ($groups) {
     return $groups;
@@ -1114,8 +1134,12 @@ function send_approval_required_email($email, $membership_link)
   Please login with the following link to process the membership request.
   <br>
   $membership_link";
-  $headers = array('Content-Type: text/html; charset=UTF-8');
-  $headers[] = 'From:' . get_bloginfo('admin_email') . '<' . get_bloginfo('admin_email') . '>';
+
+  $outgoing_email = apply_filters('wicket_approval_email_from', get_bloginfo('admin_email'));
+
+  $headers = ['Content-Type: text/html; charset=UTF-8'];
+  $headers[] = 'From:' . $outgoing_email . '<' . $outgoing_email . '>';
+
   wp_mail($to, $subject, $body, $headers);
 }
 
@@ -1973,6 +1997,7 @@ function wicket_remove_connection($connection_id)
 function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', $start_date = '' ) {
 
   if( empty( $end_date ) ) {
+    //wicket_write_log('End date is empty');
     return false;
   }
 
@@ -1987,6 +2012,7 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
     $current_connection_info = wicket_get_connection_by_id( $connection_id );
 
     if( empty( $current_connection_info ) ) {
+      //wicket_write_log('Current connection info is empty');
       return false;
     }
 
@@ -2015,18 +2041,18 @@ function wicket_set_connection_start_end_dates( $connection_id, $end_date = '', 
         'type'          => $current_connection_info['data']['type'],
       ]
     ];
-    wicket_write_log('payload before send:');
-    wicket_write_log($payload);
+    // wicket_write_log('payload before send:');
+    // wicket_write_log($payload);
 
     $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
 
     return $updated_connection;
   } catch (\Exception $e) {
-    error_log($e->getMessage());
-
+    wicket_write_log($e->getMessage());
     return false;
   }
 
+  //wicket_write_log('wicket_set_connection_start_end_dates() reached the end of the function without success');
   return false;
 }
 
@@ -2339,7 +2365,7 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
     'name' => $service_name,
     'description' => $service_description,
     'status' => 'active',
-    'integration_type' => "custom",
+    'integration_type' => "woo_commerce",
   ];
 
   try {
@@ -2430,6 +2456,49 @@ function get_org_types_list()
   });
 
   return $found;
+}
+
+/**------------------------------------------------------------------
+ * Gets organizations based on certain person to org types selected in the base plugin settings
+------------------------------------------------------------------*/
+function get_organizations_based_on_certain_types()
+{
+  if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {          
+    // Get the current user's organization relationships of only the types defined in the global setting for person-to-organization relationships
+    // Certain applications of this helper may want to boil this down to one ideally, so hence the additional sorting on the query to prefer relationships in this order:
+    // - Greatest Relationship End Date
+    // - Then, Greatest Relationship Start Date
+    // - If neither of those exist, then it just has to go by entry date of the relationships, with the newest relationship being loaded first
+    
+    // remove empty "N/A" value from settings if present
+    $person_to_org_types = array_filter($person_to_org_types);
+
+    $client = wicket_api_client();
+    $current_person_uuid = wicket_current_person_uuid();
+
+    $types_filter = 'filter[resource_type_slug_in][]='.implode('&filter[resource_type_slug_in][]=',$person_to_org_types);
+    $url = "people/$current_person_uuid/connections?filter[to_type_eq]=Organization&$types_filter&filter[active_true]=true&sort=-ends_at,-starts_at,-created_at";
+
+    try {
+      $connections = $client->get($url);
+    } catch (\Exception $e) {
+      error_log($e->getMessage());
+    }
+
+    // boil down list of connections to just an array of id => legal_name of orgs
+    if ($connections) {
+      foreach ($connections['data'] as $connection) {
+        foreach ($connections['included'] as $included) {
+          if ($connection['relationships']['organization']['data']['id'] == $included['id']) {
+            $orgs[$included['id']] = $included['attributes']['legal_name'];
+          }
+        }
+      }
+      return $orgs;
+    }
+    return false;
+  }
+  return false;
 }
 
 /**------------------------------------------------------------------

@@ -69,7 +69,20 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 					}
 				return $category_list; 
 
-			} 
+				} 
+	    }
+
+		/**
+		 * Get person to organization relationship (connection) types - for settings select fields
+		 */
+	    public function get_person_to_organizations_connection_types() {
+				
+				$resource_types = wicket_get_resource_types('relationships-person-to-organization');
+				$person_to_organizations_connection_types = [];
+	    	foreach ($resource_types['data'] as $key => $value) {
+					$person_to_organizations_connection_types[$value['attributes']['slug']] = $value['attributes']['name'];
+				}
+				return $person_to_organizations_connection_types;
 	    }
 
 		/**
@@ -128,6 +141,14 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'css' => [
 			        'input_class' => 'regular-text',
 			    ]
+			]);	
+
+			// Styles section
+			$section = $tab_gen->add_section(__('Styles', 'wicket'));
+			$section->add_option('checkbox', [
+				'name' => 'wicket_admin_settings_legacy_styles_enable',
+				'label' => __('Legacy Styles', 'wicket'),
+				'description' => __('Enable Legacy Styles: Will add missing styles to the site, and wrap everything in a "wicket-base-plugin" class for safer use. Useful for non-Wicket Web sites.', 'wicket'),
 			]);	
 
 			/*
@@ -312,6 +333,12 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'name' => 'wicket_admin_settings_woo_remove_added_to_cart_message',
 			    'label' => __('Remove product added to cart message', 'wicket'),
 			    'description' => __('When redirected to a checkout disable the "X added to cart, continue shopping?" message.', 'wicket')
+			]);
+			$section->add_option('select-multiple', [
+					'name' => 'wicket_admin_settings_woo_person_to_org_types',
+					'label' => __('Person to Organization Relationship Types', 'wicket'),
+					'description' => __('This is needed to determine which person to organization relationship types we want to identify that are relevant for usage on the site. One example is within woocommerce orders.', 'wicket'),
+					'options' => array_merge(['' => ' - Not Applicable - '], $this->get_person_to_organizations_connection_types()),
 			]);
 
 			// WP Cassify Integration Tab
