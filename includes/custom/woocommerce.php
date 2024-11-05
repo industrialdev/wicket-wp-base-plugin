@@ -56,7 +56,7 @@ add_filter( 'wc_order_is_editable', 'wicket_filter_wc_order_is_editable', 10, 2 
 // ---------------------------------------------------------------------------------------
 add_action('woocommerce_new_order', 'write_org_id_to_order', 9999, 2);
 function write_org_id_to_order($order_id, $order) {
-  $organizations = get_organizations_based_on_certain_relationship_types();
+  $organizations = get_organizations_based_on_certain_types();
 
   if ($organizations) {
     // just use the first one...should be all we need based on the sorting above
