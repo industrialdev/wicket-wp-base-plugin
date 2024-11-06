@@ -50,7 +50,7 @@ if ( ! class_exists( 'WooCommerce' ) ) {
 			<?php woocommerce_show_product_loop_sale_flash(); ?>
 			<?php woocommerce_template_loop_product_thumbnail(); ?>
 		</a>
-		<a href="<?php the_permalink(); ?>">
+		<a class="component-card-product__title-link" href="<?php the_permalink(); ?>">
 			<h2 class="<?php echo implode( ' ', $title_classes ) ?>"><?php the_title(); ?></h2>
 		</a>
 		<?php woocommerce_template_loop_price(); ?>
