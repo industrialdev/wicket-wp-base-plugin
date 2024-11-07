@@ -273,7 +273,7 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 					'label'    		=> __( 'Clear All', 'wicket' ),
 					'a_tag'    		=> true,
 					'prefix_icon' => 'fa-solid fa-xmark',
-					'href'    		=> $clear_all_url,
+					'link'    		=> $clear_all_url,
 					'classes'  		=> defined( 'WICKET_WP_THEME_V2' ) ? [ 'component-filter-form__clear-btn' ] : [ 'mt-3' ],
 				] );
 			?>
