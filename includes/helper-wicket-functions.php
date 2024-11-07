@@ -1564,21 +1564,26 @@ function wicket_get_current_person_memberships()
   }
 }
 
-/**------------------------------------------------------------------
- * Create organization
- * $additional_info is data_fields. An array of arrays to get the number based indexing needed
- * $org_type will be the machine name of the different org types available for the wicket instance
- ------------------------------------------------------------------*/
-function wicket_create_organization($org_name, $org_type, $additional_info = [])
+/**
+ * Create an organization in Wicket
+ *
+ * @param string $org_name Organization name
+ * @param string $org_type Organization type, see Wicket schema
+ * @param array $additional_info (optional) Additional org info, see Wicket schema.
+ * @param string $org_parent_id (optional) Parent org id, if applicable
+ *
+ * @return object | false \Wicket\Api\Response or false on error
+ */
+function wicket_create_organization($org_name, $org_type, $additional_info = [], $org_parent_id = '')
 {
   $client = wicket_api_client();
 
-  // build org payload
+  // Build org payload
   $payload = [
     'data' => [
       'type' => 'organizations',
       'attributes' => [
-        'type' => $org_type,
+        'type'       => $org_type,
         'legal_name' => $org_name,
       ]
     ]
@@ -1588,27 +1593,40 @@ function wicket_create_organization($org_name, $org_type, $additional_info = [])
     $payload['data']['attributes']['data_fields'] = $additional_info;
   }
 
+  if(!empty($additional_info['description'])) {
+    unset($payload['data']['attributes']['data_fields']['description']);
+    $payload['data']['attributes']['description'] = $additional_info['description'];
+  }
+
+  if(!empty($org_parent_id)) {
+    $payload['data']['relationships']['parent_organization'] = [
+      'data' => [
+        'type' => 'organizations',
+        'id'   => $org_parent_id
+      ]
+    ];
+  }
+
   try {
     $org = $client->post("organizations", ['json' => $payload]);
+
     return $org;
   } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
-    // echo "<pre>";
-    // print_r($e->getMessage());
-    // echo "</pre>";
-    //
-    // echo "<pre>";
-    // print_r($errors);
-    // echo "</pre>";
-    // die;
+    return false;
   }
+
   return false;
 }
 
-/**------------------------------------------------------------------
+
+/**
  * Create organization address
+ *
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
- * an example might be the following:
+ * an example might be the following.
+ *
+ * Payload example:
+ *
  $payload = [
    'data' => [
      'type' => 'addresses',
@@ -1622,7 +1640,9 @@ function wicket_create_organization($org_name, $org_type, $additional_info = [])
      ]
    ]
  ];
- ------------------------------------------------------------------*/
+ *
+ * @return bool
+ */
 function wicket_create_organization_address($org_id, $payload)
 {
   $client = wicket_api_client();
@@ -1683,10 +1703,17 @@ function wicket_create_person_address($person_uuid, $payload)
   return false;
 }
 
-/**------------------------------------------------------------------
+
+/**
  * Create organization email
+ *
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
- ------------------------------------------------------------------*/
+ * an example might be the following.
+ *
+ * Payload example:
+ *
+ * {"data":{"type":"emails","attributes":{"address":"ernest@test.wicket.io","type":"general"}}}
+ */
 function wicket_create_organization_email($org_id, $payload)
 {
   $client = wicket_api_client();
@@ -1708,10 +1735,16 @@ function wicket_create_organization_email($org_id, $payload)
   return false;
 }
 
-/**------------------------------------------------------------------
+/**
  * Create organization phone
+ *
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
- ------------------------------------------------------------------*/
+ * an example might be the following.
+ *
+ * Payload example:
+ *
+ * {"data":{"type":"phones","attributes":{"number":"+12345678901","type":"general"}}}
+ */
 function wicket_create_organization_phone($org_id, $payload)
 {
   $client = wicket_api_client();
@@ -1758,10 +1791,17 @@ function wicket_create_person_phone($person_uuid, $payload)
   return false;
 }
 
-/**------------------------------------------------------------------
- * Create organization website
+
+/**
+ * Create organization web address
+ *
  * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
- ------------------------------------------------------------------*/
+ * an example might be the following.
+ *
+ * Payload example:
+ *
+ * {"data":{"type":"web_addresses","attributes":{"address":"https://www.google.com","type":"website"}}}
+ */
 function wicket_create_organization_web_address($org_id, $payload)
 {
   $client = wicket_api_client();
@@ -1783,11 +1823,18 @@ function wicket_create_organization_web_address($org_id, $payload)
   return false;
 }
 
-/**------------------------------------------------------------------
- * Add a user to a Wicket group.
- * $group_role_slug could be obtained with a function call like wicket_get_entity_types()
- * and then wicket_get_resource_types() using the entity's uuid.
-------------------------------------------------------------------*/
+
+/**
+ * Add a member to a group with the specified role
+ *
+ * @param int|string $person_id ID of the person to add
+ * @param int|string $group_id ID of the group to add the member to
+ * @param string $group_role_slug The type of group role to assign to the person
+ * @param string $start_date [optional] The date to start the group membership
+ * @param string $end_date [optional] The date to end the group membership
+ *
+ * @return object The response object from the Wicket API
+ */
 function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null)
 {
   $client = wicket_api_client();
@@ -2443,9 +2490,11 @@ function get_spoken_languages_list()
   return $found;
 }
 
-/**------------------------------------------------------------------
- * Gets org types resource list
-------------------------------------------------------------------*/
+/**
+ * Gets organizations resource list
+ *
+ * @return Collection
+ */
 function get_org_types_list()
 {
   $client = wicket_api_client();
@@ -2458,18 +2507,41 @@ function get_org_types_list()
   return $found;
 }
 
+/**
+ * Gets organizations resource list
+ *
+ * @return Collection
+ */
+function wicket_get_org_types_list() {
+  $client         = wicket_api_client();
+  $resource_types = $client->get('/resource_types');
+
+  // Create an array of every item with resource_type == 'organizations'
+  $resource_types_list = [];
+
+  if (isset($resource_types['data']) && is_array($resource_types['data'])) {
+    foreach ($resource_types['data'] as $resource_type) {
+      if (isset($resource_type['attributes']['resource_type']) && $resource_type['attributes']['resource_type'] === 'organizations') {
+        $resource_types_list[] = $resource_type;
+      }
+    }
+  }
+
+  return $resource_types_list;
+}
+
 /**------------------------------------------------------------------
  * Gets organizations based on certain person to org types selected in the base plugin settings
 ------------------------------------------------------------------*/
 function get_organizations_based_on_certain_types()
 {
-  if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {          
+  if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {
     // Get the current user's organization relationships of only the types defined in the global setting for person-to-organization relationships
     // Certain applications of this helper may want to boil this down to one ideally, so hence the additional sorting on the query to prefer relationships in this order:
     // - Greatest Relationship End Date
     // - Then, Greatest Relationship Start Date
     // - If neither of those exist, then it just has to go by entry date of the relationships, with the newest relationship being loaded first
-    
+
     // remove empty "N/A" value from settings if present
     $person_to_org_types = array_filter($person_to_org_types);
 
@@ -2802,7 +2874,14 @@ function wicket_get_field_from_data_fields($data_fields, $key)
   return reset($matches);
 }
 
-// Finds the schema ID using a provided schema slug.
+
+/**
+ * Gets a schema by slug.
+ *
+ * @param string $schema_slug The schema slug to search for.
+ *
+ * @return array The schema if found, otherwise an empty array.
+ */
 function wicket_get_schema($schema_slug)
 {
   $schemas = wicket_get_schemas();
@@ -2812,4 +2891,29 @@ function wicket_get_schema($schema_slug)
     });
     return reset($result);
   }
+}
+
+  /**
+   * Update organization info.
+   *
+   * @param string $organization_uuid The UUID of the organization to update.
+   * @param array $payload The info to update.
+   *
+   * {"data":{"type":"organizations","id":"1b86fee3-5ad0-4b81-a891-7dc7084b22bc","meta":{"ancestry_depth":1,"can_manage":true,"can_update":true},"attributes":{"legal_name":"Ernest Corp","type":"subsidiary","description":"Desc Lorem","legal_name_en":"Ernest Corp","description_en":"Desc Lorem"},"relationships":{"parent_organization":{"data":{"type":"organizations","id":"51f22eea-c473-4400-aa51-685ea957a983"}}}}}
+   *
+   * @return array A tuple where the first element is a boolean indicating success or failure, and the second element is a string with the error message on failure or the response on success.
+   */
+function wicket_set_organization_info($organization_uuid = '', $payload = []) {
+   if(empty($organization_uuid) || empty($payload)) {
+     return array(false, 'Please provide all parameters.');
+   }
+
+   $client = wicket_api_client();
+   if (empty($client)) {
+     return array(false, 'Could not obtain client.');
+   }
+
+   $output = $client->patch("organizations/$organization_uuid", ['json' => $payload]);
+
+   return $output;
 }
