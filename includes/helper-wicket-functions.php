@@ -1944,8 +1944,31 @@ function wicket_create_connection($payload)
   return false;
 }
 
-function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type)
+function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type, $skip_if_exists = false)
 {
+  $existing_connection = null;
+  if($skip_if_exists) {
+    // Get current connections/relationships
+    $current_connections = wicket_get_person_connections();
+    if(isset($current_connections['data'])) {
+      foreach($current_connections['data'] as $connection) {
+        wicket_write_log($connection['attributes']['type']);
+        wicket_write_log($relationship_type);
+        wicket_write_log($connection['relationships']['organization']['data']['id']);
+        wicket_write_log($org_uuid);
+        if($connection['attributes']['type'] == $relationship_type
+          && $connection['relationships']['organization']['data']['id'] == $org_uuid) {
+            $existing_connection = $connection;
+          }
+      }
+    }
+
+    if(!is_null($existing_connection)) {
+      // Same relationship was found to already exist, so returning that relationship data instead of making a new one
+      return $existing_connection;
+    }
+  }
+
   $payload = [
     'data' => [
       'type' => 'connections',
