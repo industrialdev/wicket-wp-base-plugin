@@ -1952,10 +1952,6 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
     $current_connections = wicket_get_person_connections();
     if(isset($current_connections['data'])) {
       foreach($current_connections['data'] as $connection) {
-        wicket_write_log($connection['attributes']['type']);
-        wicket_write_log($relationship_type);
-        wicket_write_log($connection['relationships']['organization']['data']['id']);
-        wicket_write_log($org_uuid);
         if($connection['attributes']['type'] == $relationship_type
           && $connection['relationships']['organization']['data']['id'] == $org_uuid) {
             $existing_connection = $connection;
