@@ -1835,8 +1835,22 @@ function wicket_create_organization_web_address($org_id, $payload)
  *
  * @return object The response object from the Wicket API
  */
-function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null)
+function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
 {
+  if($skip_if_exists) {
+    // Check if the user is already a member of that group with the same role
+    $current_user_groups = wicket_get_person_groups($person_id);
+    if(isset($current_user_groups['data'])) {
+      foreach($current_user_groups['data'] as $group) {
+        if($group['relationships']['group']['data']['id'] == $group_id
+          && $group['attributes']['type'] == $group_role_slug) {
+            // Matching group found - returning that group connection instead of adding them to the group again
+            return $group;
+        }
+      }
+    }
+  }
+
   $client = wicket_api_client();
 
   $payload = [
