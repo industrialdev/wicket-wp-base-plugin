@@ -25,7 +25,7 @@ if ( ! class_exists( 'Wicket_Blocks' ) ) {
 			add_filter( 'block_categories_all' , array( $this, 'wicket_block_category') );
 
 			// Add ACF blocks and field groups
-			add_action( 'acf/init', array( $this, 'wicket_load_blocks'), 5 );
+			add_action( 'init', [$this, 'wicket_load_blocks'], 5 ); // We need to use WP's init here https://www.advancedcustomfields.com/resources/create-your-first-acf-block/
 			add_filter( 'acf/settings/load_json', array( $this, 'wicket_load_acf_field_group') );
 
 		}
