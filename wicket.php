@@ -4,9 +4,9 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.4
+ * Version: 2.0.5
  * Author: Wicket Inc.
- * Author URI: https://wicket.io/
+ * Author URI: https://wicket.io
  * Text Domain: wicket
  * Domain Path: /languages
  * Requires at least: 6.0
@@ -18,8 +18,6 @@
 if (! defined('ABSPATH')) {
 	exit; // Exit if accessed directly.
 }
-
-
 
 if (! class_exists('Wicket_Main')) {
 
@@ -43,18 +41,46 @@ if (! class_exists('Wicket_Main')) {
 		 */
 		public function __construct()
 		{
-
 			// Define global constants
 			$this->wicket_global_constants_vars();
 
 			// load text domain
 			add_action('plugins_loaded', array($this, 'wicket_init'));
 
-
-
 			// Registration hook setting
 			register_activation_hook(__FILE__, array($this, 'wicket_install_settings'));
 
+			// Load includes
+			add_action('init', [$this, 'wicket_includes']);
+
+			// Enqueue styles and scripts
+			add_action('wp_enqueue_scripts', array('Wicket_Main', 'enqueue_plugin_styles'), 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
+		}
+
+		/**
+		 * Define Global variables function
+		 */
+		public function wicket_global_constants_vars()
+		{
+			if (! defined('WICKET_URL')) {
+				define('WICKET_URL', plugin_dir_url(__FILE__));
+			}
+
+			if (! defined('WICKET_BASENAME')) {
+				define('WICKET_BASENAME', plugin_basename(__FILE__));
+			}
+
+			if (! defined('WICKET_PLUGIN_DIR')) {
+				define('WICKET_PLUGIN_DIR', plugin_dir_path(__FILE__));
+			}
+		}
+
+		/**
+		 * Includes all the necessary files for the plugin.
+		 *
+		 * @return void
+		 */
+		public function wicket_includes() {
 			// Include admin files
 			if (is_admin()) {
 				// include admin class
@@ -67,8 +93,10 @@ if (! class_exists('Wicket_Main')) {
 			// Include helper functions
 			include_once WICKET_PLUGIN_DIR . 'includes/helper-wicket-functions.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/helper-settings-functions.php';
-			// include acf blocks
+
+			// Include acf blocks
 			include_once WICKET_PLUGIN_DIR . 'includes/wicket-blocks.php';
+
 			// Include wicket widgets
 			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-create-account.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-update-password.php';
@@ -123,12 +151,13 @@ if (! class_exists('Wicket_Main')) {
 			if (is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1')) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';
 			}
-			// Include woocommerce functions
+
+			// Include WooCommerce functions
 			if (is_plugin_active('woocommerce/woocommerce.php') && (wicket_get_option('wicket_admin_settings_woo_sync_addresses') === '1')) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-checkout-addresses.php';
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customizations.php';
 			}
-			// Include woocommerce memberships team functions
+			// Include WooCommerce memberships team functions
 			if (is_plugin_active('woocommerce-memberships-for-teams/woocommerce-memberships-for-teams.php')) {
 				// include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team-metabox.php';
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team.php';
@@ -137,30 +166,21 @@ if (! class_exists('Wicket_Main')) {
 			if (is_plugin_active('user-switching/user-switching.php')) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-user-switching-sync.php';
 			}
-
-			// Enqueue styles and scripts
-			add_action('wp_enqueue_scripts', array('Wicket_Main', 'enqueue_plugin_styles'), 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
 		}
 
 		/**
-		 * Define Global variables function
+		 * Enqueue the plugin's styles.
+		 *
+		 * If the Wicket theme is active, this method will only enqueue the compiled component styles.
+		 * If the Wicket theme is not active, this method will enqueue both the compiled component styles
+		 * and the backup component Tailwind styles and Alpine.
+		 *
+		 * The user can also choose to enable the legacy styles via the Wicket settings page.
+		 * If the legacy styles are enabled, this method will enqueue the wrapped compiled component styles,
+		 * the wrapped backup component Tailwind styles and Alpine.
+		 *
+		 * @return void
 		 */
-		public function wicket_global_constants_vars()
-		{
-
-			if (! defined('WICKET_URL')) {
-				define('WICKET_URL', plugin_dir_url(__FILE__));
-			}
-
-			if (! defined('WICKET_BASENAME')) {
-				define('WICKET_BASENAME', plugin_basename(__FILE__));
-			}
-
-			if (! defined('WICKET_PLUGIN_DIR')) {
-				define('WICKET_PLUGIN_DIR', plugin_dir_path(__FILE__));
-			}
-		}
-
 		public static function enqueue_plugin_styles()
 		{
 			$theme = wp_get_theme(); // gets the current theme
@@ -260,11 +280,11 @@ if (! class_exists('Wicket_Main')) {
 		 */
 		public function wicket_init()
 		{
-
 			if (function_exists('load_plugin_textdomain')) {
 				load_plugin_textdomain('wicket', false, dirname(plugin_basename(__FILE__)) . '/languages/');
 			}
 		}
 	} // end Class Wicket_Main.
+
 	new Wicket_Main();
 }
