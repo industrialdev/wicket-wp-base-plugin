@@ -1544,6 +1544,28 @@ function wicket_update_membership_external_id($membership_uuid, $membership_type
 }
 
 /**------------------------------------------------------------------
+ * Gets the person memberships for a specified UUID
+ * using the person membership entries endpoint
+ ------------------------------------------------------------------*/
+ function wicket_get_person_memberships($uuid)
+ {
+   $client = wicket_api_client();
+   static $memberships = null;
+   // prepare and memoize all connections from Wicket
+   if (is_null($memberships)) {
+     try {
+       $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
+     } catch (Exception $e) {
+      wicket_write_log($e->getMessage());
+     }
+   }
+   if ($memberships) {
+     return $memberships;
+   }
+   return false;
+ }
+
+/**------------------------------------------------------------------
  * Gets the current person memberships
  * using the person membership entries endpoint
  ------------------------------------------------------------------*/
@@ -1557,6 +1579,7 @@ function wicket_get_current_person_memberships()
     try {
       $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
     } catch (Exception $e) {
+      wicket_write_log($e->getMessage());
     }
   }
   if ($memberships) {
