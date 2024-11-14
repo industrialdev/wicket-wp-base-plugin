@@ -97,6 +97,14 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 ?>
 
 <div class="<?php echo implode( ' ', $wrapper_classes ) ?>">
+
+	<?php
+		/**
+		 * wicket_banner_before_block hook
+		 */
+		do_action( 'wicket_banner_before_block' );
+	?>
+
 	<div class="container z-10 relative">
 		<div class="flex flex-col lg:flex-row items-start gap-5">
 			<div class="flex grow flex-col gap-8 basis-full lg:basis-7/12">
@@ -136,6 +144,13 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						</h1>
 					</div>
 				<?php endif; ?>
+
+				<?php
+					/**
+					 * wicket_banner_after_title hook
+					 */
+					do_action( 'wicket_banner_after_title' );
+				?>
 
 				<?php if ( $text_alignment === 'center' ) : ?>
 					<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
@@ -273,4 +288,11 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 			'classes'      => [ 'component-banner__bg-image absolute inset-0 w-full h-full object-cover object-center z-0 opacity-[.1]' ],
 		] );
 	} ?>
+
+	<?php
+		/**
+		 * wicket_banner_after_block hook
+		 */
+		do_action( 'wicket_banner_after_block' );
+	?>
 </div>
