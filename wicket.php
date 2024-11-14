@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.6
+ * Version: 2.0.7
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -51,7 +51,8 @@ if (! class_exists('Wicket_Main')) {
 			register_activation_hook(__FILE__, array($this, 'wicket_install_settings'));
 
 			// Load includes
-			add_action('init', [$this, 'wicket_includes']);
+			//add_action('init', [$this, 'wicket_includes']); // We need to test this properly, before moving into a more WP way to load our functions and methods
+			$this->wicket_includes();
 
 			// Enqueue styles and scripts
 			add_action('wp_enqueue_scripts', array('Wicket_Main', 'enqueue_plugin_styles'), 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
@@ -80,7 +81,8 @@ if (! class_exists('Wicket_Main')) {
 		 *
 		 * @return void
 		 */
-		public function wicket_includes() {
+		public function wicket_includes()
+		{
 			// Include admin files
 			if (is_admin()) {
 				// include admin class
@@ -206,7 +208,7 @@ if (! class_exists('Wicket_Main')) {
 
 			if (str_contains(strtolower($theme_name), 'wicket')) {
 				// Wicket deprecated v1 theme is active, so just enqueue the compiled component styles
-				if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
+				if (! defined('WICKET_WP_THEME_V2')) {
 					wp_enqueue_style(
 						'wicket-plugin-base-styles',
 						$base_styles_url,
@@ -220,7 +222,7 @@ if (! class_exists('Wicket_Main')) {
 				// the backup component Tailwind styles and Alpine
 				$use_legacy_styles       = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
 
-				if($use_legacy_styles) {
+				if ($use_legacy_styles) {
 					wp_enqueue_style(
 						'wicket-plugin-base-styles-wrapped',
 						$base_styles_wrapped_url,
