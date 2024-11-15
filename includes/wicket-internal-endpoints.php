@@ -195,6 +195,22 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
 
   $connectionId = $params['connectionId'];
   $removeRelationship = $params['removeRelationship'] ?? false;
+  $limitToRelationshipType = $params['relationshipType'] ?? false;
+
+  if($limitToRelationshipType) {
+    $current_connection_info = wicket_get_connection_by_id( $connectionId );
+
+    if( empty( $current_connection_info ) ) {
+      wp_send_json_error( 'Connection not found. During relationship type limiting.' );
+    }
+
+    $attributes = $current_connection_info['data']['attributes'];
+    $relationshipType = $attributes['type'];
+
+    if($relationshipType !== $limitToRelationshipType) {
+      wp_send_json_error( 'Relationships do not match; cannot remove.' );
+    }
+  }
 
   if( $removeRelationship ) {
     if( wicket_remove_connection( $connectionId ) ) {

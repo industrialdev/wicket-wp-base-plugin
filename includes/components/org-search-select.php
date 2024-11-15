@@ -849,6 +849,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
               let data = {
                 "connectionId": connectionId,
+                "relationshipType": this.relationshipTypeUponOrgCreation, // Restricts the removal to the defined relationship type
               };
 
               let results = await fetch(this.apiUrl + 'terminate-relationship', {
@@ -869,6 +870,16 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
+                    let errorMessage = data.data.toLowerCase();
+                    console.log(errorMessage);
+                    if(errorMessage.indexOf('relationships do not match') !== -1) {
+                      // The user tried to remove a relationship of a different type than was specified
+                      // for this ORGSS component. If this is a common occurrence, should display an error.
+                    }
+                    if(errorMessage.indexOf('wrong setting the end date of the connection') !== -1) {
+                      // Display an error; they were likely trying to set the end date to the same day it was created
+                      this.setSearchMessage("<?php _e('There was an error removing that relationship. Note that you can\'t remove relationships on the same day you create them.', 'wicket'); ?>");
+                    }
                   } else {
                     if( data.success ) {
                       this.removeConnection( connectionId );
