@@ -55,10 +55,12 @@ add_filter( 'wc_order_is_editable', 'wicket_filter_wc_order_is_editable', 10, 2 
 // assign organization ID to order on order create based on certain person-to-org relationships that are set in the base plugin 
 // ---------------------------------------------------------------------------------------
 add_action('woocommerce_new_order', 'write_org_id_to_order', 9999, 2);
-add_action('woocommerce_admin_order_data_after_order_details', 'wicket_display_org_input_on_order', 10, 1 );
-add_action('admin_enqueue_scripts', 'wicket_enqueue_wc_org_scripts' );
-add_action('wp_ajax_wc_org_search', 'wicket_handle_wc_org_search' );
-add_action('save_post', 'wicket_set_wc_org_uuid');
+if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {
+  add_action('woocommerce_admin_order_data_after_order_details', 'wicket_display_org_input_on_order', 10, 1 );
+  add_action('admin_enqueue_scripts', 'wicket_enqueue_wc_org_scripts' );
+  add_action('wp_ajax_wc_org_search', 'wicket_handle_wc_org_search' );
+  add_action('save_post', 'wicket_set_wc_org_uuid');
+}
 
 function wicket_set_wc_org_uuid( $order_id ) {
   if(get_post_type($order_id) == 'shop_order' && !empty($_REQUEST['wicket_wc_org_select_uuid'])) {
