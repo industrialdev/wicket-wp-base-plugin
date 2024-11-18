@@ -292,7 +292,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       <div class="flex w-full justify-evenly">
         <?php get_component( 'button', [
           'variant'  => 'secondary',
-          'reversed' => true,
+          'reversed' => false,
           'label'    => __( 'Cancel', 'wicket' ),
           'type'     => 'button',
           'atts'  => [
@@ -388,7 +388,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
           </div>
           <div class="current-org-listing-right <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'flex items-center gap-1' ?>">
             <?php get_component( 'button', [ 
-              'variant'  => 'primary',
+              'variant'  => 'secondary',
+              'reversed' => false,
               'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
               'type'     => 'button',
               'classes'  => [ 'whitespace-nowrap' ],
