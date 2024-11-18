@@ -439,8 +439,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
           >
             <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-org-title' : 'font-bold' ?>" x-text="result.name"></div>
             <?php get_component( 'button', [
-              'variant'  => 'primary',
-              'reversed' => true,
+              'variant'  => 'secondary',
+              'reversed' => false,
               'label'    => __( 'Select', 'wicket' ),
               'type'     => 'button',
               'classes'  => [ '' ],
