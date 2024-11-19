@@ -654,6 +654,59 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
   }
 }
 
+
+/**
+ * For searching person by a term when you don't have a specific UUID, likely to display
+ * search results on the front end.
+ *
+ * @param String $search_term The query term, e.g. 'Rob Ferguson'
+ *
+ * @return Bool | Array       False if there was a problem, or an array of the results.
+ */
+
+ function wicket_search_person($search_term) {
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    return false;
+  }
+
+    // --------------------------------------
+    // Search using the autocomplete endpoint
+    // --------------------------------------
+
+    // Autocomplete is limited to 100 results total.
+    $max_results = 100;
+
+    $autocomplete_results = $client->get('/search/autocomplete', [
+      'query' => [
+        // Autocomplete lookup query, can filter based on name, membership number, email etc.
+        'query' => $search_term,
+        // Skip side-loading of people for faster request time.
+        // 'include' => '',
+        'fields' => [
+          'people' => 'full_name, primary_email_address'
+        ],
+        'filter' => [
+          // Limit autocomplete results to only people
+          'resource_type' => 'people',
+        ],
+        'page' => [
+          'size' => $max_results
+        ]
+      ]
+    ]);
+
+    $return = [];
+    foreach ($autocomplete_results['included'] as $result) {
+      $tmp['full_name'] = !empty($result['attributes']['full_name']) ? $result['attributes']['full_name'] : '';
+      $tmp['primary_email_address'] = !empty($result['attributes']['primary_email_address']) ? $result['attributes']['primary_email_address'] : '';
+      $tmp['id'] = $result['id'];
+      $return[] = $tmp;
+    }
+    return $return;
+}
+
 /**------------------------------------------------------------------
  * Get all groups from Wicket
 ------------------------------------------------------------------*/
@@ -1362,7 +1415,7 @@ function change_organization_membership_owner( $org_membership_uuid, $person_uui
       ]
     ]
   ];
-  
+
   try {
     $response = $client->patch("/organization_memberships/$org_membership_uuid", ['json' => $payload]);
   } catch (Exception $e) {
