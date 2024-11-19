@@ -203,6 +203,39 @@ function wicket_current_person()
   return $person;
 }
 
+/**
+ * Accepts a Wicket person object, like from wicket_current_person(),
+ * and returns a clean array of the specified repeatable contact method.
+ * 
+ * @param Array  $wicket_person_obj Like from wicket_current_person($uuid)
+ * @param String $type              E.g. "addresses", "phones", "web_addresses", "emails"
+ * 
+ * @return Array | bool             Array of those contact items if successful, false if not.
+ */
+function wicket_person_obj_get_repeatable_contact_info($wicket_person_obj, $type)
+{
+  $wicket_person_included = $wicket_person_obj->included()->toArray(); // Converting collection to array
+  $contact_items = []; // Will be our array of contact options
+  foreach($wicket_person_included as $elem) {
+    if($elem['type'] !== $type) {
+      continue;
+    }
+    $contact_items[] = $elem;
+  }
+
+  if(empty($contact_items)) {
+    return false;
+  }
+
+  $to_return = [];
+
+  foreach($contact_items as $contact_item) {
+    $to_return[] = $contact_item['attributes'];
+  }
+
+  return $to_return;
+}
+
 /**------------------------------------------------------------------
  * Check if user is a Wicket person (compare UUID format)
 ------------------------------------------------------------------*/
