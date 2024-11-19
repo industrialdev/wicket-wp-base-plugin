@@ -1363,6 +1363,32 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
   return $response;
 }
 
+function change_organization_membership_owner( $org_membership_uuid, $person_uuid ) {
+  $client = wicket_api_client();
+
+  $payload = [
+    'data' => [
+      'type' => 'organization_memberships',
+      'id' => $org_membership_uuid,
+      'relationships' => [
+        'owner' => [
+          'data' => [
+            'type' => 'people',
+            'id' => $person_uuid
+          ]
+        ]
+      ]
+    ]
+  ];
+  
+  try {
+    $response = $client->patch("/organization_memberships/$org_membership_uuid", ['json' => $payload]);
+  } catch (Exception $e) {
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
+  }
+  return $response;
+}
+
 /**
  * Check for matching membership for person
  * Option: filter by date
