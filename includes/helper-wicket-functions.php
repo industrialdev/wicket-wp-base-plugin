@@ -1151,24 +1151,6 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
 {
   $client = wicket_api_client();
 
-  $wicket_settings = get_wicket_settings();
-  $parent_org = $wicket_settings['parent_org'];
-  $args = [
-    'query' => [
-      'filter' => [
-        'alternate_name_en_eq' => $parent_org
-      ],
-      'page' => [
-        'number' => 1,
-        'size' => 1,
-      ]
-    ]
-  ];
-  $parent_org = $client->get('organizations', $args);
-  if ($parent_org) {
-    $parent_org = $parent_org['data'][0]['id'];
-  }
-
   // build person payload
   $payload = [
     'data' => [
@@ -1197,7 +1179,7 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
     $payload['data']['attributes']['job_title'] = $job_title;
   }
   // add optional gender
-  if (isset($job_title)) {
+  if (isset($gender)) {
     $payload['data']['attributes']['gender'] = $gender;
   }
   // add optional additional info
@@ -1206,7 +1188,7 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
   }
 
   try {
-    $person = $client->post("organizations/$parent_org/people", ['json' => $payload]);
+    $person = $client->post("people", ['json' => $payload]);
     return $person;
   } catch (Exception $e) {
     $errors = json_decode($e->getResponse()->getBody())->errors;

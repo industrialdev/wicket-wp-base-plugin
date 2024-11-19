@@ -131,8 +131,14 @@ class wicket_create_account extends WP_Widget
 			if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 				$email_invalid = new stdClass;
 				$email_invalid->meta = (object)['field' => 'emails.address'];
-				$email_invalid->title = __("must be valid email", 'wicket');
+				$email_invalid->title = __("must be a valid email address", 'wicket');
 				$errors[] = $email_invalid;
+			}
+			if (strlen($password) < 8) {
+				$pass_blank = new stdClass;
+				$pass_blank->meta = (object)['field' => 'user.password'];
+				$pass_blank->title = __("must be a minimum of 8 characters", 'wicket');
+				$errors[] = $pass_blank;
 			}
 			if ($password == '') {
 				$pass_blank = new stdClass;
@@ -168,40 +174,37 @@ class wicket_create_account extends WP_Widget
 
 			// don't send anything if errors
 			if (empty($errors)) {
-				// get parent org from admin settings to associate this person to
-				$wicket_settings = get_wicket_settings();
-				$parent_org = $wicket_settings['parent_org'];
+			
+				$new_person = wicket_create_person($first_name, $last_name, $email, $password, $password_confirmation);
 
-				$args = [
-					'query' => [
-						'filter' => [
-							'alternate_name_en_eq' => $parent_org
-						],
-						'page' => [
-							'number' => 1,
-							'size' => 1,
-						]
-					]
-				];
-				$org = $client->get('organizations', $args);
+				if(isset($new_person['errors'])) {
+					foreach ($new_person['errors'] as $error) {
+						if ($error->meta->error == 'taken' && $error->meta->field == 'emails.address' && $error->meta->claimable == 1) {
+							// build person payload
+							$payload = [
+								'data' => [
+									'type' => 'people',
+									'attributes' => [
+										'given_name' => $first_name,
+										'family_name' => $last_name,
+										'user' => [
+											'password' => $password,
+											'password_confirmation' => $password_confirmation
+										] 
+									]
+								]
+							];
 
-				$user = [
-					'password'              => $_POST['password'],
-					'password_confirmation' => $_POST['password_confirmation'],
-				];
-				$_POST['user'] = $user;
-
-				$person = new \Wicket\Entities\People($_POST);
-				$email = new \Wicket\Entities\Emails([
-					'address' => $_POST['address'],
-					'primary' => true,
-				]);
-				$person->attach($email);
-
-				try {
-					$new_person = $client->people->create($person, (object)$org['data'][0]);
-				} catch (Exception $e) {
-					$_SESSION['wicket_create_account_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+							try {
+								$patch_person = $client->patch('people/' . $error->meta->taken_by->id, ['json' => $payload]);
+								break;
+							} catch (\Throwable $th) {
+								$_SESSION['wicket_create_account_form_errors'] = $new_person['errors'];
+							}
+						}else{
+							$_SESSION['wicket_create_account_form_errors'] = $new_person['errors'];
+						}
+					}
 				}
 				/**------------------------------------------------------------------
 				 * Redirect to a verify page if person was created
