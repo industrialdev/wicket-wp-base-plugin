@@ -212,7 +212,7 @@ function wicket_current_person()
  * 
  * @return Array | bool             Array of those contact items if successful, false if not.
  */
-function wicket_person_obj_get_repeatable_contact_info($wicket_person_obj, $type)
+function wicket_person_obj_get_repeatable_contact_info($wicket_person_obj, $type, $return_full_arrays = false)
 {
   $wicket_person_included = $wicket_person_obj->included()->toArray(); // Converting collection to array
   $contact_items = []; // Will be our array of contact options
@@ -230,7 +230,11 @@ function wicket_person_obj_get_repeatable_contact_info($wicket_person_obj, $type
   $to_return = [];
 
   foreach($contact_items as $contact_item) {
-    $to_return[] = $contact_item['attributes'];
+    if($return_full_arrays) {
+      $to_return[] = $contact_item;
+    } else {
+      $to_return[] = $contact_item['attributes'];
+    }
   }
 
   return $to_return;
@@ -1280,6 +1284,243 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
     $errors = json_decode($e->getResponse()->getBody())->errors;
   }
   return ['errors' => $errors];
+}
+
+/**
+ * Swiss army knife function for updating many profile attributes of a Wicket user.
+ * The $fields_to_update array can include as many or as few high-level profile data types 
+ * as you need to update, for example, attributes and/or addresses, etc.
+ * 
+ * TODO:
+ * * Add support for phone, emails, web_address
+ * 
+ * Example of a $fields_to_update array that updates all available Profile aspects:
+ * 
+ * [
+ *  'attributes' => [
+ *    'family_name' => '',
+ *    'given_name'  => '',
+ *    'job_function' => '',
+ *    'job_level' => '',
+ *    'job_title' => '',
+ *    'etc attributes ...'
+ *  ],
+ *  'addresses' => [
+ *    [
+ *       'uuid' => '',
+ *       'type' => '',
+ *       'primary' => true,
+ *       'mailing' => false,
+ *       'city' => '',
+ *       'zip_code' => '',
+ *       'address1' => '',
+ *       'address2' => '',
+ *       'state_name' => '',
+ *       'country_code' => '',
+ *    ],
+ *    [
+ *      ... other addresses ...
+ *    ]
+ *  ],
+ * ]
+ * 
+ * @param String $person_uuid
+ * @param Array  $fields_to_update
+ * 
+ * @return Array Array with 'success' param that will be true if successful, false if not. If false, 'errors'
+ *               param will include a list of errors encountered.
+ */
+function wicket_update_person($person_uuid, $fields_to_update) {
+  $client = wicket_api_client();
+  $wicket_person = wicket_get_person_by_id($person_uuid);
+
+  if(empty($wicket_person)) {
+    return [
+      'success' => false,
+      'error'   => 'Wicket person not found'
+    ];
+  }
+  $wicket_person_array = wicket_convert_obj_to_array($wicket_person);
+
+  $attributes = [];
+  if(isset($fields_to_update['attributes'])) {
+    // Target specific attributes as the /people/uuid patch endpoint only accepts these
+    $attributes = [
+      'additional_name' => $wicket_person_array['attributes']['additional_name'],
+      'family_name' => $wicket_person_array['attributes']['additional_name'],
+      'given_name' => $wicket_person_array['attributes']['additional_name'],
+      'honorific_prefix' => $wicket_person_array['attributes']['additional_name'],
+      'honorific_suffix' => $wicket_person_array['attributes']['additional_name'],
+      'job_function' =>$wicket_person_array['attributes']['additional_name'],
+      'job_level' => $wicket_person_array['attributes']['additional_name'],
+      'job_title' =>$wicket_person_array['attributes']['additional_name'],
+      'nickname' =>$wicket_person_array['attributes']['additional_name'],
+      'status' => $wicket_person_array['attributes']['additional_name'],
+      'suffix' => $wicket_person_array['attributes']['additional_name'],
+    ];
+    $attributes = array_merge($attributes, $fields_to_update['attributes']); // Later array will overwrite first one
+    $attributes = wicket_filter_null_and_blank($attributes); // sanitize for MDP call
+  }
+
+  $addresses_to_update = [];
+  $addresses_to_create = [];
+  if(isset($fields_to_update['addresses'])) {
+    // Get user current address
+    $current_addresses = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'addresses', true); // Return full address arrays for writing back to the MDP, instead of the simple address list
+
+    // Loop both sets of addresses to determine if they should be updated or added anew
+    foreach($fields_to_update['addresses'] as $address_to_add_update) {
+      $address_exists = false;
+      foreach($current_addresses as $current_address) {
+        if($current_address['attributes']['uuid'] === $address_to_add_update['uuid']) {
+          $address_exists = true;
+          $updated_address = $current_address;
+          $updated_address['attributes'] = array_merge($updated_address['attributes'], $address_to_add_update); // Later array will overwrite first one
+          $addresses_to_update[] = $updated_address;
+        }
+      }
+      if(!$address_exists) {
+        $addresses_to_create[] = $address_to_add_update;
+      }
+    }
+  }
+
+  // -------------
+  // Send updates
+  // -------------
+  $errors = [];
+  $person = null;
+
+  // Attributes
+  if(!empty($attributes)) {
+    $payload = [
+      'data' => [
+        'id' => $person_uuid,
+        'type' => 'people',
+        'attributes' => $attributes
+      ]
+    ];
+
+    try {
+      $person = $client->patch("people/$person_uuid", ['json' => $payload]);
+    } catch (\Exception $e) {
+      $errors[] = $e->getMessage();
+    }
+  }
+
+  // Addresses to update
+  if(!empty($addresses_to_update)) {
+    foreach($addresses_to_update as $address) {
+      $payload = $address;
+      $address_uuid = $payload['attributes']['uuid'];
+      
+      // Unset params that the MDP provides but doesn't want sent back to it
+      unset($payload['attributes']['uuid']);
+      unset($payload['attributes']['type_external_id']);
+      unset($payload['attributes']['formatted_address_label']);
+      unset($payload['attributes']['latitude']);
+      unset($payload['attributes']['longitude']);
+      unset($payload['attributes']['created_at']);
+      unset($payload['attributes']['updated_at']);
+      unset($payload['attributes']['deleted_at']);
+      unset($payload['attributes']['active']);
+      unset($payload['attributes']['consent']);
+      unset($payload['attributes']['consent_third_party']);
+      unset($payload['attributes']['consent_directory']);
+
+      $payload = [
+        'data' => $payload
+      ];
+
+      try {
+        $address_update = $client->patch("addresses/$address_uuid", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  // Addresses to create 
+  if(!empty($addresses_to_create)) {
+    foreach($addresses_to_create as $address) {
+      $payload = [
+        'data' => [
+          'type' => 'addresses',
+          'attributes' => [
+            'address1' => $address['address1'] ?? '',
+            'address2' => $address['address2'] ?? '',
+            'city' => $address['city'] ?? '',
+            'company_name' => $address['company_name'] ?? '',
+            'country_code' => $address['country_code'] ?? '',
+            'department' => $address['department'] ?? '',
+            'division' => $address['division'] ?? '',
+            'mailing' => $address['mailing'] ?? false,
+            'primary' => $address['primary'] ?? false,
+            'state_name' => $address['state_name'] ?? '',
+            'type' => $address['type'] ?? '',
+            'zip_code' => $address['zip_code'] ?? '',
+          ]
+        ]
+      ];
+
+      try {
+        $address_creation = $client->post("people/$person_uuid/addresses", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  if(empty($errors)) {
+    return [
+      'success' => true
+    ];
+  } else {
+    return [
+      'success' => false,
+      'error'   => $errors
+    ];
+  }
+}
+
+/**
+ * Converts and object to a clean array and sanitizes previously protected property keys
+ * so they can be normally accessible with no special characters. Helpful for converting
+ * Wicket objects from the SDK like the Person object that comes from wicket_get_person_by_id()
+ * 
+ * @param Object $object
+ * 
+ * @return Array Cleaned arrayification of the $object
+ */
+function wicket_convert_obj_to_array($object) {
+  // Serialize and unserialize to access all properties
+  $array = (array) unserialize(serialize($object), ['allowed_classes' => false]);
+
+  $cleanArray = [];
+  foreach ($array as $key => $value) {
+      // Remove special characters from keys
+      $cleanKey = preg_replace('/^\x00(?:\*|[^\x00]+)\x00/', '', $key);
+      $cleanArray[$cleanKey] = $value;
+  }
+
+  return $cleanArray;
+}
+
+/**
+ * Little helper function that acts as a version of array_filter()
+ * that *doesn't strip out 0 values, which we might actually want for purposes of sending
+ * data back to the MDP, for example.
+ * 
+ * @param Array $array
+ * 
+ * @return Array that has had it's null and blank string values removed.
+ */
+if(!function_exists('wicket_filter_null_and_blank')) {
+  function wicket_filter_null_and_blank($array) {
+    return array_filter($array, static function($var){
+      return $var !== null && $var !== "";
+    });
+  }
 }
 
 /**------------------------------------------------------------------
