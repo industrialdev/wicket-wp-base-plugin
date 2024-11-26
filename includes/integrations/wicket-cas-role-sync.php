@@ -55,6 +55,18 @@ function sync_wicket_data() {
       }
     }
 
+    // Sync user tags as roles in WP if the option is set
+    if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_tags_as_roles') != '') {
+      $allowed_tags = explode(',',wicket_get_option('wicket_admin_settings_wpcassify_sync_tags_as_roles'));
+      // remove any spaces between the commas in the field if being used
+      $allowed_tags = array_map('trim', $allowed_tags);
+      foreach ($person->tags as $tag) {
+        if (in_array($tag, $allowed_tags)) {
+          $roles[] = $tag;
+        }
+      }
+    }
+
     // update user with roles from Wicket
     foreach ($roles as $role) {
       // check if the role exists in WP already
@@ -129,6 +141,18 @@ function sync_wicket_data_for_person($person_uuid) {
     }
   }
 
+  // Sync user tags as roles in WP if the option is set
+  if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_tags_as_roles') != '') {
+    $allowed_tags = explode(',',wicket_get_option('wicket_admin_settings_wpcassify_sync_tags_as_roles'));
+    // remove any spaces between the commas in the field if being used
+    $allowed_tags = array_map('trim', $allowed_tags);
+    foreach ($person->tags as $tag) {
+      if (in_array($tag, $allowed_tags)) {
+        $roles[] = $tag;
+      }
+    }
+  }
+
   // update user with roles from Wicket
   foreach ($roles as $role) {
     // check if the role exists in WP already
@@ -157,3 +181,4 @@ function sync_wicket_data_for_person($person_uuid) {
 
   return;
 }
+
