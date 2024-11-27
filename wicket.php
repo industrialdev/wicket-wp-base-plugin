@@ -153,10 +153,11 @@ if (! class_exists('Wicket_Main')) {
 			if (is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1')) {
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';
 			}
-
-			// Include WooCommerce functions
-			if (is_plugin_active('woocommerce/woocommerce.php') && (wicket_get_option('wicket_admin_settings_woo_sync_addresses') === '1')) {
-				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-checkout-addresses.php';
+			// Include woocommerce functions
+			if (is_plugin_active('woocommerce/woocommerce.php')) {
+				if (wicket_get_option('wicket_admin_settings_woo_sync_addresses') === '1') {
+					include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-checkout-addresses.php';
+				}
 				include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customizations.php';
 			}
 			// Include WooCommerce memberships team functions

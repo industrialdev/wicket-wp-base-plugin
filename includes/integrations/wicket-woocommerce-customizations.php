@@ -27,17 +27,18 @@ function wicket_redirect_membership_cats() {
 
 /**
  * Redirect single products from Membership categories to shop page
+ * Membership Categories that are used to redirect here can be configured under Wicket -> Memberships
  */
 add_action( 'wp', 'wicket_redirect_membership_cat_product_pages', 99 );
 function wicket_redirect_membership_cat_product_pages() {
 
-    if ( wicket_get_option('wicket_admin_settings_woo_remove_membership_product_single') === '1' ) {          
-        $membership_categories = wicket_get_option('wicket_admin_settings_membership_categories');  
-        if ( is_product() && has_term( $membership_categories, 'product_cat' ) ) {
-            wp_safe_redirect( wc_get_page_permalink( 'shop' ) );
-            exit;
-        } 
-    }
+  if ( wicket_get_option('wicket_admin_settings_woo_remove_membership_product_single') === '1' ) {          
+    $membership_categories = wicket_get_option('wicket_admin_settings_membership_categories');  
+    if ( $membership_categories && is_product() && has_term( $membership_categories, 'product_cat' ) ) {
+      wp_safe_redirect( wc_get_page_permalink( 'shop' ) );
+      exit;
+    } 
+  }
 }
 
 
