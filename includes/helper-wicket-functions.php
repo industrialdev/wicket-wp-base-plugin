@@ -478,6 +478,7 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
 
   // Get language-specific meta
   $org_name = $org_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
+  $org_name_alt = $org_info['data']['attributes']["alternate_name_$lang"] ?? $org_info['data']['attributes']['alternate_name'];
   $org_description = $org_info['data']['attributes']["description_$lang"] ?? $org_info['data']['attributes']['description'];
 
   if (isset($org_parent_info)) {
@@ -498,6 +499,7 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
   return [
     'org_id'          => $uuid,
     'org_name'        => $org_name,
+    'org_name_alt'    => $org_name_alt,
     'org_description' => $org_description,
     'org_type'        => $org_type,
     'org_type_pretty' => $org_type_pretty,
