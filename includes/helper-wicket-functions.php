@@ -2847,7 +2847,13 @@ function wicket_get_org_memberships($org_id)
 {
   $client = wicket_api_client();
   if ($org_id) {
-    $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
+    try {
+      $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
+    } catch(\Exception $e) {
+      //wicket_write_log('wicket_get_org_memberships() error:');
+      //wicket_write_log($e->getMessage());
+      return [];
+    }
     $memberships = [];
     if (isset($organization_memberships['data'][0])) {
       foreach ($organization_memberships['data'] as $org_membership) {
