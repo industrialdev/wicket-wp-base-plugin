@@ -16,6 +16,7 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $order           = $order ?? wc_get_order($order_id);
   $order_user      = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid = $order_user->user_login;
+  $order_org_meta  = $order->get_meta('_wc_org_uuid');
 
   // ---------------------------------------------------------------------------------------
   // Do not run for subscriptions, which are also considered orders kinda. 
@@ -36,12 +37,13 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $order_total          = $order->get_total();
   $currency_code        = $order->get_currency();  
   $currency_symbol      = get_woocommerce_currency_symbol( $currency_code );
+  $coupons              = implode(', ', $order->get_used_coupons());  
 
   // ---------------------------------------------------------------------------------------
   // Build action of touchpoint
   // ---------------------------------------------------------------------------------------
   $action_map = [
-    'completed'  => "Order Marked Completed",
+    'completed'  => "Order Completed",
     'on-hold'    => "Order On-Hold",
     'refunded'   => "Order Refunded",
     'cancelled'  => "Order Cancelled",
@@ -59,13 +61,18 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $products_list  = [];
   foreach($order->get_items() as $item_id => $line_item){
     $product = $line_item->get_product();
+    $product_id = $product->get_id();
     $product_name = $product->get_name();
+    $product_categories = strip_tags($product->get_categories());
     $item_quantity = $line_item->get_quantity();
     $item_total = $line_item->get_total();
     $line_item_meta[] = [
-      'product_name' => $product_name, 
-      'quantity' => $item_quantity, 
-      'item_total' => number_format( $item_total, 2 ) 
+      'product_id'       => $product_id, 
+      'product_name'     => $product_name, 
+      'product_category' => $product_categories, 
+      'quantity'         => $item_quantity, 
+      'product_amount'   => number_format( $item_total, 2 ),
+      'coupon_code'      => $coupons
     ];
     $products_list[] = $product_name;
   }
@@ -74,23 +81,21 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $products_link = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
   $details  = "Order Total: $currency_symbol $order_total $currency_code <br>";
   $details .= "Order Status: ".ucwords($order_status)." <br>";
-  // we do not have the products available when the order is pending for some reason, so don't try and write them if it's pending
-  // if ($order_status != 'pending') {
-    $details .= "Product(s) Ordered: $products_link";
-  // }
+  $details .= "Product(s) Ordered: $products_link";
 
   // ---------------------------------------------------------------------------------------
   // Build data of touchpoint
   // ---------------------------------------------------------------------------------------
   $data = [
-    'OrderID'             => $order_id,
-    'Products'            => $products_list,
-    'LineItems'           => $line_item_meta,
-    'OrderTotal'          => $order_total,
-    'OrderStatus'         => ucwords($order_status),
-    'OrderEditLink'       => $order_edit_url,
-    'OrderCurrency'       => $currency_code,
-    'OrderCurrencySymbol' => $currency_symbol,
+    'order_id'              => $order_id,
+    'order_total'           => $order_total,
+    'organization_id'       => $order_org_meta['uuid'] ?? '',
+    'organization_name'     => $order_org_meta['name'] ?? '',
+    'products'              => $line_item_meta,
+    'order_status'          => ucwords($order_status),
+    'order_edit_link'       => $order_edit_url,
+    'order_currency'        => $currency_code,
+    'order_currency_symbol' => $currency_symbol,
   ];
 
   // ---------------------------------------------------------------------------------------
