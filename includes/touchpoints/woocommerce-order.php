@@ -60,13 +60,13 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $line_item_meta = [];
   $products_list  = [];
   foreach($order->get_items() as $item_id => $line_item){
-    $product = $line_item->get_product();
-    $product_id = $product->get_id();
-    $product_name = $product->get_name();
+    $product            = $line_item->get_product();
+    $product_id         = $product->get_id();
+    $product_name       = $product->get_name();
     $product_categories = strip_tags($product->get_categories());
-    $item_quantity = $line_item->get_quantity();
-    $item_total = $line_item->get_total();
-    $line_item_meta[] = [
+    $item_quantity      = $line_item->get_quantity();
+    $item_total         = $line_item->get_total();
+    $line_item_meta[]   = [
       'product_id'       => $product_id, 
       'product_name'     => $product_name, 
       'product_category' => $product_categories, 
@@ -78,10 +78,10 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   }
 
   $products_imploded = implode('<br>',$products_list);
-  $products_link = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
-  $details  = "Order Total: $currency_symbol $order_total $currency_code <br>";
-  $details .= "Order Status: ".ucwords($order_status)." <br>";
-  $details .= "Product(s) Ordered: $products_link";
+  $products_link     = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
+  $details           = "Order Total: $currency_symbol $order_total $currency_code <br>";
+  $details          .= "Order Status: ".ucwords($order_status)." <br>";
+  $details          .= "Product(s) Ordered: $products_link";
 
   // ---------------------------------------------------------------------------------------
   // Build data of touchpoint
@@ -122,6 +122,18 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   }
   $params['external_event_id'] = implode('_', $externalEventIdParts);
 
+  // ---------------------------------------------------------------------------------------
+  // Configure a toolbox of values that a dev could use to override. 
+  // Use this instead of passing individual values as per the docs because this could be added to in the future
+  // ex: 
+  // add_filter('alter_woocommerce_order_touchpoint', 'my_callback', 9999, 2);
+  // function my_callback($params, $values_arr){
+  //   $params['details'] = 'new details in here';
+  //   return $params;
+  // }
+  // ---------------------------------------------------------------------------------------
+  $values_arr = ['order' => $order];
+  $params = apply_filters('alter_woocommerce_order_touchpoint', $params, $values_arr);
   write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
 }
 
@@ -133,13 +145,13 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
 add_action('woocommerce_order_partially_refunded', 'woocommerce_order_partially_refunded_touchpoint', 9999, 2);
 
 function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
-  $order = wc_get_order( $order_id );
-  $order_user      = get_user_by( 'id', $order->get_user_id());
-  $order_user_uuid = $order_user->user_login;
-  $order_org_meta  = $order->get_meta('_wc_org_uuid');
+  $order                 = wc_get_order( $order_id );
+  $order_user            = get_user_by( 'id', $order->get_user_id());
+  $order_user_uuid       = $order_user->user_login;
+  $order_org_meta        = $order->get_meta('_wc_org_uuid');
   $net_payment_remaining = $order->get_remaining_refund_amount();
-  $refund = wc_get_order( $refund_id );
-  $amount_refunded = $refund->get_amount();
+  $refund                = wc_get_order( $refund_id );
+  $amount_refunded       = $refund->get_amount();
 
   // ---------------------------------------------------------------------------------------
   // Load needed order info
@@ -182,6 +194,21 @@ function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
     'data'      => $data,
   ];
 
+  // ---------------------------------------------------------------------------------------
+  // Configure a toolbox of values that a dev could use to override. 
+  // Use this instead of passing individual values as per the docs because this could be added to in the future
+  // ex: 
+  // add_filter('alter_woocommerce_order_partially_refunded_touchpoint', 'my_callback', 9999, 2);
+  // function my_callback($params, $values_arr){
+  //   $params['details'] = 'new details in here';
+  //   return $params;
+  // }
+  // ---------------------------------------------------------------------------------------
+  $values_arr = [
+    'order'  => $order,
+    'refund' => $refund
+  ];
+  $params = apply_filters('alter_woocommerce_order_partially_refunded_touchpoint', $params, $values_arr);
   write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
 }
 
