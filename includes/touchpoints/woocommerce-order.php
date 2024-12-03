@@ -125,3 +125,64 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
 }
 
+// ---------------------------------------------------------------------------------------
+// Setup an action for partial refunds. We already capture full refunds above since an order
+// changes status to "Refunded" when the full amount is applied. Otherwise we need this below.
+// A partial refund is just any refund amount that is not the full amount. The order otherwise stays in the current status
+// ---------------------------------------------------------------------------------------
+add_action('woocommerce_order_partially_refunded', 'woocommerce_order_partially_refunded_touchpoint', 9999, 2);
+
+function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
+  $order = wc_get_order( $order_id );
+  $order_user      = get_user_by( 'id', $order->get_user_id());
+  $order_user_uuid = $order_user->user_login;
+  $order_org_meta  = $order->get_meta('_wc_org_uuid');
+  $net_payment_remaining = $order->get_remaining_refund_amount();
+  $refund = wc_get_order( $refund_id );
+  $amount_refunded = $refund->get_amount();
+
+  // ---------------------------------------------------------------------------------------
+  // Load needed order info
+  // ---------------------------------------------------------------------------------------
+  $order_id             = $order->id;
+  $order_status         = $order->status;
+  $order_edit_url       = $order->get_edit_order_url();
+  $order_payment_method = $order->payment_method;
+  $order_total          = $order->get_total();
+  $currency_code        = $order->get_currency();  
+  $currency_symbol      = get_woocommerce_currency_symbol( $currency_code );
+
+  $action = 'Order Partially Refunded';
+  
+  // ---------------------------------------------------------------------------------------
+  // Build details of touchpoint
+  // ---------------------------------------------------------------------------------------
+  $details = "Order ID: [$order_id]($order_edit_url) <br>"; // needs to be markdown for the MDP
+  $details .= "Refund Total: $amount_refunded $currency_code <br>";
+  $details .= "Order Total After Refund: ".$net_payment_remaining." <br>";
+
+  // ---------------------------------------------------------------------------------------
+  // Build data of touchpoint
+  // ---------------------------------------------------------------------------------------
+  $data = [
+    'order_id'              => $order_id,
+    'refund_total'          => $amount_refunded,
+    'total_after_refunds'   => $net_payment_remaining,
+    'order_currency'        => $currency_code,
+    'order_currency_symbol' => $currency_symbol,
+  ];
+
+  // ---------------------------------------------------------------------------------------
+  // Build touchpoint params
+  // ---------------------------------------------------------------------------------------
+  $params = [
+    'person_id' => $order_user_uuid,
+    'details'   => $details,
+    'action'    => $action,
+    'data'      => $data,
+  ];
+
+  write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
+}
+
+
