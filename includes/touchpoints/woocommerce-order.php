@@ -16,7 +16,7 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $order           = $order ?? wc_get_order($order_id);
   $order_user      = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid = $order_user->user_login;
-  $order_org_meta  = $order->get_meta('_wc_org_uuid');
+  $order_org_meta  = get_post_meta($order->id, '_wc_org_uuid', true);
 
   // ---------------------------------------------------------------------------------------
   // Do not run for subscriptions, which are also considered orders kinda. 
@@ -148,7 +148,6 @@ function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
   $order                 = wc_get_order( $order_id );
   $order_user            = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid       = $order_user->user_login;
-  $order_org_meta        = $order->get_meta('_wc_org_uuid');
   $net_payment_remaining = $order->get_remaining_refund_amount();
   $refund                = wc_get_order( $refund_id );
   $amount_refunded       = $refund->get_amount();
