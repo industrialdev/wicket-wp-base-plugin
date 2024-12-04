@@ -17,6 +17,7 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $order_user      = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid = $order_user->user_login;
   $order_org_meta  = get_post_meta($order->id, '_wc_org_uuid', true);
+  $org_name        = $order_org_meta['name'] ?? '';
 
   // ---------------------------------------------------------------------------------------
   // Do not run for subscriptions, which are also considered orders kinda. 
@@ -79,9 +80,10 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
 
   $products_imploded = implode('<br>',$products_list);
   $products_link     = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
-  $details           = "Order Total: $currency_symbol $order_total $currency_code <br>";
-  $details          .= "Order Status: ".ucwords($order_status)." <br>";
-  $details          .= "Product(s) Ordered: $products_link";
+  $details           = "Order ID: [$order_id]($order_edit_url) <br>";
+  $details          .= "Order Total: $currency_symbol $order_total $currency_code <br>";
+  $details          .= "Org Name: ".$org_name."<br>";
+  $details          .= "Products: $products_link";
 
   // ---------------------------------------------------------------------------------------
   // Build data of touchpoint
@@ -148,6 +150,8 @@ function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
   $order                 = wc_get_order( $order_id );
   $order_user            = get_user_by( 'id', $order->get_user_id());
   $order_user_uuid       = $order_user->user_login;
+  $order_org_meta        = $order->get_meta('_wc_org_uuid');
+  $org_name              = $order_org_meta['name'] ?? '';
   $net_payment_remaining = $order->get_remaining_refund_amount();
   $refund                = wc_get_order( $refund_id );
   $amount_refunded       = $refund->get_amount();
