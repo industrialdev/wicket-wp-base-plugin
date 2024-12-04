@@ -1421,8 +1421,8 @@ function wicket_update_person($person_uuid, $fields_to_update) {
   // Repeatable contact types
   if(isset($fields_to_update['addresses'])) {
     $addresses_update = wicket_add_update_person_addresses($person_uuid, $fields_to_update['addresses']);
-    if(!$addresses_to_update['success']) {
-      $errors[] = $addresses_to_update['error'];
+    if(!$addresses_update['success']) {
+      $errors[] = $addresses_update['error'];
     }
   }
   if(isset($fields_to_update['phones'])) {
