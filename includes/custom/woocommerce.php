@@ -59,16 +59,14 @@ if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_
   add_action('woocommerce_admin_order_data_after_order_details', 'wicket_display_org_input_on_order', 10, 1 );
   add_action('admin_enqueue_scripts', 'wicket_enqueue_wc_org_scripts' );
   add_action('wp_ajax_wc_org_search', 'wicket_handle_wc_org_search' );
-  add_action('save_post', 'wicket_set_wc_org_uuid');
+  add_action('woocommerce_update_order', 'wicket_set_wc_org_uuid');
 }
 
 function wicket_set_wc_org_uuid( $order_id ) {
-  if(get_post_type($order_id) == 'shop_order' && !empty($_REQUEST['wicket_wc_org_select_uuid'])) {
-    $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid'] );
-    $org['name'] = $wicket_org['data']['attributes']['legal_name'];
-    $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
-    update_post_meta( $order_id, '_wc_org_uuid', $org);
-  }  
+  $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid'] );
+  $org['name'] = $wicket_org['data']['attributes']['legal_name'];
+  $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
+  update_post_meta( $order_id, '_wc_org_uuid', $org);
 }
 
 function write_org_id_to_order($order_id, $order) {
