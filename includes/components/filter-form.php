@@ -1,16 +1,18 @@
 <?php
-$defaults         = array(
-	'classes'          => [],
-	'taxonomies'       => [],
-	'post_types'       => [],
-	'hide_date_filter' => false,
+$defaults              = array(
+	'classes'               => [],
+	'taxonomies'            => [],
+	'post_types'            => [],
+	'hide_date_filter'      => false,
+	'pre_filter_categories' => [],
 );
-$args             = wp_parse_args( $args, $defaults );
-$classes          = $args['classes'];
-$taxonomies       = $args['taxonomies'];
-$post_types       = $args['post_types'];
-$hide_date_filter = $args['hide_date_filter'];
-$classes[]        = 'component-filter-form';
+$args                  = wp_parse_args( $args, $defaults );
+$classes               = $args['classes'];
+$taxonomies            = $args['taxonomies'];
+$post_types            = $args['post_types'];
+$hide_date_filter      = $args['hide_date_filter'];
+$pre_filter_categories = $args['pre_filter_categories'];
+$classes[]             = 'component-filter-form';
 
 if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 	$classes = array_merge( $classes, [ 'py-4', 'px-4', 'lg:py-8', 'lg:px-0', 'lg:pr-3' ] );
@@ -134,7 +136,28 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 		foreach ( $taxonomies as $taxonomy ) : ?>
 			<?php
 			$taxonomy_obj = get_taxonomy( $taxonomy['slug'] );
-			$terms        = ! is_wp_error( get_terms( $taxonomy['slug'], array( 'parent' => 0 ) ) ) ? get_terms( $taxonomy['slug'], array( 'parent' => 0 ) ) : [];
+			$terms        = [];
+
+			// If categories are passed, use them to get parent terms
+			if ( ! empty( $pre_filter_categories ) ) {
+				$parent_categories = [];
+				foreach ( $pre_filter_categories as $category ) {
+					if ( $category->parent == 0 ) {
+						$parent_categories[] = $category;
+					}
+				}
+				$terms = $parent_categories;
+			} else {
+				$terms = get_terms( [ 
+					'taxonomy'   => $taxonomy['slug'],
+					'parent'     => 0,
+					'hide_empty' => false,
+				] );
+			}
+
+			if ( is_wp_error( $terms ) ) {
+				$terms = [];
+			}
 			?>
 			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}"
 				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
@@ -196,6 +219,19 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 								<?php
 								// Get child terms
 								$child_terms = get_terms( $taxonomy['slug'], array( 'parent' => $term->term_id ) );
+
+								// If categories are passed, use them to get child terms
+								$child_categories = [];
+								if ( $taxonomy['slug'] === 'product_cat' && ! empty( $pre_filter_categories ) ) {
+									foreach ( $pre_filter_categories as $category ) {
+										if ( $category->parent == $term->term_id ) {
+											$child_categories[] = $category;
+										}
+									}
+									$child_terms = $child_categories;
+								}
+
+
 								if ( ! is_wp_error( $child_terms ) && ! empty( $child_terms ) ) : ?>
 									<ul class="ml-4 mt-3">
 										<?php foreach ( $child_terms as $child_term ) : ?>
