@@ -478,6 +478,7 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
 
   // Get language-specific meta
   $org_name = $org_info['data']['attributes']["legal_name_$lang"] ?? $org_info['data']['attributes']['legal_name'];
+  $org_name_alt = $org_info['data']['attributes']["alternate_name_$lang"] ?? $org_info['data']['attributes']['alternate_name'];
   $org_description = $org_info['data']['attributes']["description_$lang"] ?? $org_info['data']['attributes']['description'];
 
   if (isset($org_parent_info)) {
@@ -498,6 +499,7 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
   return [
     'org_id'          => $uuid,
     'org_name'        => $org_name,
+    'org_name_alt'    => $org_name_alt,
     'org_description' => $org_description,
     'org_type'        => $org_type,
     'org_type_pretty' => $org_type_pretty,
@@ -1291,8 +1293,6 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
  * The $fields_to_update array can include as many or as few high-level profile data types 
  * as you need to update, for example, attributes and/or addresses, etc.
  * 
- * TODO:
- * * Add support for phone, emails, web_address
  * 
  * Example of a $fields_to_update array that updates all available Profile aspects:
  * 
@@ -1320,6 +1320,39 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
  *    ],
  *    [
  *      ... other addresses ...
+ *    ]
+ *  ],
+ *  'phones' => [
+ *    [
+ *       'uuid' => '', // existing phone # uuid 
+ *       'primary' => true,
+ *       'type' => 'business',
+ *       'number' => '+15555555555',
+ *    ],
+ *    [
+ *      ... other phones ...
+ *    ]
+ *  ],
+ *  'emails' => [
+ *    [
+ *       'uuid' => '', // existing email uuid 
+ *       'primary' => true,
+ *       'type' => 'business',
+ *       'address' => 'yo@example.com',
+ *       'unique' => true // defaults to true
+ *    ],
+ *    [
+ *      ... other emails ...
+ *    ]
+ *  ],
+ *  'web_addresses' => [
+ *    [
+ *       'uuid' => '', // existing web_address uuid 
+ *       'type' => 'website',
+ *       'address' => 'https://wicket.io',
+ *    ],
+ *    [
+ *      ... other web addresses ...
  *    ]
  *  ],
  * ]
@@ -1362,29 +1395,6 @@ function wicket_update_person($person_uuid, $fields_to_update) {
     $attributes = wicket_filter_null_and_blank($attributes); // sanitize for MDP call
   }
 
-  $addresses_to_update = [];
-  $addresses_to_create = [];
-  if(isset($fields_to_update['addresses'])) {
-    // Get user current address
-    $current_addresses = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'addresses', true); // Return full address arrays for writing back to the MDP, instead of the simple address list
-
-    // Loop both sets of addresses to determine if they should be updated or added anew
-    foreach($fields_to_update['addresses'] as $address_to_add_update) {
-      $address_exists = false;
-      foreach($current_addresses as $current_address) {
-        if($current_address['attributes']['uuid'] === $address_to_add_update['uuid']) {
-          $address_exists = true;
-          $updated_address = $current_address;
-          $updated_address['attributes'] = array_merge($updated_address['attributes'], $address_to_add_update); // Later array will overwrite first one
-          $addresses_to_update[] = $updated_address;
-        }
-      }
-      if(!$address_exists) {
-        $addresses_to_create[] = $address_to_add_update;
-      }
-    }
-  }
-
   // -------------
   // Send updates
   // -------------
@@ -1407,6 +1417,101 @@ function wicket_update_person($person_uuid, $fields_to_update) {
       $errors[] = $e->getMessage();
     }
   }
+
+  // Repeatable contact types
+  if(isset($fields_to_update['addresses'])) {
+    $addresses_update = wicket_add_update_person_addresses($person_uuid, $fields_to_update['addresses']);
+    if(!$addresses_update['success']) {
+      $errors[] = $addresses_update['error'];
+    }
+  }
+  if(isset($fields_to_update['phones'])) {
+    $phones_update = wicket_add_update_person_phones($person_uuid, $fields_to_update['phones']);
+    if(!$phones_update['success']) {
+      $errors[] = $phones_update['error'];
+    }
+  }
+  if(isset($fields_to_update['emails'])) {
+    $emails_update = wicket_add_update_person_emails($person_uuid, $fields_to_update['emails']);
+    if(!$emails_update['success']) {
+      $errors[] = $emails_update['error'];
+    }
+  }
+  if(isset($fields_to_update['web_addresses'])) {
+    $web_addresses_update = wicket_add_update_person_web_addresses($person_uuid, $fields_to_update['web_addresses']);
+    if(!$web_addresses_update['success']) {
+      $errors[] = $web_addresses_update['error'];
+    }
+  }
+
+  if(empty($errors)) {
+    return [
+      'success' => true
+    ];
+  } else {
+    return [
+      'success' => false,
+      'error'   => $errors
+    ];
+  }
+}
+
+/**
+ * Function for updating or creating new addresses for a user.
+ * 
+ * Example $addresses array:
+ * 
+ * [
+ *    [
+ *       'uuid' => '',
+ *       'type' => '',
+ *       'primary' => true,
+ *       'mailing' => false,
+ *       'city' => '',
+ *       'zip_code' => '',
+ *       'address1' => '',
+ *       'address2' => '',
+ *       'state_name' => '',
+ *       'country_code' => '',
+ *    ],
+ *    [
+ *      ... other addresses ...
+ *    ]
+ *  ]
+ * 
+ */
+function wicket_add_update_person_addresses($person_uuid, $addresses) {
+  $client = wicket_api_client();
+  $wicket_person = wicket_get_person_by_id($person_uuid);
+
+  $addresses_to_update = [];
+  $addresses_to_create = [];
+  $errors = [];
+
+  // Get user current address
+  $current_addresses = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'addresses', true); // Return full address arrays for writing back to the MDP, instead of the simple address list
+
+  // Loop both sets of addresses to determine if they should be updated or added anew
+  foreach($addresses as $address_to_add_update) {
+    $address_exists = false;
+    foreach($current_addresses as $current_address) {
+      if(isset($address_to_add_update['uuid'])) {
+        if($current_address['attributes']['uuid'] === $address_to_add_update['uuid']) {
+          $address_exists = true;
+          $updated_address = $current_address;
+          $updated_address['attributes'] = array_merge($updated_address['attributes'], $address_to_add_update); // Later array will overwrite first one
+          $addresses_to_update[] = $updated_address;
+        }
+      }
+    }
+    if(!$address_exists) {
+      $addresses_to_create[] = $address_to_add_update;
+    }
+  }
+
+  /**
+   * Send updates
+   */
 
   // Addresses to update
   if(!empty($addresses_to_update)) {
@@ -1465,6 +1570,355 @@ function wicket_update_person($person_uuid, $fields_to_update) {
 
       try {
         $address_creation = $client->post("people/$person_uuid/addresses", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  if(empty($errors)) {
+    return [
+      'success' => true
+    ];
+  } else {
+    return [
+      'success' => false,
+      'error'   => $errors
+    ];
+  }
+}
+
+/**
+ * Function for updating or creating new phones for a user.
+ * 
+ * Example $phones array:
+ * 
+ * [
+ *    [
+ *       'uuid' => '', // existing phone # uuid 
+ *       'primary' => true,
+ *       'type' => 'business',
+ *       'number' => '+15555555555',
+ *    ],
+ *    [
+ *      ... other phones ...
+ *    ]
+ *  ]
+ * 
+ */
+function wicket_add_update_person_phones($person_uuid, $phones) {
+  $client = wicket_api_client();
+  $wicket_person = wicket_get_person_by_id($person_uuid);
+
+  $phones_to_update = [];
+  $phones_to_create = [];
+  $errors = [];
+
+  // Get user current phone
+  $current_phones = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'phones', true); // Return full phone arrays for writing back to the MDP, instead of the simple phone list
+
+  // Loop both sets of phones to determine if they should be updated or added anew
+  foreach($phones as $phone_to_update) {
+    $phone_exists = false;
+    foreach($current_phones as $current_phone) {
+      if(isset($phone_to_update['uuid'])) {
+        if($current_phone['attributes']['uuid'] === $phone_to_update['uuid']) {
+          $phone_exists = true;
+          $updated_phone = $current_phone;
+          $updated_phone['attributes'] = array_merge($updated_phone['attributes'], $phone_to_update); // Later array will overwrite first one
+          $phones_to_update[] = $updated_phone;
+        }
+      }
+    }
+    if(!$phone_exists) {
+      $phones_to_create[] = $phone_to_update;
+    }
+  }
+
+  /**
+   * Send updates
+   */
+
+  // phones to update
+  if(!empty($phones_to_update)) {
+    foreach($phones_to_update as $phone) {
+      $payload = $phone;
+      $phone_uuid = $payload['attributes']['uuid'];
+      
+      // Unset params that the MDP provides but doesn't want sent back to it
+      unset($payload['attributes']['uuid']);
+      unset($payload['attributes']['type_external_id']);
+      unset($payload['attributes']['number_national_format']);
+      unset($payload['attributes']['number_international_format']);
+      unset($payload['attributes']['extension']);
+      unset($payload['attributes']['country_code_number']);
+      unset($payload['attributes']['created_at']);
+      unset($payload['attributes']['updated_at']);
+      unset($payload['attributes']['deleted_at']);
+      unset($payload['attributes']['primary_sms']);
+      unset($payload['attributes']['consent']);
+      unset($payload['attributes']['consent_third_party']);
+      unset($payload['attributes']['consent_directory']);
+
+      $payload = [
+        'data' => $payload
+      ];
+
+      try {
+        $phone_update = $client->patch("phones/$phone_uuid", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  // phones to create 
+  if(!empty($phones_to_create)) {
+    foreach($phones_to_create as $phone) {
+      $payload = [
+        'data' => [
+          'type' => 'phones',
+          'attributes' => [
+            'number' => $phone['number'] ?? '',
+            'primary' => $phone['primary'] ?? false,
+            'type' => $phone['type'] ?? '',
+          ]
+        ]
+      ];
+
+      try {
+        $phone_creation = $client->post("people/$person_uuid/phones", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  if(empty($errors)) {
+    return [
+      'success' => true
+    ];
+  } else {
+    return [
+      'success' => false,
+      'error'   => $errors
+    ];
+  }
+}
+
+/**
+ * Function for updating or creating new emails for a user.
+ * 
+ * Example $emails array:
+ * 
+ * [
+ *    [
+ *       'uuid' => '', // existing email uuid 
+ *       'primary' => true,
+ *       'type' => 'business',
+ *       'address' => 'yo@example.com',
+ *       'unique' => true // defaults to true
+ *    ],
+ *    [
+ *      ... other emails ...
+ *    ]
+ *  ]
+ * 
+ */
+function wicket_add_update_person_emails($person_uuid, $emails) {
+  $client = wicket_api_client();
+  $wicket_person = wicket_get_person_by_id($person_uuid);
+
+  $emails_to_update = [];
+  $emails_to_create = [];
+  $errors = [];
+
+  // Get user current email
+  $current_emails = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'emails', true); // Return full email arrays for writing back to the MDP, instead of the simple email list
+
+  // Loop both sets of emails to determine if they should be updated or added anew
+  foreach($emails as $email_to_update) {
+    $email_exists = false;
+    foreach($current_emails as $current_email) {
+      if(isset($email_to_update['uuid'])) {
+        if($current_email['attributes']['uuid'] === $email_to_update['uuid']) {
+          $email_exists = true;
+          $updated_email = $current_email;
+          $updated_email['attributes'] = array_merge($updated_email['attributes'], $email_to_update); // Later array will overwrite first one
+          $emails_to_update[] = $updated_email;
+        }
+      }
+    }
+    if(!$email_exists) {
+      $emails_to_create[] = $email_to_update;
+    }
+  }
+
+  /**
+   * Send updates
+   */
+
+  // emails to update
+  if(!empty($emails_to_update)) {
+    foreach($emails_to_update as $email) {
+      $payload = $email;
+      $email_uuid = $payload['attributes']['uuid'];
+      
+      // Unset params that the MDP provides but doesn't want sent back to it
+      unset($payload['attributes']['uuid']);
+      unset($payload['attributes']['type_external_id']);
+      unset($payload['attributes']['localpart']);
+      unset($payload['attributes']['domain']);
+      unset($payload['attributes']['email']);
+      unset($payload['attributes']['unique']);
+      unset($payload['attributes']['created_at']);
+      unset($payload['attributes']['updated_at']);
+      unset($payload['attributes']['deleted_at']);
+      unset($payload['attributes']['consent']);
+      unset($payload['attributes']['consent_third_party']);
+      unset($payload['attributes']['consent_directory']);
+
+      $payload = [
+        'data' => $payload
+      ];
+
+      try {
+        $email_update = $client->patch("emails/$email_uuid", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  // emails to create 
+  if(!empty($emails_to_create)) {
+    foreach($emails_to_create as $email) {
+      $payload = [
+        'data' => [
+          'type' => 'emails',
+          'attributes' => [
+            'address' => $email['number'] ?? '',
+            'primary' => $email['primary'] ?? false,
+            'type' => $email['type'] ?? '',
+            'unique' => $email['unique'] ?? true,
+          ]
+        ]
+      ];
+
+      try {
+        $email_creation = $client->post("people/$person_uuid/emails", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  if(empty($errors)) {
+    return [
+      'success' => true
+    ];
+  } else {
+    return [
+      'success' => false,
+      'error'   => $errors
+    ];
+  }
+}
+
+/**
+ * Function for updating or creating new web address for a user.
+ * 
+ * Example $web_addresses array:
+ * 
+ * [
+ *    [
+ *       'uuid' => '', // existing web_address uuid 
+ *       'type' => 'website',
+ *       'address' => 'https://wicket.io',
+ *    ],
+ *    [
+ *      ... other web addresses ...
+ *    ]
+ *  ]
+ * 
+ */
+function wicket_add_update_person_web_addresses($person_uuid, $web_addresses) {
+  $client = wicket_api_client();
+  $wicket_person = wicket_get_person_by_id($person_uuid);
+
+  $web_addresses_to_update = [];
+  $web_addresses_to_create = [];
+  $errors = [];
+
+  // Get user current web_address
+  $current_web_addresses = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'web_addresses', true); // Return full web_address arrays for writing back to the MDP, instead of the simple web_address list
+
+  // Loop both sets of web_addresses to determine if they should be updated or added anew
+  foreach($web_addresses as $web_address_to_update) {
+    $web_address_exists = false;
+    foreach($current_web_addresses as $current_web_address) {
+      if(isset($web_address_to_update['uuid'])) {
+        if($current_web_address['attributes']['uuid'] === $web_address_to_update['uuid']) {
+          $web_address_exists = true;
+          $updated_web_address = $current_web_address;
+          $updated_web_address['attributes'] = array_merge($updated_web_address['attributes'], $web_address_to_update); // Later array will overwrite first one
+          $web_addresses_to_update[] = $updated_web_address;
+        }
+      }
+    }
+    if(!$web_address_exists) {
+      $web_addresses_to_create[] = $web_address_to_update;
+    }
+  }
+
+  /**
+   * Send updates
+   */
+
+  // web_addresses to update
+  if(!empty($web_addresses_to_update)) {
+    foreach($web_addresses_to_update as $web_address) {
+      $payload = $web_address;
+      $web_address_uuid = $payload['attributes']['uuid'];
+      
+      // Unset params that the MDP provides but doesn't want sent back to it
+      unset($payload['attributes']['uuid']);
+      unset($payload['attributes']['type_external_id']);
+      unset($payload['attributes']['data']);
+      unset($payload['attributes']['created_at']);
+      unset($payload['attributes']['updated_at']);
+      unset($payload['attributes']['deleted_at']);
+      unset($payload['attributes']['consent']);
+      unset($payload['attributes']['consent_third_party']);
+      unset($payload['attributes']['consent_directory']);
+
+      $payload = [
+        'data' => $payload
+      ];
+
+      try {
+        $web_address_update = $client->patch("web_addresses/$web_address_uuid", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  // web_addresses to create 
+  if(!empty($web_addresses_to_create)) {
+    foreach($web_addresses_to_create as $web_address) {
+      $payload = [
+        'data' => [
+          'type' => 'web_addresses',
+          'attributes' => [
+            'address' => $web_address['address'] ?? '',
+            'type' => $web_address['type'] ?? '',
+          ]
+        ]
+      ];
+
+      try {
+        $web_address_creation = $client->post("people/$person_uuid/web_addresses", ['json' => $payload]);
       } catch (\Exception $e) {
         $errors[] = $e->getMessage();
       }
@@ -1985,19 +2439,19 @@ function wicket_create_organization($org_name, $org_type, $additional_info = [],
  *
  * Payload example:
  *
- $payload = [
-   'data' => [
-     'type' => 'addresses',
-     'attributes' => [
-       'type' => 'work',
-       'address1' => '123 fake st',
-       'city' => 'ottawa',
-       'country_code' => 'CA',
-       'state_name' => 'ON',
-       'zip_code' => 'k1z6x6'
-     ]
-   ]
- ];
+ * $payload = [
+ *   'data' => [
+ *     'type' => 'addresses',
+ *     'attributes' => [
+ *       'type' => 'work',
+ *       'address1' => '123 fake st',
+ *       'city' => 'ottawa',
+ *       'country_code' => 'CA',
+ *       'state_name' => 'ON',
+ *       'zip_code' => 'k1z6x6'
+ *     ]
+ *   ]
+ * ];
  *
  * @return bool
  */
@@ -2847,7 +3301,13 @@ function wicket_get_org_memberships($org_id)
 {
   $client = wicket_api_client();
   if ($org_id) {
-    $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
+    try {
+      $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
+    } catch(\Exception $e) {
+      //wicket_write_log('wicket_get_org_memberships() error:');
+      //wicket_write_log($e->getMessage());
+      return [];
+    }
     $memberships = [];
     if (isset($organization_memberships['data'][0])) {
       foreach ($organization_memberships['data'] as $org_membership) {
