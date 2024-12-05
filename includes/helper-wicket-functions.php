@@ -3744,16 +3744,16 @@ function wicket_get_schema($schema_slug)
   }
 }
 
-  /**
-   * Update organization info.
-   *
-   * @param string $organization_uuid The UUID of the organization to update.
-   * @param array $payload The info to update.
-   *
-   * {"data":{"type":"organizations","id":"1b86fee3-5ad0-4b81-a891-7dc7084b22bc","meta":{"ancestry_depth":1,"can_manage":true,"can_update":true},"attributes":{"legal_name":"Ernest Corp","type":"subsidiary","description":"Desc Lorem","legal_name_en":"Ernest Corp","description_en":"Desc Lorem"},"relationships":{"parent_organization":{"data":{"type":"organizations","id":"51f22eea-c473-4400-aa51-685ea957a983"}}}}}
-   *
-   * @return array A tuple where the first element is a boolean indicating success or failure, and the second element is a string with the error message on failure or the response on success.
-   */
+/**
+ * Update organization info.
+ *
+ * @param string $organization_uuid The UUID of the organization to update.
+ * @param array $payload The info to update.
+ *
+ * {"data":{"type":"organizations","id":"1b86fee3-5ad0-4b81-a891-7dc7084b22bc","meta":{"ancestry_depth":1,"can_manage":true,"can_update":true},"attributes":{"legal_name":"Ernest Corp","type":"subsidiary","description":"Desc Lorem","legal_name_en":"Ernest Corp","description_en":"Desc Lorem"},"relationships":{"parent_organization":{"data":{"type":"organizations","id":"51f22eea-c473-4400-aa51-685ea957a983"}}}}}
+ *
+ * @return array A tuple where the first element is a boolean indicating success or failure, and the second element is a string with the error message on failure or the response on success.
+ */
 function wicket_set_organization_info($organization_uuid = '', $payload = []) {
    if(empty($organization_uuid) || empty($payload)) {
      return array(false, 'Please provide all parameters.');
@@ -3764,7 +3764,89 @@ function wicket_set_organization_info($organization_uuid = '', $payload = []) {
      return array(false, 'Could not obtain client.');
    }
 
-   $output = $client->patch("organizations/$organization_uuid", ['json' => $payload]);
+  try {
+    $output = $client->patch("organizations/$organization_uuid", ['json' => $payload]);
+    return $output;
+  } catch (\Exception $e) {
+    return array(false, $e->getMessage());
+  }   
+}
 
-   return $output;
+/**
+ * Update an org's basic attributes by passing only the delta new attributes.
+ * 
+ * Example of attributes array:
+ * 
+ * [
+ *   'description' => 'New',
+ *   'description_en' => 'New',
+ *   'alternate_name' => 'Alt',
+ *   'alternate_name_en' => 'Alt',
+ *   'status' => 'some-status',
+ *   'type' => 'type',
+ * ]
+ * 
+ * @param String $org_uuid
+ * @param String $attributes
+ * 
+ * @return Array of boolean 'success' and either 'error' or 'data', depending on success.
+ */
+function wicket_update_organization_attributes($org_uuid, $attributes) {
+  $client = wicket_api_client();
+  if (empty($client)) {
+    return array(false, 'Could not obtain client.');
+  }
+
+  $attributes = wicket_filter_null_and_blank($attributes); // sanitize for MDP call
+
+  $current_org_info = wicket_get_organization($org_uuid);
+
+  // Unset the data the MDP doesn't want to receive back in attributes
+  // NOTE: These may need to be adjusted to accomodate other kinds of updates the MDP likes
+  unset($current_org_info['data']['attributes']['uuid']);
+  unset($current_org_info['data']['attributes']['slug']);
+  unset($current_org_info['data']['attributes']['ancestry']);
+  unset($current_org_info['data']['attributes']['duns']);
+  unset($current_org_info['data']['attributes']['people_count']);
+  unset($current_org_info['data']['attributes']['created_at']);
+  unset($current_org_info['data']['attributes']['updated_at']);
+  unset($current_org_info['data']['attributes']['deleted_at']);
+  unset($current_org_info['data']['attributes']['membership_began_on']);
+  unset($current_org_info['data']['attributes']['inheritable_from_parent']);
+  unset($current_org_info['data']['attributes']['inherits_from_parent']);
+  unset($current_org_info['data']['attributes']['identifying_number']);
+  unset($current_org_info['data']['attributes']['data']);
+  unset($current_org_info['data']['attributes']['is_primary_organization']);
+  unset($current_org_info['data']['attributes']['assignable_role_names']);
+  unset($current_org_info['data']['attributes']['type_external_id']);
+  unset($current_org_info['data']['attributes']['tags']);
+  unset($current_org_info['data']['attributes']['data_fields']);
+  unset($current_org_info['data']['relationships']);
+  unset($current_org_info['data']['meta']);
+
+  $current_attributes = $current_org_info['data']['attributes'];
+  $new_attributes = array_merge($current_attributes, $attributes);
+
+  $new_attributes = wicket_filter_null_and_blank($new_attributes); // sanitize for MDP call
+
+  $payload = [
+    'data' => $current_org_info['data']
+  ];
+  $payload['data']['attributes'] = $new_attributes;
+
+  $org_update = wicket_set_organization_info($org_uuid, $payload);
+
+  if(isset($org_update[0])) {
+    if(!$org_update[0]) {
+      return [
+        'success' => false,
+        'error' => $org_update[1]
+      ];
+    }
+  }
+
+  return [
+    'success' => true,
+    'data' => $org_update
+  ];
 }
