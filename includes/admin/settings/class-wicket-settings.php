@@ -354,10 +354,16 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'description' => __('Sync user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called "Student" within the MDP, when they log in, a role will be created called "Student" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!<em></strong>', 'wicket'),
 			]);
 			$section->add_option('text', [
-			    'name' => 'wicket_admin_settings_wpcassify_sync_tags_as_roles',
+			    'name' => 'wicket_admin_settings_wpcassify_sync_tags_as_roles', 
 			    'label' => __('Sync Tags as Roles', 'wicket'),
-			    'description' => __('Sync selected user tags from the MDP for a user when they log in to WordPress. Type the allowed tag(s) in this field. Values in field must match the tag in the MDP exactly. Multiple values must be comma separated - Requires WP-CASSIFY plugin.', 'wicket'),
+			    'description' => __('Sync selected user tags from the MDP for a user when they log in to WordPress. Type the allowed tag(s) in this field. Values in field must match the tag in the MDP exactly. Multiple values must be comma separated.', 'wicket'),
 			]);
+			$section->add_option('text', [
+			    'name' => 'wicket_admin_settings_wpcassify_ignore_roles', 
+			    'label' => __('Ignore Roles', 'wicket'),
+			    'description' => __('Ignore certain user roles from the MDP for a user when they log in to WordPress. Type the allowed role(s) in this field. Values in field must match the roles in the MDP exactly. Multiple values must be comma separated. - NOTE: This only applies to security roles found on the users profile in the MDP. It does not apply to derived roles such as the ones mentioned above for memberships, etc', 'wicket'),
+			]);
+			
 			
 			
 

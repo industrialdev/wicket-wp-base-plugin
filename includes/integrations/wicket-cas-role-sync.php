@@ -33,6 +33,18 @@ function sync_wicket_data() {
 
     $roles = $person->role_names;
 
+    // Ignore certain security roles from being synced
+    if ( wicket_get_option('wicket_admin_settings_wpcassify_ignore_roles') != '') {
+      $ignored_roles = explode(',',wicket_get_option('wicket_admin_settings_wpcassify_ignore_roles'));
+      // remove any spaces between the commas in the field if being used
+      $ignored_roles = array_map('trim', $ignored_roles);
+      foreach ($roles as $key => $role) {
+        if (in_array($role, $ignored_roles)) {
+          unset($roles[$key]);
+        }
+      }
+    }
+
     // Sync membership tiers as roles in WP if the option is set
     if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
       // get current person active memberships ids, find the active memberships slug from ids, assign user with roles from active membership tiers
@@ -118,6 +130,18 @@ function sync_wicket_data_for_person($person_uuid) {
   }
 
   $roles = $person->role_names;
+
+  // Ignore certain security roles from being synced
+  if ( wicket_get_option('wicket_admin_settings_wpcassify_ignore_roles') != '') {
+    $ignored_roles = explode(',',wicket_get_option('wicket_admin_settings_wpcassify_ignore_roles'));
+    // remove any spaces between the commas in the field if being used
+    $ignored_roles = array_map('trim', $ignored_roles);
+    foreach ($roles as $key => $role) {
+      if (in_array($role, $ignored_roles)) {
+        unset($roles[$key]);
+      }
+    }
+  }
 
   // Sync membership tiers as roles in WP if the option is set
   if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
