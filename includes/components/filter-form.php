@@ -1,23 +1,27 @@
 <?php
-$defaults              = array(
+$defaults                     = array(
 	'classes'               => [],
 	'taxonomies'            => [],
 	'post_types'            => [],
 	'hide_date_filter'      => false,
 	'pre_filter_categories' => [],
 );
-$args                  = wp_parse_args( $args, $defaults );
-$classes               = $args['classes'];
-$taxonomies            = $args['taxonomies'];
-$post_types            = $args['post_types'];
-$hide_date_filter      = $args['hide_date_filter'];
-$pre_filter_categories = $args['pre_filter_categories'];
-$classes[]             = 'component-filter-form';
+$args                         = wp_parse_args( $args, $defaults );
+$classes                      = $args['classes'];
+$taxonomies                   = $args['taxonomies'];
+$post_types                   = $args['post_types'];
+$hide_date_filter             = $args['hide_date_filter'];
+$pre_filter_categories        = $args['pre_filter_categories'];
+$pre_filter_category_taxonomy = '';
+$classes[]                    = 'component-filter-form';
 
 if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 	$classes = array_merge( $classes, [ 'py-4', 'px-4', 'lg:py-8', 'lg:px-0', 'lg:pr-3' ] );
 }
 
+if ( ! empty( $pre_filter_categories ) ) {
+	$pre_filter_category_taxonomy = $pre_filter_categories[0]->taxonomy;
+}
 ?>
 
 <div x-data="{showFilters: <?php echo wp_is_mobile() ? 'false' : 'true' ?>}"
@@ -139,7 +143,7 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 			$terms        = [];
 
 			// If categories are passed, use them to get parent terms
-			if ( ! empty( $pre_filter_categories ) ) {
+			if ( ! empty( $pre_filter_categories && $pre_filter_category_taxonomy == $taxonomy['slug'] ) ) {
 				$parent_categories = [];
 				foreach ( $pre_filter_categories as $category ) {
 					if ( $category->parent == 0 ) {
@@ -222,7 +226,7 @@ if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
 
 								// If categories are passed, use them to get child terms
 								$child_categories = [];
-								if ( $taxonomy['slug'] === 'product_cat' && ! empty( $pre_filter_categories ) ) {
+								if ( $taxonomy['slug'] === $pre_filter_category_taxonomy && ! empty( $pre_filter_categories ) ) {
 									foreach ( $pre_filter_categories as $category ) {
 										if ( $category->parent == $term->term_id ) {
 											$child_categories[] = $category;
