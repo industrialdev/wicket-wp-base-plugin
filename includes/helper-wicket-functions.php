@@ -448,6 +448,11 @@ function wicket_get_organizations()
 ------------------------------------------------------------------*/
 function wicket_get_organization($uuid, $include = null)
 {
+  // make sure nothing is calling this function with no uuid. This will try to return all mdp orgs, which is no bueno
+  if ($uuid == '') {
+    return false;
+  }
+  
   $query_string = '';
   $client = wicket_api_client();
   if (!empty($include)) {
