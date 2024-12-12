@@ -161,18 +161,18 @@ $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
 
 if( empty( $orgTermSingular ) && $searchMode == 'org' ) {
-  $orgTermSingular = 'Organization';
+  $orgTermSingular = __('Organization', 'wicket');
 }
 if( empty( $orgTermSingular ) && $searchMode == 'groups' ) {
-  $orgTermSingular = 'Group';
+  $orgTermSingular = __('Group', 'wicket');
 }
 $orgTermSingularCap              = ucfirst(strtolower( $orgTermSingular ));
 $orgTermSingularLower            = strtolower( $orgTermSingular );
 if( empty( $orgTermPlural  ) && $searchMode == 'org' ) {
-  $orgTermPlural  = 'Organizations';
+  $orgTermPlural  = __('Organizations', 'wicket');
 }
 if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) {
-  $orgTermPlural  = 'Groups';
+  $orgTermPlural  = __('Groups', 'wicket');
 }
 $orgTermPluralCap              = ucfirst(strtolower( $orgTermPlural ));
 $orgTermPluralLower            = strtolower( $orgTermPlural );
@@ -285,10 +285,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     >
     <div x-transition class="rounded-150 bg-white border flex items-center flex-col p-5">
       <div class="flex w-full justify-end mb-4">
-        <button x-on:click.prevent="showingRemoveConfirmation = false" class="font-semibold">Close X</button>
+        <button x-on:click.prevent="showingRemoveConfirmation = false" class="font-semibold"><?php _e('Close X', 'wicket') ?></button>
       </div>
-      <div class="font-semibold">Please confirm you'd like to end your relationship with this Organization</div>
-      <div class="mt-4 mb-6">Any assigned membership with the organization will be inactivated.</div>
+      <div class="font-semibold"><?php _e('Please confirm you\'d like to end your relationship with this Organization', 'wicket') ?></div>
+      <div class="mt-4 mb-6">
+        <?php _e('Any assigned membership with the organization will be inactivated.', 'wicket') ?>
+      </div>
       <div class="flex w-full justify-evenly">
         <?php get_component( 'button', [
           'variant'  => 'secondary',
@@ -323,7 +325,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
     <div x-show="currentConnections.length > 0" x-cloak>
       <?php
       if(empty($title)) : ?>
-        <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>">Your current <?php echo $orgTermPluralLower; ?></h2>
+        <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"><?php _e('Your current', 'wicket') ?> <?php echo $orgTermPluralLower; ?></h2>
       <?php else: ?>
         <h2 class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__current-orgs-title' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"><?php esc_html_e($title, 'wicket'); ?></h2>
       <?php endif; ?>
@@ -373,12 +375,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               <div>
                 <template x-if="connection.active_membership">
                   <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__active-membership-label' : '' ?>" >
-                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#08d608]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>">Active Membership</span>
+                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#08d608]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>"><?php _e('Active Membership', 'wicket') ?></span>
                   </div>
                 </template>
                 <template x-if="! connection.active_membership">
                   <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__inactive-membership-label' : '' ?>" >
-                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#A1A1A1]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>">Inactive Membership</span>
+                    <i class="fa-solid fa-circle <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-[#A1A1A1]' ?>"></i> <span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'text-body-xs' ?>"><?php _e('Inactive Membership', 'wicket') ?></span>
                   </div>
                 </template>
               </div>
@@ -390,7 +392,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             <?php get_component( 'button', [ 
               'variant'  => 'secondary',
               'reversed' => false,
-              'label'    => __( 'Select ' . $orgTermSingularCap, 'wicket' ),
+              'label'    => __( 'Select', 'wicket' ) . ' ' . $orgTermSingularCap,
               'type'     => 'button',
               'classes'  => [ 'whitespace-nowrap' ],
               'atts'     => [ 
@@ -413,7 +415,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       </template>
     </div>
     
-    <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'label' : 'font-bold text-body-md mb-2' ?>" x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : 'Search for your <?php echo $orgTermSingularLower; ?>' "></div>
+    <div 
+      class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'label' : 'font-bold text-body-md mb-2' ?>"
+      x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : '<?php _e('Search for your', 'wicket') ?> <?php echo $orgTermSingularLower; ?>' "></div>
 
     <div class="flex">
       <?php // Can add `@keyup="if($el.value.length > 3){ handleSearch(); } "` to get autocomplete, but it's not quite fast enough ?>
@@ -426,7 +430,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       ] ); ?>
      </div>
      <div id="orgss_search_message" class="orgss_error" x-cloak x-show="showSearchMessage"></div>
-     <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-orgs-title' : 'mt-4 mb-1' ?>" x-show="firstSearchSubmitted || isLoading" x-cloak>Matching <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
+     <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__matching-orgs-title' : 'mt-4 mb-1' ?>" x-show="firstSearchSubmitted || isLoading" x-cloak><?php _e('Matching', 'wicket') ?> <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)?></div>
      <div class="orgss-results" x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' " >
       <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__search-container' : 'flex flex-col bg-white px-4 max-h-80 overflow-y-scroll' ?>">
         <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading" x-transition x-cloak 
@@ -460,18 +464,18 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
   </div>
 
   <div x-show="firstSearchSubmitted && !disableCreateOrgUi" x-cloak class="orgss-create-org-form <?php echo defined( 'WICKET_WP_THEME_V2' ) ? '' : 'mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
-    <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__cant-find-org-title' : 'font-bold text-body-md mb-2' ?>">Can't find your <?php echo $orgTermSingularLower; ?>?</div>
+    <div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-org-search-select__cant-find-org-title' : 'font-bold text-body-md mb-2' ?>"><?php _e('Can\'t find your', 'wicket') ?> <?php echo $orgTermSingularLower; ?>?</div>
     <div class="flex">
       <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'" class="flex flex-col mr-2">
-        <label>Name of the <?php echo $orgTermSingularCap; ?>*</label>
+        <label><?php _e('Name of the', 'wicket') ?> <?php echo $orgTermSingularCap; ?>*</label>
         <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate($event)" type="text" name="company-name" class="w-full" />
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
-      <label>Type of <?php echo $orgTermSingularCap; ?>*</label>
+      <label><?php _e('Type of', 'wicket') ?> <?php echo $orgTermSingularCap; ?>*</label>
         <select x-model="newOrgTypeSelect" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]"
-              >Org type</option>
+              ><?php _e('Org type', 'wicket') ?></option>
           </template>
         </select>
       </div>
@@ -536,7 +540,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               }
 
               if( this.searchBox.length < 1 ) {
-                this.setSearchMessage('Please provide a search term');
+                this.setSearchMessage('<?php _e('Please provide a search term', 'wicket') ?>');
                 return;
               } else {
                 this.showSearchMessage = false; // Clear notice in case its visible
