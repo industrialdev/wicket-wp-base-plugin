@@ -147,7 +147,7 @@ $newOrgTypeOverride                            = $args['new_org_type_override'];
 $selectedUuidHiddenFieldName                   = $args['selected_uuid_hidden_field_name'];
 $checkboxIdNewOrg                              = $args['checkbox_id_new_org'];
 $key                                           = $args['key'];
-$orgTermSingular                               = $args['org_term_singular'];
+$orgTermSingular                               = $args['org_term_singular']; 
 $orgTermPlural                                 = $args['org_term_plural'];
 $noResultsFoundMessage                         = $args['no_results_found_message'];
 $disable_create_org_ui                         = $args['disable_create_org_ui'];
@@ -160,20 +160,31 @@ $display_removal_alert_message                 = $args['display_removal_alert_me
 $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
 
-if( empty( $orgTermSingular ) && $searchMode == 'org' ) {
-  $orgTermSingular = __('Organization', 'wicket');
+if( !empty($orgTermSingular) ) {
+  $orgTermSingular = __($orgTermSingular, 'wicket');
+} else {
+  if( $searchMode == 'org' ) {
+    $orgTermSingular = __('Organization', 'wicket');
+  }
+  if( $searchMode == 'groups' ) {
+    $orgTermSingular = __('Group', 'wicket');
+  }
 }
-if( empty( $orgTermSingular ) && $searchMode == 'groups' ) {
-  $orgTermSingular = __('Group', 'wicket');
-}
+
 $orgTermSingularCap              = ucfirst(strtolower( $orgTermSingular ));
 $orgTermSingularLower            = strtolower( $orgTermSingular );
-if( empty( $orgTermPlural  ) && $searchMode == 'org' ) {
-  $orgTermPlural  = __('Organizations', 'wicket');
+
+if( !empty($orgTermPlural) ) {
+  $orgTermPlural = __($orgTermPlural, 'wicket');
+} else {
+  if( $searchMode == 'org' ) {
+    $orgTermPlural  = __('Organizations', 'wicket');
+  }
+  if( $searchMode == 'groups' ) {
+    $orgTermPlural  = __('Groups', 'wicket');
+  }
 }
-if( empty( $orgTermPlural  ) && $searchMode == 'groups' ) {
-  $orgTermPlural  = __('Groups', 'wicket');
-}
+
 $orgTermPluralCap              = ucfirst(strtolower( $orgTermPlural ));
 $orgTermPluralLower            = strtolower( $orgTermPlural );
 if( empty($noResultsFoundMessage) ) {
