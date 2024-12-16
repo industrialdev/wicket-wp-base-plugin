@@ -820,6 +820,9 @@
 .wicket-base-plugin .border-b {
     border-bottom-width: 1px
 }
+.wicket-base-plugin .border-b-0 {
+    border-bottom-width: 0px
+}
 .wicket-base-plugin .border-b-2 {
     border-bottom-width: 2px
 }
@@ -832,14 +835,27 @@
 .wicket-base-plugin .border-l-4 {
     border-left-width: 4px
 }
+.wicket-base-plugin .border-r-0 {
+    border-right-width: 0px
+}
 .wicket-base-plugin .border-t {
     border-top-width: 1px
+}
+.wicket-base-plugin .border-t-0 {
+    border-top-width: 0px
 }
 .wicket-base-plugin .border-t-4 {
     border-top-width: 4px
 }
 .wicket-base-plugin .border-solid {
     border-style: solid
+}
+.wicket-base-plugin .border-\[\#dc3545\] {
+    --tw-border-opacity: 1;
+    border-color: rgb(220 53 69 / var(--tw-border-opacity))
+}
+.wicket-base-plugin .border-\[--state-error\] {
+    border-color: var(--state-error)
 }
 .wicket-base-plugin .border-dark-060 {
     --tw-border-opacity: 1;
@@ -943,6 +959,13 @@
 .wicket-base-plugin .\!bg-light-010 {
     --tw-bg-opacity: 1 !important;
     background-color: rgb(242 242 242 / var(--tw-bg-opacity)) !important
+}
+.wicket-base-plugin .bg-\[\#f5c2c7\] {
+    --tw-bg-opacity: 1;
+    background-color: rgb(245 194 199 / var(--tw-bg-opacity))
+}
+.wicket-base-plugin .bg-\[--state-error-light\] {
+    background-color: var(--state-error-light)
 }
 .wicket-base-plugin .bg-accent-a-100 {
     --tw-bg-opacity: 1;
@@ -1214,6 +1237,13 @@
 .wicket-base-plugin .text-\[\#A1A1A1\] {
     --tw-text-opacity: 1;
     color: rgb(161 161 161 / var(--tw-text-opacity))
+}
+.wicket-base-plugin .text-\[\#dc3545\] {
+    --tw-text-opacity: 1;
+    color: rgb(220 53 69 / var(--tw-text-opacity))
+}
+.wicket-base-plugin .text-\[--state-error\] {
+    color: var(--state-error)
 }
 .wicket-base-plugin .text-dark-060 {
     --tw-text-opacity: 1;

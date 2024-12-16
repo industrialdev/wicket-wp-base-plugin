@@ -374,6 +374,34 @@ function wicket_internal_endpoint_create_org( $request ) {
 
   $org_name = $params['orgName'];
   $org_type = $params['orgType'];
+  $no_duplicate = $params['noDuplicate'] ?? false;
+
+  if($no_duplicate) {
+    // Check if the org of that name and type already exists
+    $org_name_lowercase = trim(strtolower($org_name));
+
+    // Search by org name, filtering to the org type, and use the autocomplete API for better speed 
+    $search = wicket_search_organizations($org_name_lowercase, 'org_name', $org_type, true);
+
+    $found = false;
+    foreach($search as $result) {
+      if(!isset($result['name']) || !isset($result['type'])) {
+        break;
+      }
+
+      $result_name = trim(strtolower($result['name']));
+      $result_type = trim(strtolower($result['type']));
+
+      if($result_name === $org_name_lowercase && $result_type == $org_type) {
+        $found = true;
+        break;
+      }
+    }
+
+    if($found) {
+      wp_send_json_error( 'Duplicate org is not allowed.' );
+    }
+  } // End no_duplicate feature
 
   $create_org_call = wicket_create_organization($org_name, $org_type);
 

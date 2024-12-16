@@ -500,6 +500,26 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
           ] ); ?>
         </div>
       </div>
+      <div x-show="displayDuplicateOrgWarning" class="orgss-red-alert flex mt-4 p-4 border-solid border-l-4 border-t-0 border-r-0 border-b-0 <?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'bg-[--state-error-light] border-[--state-error]' : 'bg-[#f5c2c7] border-[#dc3545]' ?>">
+          <div class="icon-col flex flex-col justify-center px-2">
+            <?php 
+              if (defined( 'WICKET_WP_THEME_V2' )) {
+                get_component( 'icon', [
+                  'classes' => ['text-heading-xl', 'text-[--state-error]'],
+                  'icon'  => 'fa-regular fa-triangle-exclamation',
+                ] );
+              } else {
+                get_component( 'icon', [
+                  'classes' => ['text-heading-xl', 'text-[#dc3545]'],
+                  'icon'  => 'fa-regular fa-triangle-exclamation',
+                ] );
+              } ?>
+          </div>
+          <div class="text-col">
+            <div class="font-bold text-body-lg"><?php echo sprintf(__('%s you are trying to add already exists', 'wicket'), $orgTermSingularCap);?></div>
+            <div><?php _e('Please enter the name in the search field above to find the existing record.', 'wicket');?></div>
+          </div>
+      </div>
     </div>
 
     <?php // Hidden form field that can be used to pass the selected UUID along, like in Gravity Forms ?>
@@ -538,6 +558,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             grantOrgEditorOnSelect: <?php echo $grant_org_editor_on_select  ? 'true' : 'false'; ?>,
             hideRemoveButtons: <?php echo $hide_remove_buttons  ? 'true' : 'false'; ?>,
             hideSelectButtons: <?php echo $hide_select_buttons ? 'true' : 'false'; ?>,
+            displayDuplicateOrgWarning: false,
 
             init() {
               //console.log(this.currentConnections);
@@ -882,7 +903,6 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 body: JSON.stringify(data),
               }).then(response => response.json())
                 .then(data => {
-                  console.log(data);
                   this.isLoading = false;
                   if( !data.success ) {
                     // Handle error
@@ -916,6 +936,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               let data = {
                 "orgName": orgName,
                 "orgType": orgType,
+                "noDuplicate": true,
               };
 
               let results = await fetch(this.apiUrl + 'create-org', {
@@ -934,6 +955,12 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 .then(data => {
                   if( !data.success ) {
                     // Handle error
+                    this.isLoading = false;
+                    if(data.data.includes('Duplicate org is not allowed')) {
+                      this.displayDuplicateOrgWarning = true;
+                      return;
+                    }
+                    this.setSearchMessage(sprintf(__('There was an error creating the %s, please try again.', 'wicket'), $orgTermSingularLower));
                   } else {
                     if( data.success ) {
                       let newOrgUuid = data.data.data.id;
