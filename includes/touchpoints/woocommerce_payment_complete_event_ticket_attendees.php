@@ -77,6 +77,12 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
 
   foreach ($attendees_arr as $product_id => $attendees) {
     foreach ($attendees as $attendee) {
+
+      // make sure that for whatever reason, if email is empty, we do not continue. This has happened for some odd reason in the past causing junk touchpoints so let's try and stop it here
+      if (!isset($attendee['email']) || $attendee['email'] == '') {
+        continue;
+      }
+
       // check to see if a record for this person already exists in wicket
       $search_emails_result = $client->get('/people?filter[emails_address_eq]=' . urlencode($attendee['email']) . '&filter[emails_primary_eq]=true');
 
