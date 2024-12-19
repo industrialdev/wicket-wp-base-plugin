@@ -128,6 +128,7 @@ function warp_dump(...$vars)
           white-space: pre;
           word-wrap: normal;
           cursor: pointer;
+          font-size: 0.85rem;
       }
 
       .warp-dump-feedback {
@@ -297,4 +298,19 @@ function warp_dump(...$vars)
         echo '<div id="' . $dump_id . '-feedback" class="warp-dump-feedback"></div>';
         echo '</div>';
     }
+}
+
+/**
+ * Dump one or more variables and die.
+ *
+ * This function combines the functionality of warp_dump() with PHP's die() function.
+ * It will output the variables in a formatted way and then terminate script execution.
+ *
+ * @param mixed ...$vars One or more variables to dump
+ * @return void
+ */
+function warp_dd(...$vars)
+{
+    warp_dump(...$vars);
+    die();
 }
