@@ -107,7 +107,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 
 	<div class="container z-10 relative">
 		<div class="flex flex-col lg:flex-row items-start gap-5">
-			<div class="flex grow flex-col gap-8 basis-full lg:basis-7/12">
+			<div class="flex grow flex-col gap-8 basis-full lg:basis-7/12 w-full">
 
 				<?php if ( $show_breadcrumbs ) {
 					get_component( 'breadcrumbs', [
