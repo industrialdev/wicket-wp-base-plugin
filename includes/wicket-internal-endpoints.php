@@ -73,6 +73,14 @@ function wicket_base_register_rest_routes(){
       return is_user_logged_in();
     },
   ));
+
+  register_rest_route( 'wicket-base/v1', 'wicket-component-do-action',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_component_do_action',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
 }
 
 /**
@@ -510,4 +518,16 @@ function wicket_internal_endpoint_organization_parent($request)
   }
 
   wp_send_json_success($response);
+}
+
+function wicket_internal_endpoint_component_do_action($request) {
+  $params = $request->get_json_params();
+  $action_name = $parms['action_name'] ?? 'generic';
+  $action_data = $params['action_data'] ?? []; // TODO: maybe JSON parse this if needed
+
+  wicket_write_log('action received: ' . $action_name);
+
+  do_action('wicket_component_' . $action_name, $action_data);
+
+  wp_send_json_success();
 }
