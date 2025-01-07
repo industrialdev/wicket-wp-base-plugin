@@ -4,6 +4,15 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  *
+ * 2025-01-07 - CoulterPeterson
+ * 
+ * I'm probably a bit behind on these updates, but a big one worth noting is that when the 
+ * 'disable_selecting_orgs_with_active_membership' is enabled, and if enough of the active_membership_alert_* 
+ * fields are filled out, then a configurable popup modal will appear when the user tries to select an org that they
+ * already have a membership with. And, if the user configures one of the buttons as a "BUTTON" (as in not a link or PROCEED action),
+ * a dev can hook into that button being clicked to do something advanced with a hook like this:
+ * add_action('wicket_component_orgss_active_membership_alert_button_1_clicked', function($action_data){wicket_write_log('HELLO!');wicket_write_log($action_data);}, 10, 1);
+ * 
  * 2024-10-23 - CoulterPeterson
  *
  * Added 'display_removal_alert_message' toggleable parameter to the component, which controls a
@@ -129,6 +138,16 @@ $defaults  = [
   'no_results_found_message'                      => '',
   'disable_create_org_ui'                         => false,
   'disable_selecting_orgs_with_active_membership' => false,
+  'active_membership_alert_title'                 => '',
+  'active_membership_alert_body'                  => '',
+  'active_membership_alert_button_1_text'         => __('Proceed', 'wicket'),
+  'active_membership_alert_button_1_url'          => 'PROCEED', // non URLs can be PROCEED, and BUTTON for a dummy press devs will do something with
+  'active_membership_alert_button_1_style'        => 'primary',
+  'active_membership_alert_button_1_new_tab'      => false,
+  'active_membership_alert_button_2_text'         => '',
+  'active_membership_alert_button_2_url'          => '',
+  'active_membership_alert_button_2_style'        => 'secondary',
+  'active_membership_alert_button_2_new_tab'      => false,
   'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
   'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
   'hide_remove_buttons'                           => false,
@@ -152,6 +171,16 @@ $orgTermPlural                                 = $args['org_term_plural'];
 $noResultsFoundMessage                         = $args['no_results_found_message'];
 $disable_create_org_ui                         = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
+$active_membership_alert_title                 = $args['active_membership_alert_title'];              
+$active_membership_alert_body                  = $args['active_membership_alert_body'];
+$active_membership_alert_button_1_text         = $args['active_membership_alert_button_1_text'];
+$active_membership_alert_button_1_url          = $args['active_membership_alert_button_1_url']; // Can be a URL, or "PROCEED" to continue 
+$active_membership_alert_button_1_style        = $args['active_membership_alert_button_1_style'];
+$active_membership_alert_button_1_new_tab      = $args['active_membership_alert_button_1_new_tab'];
+$active_membership_alert_button_2_text         = $args['active_membership_alert_button_2_text'];
+$active_membership_alert_button_2_url          = $args['active_membership_alert_button_2_url'];
+$active_membership_alert_button_2_style        = $args['active_membership_alert_button_2_style'];
+$active_membership_alert_button_2_new_tab      = $args['active_membership_alert_button_2_new_tab'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
 $grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
 $hide_remove_buttons                           = $args['hide_remove_buttons'];
@@ -330,7 +359,141 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
         ] ); ?>
       </div>
     </div>
-  </div>
+  </div> <?php // End confirmation popup ?>
+
+  <?php // Active Membership Alert Popup ?>
+  <div x-transition x-cloak
+    class="flex justify-center items-center w-full text-dark-100 py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
+    x-bind:class="showingActiveMembershipAlert && activeMembershipAlertAvailable ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' "
+    >
+    <div x-transition class="rounded-150 bg-white border flex items-center flex-col p-5">
+      <div class="flex w-full justify-end mb-4">
+        <button x-on:click.prevent="showingActiveMembershipAlert = false" class="font-semibold"><?php _e('Close X', 'wicket') ?></button>
+      </div>
+      <div x-text="activeMembershipAlertTitle" class="font-semibold"></div>
+      <div x-text="activeMembershipAlertBody" class="mt-4 mb-6"></div>
+      <div class="flex w-full justify-evenly">
+        <?php 
+        if(!empty($active_membership_alert_button_1_text)
+           && !empty($active_membership_alert_button_1_url)
+           && !empty($active_membership_alert_button_1_style)
+          ) {
+          if($active_membership_alert_button_1_url == 'PROCEED') {
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_1_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_1_text, 
+              'type'     => 'button',
+              'atts'  => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          } else if($active_membership_alert_button_1_url == 'BUTTON') {
+            // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_1_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_1_text, 
+              'type'     => 'button',
+              'atts'  => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');showingActiveMembershipAlert = false;"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          } else {
+            // Treat it as a link
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_1_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_1_text,
+              'type'     => 'button',
+              'a_tag'    => true,
+              'link'     => $active_membership_alert_button_1_url,
+              'link_target' => $active_membership_alert_button_1_new_tab ? '_blank' : '_self',
+              'atts'  => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          }
+        }
+
+        if(!empty($active_membership_alert_button_2_text)
+        && !empty($active_membership_alert_button_2_url)
+        && !empty($active_membership_alert_button_2_style)
+        ) {
+          if($active_membership_alert_button_2_url == 'PROCEED') {
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_2_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_2_text, 
+              'type'     => 'button',
+              'atts'  => [
+                'style="margin-left:20px;"',
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          } else if($active_membership_alert_button_2_url == 'BUTTON') {
+            // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_1_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_1_text, 
+              'type'     => 'button',
+              'atts'  => [
+                'style="margin-left:20px;"',
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');showingActiveMembershipAlert = false;"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          } else {
+            // Treat it as a link
+            get_component( 'button', [
+              'variant'  => $active_membership_alert_button_2_style,
+              'reversed' => false,
+              'label'    => $active_membership_alert_button_2_text,
+              'type'     => 'button',
+              'a_tag'    => true,
+              'link'     => $active_membership_alert_button_2_url,
+              'link_target' => $active_membership_alert_button_2_new_tab ? '_blank' : '_self',
+              'atts'  => [
+                'style="margin-left:20px;"',
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');"'
+              ],
+              'classes' => [
+                'items-center',
+                'justify-center',
+                'w-5/12'
+              ]
+            ] );
+          }
+        }
+        ?>
+      </div>
+    </div>
+  </div><?php // End active membership alert modal ?>
 
   <div class="orgss-search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
     <div x-show="currentConnections.length > 0" x-cloak>
@@ -463,7 +626,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event)"',
                 'x-bind:class="{
                   \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
-                  \'orgss_disabled_button_hollow\': result.active_membership && disableSelectingOrgsWithActiveMembership
+                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership  && !activeMembershipAlertAvailable )
                 }"'
               ]
             ] ); ?>
@@ -545,6 +708,15 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             availableOrgTypes: <?php echo json_encode( $available_org_types ); ?>,
             disableCreateOrgUi: <?php echo $disable_create_org_ui ? 'true' : 'false'; ?>,
             disableSelectingOrgsWithActiveMembership: <?php echo $disable_selecting_orgs_with_active_membership ? 'true' : 'false'; ?>,
+            
+            showingActiveMembershipAlert: false,
+            activeMembershipAlertAvailable: false,
+            activeMembershipAlertProceedChosen: false,
+            activeMembershipAlertOrgUuid: '',
+            activeMembershipAlertEvent: null,
+            activeMembershipAlertTitle: '<?php echo $active_membership_alert_title; ?>',
+            activeMembershipAlertBody: '<?php echo $active_membership_alert_body; ?>',
+
             selectedOrgUuid: '',
             searchBox: '',
             newOrgNameBox: '',
@@ -565,6 +737,11 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
               // Set an initial value for the dynamic select
               this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
+
+              // Determine if the active membership modal has enough data to use
+              if(this.disableSelectingOrgsWithActiveMembership && (this.activeMembershipAlertTitle.length > 0 || this.activeMembershipAlertBody.length > 0)) {
+                this.activeMembershipAlertAvailable = true;
+              }
             },
             handleSearch(e = null) {
               if(e) {
@@ -693,6 +870,37 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             selectOrgAndCreateRelationship( orgUuid, event = null ) {
               // TODO: Handle when a Group is selected instead of an org
 
+              // ------------------
+              // Active Membership modal alert
+              // ------------------
+
+              // Only show if the 'Disable Org Select with Active Membership' feature is enabled, sufficient modal data
+              // was populated, and the user hasn't already chosen to proceed with the usual actions
+              if(this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
+                // Display the modal
+                this.showingActiveMembershipAlert = true;
+
+                // Stash data away so we can resume this operation later
+                this.activeMembershipAlertOrgUuid = orgUuid;
+                if(event) {
+                  this.activeMembershipAlertEvent = event;
+                }
+                return;
+              }
+
+              // The user choose to proceed the modal
+              if(this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && this.activeMembershipAlertProceedChosen) {
+                // Clear temp data
+                this.activeMembershipAlertOrgUuid = '';
+                this.activeMembershipAlertEvent = null;
+
+                // Close modal
+                this.showingActiveMembershipAlert = false;
+              }
+
+              // ------------------
+              // Usual operations
+              // ------------------
               this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
               this.selectOrg( orgUuid, event );
             },
@@ -1015,6 +1223,34 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 }
               });
               return found;
+            },
+            async doWpAction( actionType ) {
+              let data = {
+                "action_name": actionType,
+              };
+
+              let results = await fetch(this.apiUrl + 'wicket-component-do-action', {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify(data),
+              }).then(response => response.json())
+                .then(data => {
+                  if( !data.success ) {
+                    // Handle error
+                  } else {
+                    // ...
+                  }
+                });
+
+               return; 
             }
         }))
     })
