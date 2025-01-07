@@ -522,7 +522,7 @@ function wicket_internal_endpoint_organization_parent($request)
 
 function wicket_internal_endpoint_component_do_action($request) {
   $params = $request->get_json_params();
-  $action_name = $parms['action_name'] ?? 'generic';
+  $action_name = $params['action_name'] ?? 'generic';
   $action_data = $params['action_data'] ?? []; // TODO: maybe JSON parse this if needed
 
   wicket_write_log('action received: ' . $action_name);

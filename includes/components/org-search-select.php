@@ -4,6 +4,15 @@
 /**
  * COMPONENT NOTES (Newest to oldest)
  *
+ * 2025-01-07 - CoulterPeterson
+ * 
+ * I'm probably a bit behind on these updates, but a big one worth noting is that when the 
+ * 'disable_selecting_orgs_with_active_membership' is enabled, and if enough of the active_membership_alert_* 
+ * fields are filled out, then a configurable popup modal will appear when the user tries to select an org that they
+ * already have a membership with. And, if the user configures one of the buttons as a "BUTTON" (as in not a link or PROCEED action),
+ * a dev can hook into that button being clicked to do something advanced with a hook like this:
+ * add_action('wicket_component_orgss_active_membership_alert_button_1_clicked', function($action_data){wicket_write_log('HELLO!');wicket_write_log($action_data);}, 10, 1);
+ * 
  * 2024-10-23 - CoulterPeterson
  *
  * Added 'display_removal_alert_message' toggleable parameter to the component, which controls a
@@ -1217,7 +1226,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             },
             async doWpAction( actionType ) {
               let data = {
-                "action_type": actionType,
+                "action_name": actionType,
               };
 
               let results = await fetch(this.apiUrl + 'wicket-component-do-action', {
