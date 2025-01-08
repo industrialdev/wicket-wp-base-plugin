@@ -648,7 +648,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       <label><?php _e('Type of', 'wicket') ?> <?php echo $orgTermSingularCap; ?>*</label>
         <select x-model="newOrgTypeSelect" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
-            <option x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]"
+            <option x-bind:class="'orgss_org_type_' + orgType.attributes.slug" x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]"
               ><?php _e('Org type', 'wicket') ?></option>
           </template>
         </select>
