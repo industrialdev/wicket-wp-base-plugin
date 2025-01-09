@@ -885,6 +885,8 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 if(event) {
                   this.activeMembershipAlertEvent = event;
                 }
+
+                this.selectOrg( orgUuid, event ); // Make the selection so we have the org UUID available for possible PHP hook usage off the modal
                 return;
               }
 
@@ -1227,6 +1229,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
             async doWpAction( actionType ) {
               let data = {
                 "action_name": actionType,
+                "action_data": {
+                  "uri": '<?php echo $_SERVER['REQUEST_URI']; ?>',
+                  "org_uuid": this.selectedOrgUuid,
+                },
               };
 
               let results = await fetch(this.apiUrl + 'wicket-component-do-action', {
