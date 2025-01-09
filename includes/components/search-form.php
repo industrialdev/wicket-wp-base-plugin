@@ -17,10 +17,10 @@ $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' 
 
 <div class="<?php echo implode( ' ', $classes ); ?>">
 	<div class="relative w-full">
-		<?php get_component( 'icon', [ 
+		<?php get_component( 'icon', [
 			'icon'    => 'fa fa-search',
 			'text'    => __( 'Search' ),
-			'classes' => [ 
+			'classes' => [
 				'absolute',
 				'left-4',
 				'top-1/2',
@@ -35,11 +35,12 @@ $button_variant = apply_filters( 'wicket_search_form_button_variant', 'primary' 
 	</div>
 
 	<?php
-		get_component( 'button', [ 
+		get_component( 'button', [
 			'label'    => __( 'Search', 'wicket' ),
 			'variant'  => $button_variant,
 			'reversed' => $button_reversed,
 			'classes'  => [ 'button--clear' ],
+			'type'     => 'submit',
 		] );
 	?>
 </div>
