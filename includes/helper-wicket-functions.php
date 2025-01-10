@@ -2079,7 +2079,16 @@ function wicket_remove_role($person_uuid, $role_name)
 /**------------------------------------------------------------------
  * Assign organization membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_organization_membership($person_uuid, $org_id, $membership_id, $starts_at = '', $ends_at = '', $max_seats = 0, $grace_period_days = 0)
+function wicket_assign_organization_membership(
+    $person_uuid, 
+    $org_id, 
+    $membership_id, 
+    $starts_at = '', 
+    $ends_at = '', 
+    $max_seats = 0, 
+    $grace_period_days = 0, 
+    $previous_membership_uuid = ''
+  )
 {
   $client = wicket_api_client();
 
@@ -2122,6 +2131,14 @@ function wicket_assign_organization_membership($person_uuid, $org_id, $membershi
       ]
     ]
   ];
+
+  if(!empty($previous_membership_uuid)) {
+    $payload['data']['attributes']['copy_previous_assignments'] = true;  
+    $payload['data']['relationships']['previous_membership_entry']['data'] = [
+      'type' => 'organization_memberships',
+      'id' => $previous_membership_uuid
+    ];
+  }
 
   try {
     $response = $client->post("organization_memberships", ['json' => $payload]);
@@ -2179,7 +2196,14 @@ function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
-function wicket_assign_individual_membership($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = 0)
+function wicket_assign_individual_membership(
+    $person_uuid, 
+    $membership_uuid, 
+    $starts_at = '', 
+    $ends_at = '', 
+    $grace_period_days = 0, 
+    $previous_membership_uuid = ''
+  )
 {
   $client = wicket_api_client();
 
@@ -2215,6 +2239,13 @@ function wicket_assign_individual_membership($person_uuid, $membership_uuid, $st
       ]
     ]
   ];
+
+  if(!empty($previous_membership_uuid)) {
+    $payload['data']['relationships']['previous_membership_entry']['data'] = [
+      'type' => 'person_memberships',
+      'id' => $previous_membership_uuid
+    ];
+  }
 
   try {
     $response = $client->post("person_memberships", ['json' => $payload]);
