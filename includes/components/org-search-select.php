@@ -401,7 +401,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'label'    => $active_membership_alert_button_1_text, 
               'type'     => 'button',
               'atts'  => [
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');showingActiveMembershipAlert = false;"'
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"'
               ],
               'classes' => [
                 'items-center',
@@ -460,7 +460,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'type'     => 'button',
               'atts'  => [
                 'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');showingActiveMembershipAlert = false;"'
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"'
               ],
               'classes' => [
                 'items-center',
@@ -840,32 +840,36 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                 });
 
             },
-            selectOrg( orgUuid, incomingEvent = null ) {
+            selectOrg( orgUuid, incomingEvent = null, dispatchEvent = true ) {
               // Update state
               this.selectedOrgUuid = orgUuid;
               document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]').value = orgUuid;
 
-              // selectOrg() is the last function call used in the process, whether selecting an existing
-              // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
-              let orgInfo = this.getOrgFromConnectionsByUuid( orgUuid );
+              if(dispatchEvent) {
+                // selectOrg() is the last function call used in the process, whether selecting an existing
+                // org or creating a new one and then selecting it, so from here we'll dispatch the selection info
+                let orgInfo = this.getOrgFromConnectionsByUuid( orgUuid );
 
-              newEvent = new CustomEvent("orgss-selection-made", {
-                detail: {
+                this.dispatchWindowEvent("orgss-selection-made", {
                   uuid: orgUuid,
                   searchType: this.searchType,
                   orgDetails: orgInfo,
                   event: incomingEvent,
-                }
-              });
-
-              window.dispatchEvent(newEvent);
-
+                });
+              }
+              
               if(this.grantRosterManOnPurchase) {
                 this.flagForRosterManagementAccess(orgUuid);
               }
               if(this.grantOrgEditorOnSelect) {
                 this.grantOrgEditor( this.currentPersonUuid, orgUuid );
               }
+            },
+            dispatchWindowEvent(name, details) {
+              newEvent = new CustomEvent(name, {
+                detail: details
+              });
+              window.dispatchEvent(newEvent);
             },
             selectOrgAndCreateRelationship( orgUuid, event = null ) {
               // TODO: Handle when a Group is selected instead of an org
@@ -886,7 +890,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
                   this.activeMembershipAlertEvent = event;
                 }
 
-                this.selectOrg( orgUuid, event ); // Make the selection so we have the org UUID available for possible PHP hook usage off the modal
+                this.selectOrg( orgUuid, event, false ); // Make the selection so we have the org UUID available for possible PHP hook usage off the modal
                 return;
               }
 
