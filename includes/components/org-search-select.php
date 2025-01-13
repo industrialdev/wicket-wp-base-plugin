@@ -623,7 +623,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'type'     => 'button',
               'classes'  => [ '' ],
               'atts'     => [
-                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event)"',
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, (isOrgAlreadyAConnection( $data.result.id ) || result.active_membership) )"',
                 'x-bind:class="{
                   \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
                   \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership  && !activeMembershipAlertAvailable )
@@ -646,7 +646,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
       </div>
       <div x-show="newOrgTypeOverride.length <= 0" class="flex flex-col w-5/12 mr-2">
       <label><?php _e('Type of', 'wicket') ?> <?php echo $orgTermSingularCap; ?>*</label>
-        <select x-model="newOrgTypeSelect" class="w-full">
+        <select x-model="newOrgTypeSelect" x-on:change="newOrgTypeSelect = $el.value;" class="w-full">
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:class="'orgss_org_type_' + orgType.attributes.slug" x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]"
               ><?php _e('Org type', 'wicket') ?></option>
@@ -871,7 +871,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               });
               window.dispatchEvent(newEvent);
             },
-            selectOrgAndCreateRelationship( orgUuid, event = null ) {
+            selectOrgAndCreateRelationship( orgUuid, event = null, existingConnectionOrActiveMembership = false ) {
               // TODO: Handle when a Group is selected instead of an org
 
               // ------------------
@@ -880,7 +880,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
               // Only show if the 'Disable Org Select with Active Membership' feature is enabled, sufficient modal data
               // was populated, and the user hasn't already chosen to proceed with the usual actions
-              if(this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
+              if(existingConnectionOrActiveMembership && this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
                 // Display the modal
                 this.showingActiveMembershipAlert = true;
 
