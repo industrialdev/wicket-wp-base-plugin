@@ -46,7 +46,10 @@ function wicket_prepopulate_addresses() {
   }
 
   if ($addresses) {
+    echo '<div class="wicket__pre-populate-address" >';
+    do_action('wicket_before_prepopulate_address');
     echo "<h3>".__('Pre-populate Addresses', 'woocommerce')."</h3>";
+    do_action('wicket_after_prepopulate_address_title');
     echo "<div class='row'>";
     echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
     echo "<label class='form__label'>".__('Billing Address', 'woocommerce')."</label>";
@@ -74,6 +77,8 @@ function wicket_prepopulate_addresses() {
       echo "<p><input type='submit' class='button alt' value='".__('Select', 'woocommerce')."'></p>";
       echo "</form>";
     }
+    echo "</div>";
+    do_action('wicket_after_prepopulate_address');
     echo "</div>";
   }
 }
