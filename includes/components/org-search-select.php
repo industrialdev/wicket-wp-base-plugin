@@ -570,8 +570,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'type'     => 'button',
               'classes'  => [ 'whitespace-nowrap' ],
               'atts'     => [ 
-                'x-on:click.prevent="selectOrg($data.connection.org_id, $event)"',
-                'x-bind:class="connection.active_membership && disableSelectingOrgsWithActiveMembership ? \'orgss_disabled_button\' : \'\' "',
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true)"',
+                'x-bind:class="{
+                  \'orgss_disabled_button\': connection.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
+                }"',
                 'x-show="!hideSelectButtons"',
               ]
             ] ); ?>
@@ -623,10 +625,10 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               'type'     => 'button',
               'classes'  => [ '' ],
               'atts'     => [
-                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, (isOrgAlreadyAConnection( $data.result.id ) || result.active_membership) )"',
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
                 'x-bind:class="{
                   \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
-                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership  && !activeMembershipAlertAvailable )
+                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
                 }"'
               ]
             ] ); ?>
@@ -871,7 +873,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               });
               window.dispatchEvent(newEvent);
             },
-            selectOrgAndCreateRelationship( orgUuid, event = null, existingConnectionOrActiveMembership = false ) {
+            selectOrgAndCreateRelationship( orgUuid, event = null, existingConnectionOrActiveMembership = false, skipCreateRelationship = false ) {
               // TODO: Handle when a Group is selected instead of an org
 
               // ------------------
@@ -907,7 +909,9 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               // ------------------
               // Usual operations
               // ------------------
-              this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
+              if(!skipCreateRelationship) {
+                this.createRelationship( this.currentPersonUuid, orgUuid, this.relationshipMode, this.relationshipTypeUponOrgCreation );
+              }
               this.selectOrg( orgUuid, event );
             },
             async flagForRosterManagementAccess( orgUuid ) {
