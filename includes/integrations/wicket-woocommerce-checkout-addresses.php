@@ -52,7 +52,7 @@ function wicket_prepopulate_addresses() {
     do_action('wicket_after_prepopulate_address_title');
     echo "<div class='row'>";
     echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
-    echo "<label class='form__label'>".__('Billing Address', 'woocommerce')."</label>";
+    echo "<label class='form__label'>".__('Billing Address', 'woocommerce').":</label>";
     echo "<select class='form__select' name='prepopulate_billing_address'>";
     echo "<option value=''>".__('-- Choose Address --', 'woocommerce')."</option>";
     foreach ($addresses as $address) {
@@ -67,7 +67,7 @@ function wicket_prepopulate_addresses() {
     if (WC()->cart->needs_shipping()) {
       echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
 
-      echo "<label class='form__label'>".__('Shipping Address', 'woocommerce')."</label>";
+      echo "<label class='form__label'>".__('Shipping Address', 'woocommerce').":</label>";
       echo "<select class='form__select' name='prepopulate_shipping_address'>";
       echo "<option value=''>".__('-- Choose Address --', 'woocommerce')."</option>";
       foreach ($addresses as $address) {
