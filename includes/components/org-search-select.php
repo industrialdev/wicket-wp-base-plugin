@@ -873,7 +873,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
               });
               window.dispatchEvent(newEvent);
             },
-            selectOrgAndCreateRelationship( orgUuid, event = null, existingConnectionOrActiveMembership = false, skipCreateRelationship = false ) {
+            selectOrgAndCreateRelationship( orgUuid, event = null, existingActiveMembership = false, skipCreateRelationship = false ) {
               // TODO: Handle when a Group is selected instead of an org
 
               // ------------------
@@ -882,7 +882,7 @@ $available_org_types = wicket_get_resource_types( 'organizations' );
 
               // Only show if the 'Disable Org Select with Active Membership' feature is enabled, sufficient modal data
               // was populated, and the user hasn't already chosen to proceed with the usual actions
-              if(existingConnectionOrActiveMembership && this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
+              if(existingActiveMembership && this.disableSelectingOrgsWithActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
                 // Display the modal
                 this.showingActiveMembershipAlert = true;
 
