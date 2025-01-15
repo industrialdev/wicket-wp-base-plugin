@@ -1802,7 +1802,7 @@ function wicket_add_update_person_emails($person_uuid, $emails) {
         'data' => [
           'type' => 'emails',
           'attributes' => [
-            'address' => $email['number'] ?? '',
+            'address' => $email['address'] ?? '',
             'primary' => $email['primary'] ?? false,
             'type' => $email['type'] ?? '',
             'unique' => $email['unique'] ?? true,
