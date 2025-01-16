@@ -1496,59 +1496,11 @@ function wicket_add_update_person_addresses($person_uuid, $addresses) {
   // Get user current address
   $current_addresses = wicket_person_obj_get_repeatable_contact_info($wicket_person, 'addresses', true); // Return full address arrays for writing back to the MDP, instead of the simple address list
 
-  // Loop both sets of addresses to determine if they should be updated or added anew
-  foreach($addresses as $address_to_add_update) {
-    $address_exists = false;
-    foreach($current_addresses as $current_address) {
-      if(isset($address_to_add_update['uuid'])) {
-        if($current_address['attributes']['uuid'] === $address_to_add_update['uuid']) {
-          $address_exists = true;
-          $updated_address = $current_address;
-          $updated_address['attributes'] = array_merge($updated_address['attributes'], $address_to_add_update); // Later array will overwrite first one
-          $addresses_to_update[] = $updated_address;
-        }
-      }
-    }
-    if(!$address_exists) {
-      $addresses_to_create[] = $address_to_add_update;
-    }
-  }
+  $addresses_update    = wicket_update_addresses($addresses, $current_addresses);
+  $addresses_to_update = $addresses_update['updated_addresses'];
+  $addresses_to_create = $addresses_update['addresses_not_found'];
+  $errors              = $errors;
 
-  /**
-   * Send updates
-   */
-
-  // Addresses to update
-  if(!empty($addresses_to_update)) {
-    foreach($addresses_to_update as $address) {
-      $payload = $address;
-      $address_uuid = $payload['attributes']['uuid'];
-      
-      // Unset params that the MDP provides but doesn't want sent back to it
-      unset($payload['attributes']['uuid']);
-      unset($payload['attributes']['type_external_id']);
-      unset($payload['attributes']['formatted_address_label']);
-      unset($payload['attributes']['latitude']);
-      unset($payload['attributes']['longitude']);
-      unset($payload['attributes']['created_at']);
-      unset($payload['attributes']['updated_at']);
-      unset($payload['attributes']['deleted_at']);
-      unset($payload['attributes']['active']);
-      unset($payload['attributes']['consent']);
-      unset($payload['attributes']['consent_third_party']);
-      unset($payload['attributes']['consent_directory']);
-
-      $payload = [
-        'data' => $payload
-      ];
-
-      try {
-        $address_update = $client->patch("addresses/$address_uuid", ['json' => $payload]);
-      } catch (\Exception $e) {
-        $errors[] = $e->getMessage();
-      }
-    }
-  }
 
   // Addresses to create 
   if(!empty($addresses_to_create)) {
@@ -1591,6 +1543,73 @@ function wicket_add_update_person_addresses($person_uuid, $addresses) {
       'error'   => $errors
     ];
   }
+}
+
+function wicket_update_addresses($updated_addresses, $current_addresses) {
+  $client = wicket_api_client();
+  $addresses_to_update = [];
+  $addresses_not_found = [];
+  $errors = [];
+
+  // Loop both sets of addresses to determine if they should be updated or added anew
+  foreach($updated_addresses as $address_to_add_update) {
+    $address_exists = false;
+    foreach($current_addresses as $current_address) {
+      if(isset($address_to_add_update['uuid'])) {
+        if($current_address['attributes']['uuid'] === $address_to_add_update['uuid']) {
+          $address_exists = true;
+          $updated_address = $current_address;
+          $updated_address['attributes'] = array_merge($updated_address['attributes'], $address_to_add_update); // Later array will overwrite first one
+          $addresses_to_update[] = $updated_address;
+        }
+      }
+    }
+    if(!$address_exists) {
+      $addresses_not_found[] = $address_to_add_update;
+    }
+  }
+
+  /**
+   * Send updates
+   */
+
+  // Addresses to update
+  if(!empty($addresses_to_update)) {
+    foreach($addresses_to_update as $address) {
+      $payload = $address;
+      $address_uuid = $payload['attributes']['uuid'];
+      
+      // Unset params that the MDP provides but doesn't want sent back to it
+      unset($payload['attributes']['uuid']);
+      unset($payload['attributes']['type_external_id']);
+      unset($payload['attributes']['formatted_address_label']);
+      unset($payload['attributes']['latitude']);
+      unset($payload['attributes']['longitude']);
+      unset($payload['attributes']['created_at']);
+      unset($payload['attributes']['updated_at']);
+      unset($payload['attributes']['deleted_at']);
+      unset($payload['attributes']['active']);
+      unset($payload['attributes']['consent']);
+      unset($payload['attributes']['consent_third_party']);
+      unset($payload['attributes']['consent_directory']);
+
+      $payload = [
+        'data' => $payload
+      ];
+
+      try {
+        $address_update = $client->patch("addresses/$address_uuid", ['json' => $payload]);
+      } catch (\Exception $e) {
+        $errors[] = $e->getMessage();
+      }
+    }
+  }
+
+  return [
+    'updated_addresses' => $addresses_to_update,
+    'addresses_not_found' => $addresses_not_found,
+    'errors' => $errors
+  ];
 }
 
 /**
