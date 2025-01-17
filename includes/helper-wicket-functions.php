@@ -2354,6 +2354,37 @@ function wicket_update_organization_membership_dates($membership_uuid, $starts_a
 }
 
 /**
+ * Summary of wicket_delete_person_membership
+ * @param string $membership_uuid
+ * @return mixed
+ */
+function wicket_delete_person_membership( $membership_uuid ) {
+  $client = wicket_api_client();
+  try {
+    $response = $client->delete("person_memberships/$membership_uuid");
+  } catch (Exception $e) {
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
+  }
+  return $response;
+}
+
+/**
+ * Summary of wicket_delete_organization_membership
+ * NOTE: force_destroy=true will clear all membership assignments
+ * @param string $membership_uuid
+ * @return mixed
+ */
+function wicket_delete_organization_membership( $membership_uuid ) {
+  $client = wicket_api_client();
+  try {
+    $response = $client->delete("organization_memberships/$membership_uuid?force_detroy=true");
+  } catch (Exception $e) {
+    $response = new \WP_Error('wicket_api_error', $e->getMessage());
+  }
+  return $response;
+}
+
+/**
  * Set the external ID on the membership record
  *
  * @param string $membership_uuid wicket mdp membership id
