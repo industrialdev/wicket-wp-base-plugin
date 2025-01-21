@@ -3326,7 +3326,7 @@ function build_touchpoint_payload($params, $wicket_service_id)
  * @param string $service_description The description of the service. Default is 'Custom from WP'.
  * @return string|false               The service ID if successful, or false on failure.
  */
-function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP')
+function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP', $integration_type = 'custom')
 {
   $client = wicket_api_client();
 
@@ -3343,7 +3343,7 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
     'name' => $service_name,
     'description' => $service_description,
     'status' => 'active',
-    'integration_type' => "woo_commerce",
+    'integration_type' => $integration_type,
     'integration_settings' => [
       'base_url' => get_home_url() 
     ],

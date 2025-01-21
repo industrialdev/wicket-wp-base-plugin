@@ -136,7 +136,7 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   // ---------------------------------------------------------------------------------------
   $values_arr = ['order' => $order];
   $params = apply_filters('alter_woocommerce_order_touchpoint', $params, $values_arr);
-  write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
+  write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.', 'woo_commerce'));
 }
 
 // ---------------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id){
     'refund' => $refund
   ];
   $params = apply_filters('alter_woocommerce_order_partially_refunded_touchpoint', $params, $values_arr);
-  write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.'));
+  write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.', 'woo_commerce'));
 }
 
 
