@@ -3939,3 +3939,90 @@ function wicket_update_organization_attributes($org_uuid, $attributes) {
     'data' => $org_update
   ];
 }
+
+/**
+ * Delete address record in MDP
+ *
+ * @param string $address_uuid The address UUID to delete
+ * @return bool True if successful, false if not
+ */
+function wicket_delete_address_record($address_uuid) {
+  if ( empty( $address_uuid ) ) {
+    return false;
+  }
+
+	$client = wicket_api_client();
+
+  if (empty($client)) {
+    return false;
+  }
+
+	try {
+		$client->delete("/addresses/{$address_uuid}");
+		return true;
+	} catch (Exception $e) {
+		return false;
+    // $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+	}
+}
+
+/**
+ * Delete email record in MDP
+ *
+ * @param string $email_uuid The address UUID to delete
+ * @return bool True if successful, false if not
+ */
+function wicket_delete_email_record($email_uuid) {
+  if ( empty( $email_uuid ) ) {
+    return false;
+  }
+
+	$client = wicket_api_client();
+
+  if (empty($client)) {
+    return false;
+  }
+
+	try {
+		$client->delete("/emails/{$email_uuid}");
+		return true;
+	} catch (Exception $e) {
+		return false;
+    // $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+	}
+}
+
+/**
+ * Delete phone record in MDP
+ *
+ * @param string $phone_uuid The address UUID to delete
+ * @return bool True if successful, false if not
+ */
+function wicket_delete_phones_record($phone_uuid) {
+  if ( empty( $phone_uuid ) ) {
+    return false;
+  }
+
+	$client = wicket_api_client();
+
+  if (empty($client)) {
+    return false;
+  }
+
+	try {
+		$client->delete("/phones/{$phone_uuid}");
+		return true;
+	} catch (Exception $e) {
+		return false;
+    // $errors = json_decode($e->getResponse()->getBody())->errors;
+    // echo "<pre>";
+    // print_r($errors);
+    // echo "</pre>";
+	}
+}
