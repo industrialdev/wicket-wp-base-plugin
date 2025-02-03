@@ -59,15 +59,18 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
 
   // ----------------------------------------------------------------------------------------
   // Also add the person buying the ticket (not an attendee technically) to the attendees array
-  // so we can write a touchpoint for them as well
+  // so we can write a touchpoint for them as well.
+  // Add this to a theme: add_filter( 'wicket_include_tec_touchpoint_for_ticket_buyer', '__return_false' );
   // ----------------------------------------------------------------------------------------
-  if ($event_info) {
-    $order_user = get_user_by('id', $order->get_customer_id());
-    $temp = [];
-    $temp['name'] = $order_user->first_name ?? '';
-    $temp['email'] = $order_user->user_email ?? '';
-    $temp['last-name'] = $order_user->last_name ?? '';
-    $attendees_arr[$product_id][] = $temp;
+  if (apply_filters('wicket_include_tec_touchpoint_for_ticket_buyer', true)){
+    if ($event_info) {
+      $order_user = get_user_by('id', $order->get_customer_id());
+      $temp = [];
+      $temp['name'] = $order_user->first_name ?? '';
+      $temp['email'] = $order_user->user_email ?? '';
+      $temp['last-name'] = $order_user->last_name ?? '';
+      $attendees_arr[$product_id][] = $temp;
+    }
   }
 
   // ----------------------------------------------------------------------------------------
