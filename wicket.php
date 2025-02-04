@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.64
+ * Version: 2.0.65
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -263,7 +263,7 @@ if (! class_exists('Wicket_Main')) {
 					);
 				}
 
-				// Scripts and styles that always get enqueued
+				// Scripts and styles that always get enqueued when not using a wicket theme
 				wp_enqueue_script(
 					'wicket-plugin-always-script',
 					$base_always_script_url,
@@ -272,6 +272,13 @@ if (! class_exists('Wicket_Main')) {
 					array()
 				);
 				wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+			
+				// Fontawesome
+				wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', FALSE, '5.15.4', 'all');
+				wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', FALSE, '5.15.4', 'all');
+				wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', FALSE, '5.15.4', 'all');
+				wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', FALSE, '5.15.4', 'all');
+			
 			}
 		}
 
