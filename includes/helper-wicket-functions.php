@@ -464,6 +464,34 @@ function wicket_get_organization($uuid, $include = null)
   }
 }
 
+/**
+ * Get organization by slug from Wicket. Can return the UUID only if needed.
+ * 
+ * @param string $slug The slug of the organization
+ * @param bool $return_uuid_only Whether to return the UUID only
+ * 
+ * @return array|string|bool The organization data or UUID if found, or false if not found
+ */
+function wicket_get_organization_by_slug($slug, $return_uuid_only = false)
+{
+  $client = wicket_api_client();
+
+  if ($return_uuid_only) {
+    $organizations = $client->get("organizations?filter[slug_eq]=$slug&fields[organizations]=id&page[size]=1");
+  } else {
+    $organizations = $client->get("organizations?filter[slug_eq]=$slug&page[size]=1");
+  }
+  if ($organizations) {
+    if ($return_uuid_only) {
+      return $organizations['data'][0]['id'];
+    } else {
+      return $organizations['data'][0];
+    }
+  }
+
+  return false;
+}
+
 /**------------------------------------------------------------------
  * Get commontly-needed organization info by UUID from Wicket
  *
