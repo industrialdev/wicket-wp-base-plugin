@@ -15,7 +15,7 @@ $icon_type             = $args['icon-type'];
 $accordion_type        = $args['accordion-type'];
 $separate_title_body   = $args['separate-title-body'];
 $initial_open_item_id  = $args['initial-open-item-id'];
-$heading_level         = $args['heading-level'];
+$heading_level         = $args['heading-level'] ?? 'h4';
 
 $font_awesome_icon_open = 'fa-solid fa-minus';
 $font_awesome_icon_closed = 'fa-solid fa-plus';
