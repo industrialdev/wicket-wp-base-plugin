@@ -64,7 +64,7 @@ if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_
 }
 
 function wicket_set_wc_org_uuid( $order_id ) { 
-  if(isset($_REQUEST['wicket_wc_org_select_uuid']) && $_REQUEST['wicket_wc_org_select_uuid'] != '')) {
+  if(isset($_REQUEST['wicket_wc_org_select_uuid']) && $_REQUEST['wicket_wc_org_select_uuid'] != '') {
     $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid'] );
     $org['name'] = $wicket_org['data']['attributes']['legal_name'];
     $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
