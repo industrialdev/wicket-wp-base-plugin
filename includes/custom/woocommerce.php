@@ -54,6 +54,7 @@ add_filter( 'wc_order_is_editable', 'wicket_filter_wc_order_is_editable', 10, 2 
 // ---------------------------------------------------------------------------------------
 // assign organization ID to order on order create based on certain person-to-org relationships that are set in the base plugin 
 // ---------------------------------------------------------------------------------------
+add_action('woocommerce_order_status_changed', 'write_org_id_to_order', 9999, 2);
 add_action('woocommerce_new_order', 'write_org_id_to_order', 9999, 2);
 if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types')))  {
   add_action('woocommerce_admin_order_data_after_order_details', 'wicket_display_org_input_on_order', 10, 1 );
@@ -62,14 +63,21 @@ if ( !empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_
   add_action('woocommerce_update_order', 'wicket_set_wc_org_uuid');
 }
 
-function wicket_set_wc_org_uuid( $order_id ) {
-  $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid'] );
-  $org['name'] = $wicket_org['data']['attributes']['legal_name'];
-  $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
-  update_post_meta( $order_id, '_wc_org_uuid', $org);
+function wicket_set_wc_org_uuid( $order_id ) { 
+  if(isset($_REQUEST['wicket_wc_org_select_uuid']) && $_REQUEST['wicket_wc_org_select_uuid'] != '')) {
+    $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid'] );
+    $org['name'] = $wicket_org['data']['attributes']['legal_name'];
+    $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
+    update_post_meta( $order_id, '_wc_org_uuid', $org);
+  }
 }
 
 function write_org_id_to_order($order_id, $order) {
+  $org_meta_exists = get_post_meta( $order_id, '_wc_org_uuid', true );
+  if(!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name'])) {
+    return;
+  }
+
   $organizations = get_organizations_based_on_certain_types();
 
   if ($organizations) {
