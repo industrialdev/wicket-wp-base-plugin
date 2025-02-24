@@ -2,8 +2,17 @@
 ------------------------------------------------------------------------------*/
 /* THEME COMPONENTS
 ------------------------------------------------------------------------------*/
-.accordion-item.border-b-4 {
+.component-accordion .accordion-item.border-b-4 {
   border-bottom-width: 4px !important;
+}
+.component-accordion .accordion-item ul, .component-accordion .accordion-item ol {
+  padding-left: 1rem;
+}
+.component-accordion .accordion-item ul {
+  list-style: disc;
+}
+.component-accordion .accordion-item ol {
+  list-style: decimal;
 }
 
 .wicket-breadcrumb .icon {

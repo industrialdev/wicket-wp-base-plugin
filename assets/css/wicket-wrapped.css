@@ -2,8 +2,17 @@
 ------------------------------------------------------------------------------*/
 /* THEME COMPONENTS
 ------------------------------------------------------------------------------*/
-.wicket-base-plugin .accordion-item.border-b-4 {
+.wicket-base-plugin .component-accordion .accordion-item.border-b-4 {
   border-bottom-width: 4px !important;
+}
+.wicket-base-plugin .component-accordion .accordion-item ul, .wicket-base-plugin .component-accordion .accordion-item ol {
+  padding-left: 1rem;
+}
+.wicket-base-plugin .component-accordion .accordion-item ul {
+  list-style: disc;
+}
+.wicket-base-plugin .component-accordion .accordion-item ol {
+  list-style: decimal;
 }
 
 .wicket-base-plugin .wicket-breadcrumb .icon {

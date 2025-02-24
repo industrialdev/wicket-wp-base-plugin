@@ -1,3 +1,19 @@
-.accordion-item.border-b-4 {
-  border-bottom-width: 4px !important;
+.component-accordion {
+  .accordion-item.border-b-4 {
+    border-bottom-width: 4px !important;
+  }
+
+  .accordion-item {
+    ul, ol {
+      padding-left: 1rem;
+    }
+
+    ul {
+      list-style: disc;
+    }
+
+    ol {
+      list-style: decimal;
+    }
+  }
 }
