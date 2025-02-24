@@ -74,7 +74,7 @@ if ( $featured_image ) {
 		<?php } ?>
 
 		<?php if ( $title && $link_type == 'title' ) { ?>
-			<a href="<?php echo $link['url'] ?>" <?php $link['target'] === '_blank' ? 'target="_blank"' : '' ?>
+			<a href="<?php echo $link['url'] ?>" <?php echo $link['target'] === '_blank' ? 'target="_blank" aria-label="'. esc_attr($title) .' (opens in new tab)"' : ''; ?>
 				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-card-listing__title' : 'component-card-listing__title block text-dark-100 font-bold leading-7 mb-3 hover:underline text-[18px] lg:text-body-lg' ?>">
 				<?php echo $title; ?>
 			</a>

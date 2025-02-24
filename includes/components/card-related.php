@@ -122,8 +122,7 @@ if ( $rounded_corners ) {
 			'classes'     => $button_classes,
 			'atts'        => [ 
 				$content_type === 'document' ? 'download' : '',
-				$content_type === 'document' ? 'aria-label="Download"' : '',
-				$button_target === '_blank' ? 'aria-label="Open in a new tab"' : '',
+				// Note: aria-label for new tab/download is handled by the button component
 				'x-init="if( typeof widestButtonWidth !== \'undefined\' ){ 
 					$el.style[\'width\'] = ( widestButtonWidth + 20 ) + \'px\'; 
 					$el.style[\'justify-content\'] = \'space-between\';
