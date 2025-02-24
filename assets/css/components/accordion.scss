@@ -15,5 +15,11 @@
     ol {
       list-style: decimal;
     }
+
+    &:hover {
+      h4 {
+        text-decoration: underline;
+      }
+    }
   }
 }
