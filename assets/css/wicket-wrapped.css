@@ -14,7 +14,7 @@
 .wicket-base-plugin .component-accordion .accordion-item ol {
   list-style: decimal;
 }
-.wicket-base-plugin .component-accordion .accordion-item:hover h4 {
+.wicket-base-plugin .component-accordion .accordion-item:hover h2, .wicket-base-plugin .component-accordion .accordion-item:hover h3, .wicket-base-plugin .component-accordion .accordion-item:hover h4, .wicket-base-plugin .component-accordion .accordion-item:hover h5, .wicket-base-plugin .component-accordion .accordion-item:hover h6 {
   text-decoration: underline;
 }
 

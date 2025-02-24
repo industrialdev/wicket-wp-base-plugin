@@ -14,7 +14,7 @@
 .component-accordion .accordion-item ol {
   list-style: decimal;
 }
-.component-accordion .accordion-item:hover h4 {
+.component-accordion .accordion-item:hover h2, .component-accordion .accordion-item:hover h3, .component-accordion .accordion-item:hover h4, .component-accordion .accordion-item:hover h5, .component-accordion .accordion-item:hover h6 {
   text-decoration: underline;
 }
 

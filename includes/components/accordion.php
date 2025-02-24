@@ -1,12 +1,13 @@
 <?php
-$defaults  = array(
-    'classes'               => [],
+$defaults  = [
+  'classes'               => [],
   'items'                 => [],
   'icon-type'             => 'plus-minus',
   'accordion-type'        => 'list',
   'separate-title-body'   => false,
   'initial-open-item-id'  => 999,
-);
+  'heading-level'         => 'h2',
+];
 $args                  = wp_parse_args($args, $defaults);
 $classes               = $args['classes'];
 $items                 = $args['items'] ?? [];
@@ -14,6 +15,7 @@ $icon_type             = $args['icon-type'];
 $accordion_type        = $args['accordion-type'];
 $separate_title_body   = $args['separate-title-body'];
 $initial_open_item_id  = $args['initial-open-item-id'];
+$heading_level         = $args['heading-level'];
 
 $font_awesome_icon_open = 'fa-solid fa-minus';
 $font_awesome_icon_closed = 'fa-solid fa-plus';
@@ -26,6 +28,11 @@ if($icon_type == 'chevrons') {
 if ($icon_type == 'carets') {
     $font_awesome_icon_open = 'fa-solid fa-caret-up';
     $font_awesome_icon_closed = 'fa-solid fa-caret-down';
+}
+
+if(empty($items)) {
+    echo '<p>' . __('No accordion items found.', 'wicket') . '</p>';
+    return;
 }
 
 // Determine initial open item, if any
@@ -101,8 +108,7 @@ foreach($items as $item) :
 		tabindex="0"
 		>
 		<div class="flex w-full justify-between items-center">
-			<h4
-				class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>">
+			<<?php echo $heading_level; ?> class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>" x-bind:class="{'accordion-item__title--open': openAccordion == <?php echo $i; ?>}">
 				<?php if($item['title_is_a_link']): ?>
 				<a x-on:click.stop
 					href="<?php echo $item['title_link']['url']; ?>"
@@ -110,26 +116,26 @@ foreach($items as $item) :
 				<?php else : ?>
 				<?php echo $item['title']; ?>
 				<?php endif; ?>
-			</h4>
+			</<?php echo $heading_level; ?>>
 			<?php
-          if($show_toggle_icon) {
-              if (defined('WICKET_WP_THEME_V2')) {
-                  $icon_classes = [ 'accordion-item__icon' ];
-              } else {
-                  $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
-              }
+		  if($show_toggle_icon) {
+		      if (defined('WICKET_WP_THEME_V2')) {
+		          $icon_classes = [ 'accordion-item__icon' ];
+		      } else {
+		          $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
+		      }
 
-              get_component('icon', [
-                'icon' => $font_awesome_icon_open,
-                'classes' => $icon_classes,
-                'atts' => ["x-show='openAccordion == " . $i . "'"]
-              ]);
-              get_component('icon', [
-                'icon' => $font_awesome_icon_closed,
-                'classes' => $icon_classes,
-                'atts' => ["x-show='openAccordion != " . $i . "'"]
-              ]);
-          }
+		      get_component('icon', [
+		        'icon' => $font_awesome_icon_open,
+		        'classes' => $icon_classes,
+		        'atts' => ["x-show='openAccordion == " . $i . "'"]
+		      ]);
+		      get_component('icon', [
+		        'icon' => $font_awesome_icon_closed,
+		        'classes' => $icon_classes,
+		        'atts' => ["x-show='openAccordion != " . $i . "'"]
+		      ]);
+		  }
     ?>
 		</div>
 		<?php if(!$separate_title_body): ?>
