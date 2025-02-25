@@ -72,9 +72,12 @@ function wicket_set_wc_org_uuid( $order_id ) {
   }
 }
 
-function write_org_id_to_order($order_id, $order) {
+function write_org_id_to_order($order_id) {
+  $order = wc_get_order( $order_id );
+  $order_status = $order->get_status();
   $org_meta_exists = get_post_meta( $order_id, '_wc_org_uuid', true );
-  if(!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name'])) {
+  if( (!empty($order_status) && str_contains( $order_status, 'draft')) 
+      || (!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name']))) {
     return;
   }
 
