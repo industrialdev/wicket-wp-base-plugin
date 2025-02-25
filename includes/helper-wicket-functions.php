@@ -2884,7 +2884,22 @@ function wicket_create_connection($payload)
   return false;
 }
 
-function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type, $skip_if_exists = false)
+/**
+ * Creates a connection between a person and an organization.
+ *
+ * This function establishes a relationship of a specified type between a person and an organization.
+ * If the $skip_if_exists parameter is true, it will first check if such a relationship already exists
+ * and return the existing connection if found.
+ *
+ * @param string $person_uuid The UUID of the person.
+ * @param string $org_uuid The UUID of the organization.
+ * @param string $relationship_type The type of relationship to create.
+ * @param bool $skip_if_exists Optional. Whether to skip creating a new connection if one already exists. Default false.
+ * @param array $atts Optional. Additional attributes for the connection. Default empty array.
+ *
+ * @return array|false The connection data if created or found, or false on failure.
+ */
+function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type, $skip_if_exists = false, $atts = [])
 {
   $existing_connection = null;
   if($skip_if_exists) {
@@ -2905,17 +2920,21 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
     }
   }
 
+  $attributes = [
+    'connection_type'   => 'person_to_organization',
+    'type'              => $relationship_type,
+    'starts_at'         => null,
+    'ends_at'           => null,
+    'description'       => null,
+    'tags'              => [],
+  ];
+
+  $attributes = array_merge($attributes, $atts);
+
   $payload = [
     'data' => [
       'type' => 'connections',
-      'attributes' => [
-        'connection_type'   => 'person_to_organization',
-        'type'              => $relationship_type,
-        'starts_at'         => null,
-        'ends_at'           => null,
-        'description'       => null,
-        'tags'              => [],
-      ],
+      'attributes' => $attributes,
       'relationships' => [
         'from' => [
           'data' => [
