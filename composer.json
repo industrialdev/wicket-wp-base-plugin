@@ -13,5 +13,10 @@
   "require": {
     "php": ">=8.0",
     "jeffreyvanrossum/wp-settings": "1.2.1"
+  },
+  "scripts": {
+    "version-bump": [
+      "@php ./.ci/version-bump.php"
+    ]
   }
 }
