@@ -2,20 +2,20 @@
 $defaults  = [
   'classes'               => [],
   'items'                 => [],
-  'icon-type'             => 'plus-minus',
-  'accordion-type'        => 'list',
-  'separate-title-body'   => false,
-  'initial-open-item-id'  => 999,
-  'heading-level'         => 'h2',
+  'icon_type'             => 'plus-minus',
+  'accordion_type'        => 'list',
+  'separate_title_body'   => false,
+  'initial_open_item_id'  => 999,
+  'heading_level'         => 'h2',
 ];
 $args                  = wp_parse_args($args, $defaults);
 $classes               = $args['classes'];
 $items                 = $args['items'] ?? [];
-$icon_type             = $args['icon-type'];
-$accordion_type        = $args['accordion-type'];
-$separate_title_body   = $args['separate-title-body'];
-$initial_open_item_id  = $args['initial-open-item-id'];
-$heading_level         = $args['heading-level'] ?? 'h4';
+$icon_type             = $args['icon_type'];
+$accordion_type        = $args['accordion_type'];
+$separate_title_body   = $args['separate_title_body'];
+$initial_open_item_id  = $args['initial_open_item_id'] ?? 999;
+$heading_level         = $args['heading_level'] ?? 'h4';
 
 $font_awesome_icon_open = 'fa-solid fa-minus';
 $font_awesome_icon_closed = 'fa-solid fa-plus';
@@ -79,20 +79,24 @@ foreach($items as $item) :
 		x-bind:class="openAccordion == <?php echo $i; ?> ? 'open' :
 		''"
 		<?php else: ?>
-		class="accordion-item p-2 hover:cursor-pointer
+		class="accordion-item p-2 hover:cursor-pointer <?php
+            if($accordion_type == 'card') {
+                echo 'rounded-100 border border-primary-060 mb-3';
+            } else {
+                echo 'border-b border-primary-060 border-solid';
+                if($i == 0 && $accordion_type == 'list') {
+                    echo ' border-t';
+                }
+            } ?>"
+		x-bind:class="openAccordion == <?php echo $i; ?> ? [
+		'open',
+		'border-b-4',
+		'bg-tertiary-010',
+		'bg-opacity-20',
 		<?php if($accordion_type == 'card') {
-		    echo 'rounded-100 border border-primary-060 mb-3';
-		} else {
-		    echo 'border-b border-primary-060 border-solid ';
-		} if($i == 0 && $accordion_type == 'list') {
-		    echo ' border-t';
-		} ?>"
-		x-bind:class="openAccordion == <?php echo $i; ?> ?
-		'border-b-4 bg-tertiary-010 bg-opacity-20 open
-		<?php if($accordion_type == 'card') {
-		    echo 'border-light-120';
-		} ?>'
-		: ''"
+		    echo "'border-light-120'";
+		} ?>
+		] : ''"
 		<?php endif; ?>
 		x-bind:aria-expanded="openAccordion == <?php echo $i; ?> ?
 		'true' : 'false'"
@@ -106,9 +110,13 @@ foreach($items as $item) :
 		}"
 		role="button"
 		tabindex="0"
+
 		>
 		<div class="flex w-full justify-between items-center">
-			<<?php echo $heading_level; ?> class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>" x-bind:class="{'accordion-item__title--open': openAccordion == <?php echo $i; ?>}">
+			<<?php echo $heading_level; ?>
+				class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>"
+				x-bind:class="{'accordion-item__title--open': openAccordion ==
+				<?php echo $i; ?>}">
 				<?php if($item['title_is_a_link']): ?>
 				<a x-on:click.stop
 					href="<?php echo $item['title_link']['url']; ?>"
@@ -118,29 +126,33 @@ foreach($items as $item) :
 				<?php endif; ?>
 			</<?php echo $heading_level; ?>>
 			<?php
-		  if($show_toggle_icon) {
-		      if (defined('WICKET_WP_THEME_V2')) {
-		          $icon_classes = [ 'accordion-item__icon' ];
-		      } else {
-		          $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
-		      }
+          if($show_toggle_icon) {
+              if (defined('WICKET_WP_THEME_V2')) {
+                  $icon_classes = [ 'accordion-item__icon' ];
+              } else {
+                  $icon_classes = ['text-heading-md', 'text-primary-100', 'ml-4'];
+              }
 
-		      get_component('icon', [
-		        'icon' => $font_awesome_icon_open,
-		        'classes' => $icon_classes,
-		        'atts' => ["x-show='openAccordion == " . $i . "'"]
-		      ]);
-		      get_component('icon', [
-		        'icon' => $font_awesome_icon_closed,
-		        'classes' => $icon_classes,
-		        'atts' => ["x-show='openAccordion != " . $i . "'"]
-		      ]);
-		  }
+              get_component('icon', [
+                'icon' => $font_awesome_icon_open,
+                'classes' => $icon_classes,
+                'atts' => ["x-show='openAccordion == " . $i . "'"]
+              ]);
+              get_component('icon', [
+                'icon' => $font_awesome_icon_closed,
+                'classes' => $icon_classes,
+                'atts' => ["x-show='openAccordion != " . $i . "'"]
+              ]);
+          }
     ?>
 		</div>
 		<?php if(!$separate_title_body): ?>
 		<div class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__body' : 'mt-1 pr-12' ?>"
-			x-show="openAccordion == <?php echo $i; ?>" x-transition>
+			x-show="openAccordion == <?php echo $i; ?>"
+			x-transition:enter="transition ease-out duration-300 transform"
+			x-transition:enter-start="opacity-0 translate-y-[-10%]" x-transition:enter-end="opacity-100 translate-y-0"
+			x-transition:leave="transition ease-in duration-300 transform"
+			x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-[-10%]">
 			<?php echo $item['body_content']; ?>
 
 			<?php if(!empty($item['call_to_action']['link_and_label']['title']) && !empty($item['call_to_action']['link_and_label']['url']) && $item['call_to_action']['button_link_style'] != 'link') {
@@ -173,7 +185,11 @@ foreach($items as $item) :
 	<div class="py-4 px-12 <?php if($accordion_type == 'list') {
 	    echo 'border-b border-primary-060';
 	} ?>"
-		x-show="openAccordion == <?php echo $i; ?>" x-transition>
+		x-show="openAccordion == <?php echo $i; ?>"
+		x-transition:enter="transition ease-out duration-300 transform"
+		x-transition:enter-start="opacity-0 translate-y-[-10%]" x-transition:enter-end="opacity-100 translate-y-0"
+		x-transition:leave="transition ease-in duration-300 transform"
+		x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-[-10%]">
 		<?php echo $item['body_content']; ?>
 
 		<?php if(!empty($item['call_to_action']['link_and_label']['title']) && !empty($item['call_to_action']['link_and_label']['url']) && $item['call_to_action']['button_link_style'] != 'link') {
