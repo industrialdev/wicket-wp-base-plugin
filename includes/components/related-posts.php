@@ -223,7 +223,14 @@ if ( $highlight_featured_posts ) {
 					}
 
 					if ( $post_type == 'tribe_events' ) {
-						$date = tribe_get_start_date( $post_id, false, $date_format );
+						$start_date = tribe_get_start_date( $post_id, false, $date_format );
+						$end_date   = tribe_get_end_date( $post_id, false, $date_format );
+
+						if ( $start_date === $end_date ) {
+							$date = $start_date;
+						} else {
+							$date = $start_date . ' - ' . $end_date;
+						}
 					}
 
 					get_component( 'card-featured', [
