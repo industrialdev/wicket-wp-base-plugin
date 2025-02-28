@@ -3025,6 +3025,103 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
     ];
 }
 
+/**
+ * Creates a connection between two organizations.
+ *
+ * This function establishes a relationship of a specified type between two organizations.
+ * If the $skip_if_exists parameter is true, it will first check if such a relationship already exists
+ * and return the existing connection if found.
+ *
+ * @param string $from_org_uuid The UUID of the source organization.
+ * @param string $to_org_uuid The UUID of the target organization.
+ * @param string $relationship_type The type of relationship to create.
+ * @param bool $skip_if_exists Optional. Whether to skip creating a new connection if one already exists. Default false.
+ * @param array $atts Optional. Additional attributes for the connection. Default empty array.
+ *
+ * @return array|false The connection data if created or found, or false on failure.
+ */
+function wicket_create_org_to_org_connection($from_org_uuid, $to_org_uuid, $relationship_type, $skip_if_exists = false, $atts = [])
+{
+  $existing_connection = null;
+  if ($skip_if_exists) {
+    // Get current connections/relationships
+    $current_connections = wicket_get_org_connections_by_id($from_org_uuid);
+    if (isset($current_connections['data'])) {
+      foreach ($current_connections['data'] as $connection) {
+        if ($connection['attributes']['type'] == $relationship_type
+          && $connection['relationships']['to']['data']['id'] == $to_org_uuid) {
+          $existing_connection = $connection;
+        }
+      }
+    }
+
+    if (!is_null($existing_connection)) {
+      // Same relationship was found to already exist, so returning that relationship data instead of making a new one
+      return $existing_connection;
+    }
+  }
+
+  $attributes = [
+    'connection_type'   => 'organization_to_organization',
+    'type'              => $relationship_type,
+    'starts_at'         => null,
+    'ends_at'           => null,
+    'description'       => null,
+    'tags'              => [],
+  ];
+
+  $attributes = array_merge($attributes, $atts);
+
+  $payload = [
+    'data' => [
+    'type' => 'connections',
+    'attributes' => $attributes,
+    'relationships' => [
+      'from' => [
+      'data' => [
+        'type' => 'organizations',
+        'id'   => $from_org_uuid,
+      ],
+      ],
+      'to' => [
+      'data' => [
+        'type' => 'organizations',
+        'id'   => $to_org_uuid,
+      ],
+      ],
+    ],
+    ]
+  ];
+
+  try {
+    $new_connection = wicket_create_connection($payload);
+  } catch (\Exception $e) {
+    wicket_write_log($e->getMessage());
+  }
+
+  $new_connection_id = '';
+  if (isset($new_connection['data'])) {
+    if (isset($new_connection['data']['id'])) {
+      $new_connection_id = $new_connection['data']['id'];
+    }
+  }
+
+  if (empty($new_connection_id)) {
+    return false;
+  }
+
+  return [
+    'connection_id'     => $new_connection['data']['id'] ?? '',
+    'connection_type'   => $relationship_type,
+    'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+    'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+    'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+    'active_connection' => $new_connection['data']['attributes']['active'],
+    'from_org_id'       => $from_org_uuid,
+    'to_org_id'         => $to_org_uuid,
+  ];
+}
+
 /**------------------------------------------------------------------
  * Remove connection
  * $connection_id can be retrieved by using  wicket_get_person_connections_by_id($uuid)
