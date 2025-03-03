@@ -69,20 +69,24 @@ function wicket_set_wc_org_uuid( $order_id ) {
     $org['name'] = $wicket_org['data']['attributes']['legal_name'];
     $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
     update_post_meta( $order_id, '_wc_org_uuid', $org);
+    $order = wc_get_order( $order_id );
+    if(!empty($order)) {
+      $order->update_meta_data( '_wc_org_uuid', $org );
+    }
   }
 }
 
 function write_org_id_to_order($order_id) {
   $order = wc_get_order( $order_id );
-  $order_status = $order->get_status();
   $org_meta_exists = get_post_meta( $order_id, '_wc_org_uuid', true );
-  if( (!empty($order_status) && str_contains( $order_status, 'draft')) 
-      || (!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name']))) {
+  if(!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name'])) {
     return;
   }
 
-  $organizations = get_organizations_based_on_certain_types();
-
+  //here we specify to get the user for relation from the order owner
+  $id_array = ['order_id' => $order_id ];
+  $organizations = get_organizations_based_on_certain_types( $id_array );
+  
   if ($organizations) {
     // just use the first one...should be all we need based on the sorting above
     $org_uuid = key($organizations);
@@ -96,16 +100,24 @@ function write_org_id_to_order($order_id) {
     $org['uuid'] = $org_uuid;
     $org['name'] = $org_name;
     update_post_meta( $order_id, '_wc_org_uuid', $org);
+    if(!empty($order)) {
+      $order->update_meta_data( '_wc_org_uuid', $org );
+    }
   }
 }
 
 function wicket_display_org_input_on_order( $order ) {
+  //delete_post_meta( $order->get_id(), '_wc_org_uuid' );exit;
+
   $org = get_post_meta( $order->get_id(), '_wc_org_uuid', true);
   if(empty($org) || !is_array($org)) {
     $org = [
       'name' => '',
       'uuid' => '',
     ];
+  }
+  //A fallback was or can be used for setting directly from MDP  when order page loaded
+  /*
     $organizations = get_organizations_based_on_certain_types();
     if ($organizations) {
       // just use the first one...should be all we need based on the sorting above
@@ -114,6 +126,7 @@ function wicket_display_org_input_on_order( $order ) {
       update_post_meta( $order->get_id(), '_wc_org_uuid', $org);
     }
   }
+  */
   wp_nonce_field('wc_org_nonce', 'wc_org_nonce_field');
 
   ?>

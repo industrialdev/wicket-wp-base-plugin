@@ -3660,10 +3660,13 @@ function wicket_get_org_types_list()
     return $resource_types_list;
 }
 
-/**------------------------------------------------------------------
+/**
  * Gets organizations based on certain person to org types selected in the base plugin settings
-------------------------------------------------------------------*/
-function get_organizations_based_on_certain_types()
+ * 
+ * @param array $id_array | [user_id => #]  OR [order_id => #] OR if empty array [] will use currently authenticated user
+ * @return array|bool
+ */
+function get_organizations_based_on_certain_types( $id_array = [] )
 {
     if (!empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_person_to_org_types'))) {
         // Get the current user's organization relationships of only the types defined in the global setting for person-to-organization relationships
@@ -3677,6 +3680,18 @@ function get_organizations_based_on_certain_types()
 
         $client = wicket_api_client();
         $current_person_uuid = wicket_current_person_uuid();
+
+        if(!empty( $id_array )) {
+          if( !empty($id_array['user_id'])) {
+            $user = get_user_by( 'id', $id_array['user_id']);
+          } else if( !empty($id_array['order_id'])) {
+            $order = wc_get_order( $id_array['order_id'] );
+            $user = $order->get_user();
+          }
+          if(!empty( $user->user_login )) {
+            $current_person_uuid = $user->user_login;
+          }  
+        }
 
         $types_filter = 'filter[resource_type_slug_in][]='.implode('&filter[resource_type_slug_in][]=', $person_to_org_types);
         $url = "people/$current_person_uuid/connections?filter[to_type_eq]=Organization&$types_filter&filter[active_true]=true&sort=-ends_at,-starts_at,-created_at";
