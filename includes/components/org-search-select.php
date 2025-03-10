@@ -355,7 +355,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         ]); ?>
 				<?php get_component('button', [
           'variant'  => 'primary',
-          'label'    => __('Remove Organization', 'wicket'),
+          'label'    => __('Remove Location/Subsidiary', 'wicket'),
           'type'     => 'button',
           'atts'  => [ 'x-on:click.prevent="terminateRelationship()"' ],
           'classes' => [
