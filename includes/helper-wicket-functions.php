@@ -278,7 +278,6 @@ function wicket_create_wp_user_if_not_exist($uuid, $first_name = null, $last_nam
     }
 
     $user = get_user_by('login', $uuid);
-
     if ($user) {
         return $user->id;
     }
@@ -289,6 +288,12 @@ function wicket_create_wp_user_if_not_exist($uuid, $first_name = null, $last_nam
         $first_name = $mdp_person->given_name;
         $last_name = $mdp_person->family_name;
         $email = $mdp_person->primary_email_address;
+    }
+
+    // Final check if their WP user exists by email, since trying to create them again with the same email will error anyway
+    $user = get_user_by('email', $email);
+    if ($user) {
+        return $user->id;
     }
 
     // Create the WP user
