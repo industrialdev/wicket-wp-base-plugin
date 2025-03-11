@@ -62,6 +62,11 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $products_list  = [];
   foreach($order->get_items() as $item_id => $line_item){
     $product            = $line_item->get_product();
+
+    if(!$product){
+      continue;
+    }
+
     $product_id         = $product->get_id();
     $product_name       = $product->get_name();
     $product_categories = strip_tags($product->get_categories());
