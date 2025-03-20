@@ -2851,20 +2851,12 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
     ];
 
     try {
-        $apiCall = $client->post('group_members', ['json' => $payload]);
-        return $apiCall;
+      $response = $client->post('group_members', ['json' => $payload]);
     } catch (\Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
-        echo "<pre>";
-        print_r($e->getMessage());
-        echo "</pre>";
-
-        echo "<pre>";
-        print_r($errors);
-        echo "</pre>";
-        die;
+      $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
+      $response = new \WP_Error('wicket_api_error', $wicket_api_error);
     }
-    return false;
+    return $response;
 }
 
 /**------------------------------------------------------------------
