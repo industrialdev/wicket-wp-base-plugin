@@ -95,9 +95,13 @@ if (! class_exists('Wicket_Main')) {
             // Include to allow other functions to check if plugins are active on front end
             include_once(ABSPATH . 'wp-admin/includes/plugin.php');
 
-            // Include helper functions
-            include_once WICKET_PLUGIN_DIR . 'includes/helper-wicket-functions.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helper-settings-functions.php';
+            // Include MDP Helpers
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-legacy.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-people.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-organizations.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-groups.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-touchpoints.php';
 
             // Include acf blocks
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-blocks.php';
