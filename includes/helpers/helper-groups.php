@@ -108,6 +108,8 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
 }
 
 /**
+ * MARK: WIP
+ *
  * Search for group members
  *
  * @param string $group_uuid The UUID of the group to search in
