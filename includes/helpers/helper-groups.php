@@ -106,3 +106,20 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
   }
   return $response;
 }
+
+/**
+ * Search for group members
+ *
+ * @param string $group_uuid The UUID of the group to search in
+ * @param string $search_query The search query to use: person's first name, last name and/or email
+ *
+ * @return object The response object from the Wicket API
+ */
+function wicket_search_group_members($group_uuid, $search_query)
+{
+  $client = wicket_api_client();
+
+  $response = $client->get("groups/$group_uuid/members?search=$search_query");
+
+  return $response;
+}
