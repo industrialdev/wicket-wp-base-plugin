@@ -97,11 +97,7 @@ if (! class_exists('Wicket_Main')) {
 
             // Include MDP Helpers
             include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-legacy.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-people.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-organizations.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-groups.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-touchpoints.php';
+
 
             // Include acf blocks
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-blocks.php';

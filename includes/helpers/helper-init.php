@@ -5,6 +5,15 @@ use Wicket\Client;
 // No direct access
 defined('ABSPATH') || exit;
 
+// These files will be included at the end of the current file
+$wicket_helpers = [
+  'helper-legacy.php',
+  'helper-people.php',
+  'helper-organizations.php',
+  'helper-groups.php',
+  'helper-touchpoints.php',
+];
+
 /**
  * Simplify get_option for Wicket Settings using WPSettings
  * example usage: wicket_get_option('my_field_id');
@@ -66,19 +75,20 @@ function get_wicket_settings($environment = null)
 function wicket_api_client()
 {
   try {
-    if (!class_exists('\Wicket\Client')) {
-      // No SDK available!
-      return false;
-    }
+      if (!class_exists('\Wicket\Client')) {
+          // No SDK available!
+          return false;
+      }
 
-    // connect to the wicket api and get the current person
-    $wicket_settings = get_wicket_settings();
-    $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
-    $client->authorize($wicket_settings['person_id']);
+      // connect to the wicket api and get the current person
+      $wicket_settings = get_wicket_settings();
+      $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
+      $client->authorize($wicket_settings['person_id']);
   } catch (Exception $e) {
-    // don't return the $client unless the API is up.
-    return false;
+      // don't return the $client unless the API is up.
+      return false;
   }
+
   return $client;
 }
 
@@ -98,9 +108,9 @@ function wicket_api_client_current_user()
     $person_id = wicket_current_person_uuid();
 
     if ($person_id) {
-      $client->authorize($person_id);
+        $client->authorize($person_id);
     } else {
-      $client = null;
+        $client = null;
     }
   }
 
@@ -158,14 +168,25 @@ function wicket_get_access_token($person_id, $org_uuid)
   ];
 
   try {
-    $token = $client->post("widget_tokens", ['json' => $payload]);
+      $token = $client->post("widget_tokens", ['json' => $payload]);
 
-    return $token['token'];
+      return $token['token'];
   } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
+      $errors = json_decode($e->getResponse()->getBody())->errors;
 
-    error_log($e->getMessage());
+      error_log($e->getMessage());
   }
 
   return false;
+}
+
+/**
+ * Load all helpers
+ */
+if (isset($wicket_helpers) && !empty($wicket_helpers) && is_array($wicket_helpers)) {
+  foreach ($wicket_helpers as $helper) {
+    if (file_exists(WICKET_PLUGIN_DIR . 'includes/helpers/' . $helper)) {
+      include_once WICKET_PLUGIN_DIR . 'includes/helpers/' . $helper;
+    }
+  }
 }
