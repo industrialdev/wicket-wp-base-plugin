@@ -109,6 +109,28 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
 }
 
 /**
+ * Get specific group by UUID
+ *
+ * @return array|false
+ */
+function wicket_get_group($uuid)
+{
+  if (!$uuid) {
+    return false;
+  }
+
+  $client = wicket_api_client();
+
+  $group = $client->get("groups/{$uuid}");
+
+  if ($group) {
+    return $group;
+  }
+
+  return false;
+}
+
+/**
  * MARK: WIP
  *
  * Search for group members
