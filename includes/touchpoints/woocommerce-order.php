@@ -61,21 +61,32 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   $line_item_meta = [];
   $products_list  = [];
   foreach($order->get_items() as $item_id => $line_item){
-    $product            = $line_item->get_product();
+    $product = $line_item->get_product();
 
     if(!$product){
       continue;
     }
 
-    $product_id         = $product->get_id();
-    $product_name       = $product->get_name();
-    $product_categories = strip_tags($product->get_categories());
+    $product_id             = $product->is_type('variation') ? $product->get_parent_id() : $product->get_id();
+    $parent_product         = wc_get_product($product_id);
+    $product_name           = $product->get_name();
+    $product_category_ids   = $parent_product->get_category_ids();
+    $product_category_names = []; 
+  
+    // we want to load the parent product if this is a variation so we can get the product categories 
+    foreach ($product_category_ids as $cat_id) {
+      $cat_term = get_term_by('id', (int)$cat_id, 'product_cat');
+      if($cat_term){
+        $product_category_names[] = $cat_term->name;
+      }
+    }
+    
     $item_quantity      = $line_item->get_quantity();
     $item_total         = $line_item->get_total();
     $line_item_meta[]   = [
       'product_id'       => $product_id, 
       'product_name'     => $product_name, 
-      'product_category' => $product_categories, 
+      'product_category' => $product_category_names, 
       'quantity'         => $item_quantity, 
       'product_amount'   => number_format( $item_total, 2 ),
       'coupon_code'      => $coupons
