@@ -145,7 +145,7 @@ if ( $featured_image ) {
 		} ?>
 	</div>
 
-	<?php if ( $image && ! $document ) { ?>
+	<?php if ( ($image && ! $document) || ($document && $hide_document_format_icon) ) { ?>
 		<div class="flex-none md:basis-[200px] lg:basis-[300px]">
 			<?php get_component( 'image', [ 
 					'id'           => $featured_image,
