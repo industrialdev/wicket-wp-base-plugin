@@ -22,27 +22,48 @@ function wicket_get_groups()
 }
 
 /**
- * Get a person's groups
+ * Get all groups that a person UUID is part of
  *
- * @param string $person_uuid The person uuid (optional, uses current person if not provided)
+ * @param string $person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  *
- * @return array|false
+ * @return array|false Array of groups on ['data'] or false on failure
  */
 function wicket_get_person_groups($person_uuid = null)
 {
-  $client = wicket_api_client();
-
   if (is_null($person_uuid)) {
       $person_uuid = wicket_current_person_uuid();
   }
 
-  $groups = $client->get("group_members/?page%5Bnumber%5D=1&page%5Bsize%5D=9999&filter%5Bperson_uuid_eq%5D=$person_uuid&include=group");
-
-  if ($groups) {
-      return $groups;
+  if (empty($person_uuid)) {
+    return false;
   }
 
-  return false;
+  $client = wicket_api_client();
+
+  try {
+    $query_params = [
+      'page' => [
+        'number' => 1,
+        'size' => 100 // We shouldn't be querying 9999 or more groups here or anywhere.
+      ],
+      'filter' => [
+        'person_uuid_eq' => $person_uuid
+      ],
+      'include' => 'group'
+    ];
+
+    $response = $client->get('/group_members', [
+      'query' => $query_params
+    ]);
+
+    if (!isset($response['data']) || empty($response['data'])) {
+      return false;
+    }
+
+    return $response;
+  } catch (Exception $e) {
+    return false;
+  }
 }
 
 /**
@@ -131,8 +152,6 @@ function wicket_get_group($uuid)
 }
 
 /**
- * MARK: WIP
- *
  * Search for group members
  *
  * @param string $group_uuid The UUID of the group to search in
@@ -147,4 +166,48 @@ function wicket_search_group_members($group_uuid, $search_query)
   $response = $client->get("groups/$group_uuid/members?search=$search_query");
 
   return $response;
+}
+
+/**
+ * Get formatted group data for display
+ *
+ * @param array $groups The groups data from the API
+ * @return array|false Array of formatted group data or false if empty
+ */
+function wicket_get_person_groups_selector_data($groups = [])
+{
+  if (empty($groups)) {
+    return false;
+  }
+
+  $formatted_groups = [];
+  $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+
+  foreach ($groups['data'] as $group_member) {
+    // Find the group in included data
+    $group = null;
+    foreach ($groups['included'] as $included) {
+      if ($included['type'] === 'groups' && $included['id'] === $group_member['relationships']['group']['data']['id']) {
+        $group = $included;
+        break;
+      }
+    }
+
+    if (!$group) continue;
+
+    $formatted_groups[] = [
+      'id' => $group['id'],
+      'name' => $group['attributes']["name_{$lang}"] ?? $group['attributes']['name'],
+      'type' => ucwords(str_replace('_', ' ', $group['attributes']['type'])),
+      'description' => $group['attributes']["description_{$lang}"] ?? $group['attributes']['description'],
+      'is_active' => $group_member['attributes']['active'],
+      'member_role' => ucwords(str_replace('_', ' ', $group_member['attributes']['type'])),
+      'is_admin' => $group_member['attributes']['type'] === 'administrator',
+      'start_date' => $group_member['attributes']['start_date'],
+      'end_date' => $group_member['attributes']['end_date'],
+      'slug' => $group['attributes']['slug']
+    ];
+  }
+
+  return $formatted_groups;
 }
