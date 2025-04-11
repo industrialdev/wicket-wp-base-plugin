@@ -31,7 +31,10 @@ class wicket_create_account extends WP_Widget
 				'customize_selective_refresh' => true,
 			)
 		);
-		add_action('init', array($this, 'process_wicket_create_account_form'));
+		// only run this when there's a form submission
+		if (isset($_POST['wicket_create_account'])) {
+			add_action('init', array($this, 'process_wicket_create_account_form'));
+		}
 	}
 
 	public function form($instance)
