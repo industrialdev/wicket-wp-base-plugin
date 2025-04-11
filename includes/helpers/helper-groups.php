@@ -25,10 +25,12 @@ function wicket_get_groups()
  * Get all groups that a person UUID is part of
  *
  * @param string $person_uuid (Optional) The person UUID to search for. If missing, uses current person.
+ * @param array $args (Optional) Array of arguments to pass to the API
+ *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
-function wicket_get_person_groups($person_uuid = null)
+function wicket_get_person_groups($person_uuid = null, $args = [])
 {
   if (is_null($person_uuid)) {
       $person_uuid = wicket_current_person_uuid();
@@ -44,13 +46,18 @@ function wicket_get_person_groups($person_uuid = null)
     $query_params = [
       'page' => [
         'number' => 1,
-        'size' => 100 // We shouldn't be querying 9999 or more groups here or anywhere.
+        'size' => 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
       ],
       'filter' => [
         'person_uuid_eq' => $person_uuid
       ],
       'include' => 'group'
     ];
+
+    // Arg org_id is passed
+    if (isset($args['org_id']) && !empty($args['org_id'])) {
+      $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
+    }
 
     $response = $client->get('/group_members', [
       'query' => $query_params
