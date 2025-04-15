@@ -2960,7 +2960,7 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
         if(strpos($error_message, 'must be before') !== false) {
             // This is a special case where the end date is being set to the same day as the start date
             // So we need to simply remove the connection and return true
-            wicket_remove_connection( $connectionId );
+            wicket_remove_connection( $connection_id );
             return true;
         }
         wicket_write_log($error_message);
