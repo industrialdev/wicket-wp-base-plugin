@@ -29,6 +29,7 @@ function wicket_get_groups()
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *              search_query (Optional) The search query to find groups by their names, case insensitive.
  *              per_page (Optional) The number of groups to return per page (size). Default: 50.
+ *              page (Optional) The page number to return. Default: 1.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
@@ -72,6 +73,11 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
       $query_params['page']['size'] = $args['per_page'];
     }
 
+    // Arg: page
+    if (isset($args['page']) && !empty($args['page'])) {
+      $query_params['page']['number'] = $args['page'];
+    }
+
     // Query the MDP
     $response = $client->get('/group_members', [
       'query' => $query_params
@@ -104,7 +110,7 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
     // Check if the user is already a member of that group with the same role
     $current_user_groups = wicket_get_person_groups($person_id);
     if (isset($current_user_groups['data'])) {
-        foreach ($current_user_groups['data'] as $group) {
+        foreach ($current_user_groups['data'] as $groºup) {
             if (
                 $group['relationships']['group']['data']['id'] == $group_id
                 && $group['attributes']['type'] == $group_role_slug
