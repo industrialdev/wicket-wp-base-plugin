@@ -27,6 +27,7 @@ function wicket_get_groups()
  * @param string $person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  * @param array $args (Optional) Array of arguments to pass to the API
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
+ *              search_query (Optional) The search query to find groups by their names, case insensitive.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
@@ -57,6 +58,11 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
     // Arg org_id is passed
     if (isset($args['org_id']) && !empty($args['org_id'])) {
       $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
+    }
+
+    // Arg search_query is passed
+    if (isset($args['search_query']) && !empty($args['search_query'])) {
+      $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
     }
 
     $response = $client->get('/group_members', [
