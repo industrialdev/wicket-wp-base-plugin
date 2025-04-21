@@ -28,6 +28,7 @@ function wicket_get_groups()
  * @param array $args (Optional) Array of arguments to pass to the API
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *              search_query (Optional) The search query to find groups by their names, case insensitive.
+ *              per_page (Optional) The number of groups to return per page (size). Default: 50.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
@@ -44,6 +45,7 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
   $client = wicket_api_client();
 
   try {
+    // Payload
     $query_params = [
       'page' => [
         'number' => 1,
@@ -55,16 +57,22 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
       'include' => 'group'
     ];
 
-    // Arg org_id is passed
+    // Arg: org_id
     if (isset($args['org_id']) && !empty($args['org_id'])) {
       $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
     }
 
-    // Arg search_query is passed
+    // Arg: search_query
     if (isset($args['search_query']) && !empty($args['search_query'])) {
       $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
     }
 
+    // Arg: per_page
+    if (isset($args['per_page']) && !empty($args['per_page'])) {
+      $query_params['page']['size'] = $args['per_page'];
+    }
+
+    // Query the MDP
     $response = $client->get('/group_members', [
       'query' => $query_params
     ]);
