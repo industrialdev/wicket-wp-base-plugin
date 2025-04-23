@@ -179,6 +179,64 @@ function wicket_get_group($uuid)
 }
 
 /**
+ * Get all members of a group
+ *
+ * @param string $group_uuid The UUID of the group to get members from
+ * @param array $args (Optional) Array of arguments to pass to the API
+ *              per_page (Optional) The number of members to return per page (size). Default: 50.
+ *              page (Optional) The page number to return. Default: 1.
+ *              active (Optional) Boolean to filter by active status. Default: true.
+ *              role (Optional) String to filter by group role slug (e.g., 'member', 'administrator').
+ *
+ * @return array|false Array of group members on ['data'] or false on failure
+ */
+function wicket_get_group_members($group_uuid, $args = [])
+{
+  if (empty($group_uuid)) {
+    return false;
+  }
+
+  $client = wicket_api_client();
+
+  // Payload
+  $query_params = [
+    'page' => [
+      'number' => $args['page'] ?? 1,
+      'size' => $args['per_page'] ?? 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
+    ],
+    'filter' => [
+      // Default to active members unless specified otherwise
+      'active_eq' => $args['active'] ?? true,
+    ],
+    'include' => 'person' // Assuming 'person' is still the correct include for the new endpoint
+  ];
+
+  // Arg: role (maps to resource_type_slug_eq)
+  if (isset($args['role']) && !empty($args['role'])) {
+    $query_params['filter']['resource_type_slug_eq'] = $args['role'];
+  }
+
+  // Query the MDP using the correct endpoint
+  try {
+    $response = $client->get("/groups/{$group_uuid}/people", [
+      'query' => $query_params
+    ]);
+
+    // Check if data exists and is not empty. The structure might differ, adjust if needed based on actual API response.
+    if (!isset($response['data']) || empty($response['data'])) {
+      // Consider logging or more specific error handling if the structure is unexpected
+      return false;
+    }
+
+    return $response;
+  } catch (Exception $e) {
+    // Log the error for debugging
+    // error_log('Wicket API Error in wicket_get_group_members: ' . $e->getMessage());
+    return false;
+  }
+}
+
+/**
  * Search for group members
  *
  * @param string $group_uuid The UUID of the group to search in
