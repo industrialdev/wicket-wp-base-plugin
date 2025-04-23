@@ -5,6 +5,9 @@
 .wicket-base-plugin .component-accordion .accordion-item.border-b-4 {
   border-bottom-width: 4px !important;
 }
+.wicket-base-plugin .component-accordion .accordion-item {
+  cursor: default;
+}
 .wicket-base-plugin .component-accordion .accordion-item ul, .wicket-base-plugin .component-accordion .accordion-item ol {
   padding-left: 1rem;
 }

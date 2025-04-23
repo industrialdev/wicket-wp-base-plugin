@@ -5,6 +5,9 @@
 .component-accordion .accordion-item.border-b-4 {
   border-bottom-width: 4px !important;
 }
+.component-accordion .accordion-item {
+  cursor: default;
+}
 .component-accordion .accordion-item ul, .component-accordion .accordion-item ol {
   padding-left: 1rem;
 }

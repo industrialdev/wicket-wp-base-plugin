@@ -79,7 +79,7 @@ foreach($items as $item) :
 		x-bind:class="openAccordion == <?php echo $i; ?> ? 'open' :
 		''"
 		<?php else: ?>
-		class="accordion-item p-2 hover:cursor-pointer <?php
+		class="accordion-item p-2 cursor-default <?php
             if($accordion_type == 'card') {
                 echo 'rounded-100 border border-primary-060 mb-3';
             } else {
@@ -98,6 +98,8 @@ foreach($items as $item) :
 		} ?>
 		] : ''"
 		<?php endif; ?>
+		>
+		<div class="flex w-full justify-between items-center hover:cursor-pointer"
 		x-bind:aria-expanded="openAccordion == <?php echo $i; ?> ?
 		'true' : 'false'"
 		x-bind:aria-pressed="openAccordion == <?php echo $i; ?> ?
@@ -110,9 +112,7 @@ foreach($items as $item) :
 		}"
 		role="button"
 		tabindex="0"
-
 		>
-		<div class="flex w-full justify-between items-center">
 			<<?php echo $heading_level; ?>
 				class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__title' : 'font-bold text-body-lg' ?>"
 				x-bind:class="{'accordion-item__title--open': openAccordion ==

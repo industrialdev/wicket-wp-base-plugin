@@ -475,84 +475,87 @@
     --tw-translate-x: -50%;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .-translate-x-2 {
     --tw-translate-x: -0.5rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .-translate-x-3 {
     --tw-translate-x: -0.75rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .-translate-y-1\/2 {
     --tw-translate-y: -50%;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .-translate-y-2 {
     --tw-translate-y: -0.5rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .-translate-y-3 {
     --tw-translate-y: -0.75rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .translate-x-2 {
     --tw-translate-x: 0.5rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .translate-x-3 {
     --tw-translate-x: 0.75rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+}
+.wicket-base-plugin .translate-y-0 {
+    --tw-translate-y: 0px;
+    -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .translate-y-2 {
     --tw-translate-y: 0.5rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .translate-y-3 {
     --tw-translate-y: 0.75rem;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+}
+.wicket-base-plugin .translate-y-\[-10\%\] {
+    --tw-translate-y: -10%;
+    -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .translate-y-\[-50\%\] {
     --tw-translate-y: -50%;
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
 .wicket-base-plugin .transform {
     -webkit-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     -ms-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-    -o-transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+}
+.wicket-base-plugin .cursor-default {
+    cursor: default
 }
 .wicket-base-plugin .list-none {
     list-style-type: none
@@ -852,46 +855,46 @@
 }
 .wicket-base-plugin .border-\[\#dc3545\] {
     --tw-border-opacity: 1;
-    border-color: rgb(220 53 69 / var(--tw-border-opacity))
+    border-color: rgb(220 53 69 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-\[--state-error\] {
     border-color: var(--state-error)
 }
 .wicket-base-plugin .border-dark-060 {
     --tw-border-opacity: 1;
-    border-color: rgb(42 50 59 / var(--tw-border-opacity))
+    border-color: rgb(42 50 59 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-dark-070 {
     --tw-border-opacity: 1;
-    border-color: rgb(40 48 56 / var(--tw-border-opacity))
+    border-color: rgb(40 48 56 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-dark-100 {
     --tw-border-opacity: 1;
-    border-color: rgb(35 42 49 / var(--tw-border-opacity))
+    border-color: rgb(35 42 49 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-info-b-100 {
     --tw-border-opacity: 1;
-    border-color: rgb(161 161 161 / var(--tw-border-opacity))
+    border-color: rgb(161 161 161 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-light-020 {
     --tw-border-opacity: 1;
-    border-color: rgb(230 230 230 / var(--tw-border-opacity))
+    border-color: rgb(230 230 230 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-light-090 {
     --tw-border-opacity: 1;
-    border-color: rgb(140 140 140 / var(--tw-border-opacity))
+    border-color: rgb(140 140 140 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-light-120 {
     --tw-border-opacity: 1;
-    border-color: rgb(102 102 102 / var(--tw-border-opacity))
+    border-color: rgb(102 102 102 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-primary-060 {
     --tw-border-opacity: 1;
-    border-color: rgb(42 50 59 / var(--tw-border-opacity))
+    border-color: rgb(42 50 59 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-success-040 {
     --tw-border-opacity: 1;
-    border-color: rgb(33 176 109 / var(--tw-border-opacity))
+    border-color: rgb(33 176 109 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .border-opacity-0 {
     --tw-border-opacity: 0
@@ -958,58 +961,58 @@
 }
 .wicket-base-plugin .\!bg-light-010 {
     --tw-bg-opacity: 1 !important;
-    background-color: rgb(242 242 242 / var(--tw-bg-opacity)) !important
+    background-color: rgb(242 242 242 / var(--tw-bg-opacity, 1)) !important
 }
 .wicket-base-plugin .bg-\[\#f5c2c7\] {
     --tw-bg-opacity: 1;
-    background-color: rgb(245 194 199 / var(--tw-bg-opacity))
+    background-color: rgb(245 194 199 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-\[--state-error-light\] {
     background-color: var(--state-error-light)
 }
 .wicket-base-plugin .bg-accent-a-100 {
     --tw-bg-opacity: 1;
-    background-color: rgb(249 250 251 / var(--tw-bg-opacity))
+    background-color: rgb(249 250 251 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-dark-050 {
     --tw-bg-opacity: 1;
-    background-color: rgb(44 53 61 / var(--tw-bg-opacity))
+    background-color: rgb(44 53 61 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-dark-080 {
     --tw-bg-opacity: 1;
-    background-color: rgb(39 46 54 / var(--tw-bg-opacity))
+    background-color: rgb(39 46 54 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-dark-100 {
     --tw-bg-opacity: 1;
-    background-color: rgb(35 42 49 / var(--tw-bg-opacity))
+    background-color: rgb(35 42 49 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-info-a-010 {
     --tw-bg-opacity: 1;
-    background-color: rgb(255 255 255 / var(--tw-bg-opacity))
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-info-b-010 {
     --tw-bg-opacity: 1;
-    background-color: rgb(233 233 233 / var(--tw-bg-opacity))
+    background-color: rgb(233 233 233 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-light-010 {
     --tw-bg-opacity: 1;
-    background-color: rgb(242 242 242 / var(--tw-bg-opacity))
+    background-color: rgb(242 242 242 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-light-020 {
     --tw-bg-opacity: 1;
-    background-color: rgb(230 230 230 / var(--tw-bg-opacity))
+    background-color: rgb(230 230 230 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-light-030 {
     --tw-bg-opacity: 1;
-    background-color: rgb(217 217 217 / var(--tw-bg-opacity))
+    background-color: rgb(217 217 217 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-tertiary-010 {
     --tw-bg-opacity: 1;
-    background-color: rgb(51 61 71 / var(--tw-bg-opacity))
+    background-color: rgb(51 61 71 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-white {
     --tw-bg-opacity: 1;
-    background-color: rgb(255 255 255 / var(--tw-bg-opacity))
+    background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1))
 }
 .wicket-base-plugin .bg-opacity-0 {
     --tw-bg-opacity: 0
@@ -1232,46 +1235,46 @@
 }
 .wicket-base-plugin .text-\[\#08d608\] {
     --tw-text-opacity: 1;
-    color: rgb(8 214 8 / var(--tw-text-opacity))
+    color: rgb(8 214 8 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-\[\#A1A1A1\] {
     --tw-text-opacity: 1;
-    color: rgb(161 161 161 / var(--tw-text-opacity))
+    color: rgb(161 161 161 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-\[\#dc3545\] {
     --tw-text-opacity: 1;
-    color: rgb(220 53 69 / var(--tw-text-opacity))
+    color: rgb(220 53 69 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-\[--state-error\] {
     color: var(--state-error)
 }
 .wicket-base-plugin .text-dark-060 {
     --tw-text-opacity: 1;
-    color: rgb(42 50 59 / var(--tw-text-opacity))
+    color: rgb(42 50 59 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-dark-070 {
     --tw-text-opacity: 1;
-    color: rgb(40 48 56 / var(--tw-text-opacity))
+    color: rgb(40 48 56 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-dark-080 {
     --tw-text-opacity: 1;
-    color: rgb(39 46 54 / var(--tw-text-opacity))
+    color: rgb(39 46 54 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-dark-100 {
     --tw-text-opacity: 1;
-    color: rgb(35 42 49 / var(--tw-text-opacity))
+    color: rgb(35 42 49 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-light-040 {
     --tw-text-opacity: 1;
-    color: rgb(204 204 204 / var(--tw-text-opacity))
+    color: rgb(204 204 204 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-primary-100 {
     --tw-text-opacity: 1;
-    color: rgb(35 42 49 / var(--tw-text-opacity))
+    color: rgb(35 42 49 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-white {
     --tw-text-opacity: 1;
-    color: rgb(255 255 255 / var(--tw-text-opacity))
+    color: rgb(255 255 255 / var(--tw-text-opacity, 1))
 }
 .wicket-base-plugin .text-opacity-0 {
     --tw-text-opacity: 0
@@ -1338,7 +1341,6 @@
 }
 .wicket-base-plugin .underline {
     -webkit-text-decoration-line: underline;
-    -moz-text-decoration-line: underline;
     text-decoration-line: underline
 }
 .wicket-base-plugin .placeholder-opacity-0::-webkit-input-placeholder {
@@ -1849,6 +1851,34 @@
     -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
     backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)
 }
+.wicket-base-plugin .transition {
+    -webkit-transition-property: color, background-color, border-color, fill, stroke, opacity, -webkit-text-decoration-color, -webkit-box-shadow, -webkit-transform, -webkit-filter, -webkit-backdrop-filter;
+    transition-property: color, background-color, border-color, fill, stroke, opacity, -webkit-text-decoration-color, -webkit-box-shadow, -webkit-transform, -webkit-filter, -webkit-backdrop-filter;
+    -o-transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-box-shadow, -webkit-transform, -webkit-filter, -webkit-backdrop-filter;
+    -webkit-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-transition-duration: 150ms;
+    -o-transition-duration: 150ms;
+    transition-duration: 150ms
+}
+.wicket-base-plugin .duration-300 {
+    -webkit-transition-duration: 300ms;
+    -o-transition-duration: 300ms;
+    transition-duration: 300ms
+}
+.wicket-base-plugin .ease-in {
+    -webkit-transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    -o-transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1)
+}
+.wicket-base-plugin .ease-out {
+    -webkit-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    -o-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1)
+}
 .wicket-base-plugin .\@container {
     container-type: inline-size
 }
@@ -1857,21 +1887,19 @@
 }
 .wicket-base-plugin .hover\:border-dark-100:hover {
     --tw-border-opacity: 1;
-    border-color: rgb(35 42 49 / var(--tw-border-opacity))
+    border-color: rgb(35 42 49 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .hover\:underline:hover {
     -webkit-text-decoration-line: underline;
-    -moz-text-decoration-line: underline;
     text-decoration-line: underline
 }
 .wicket-base-plugin .hover\:no-underline:hover {
     -webkit-text-decoration-line: none;
-    -moz-text-decoration-line: none;
     text-decoration-line: none
 }
 .wicket-base-plugin .focus\:border-dark-100:focus {
     --tw-border-opacity: 1;
-    border-color: rgb(35 42 49 / var(--tw-border-opacity))
+    border-color: rgb(35 42 49 / var(--tw-border-opacity, 1))
 }
 .wicket-base-plugin .focus\:shadow-focus:focus {
     --tw-shadow: 0px 0px 1px 2px #0997FF;
@@ -1884,12 +1912,10 @@
 }
 .wicket-base-plugin .group:hover .group-hover\:underline {
     -webkit-text-decoration-line: underline;
-    -moz-text-decoration-line: underline;
     text-decoration-line: underline
 }
 .wicket-base-plugin .group:focus .group-focus\:underline {
     -webkit-text-decoration-line: underline;
-    -moz-text-decoration-line: underline;
     text-decoration-line: underline
 }
 .wicket-base-plugin .group:focus .group-focus\:shadow-focus {
@@ -1900,7 +1926,7 @@
 }
 .wicket-base-plugin .group.has-value .group-\[\.has-value\]\:text-dark-100 {
     --tw-text-opacity: 1;
-    color: rgb(35 42 49 / var(--tw-text-opacity))
+    color: rgb(35 42 49 / var(--tw-text-opacity, 1))
 }
 @container (min-width: 20rem) {
     .wicket-base-plugin .\@xs\:basis-full {
