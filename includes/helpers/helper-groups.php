@@ -110,7 +110,7 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
     // Check if the user is already a member of that group with the same role
     $current_user_groups = wicket_get_person_groups($person_id);
     if (isset($current_user_groups['data'])) {
-        foreach ($current_user_groups['data'] as $groºup) {
+        foreach ($current_user_groups['data'] as $group) {
             if (
                 $group['relationships']['group']['data']['id'] == $group_id
                 && $group['attributes']['type'] == $group_role_slug
