@@ -10,15 +10,15 @@ defined('ABSPATH') || exit;
  */
 function wicket_get_groups()
 {
-    $client = wicket_api_client();
+  $client = wicket_api_client();
 
-    $groups = $client->get('groups');
+  $groups = $client->get('groups');
 
-    if ($groups) {
-        return $groups;
-    }
+  if ($groups) {
+    return $groups;
+  }
 
-    return false;
+  return false;
 }
 
 /**
@@ -35,62 +35,62 @@ function wicket_get_groups()
  */
 function wicket_get_person_groups($person_uuid = null, $args = [])
 {
-    if (is_null($person_uuid)) {
-        $person_uuid = wicket_current_person_uuid();
+  if (is_null($person_uuid)) {
+    $person_uuid = wicket_current_person_uuid();
+  }
+
+  if (empty($person_uuid)) {
+    return false;
+  }
+
+  $client = wicket_api_client();
+
+  try {
+    // Payload
+    $query_params = [
+      'page' => [
+        'number' => 1,
+        'size' => 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
+      ],
+      'filter' => [
+        'person_uuid_eq' => $person_uuid
+      ],
+      'include' => 'group'
+    ];
+
+    // Arg: org_id
+    if (isset($args['org_id']) && !empty($args['org_id'])) {
+      $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
     }
 
-    if (empty($person_uuid)) {
-        return false;
+    // Arg: search_query
+    if (isset($args['search_query']) && !empty($args['search_query'])) {
+      $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
     }
 
-    $client = wicket_api_client();
-
-    try {
-        // Payload
-        $query_params = [
-          'page' => [
-            'number' => 1,
-            'size' => 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
-          ],
-          'filter' => [
-            'person_uuid_eq' => $person_uuid
-          ],
-          'include' => 'group'
-        ];
-
-        // Arg: org_id
-        if (isset($args['org_id']) && !empty($args['org_id'])) {
-            $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
-        }
-
-        // Arg: search_query
-        if (isset($args['search_query']) && !empty($args['search_query'])) {
-            $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
-        }
-
-        // Arg: per_page
-        if (isset($args['per_page']) && !empty($args['per_page'])) {
-            $query_params['page']['size'] = $args['per_page'];
-        }
-
-        // Arg: page
-        if (isset($args['page']) && !empty($args['page'])) {
-            $query_params['page']['number'] = $args['page'];
-        }
-
-        // Query the MDP
-        $response = $client->get('/group_members', [
-          'query' => $query_params
-        ]);
-
-        if (!isset($response['data']) || empty($response['data'])) {
-            return false;
-        }
-
-        return $response;
-    } catch (Exception $e) {
-        return false;
+    // Arg: per_page
+    if (isset($args['per_page']) && !empty($args['per_page'])) {
+      $query_params['page']['size'] = $args['per_page'];
     }
+
+    // Arg: page
+    if (isset($args['page']) && !empty($args['page'])) {
+      $query_params['page']['number'] = $args['page'];
+    }
+
+    // Query the MDP
+    $response = $client->get('/group_members', [
+      'query' => $query_params
+    ]);
+
+    if (!isset($response['data']) || empty($response['data'])) {
+      return false;
+    }
+
+    return $response;
+  } catch (Exception $e) {
+    return false;
+  }
 }
 
 /**
@@ -106,54 +106,54 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
  */
 function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
 {
-    if ($skip_if_exists) {
-        // Check if the user is already a member of that group with the same role
-        $current_user_groups = wicket_get_person_groups($person_id);
-        if (isset($current_user_groups['data'])) {
-            foreach ($current_user_groups['data'] as $group) {
-                if (
-                    $group['relationships']['group']['data']['id'] == $group_id
-                    && $group['attributes']['type'] == $group_role_slug
-                ) {
-                    // Matching group found - returning that group connection instead of adding them to the group again
-                    return $group;
-                }
-            }
+  if ($skip_if_exists) {
+    // Check if the user is already a member of that group with the same role
+    $current_user_groups = wicket_get_person_groups($person_id);
+    if (isset($current_user_groups['data'])) {
+      foreach ($current_user_groups['data'] as $group) {
+        if (
+          $group['relationships']['group']['data']['id'] == $group_id
+          && $group['attributes']['type'] == $group_role_slug
+        ) {
+          // Matching group found - returning that group connection instead of adding them to the group again
+          return $group;
         }
+      }
     }
+  }
 
-    $client = wicket_api_client();
+  $client = wicket_api_client();
 
-    $payload = [
-      'data' => [
-        'attributes'   => [
-          'custom_data_field' => null,
-          'end_date'          => $end_date,
-          'person_id'         => $person_id,
-          'start_date'        => $start_date,
-          'type'              => $group_role_slug,
-        ],
-        'id'            => null,
-        'relationships' => [
-          'group' => [
-            'data' => [
-              'id'   => $group_id,
-              'type' => 'groups',
-            ],
+  $payload = [
+    'data' => [
+      'attributes'   => [
+        'custom_data_field' => null,
+        'end_date'          => $end_date,
+        'person_id'         => $person_id,
+        'start_date'        => $start_date,
+        'type'              => $group_role_slug,
+      ],
+      'id'            => null,
+      'relationships' => [
+        'group' => [
+          'data' => [
+            'id'   => $group_id,
+            'type' => 'groups',
           ],
         ],
-        'type'          => 'group_members',
-      ]
-    ];
+      ],
+      'type'          => 'group_members',
+    ]
+  ];
 
-    try {
-        $response = $client->post('group_members', ['json' => $payload]);
-    } catch (\Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
-        $response = new \WP_Error('wicket_api_error', $wicket_api_error);
-    }
+  try {
+    $response = $client->post('group_members', ['json' => $payload]);
+  } catch (\Exception $e) {
+    $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
+    $response = new \WP_Error('wicket_api_error', $wicket_api_error);
+  }
 
-    return $response;
+  return $response;
 }
 
 /**
@@ -163,19 +163,19 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
  */
 function wicket_get_group($uuid)
 {
-    if (!$uuid) {
-        return false;
-    }
-
-    $client = wicket_api_client();
-
-    $group = $client->get("groups/{$uuid}");
-
-    if ($group) {
-        return $group;
-    }
-
+  if (!$uuid) {
     return false;
+  }
+
+  $client = wicket_api_client();
+
+  $group = $client->get("groups/{$uuid}");
+
+  if ($group) {
+    return $group;
+  }
+
+  return false;
 }
 
 /**
@@ -186,58 +186,85 @@ function wicket_get_group($uuid)
  *              per_page (Optional) The number of members to return per page (size). Default: 50.
  *              page (Optional) The page number to return. Default: 1.
  *              active (Optional) Boolean to filter by active status. Default: true.
- *              role (Optional) String to filter by group role slug (e.g., 'member', 'administrator').
+ *              role (Optional) String to filter by group role slug (e.g., 'member', 'administrator') or comma-separated string for multiple roles (e.g., 'member,observer').
  *
- * @return array|false Array of group members on ['data'] or false on failure
+ * @return array|WP_Error Array of group members on success, WP_Error on failure
  */
 function wicket_get_group_members($group_uuid, $args = [])
 {
-    if (empty($group_uuid)) {
-        return false;
+  if (empty($group_uuid)) {
+    return new \WP_Error('missing_param', 'Group UUID is required.');
+  }
+
+  $client = wicket_api_client();
+  $endpoint = "/groups/{$group_uuid}/people";
+  $role_query_string = ''; // Initialize role query string part
+
+  // Base Payload
+  $query_params = [
+    'page' => [
+      'number' => $args['page'] ?? 1,
+      'size' => $args['per_page'] ?? 50
+    ],
+    'filter' => [
+      'active_eq' => $args['active'] ?? true,
+    ],
+    'include' => 'person'
+  ];
+
+  // Handle role filtering
+  if (isset($args['role']) && !empty($args['role'])) {
+    $trimmed_role = trim($args['role']);
+    if (str_contains($trimmed_role, ',')) {
+      // Multiple roles: Manually build query string part
+      $roles_array = explode(',', $trimmed_role);
+      $roles_array = array_map('trim', $roles_array);
+      $role_query_parts = [];
+      foreach ($roles_array as $role) {
+        $role_query_parts[] = 'filter[resource_type_slug_in][]=' . urlencode($role);
+      }
+      $role_query_string = implode('&', $role_query_parts);
+    } else {
+      // Single role: Let Guzzle handle it
+      $query_params['filter']['resource_type_slug_eq'] = $trimmed_role;
     }
+  }
 
-    $client = wicket_api_client();
+  // Append manual role query string if needed
+  if (!empty($role_query_string)) {
+    $endpoint .= '?' . $role_query_string;
+  }
 
-    // Payload
-    $query_params = [
-      'page' => [
-        'number' => $args['page'] ?? 1,
-        'size' => $args['per_page'] ?? 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
-      ],
-      'filter' => [
-        // Default to active members unless specified otherwise
-        'active_eq' => $args['active'] ?? true,
-      ],
-      'include' => 'person' // Assuming 'person' is still the correct include for the new endpoint
-    ];
-
-    // Arg: role (maps to resource_type_slug_eq)
-    if (isset($args['role']) && !empty($args['role'])) {
-        $query_params['filter']['resource_type_slug_eq'] = $args['role'];
-    }
-
-    // Query the MDP using the correct endpoint
-    try {
-        $response = $client->get("/groups/{$group_uuid}/people", [
-          'query' => $query_params
-        ]);
-
-        // Check if data exists and is not empty. The structure might differ, adjust if needed based on actual API response.
-        if (!isset($response['data']) || empty($response['data'])) {
-            // Consider logging or more specific error handling if the structure is unexpected
-            return false;
+  // Query the MDP using the potentially modified endpoint
+  try {
+    $response = $client->get($endpoint, [
+      'query' => $query_params // Pass the remaining params for Guzzle to handle
+    ]);
+  } catch (Exception $e) {
+    // Log the error for debugging
+    // error_log('Wicket API Error in wicket_get_group_members: ' . $e->getMessage());
+    $api_error_message = 'Unknown API error.';
+    if ($e->hasResponse()) {
+      try {
+        $error_body = json_decode((string) $e->getResponse()->getBody(), true);
+        // Attempt to extract a meaningful message
+        if (isset($error_body['errors'][0]['detail'])) {
+          $api_error_message = $error_body['errors'][0]['detail'];
+        } elseif (isset($error_body['errors'][0]['title'])) {
+          $api_error_message = $error_body['errors'][0]['title'];
         }
-
-        return $response;
-    } catch (Exception $e) {
-        // Log the error for debugging
-        // error_log('Wicket API Error in wicket_get_group_members: ' . $e->getMessage());
-        return false;
+      } catch (\JsonException $jsonEx) {
+        $api_error_message = 'Could not decode API error response.';
+      }
     }
+    return new \WP_Error('wicket_api_error', $api_error_message, ['status' => $e->getCode(), 'exception' => $e]);
+  }
+
+  return $response; // Return the full response
 }
 
 /**
- * Search for group members, based on person's first name, last name and/or email
+ * Search for group members
  *
  * @param string $group_uuid The UUID of the group to search in
  * @param string $search_query The search query to use: person's first name, last name and/or email
@@ -245,45 +272,90 @@ function wicket_get_group_members($group_uuid, $args = [])
  *             per_page The number of members to return per page (size). Default: 20.
  *            page The page number to return. Default: 1.
  *            active Boolean to filter by active status. Default: true.
+ *            role (Optional) String to filter by group role slug (e.g., 'member', 'administrator') or comma-separated string for multiple roles (e.g., 'member,observer').
  *
- * @return object|array|false The response object from the Wicket API or false on failure
+ * @return array|WP_Error The response array from the Wicket API or WP_Error on failure
  */
 function wicket_search_group_members($group_uuid, $search_query, $args = [])
 {
-    if (empty($group_uuid) || empty($search_query)) {
-        return false;
-    }
+  if (empty($group_uuid)) {
+    return new \WP_Error('missing_param', 'Group UUID is required.');
+  }
+  if (empty($search_query)) {
+    return new \WP_Error('missing_param', 'Search query is required.');
+  }
 
-    $client = wicket_api_client();
+  $client = wicket_api_client();
+  $endpoint = "/groups/{$group_uuid}/people";
+  $role_query_string = ''; // Initialize role query string part
 
-    // Payload
-    $query_params = [
-      'page' => [
-        'number' => $args['page'] ?? 1, // Allow pagination
-        'size' => $args['per_page'] ?? 20 // Default size, adjust if needed or make configurable
-      ],
-      'filter' => [
-        'active_eq' => $args['active'] ?? true, // Assuming we usually search for active members
-        'person_search_query' => [
-          'keywords' => [
-            'term' => $search_query, // Corrected key from 'value' to 'term'
-            'fields' => 'full_name,given_name,family_name,primary_email'
-          ]
+  // Base Payload
+  $query_params = [
+    'page' => [
+      'number' => $args['page'] ?? 1,
+      'size' => $args['per_page'] ?? 20
+    ],
+    'filter' => [
+      'active_eq' => $args['active'] ?? true,
+      'person_search_query' => [
+        'keywords' => [
+          'term' => $search_query,
+          'fields' => 'full_name,given_name,family_name,primary_email'
         ]
-      ],
-      'include' => 'person' // Include person details in the response
-    ];
+      ]
+    ],
+    'include' => 'person'
+  ];
 
-    try {
-        $response = $client->get("/groups/{$group_uuid}/people", [
-          'query' => $query_params
-        ]);
-    } catch (Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
-        $response = new \WP_Error('wicket_api_error', $wicket_api_error);
+  // Handle role filtering
+  if (isset($args['role']) && !empty($args['role'])) {
+    $trimmed_role = trim($args['role']);
+    if (str_contains($trimmed_role, ',')) {
+      // Multiple roles: Manually build query string part
+      $roles_array = explode(',', $trimmed_role);
+      $roles_array = array_map('trim', $roles_array);
+      $role_query_parts = [];
+      foreach ($roles_array as $role) {
+        $role_query_parts[] = 'filter[resource_type_slug_in][]=' . urlencode($role);
+      }
+      $role_query_string = implode('&', $role_query_parts);
+    } else {
+      // Single role: Let Guzzle handle it
+      $query_params['filter']['resource_type_slug_eq'] = $trimmed_role;
     }
+  }
 
-    return $response;
+  // Append manual role query string if needed
+  if (!empty($role_query_string)) {
+    $endpoint .= '?' . $role_query_string;
+  }
+
+  // Query the MDP
+  try {
+    $response = $client->get($endpoint, [
+      'query' => $query_params // Pass the remaining params for Guzzle to handle
+    ]);
+  } catch (Exception $e) {
+    // Log the error for debugging
+    // error_log('Wicket API Error in wicket_search_group_members: ' . $e->getMessage());
+    $api_error_message = 'Unknown API error during search.';
+    if ($e->hasResponse()) {
+      try {
+        $error_body = json_decode((string) $e->getResponse()->getBody(), true);
+        // Attempt to extract a meaningful message
+        if (isset($error_body['errors'][0]['detail'])) {
+          $api_error_message = $error_body['errors'][0]['detail'];
+        } elseif (isset($error_body['errors'][0]['title'])) {
+          $api_error_message = $error_body['errors'][0]['title'];
+        }
+      } catch (\JsonException $jsonEx) {
+        $api_error_message = 'Could not decode API error response during search.';
+      }
+    }
+    return new \WP_Error('wicket_api_error', $api_error_message, ['status' => $e->getCode(), 'exception' => $e]);
+  }
+
+  return $response; // Return the full response
 }
 
 /**
@@ -294,40 +366,40 @@ function wicket_search_group_members($group_uuid, $search_query, $args = [])
  */
 function wicket_get_person_groups_selector_data($groups = [])
 {
-    if (empty($groups)) {
-        return false;
+  if (empty($groups)) {
+    return false;
+  }
+
+  $formatted_groups = [];
+  $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+
+  foreach ($groups['data'] as $group_member) {
+    // Find the group in included data
+    $group = null;
+    foreach ($groups['included'] as $included) {
+      if ($included['type'] === 'groups' && $included['id'] === $group_member['relationships']['group']['data']['id']) {
+        $group = $included;
+        break;
+      }
     }
 
-    $formatted_groups = [];
-    $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
-
-    foreach ($groups['data'] as $group_member) {
-        // Find the group in included data
-        $group = null;
-        foreach ($groups['included'] as $included) {
-            if ($included['type'] === 'groups' && $included['id'] === $group_member['relationships']['group']['data']['id']) {
-                $group = $included;
-                break;
-            }
-        }
-
-        if (!$group) {
-            continue;
-        }
-
-        $formatted_groups[] = [
-          'id' => $group['id'],
-          'name' => $group['attributes']["name_{$lang}"] ?? $group['attributes']['name'],
-          'type' => ucwords(str_replace('_', ' ', $group['attributes']['type'])),
-          'description' => $group['attributes']["description_{$lang}"] ?? $group['attributes']['description'],
-          'is_active' => $group_member['attributes']['active'],
-          'member_role' => ucwords(str_replace('_', ' ', $group_member['attributes']['type'])),
-          'is_admin' => $group_member['attributes']['type'] === 'administrator',
-          'start_date' => $group_member['attributes']['start_date'],
-          'end_date' => $group_member['attributes']['end_date'],
-          'slug' => $group['attributes']['slug']
-        ];
+    if (!$group) {
+      continue;
     }
 
-    return $formatted_groups;
+    $formatted_groups[] = [
+      'id' => $group['id'],
+      'name' => $group['attributes']["name_{$lang}"] ?? $group['attributes']['name'],
+      'type' => ucwords(str_replace('_', ' ', $group['attributes']['type'])),
+      'description' => $group['attributes']["description_{$lang}"] ?? $group['attributes']['description'],
+      'is_active' => $group_member['attributes']['active'],
+      'member_role' => ucwords(str_replace('_', ' ', $group_member['attributes']['type'])),
+      'is_admin' => $group_member['attributes']['type'] === 'administrator',
+      'start_date' => $group_member['attributes']['start_date'],
+      'end_date' => $group_member['attributes']['end_date'],
+      'slug' => $group['attributes']['slug']
+    ];
+  }
+
+  return $formatted_groups;
 }
