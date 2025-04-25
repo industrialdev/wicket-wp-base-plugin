@@ -152,6 +152,7 @@ $defaults  = [
   'active_membership_alert_button_2_new_tab'      => false,
   'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
   'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
+  'grant_org_editor_on_purchase'                  => false, // Grants org_editor role for selected org on next payment_complete hook
   'hide_remove_buttons'                           => false,
   'hide_select_buttons'                           => false,
   'display_removal_alert_message'                 => false,
@@ -185,6 +186,7 @@ $active_membership_alert_button_2_style        = $args['active_membership_alert_
 $active_membership_alert_button_2_new_tab      = $args['active_membership_alert_button_2_new_tab'];
 $grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
 $grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
+$grant_org_editor_on_purchase                  = $args['grant_org_editor_on_purchase'];
 $hide_remove_buttons                           = $args['hide_remove_buttons'];
 $hide_select_buttons                           = $args['hide_select_buttons'];
 $display_removal_alert_message                 = $args['display_removal_alert_message'];
@@ -786,6 +788,7 @@ if(!empty($active_membership_alert_button_2_text)
 			currentPersonUuid: "<?php echo $current_person_uuid; ?>",
 			grantRosterManOnPurchase: <?php echo $grant_roster_man_on_purchase ? 'true' : 'false'; ?> ,
 			grantOrgEditorOnSelect: <?php echo $grant_org_editor_on_select ? 'true' : 'false'; ?> ,
+			grantOrgEditorOnPurchase: <?php echo $grant_org_editor_on_purchase ? 'true' : 'false'; ?> ,
 			hideRemoveButtons: <?php echo $hide_remove_buttons ? 'true' : 'false'; ?> ,
 			hideSelectButtons: <?php echo $hide_select_buttons ? 'true' : 'false'; ?> ,
 			displayDuplicateOrgWarning: false,
@@ -927,6 +930,9 @@ if(!empty($active_membership_alert_button_2_text)
 				}
 				if (this.grantOrgEditorOnSelect) {
 					this.grantOrgEditor(this.currentPersonUuid, orgUuid);
+				}
+				if (this.grantOrgEditorOnPurchase) {
+					this.flagForOrgEditorAccess(orgUuid);
 				}
 			},
 			dispatchWindowEvent(name, details) {
@@ -1344,6 +1350,32 @@ if(!empty($active_membership_alert_button_2_text)
 					});
 
 				return;
+			},
+			async flagForOrgEditorAccess(orgUuid) {
+				let data = {
+					"orgUuid": orgUuid,
+				};
+
+				let results = await fetch(this.apiUrl + 'flag-for-org-editor-access', {
+						method: "POST",
+						mode: "cors",
+						cache: "no-cache",
+						credentials: "same-origin",
+						headers: {
+							"Content-Type": "application/json",
+							"X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+						},
+						redirect: "follow",
+						referrerPolicy: "no-referrer",
+						body: JSON.stringify(data),
+					}).then(response => response.json())
+					.then(data => {
+						if (!data.success) {
+							// Handle error
+						} else {
+							// Handle success if needed
+						}
+					});
 			}
 		}))
 	})

@@ -12,18 +12,31 @@ function wicket_org_search_select_on_order_complete( $order_id ) {
   // must be related to their onboarding flow
 
   $org_uuid_for_roster_man_access = get_user_meta( $current_user_wp_id, 'roster_man_org_to_grant', true );
+  $org_uuid_for_org_editor_access = get_user_meta( $current_user_wp_id, 'org_editor_org_to_grant', true ); 
 
   // Don't proceed if no UUID is set in the user meta
-  if( !isset( $org_uuid_for_roster_man_access ) || empty( $org_uuid_for_roster_man_access ) ) {
-    return;
+  if( ( !isset( $org_uuid_for_roster_man_access ) || empty( $org_uuid_for_roster_man_access ) ) && ( !isset( $org_uuid_for_org_editor_access ) || empty( $org_uuid_for_org_editor_access ) ) ) { // Check both meta
+	  return;
   }
 
-  // Assign roles
-  wicket_assign_role($current_person_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
-  //wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_roster_man_access);
+  // Assign Roster Manager role if needed
+  if( isset( $org_uuid_for_roster_man_access ) && !empty( $org_uuid_for_roster_man_access ) ) {
+    // Assign roles
+    wicket_assign_role($current_person_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
+    //wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_roster_man_access);
 
-  // Clean up after ourselves now that we've actioned the meta's value
-  delete_user_meta( $current_user_wp_id, 'roster_man_org_to_grant' );
+    // Clean up after ourselves now that we've actioned the meta's value
+    delete_user_meta( $current_user_wp_id, 'roster_man_org_to_grant' );
+  }
+
+  // Assign Org Editor role if needed
+  if( isset( $org_uuid_for_org_editor_access ) && !empty( $org_uuid_for_org_editor_access ) ) {
+    // Assign role
+    wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_org_editor_access);
+
+    // Clean up after ourselves now that we've actioned the meta's value
+    delete_user_meta( $current_user_wp_id, 'org_editor_org_to_grant' ); // Delete new meta
+  }
 
   return true;
 }

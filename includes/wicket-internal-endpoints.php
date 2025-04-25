@@ -66,6 +66,14 @@ function wicket_base_register_rest_routes(){
     },
   ));
 
+  register_rest_route( 'wicket-base/v1', 'flag-for-org-editor-access',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_flag_for_org_editor_access',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
+
   register_rest_route( 'wicket-base/v1', 'grant-org-editor',array(
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_grant_org_editor',
@@ -439,6 +447,29 @@ function wicket_internal_endpoint_flag_for_rm_access( $request ) {
   $org_uuid = $params['orgUuid'];
 
   update_user_meta( get_current_user_id(), 'roster_man_org_to_grant', $org_uuid );
+
+  wp_send_json_success();
+}
+
+/**
+ * Sets a temporary piece of user meta so that the user will get Org Editor
+ * access for the given org UUID on the next order_complete containing a membership product.
+ *
+ * @param WP_REST_Request $request that contains JSON params, notably the following:
+ *  - orgUuid
+ *
+ * @return JSON success:false or success:true, along with any related information or notices.
+ */
+function wicket_internal_endpoint_flag_for_org_editor_access( $request ) {
+  $params = $request->get_json_params();
+
+  if( !isset( $params['orgUuid'] ) ) {
+    wp_send_json_error( 'Organization uuid not provided' );
+  }
+
+  $org_uuid = $params['orgUuid'];
+
+  update_user_meta( get_current_user_id(), 'org_editor_org_to_grant', $org_uuid );
 
   wp_send_json_success();
 }
