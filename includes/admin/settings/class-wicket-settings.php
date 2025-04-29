@@ -355,7 +355,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			$section->add_option('checkbox', [
 			    'name' => 'wicket_admin_settings_wpcassify_sync_memberships_as_roles',
 			    'label' => __('Sync Memberships as Roles', 'wicket'),
-			    'description' => __('Sync user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called "Student" within the MDP, when they log in, a role will be created called "Student" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!<em></strong>', 'wicket'),
+			    'description' => __('Sync active user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called "Student" within the MDP, when they log in, a role will be created called "Student" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!<em></strong>', 'wicket'),
 			]);
 			$section->add_option('text', [
 			    'name' => 'wicket_admin_settings_wpcassify_sync_tags_as_roles', 
