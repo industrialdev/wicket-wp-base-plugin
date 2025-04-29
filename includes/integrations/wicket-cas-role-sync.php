@@ -48,7 +48,7 @@ function sync_wicket_data() {
     // Sync membership tiers as roles in WP if the option is set
     if ( wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
       // get current person active memberships ids, find the active memberships slug from ids, assign user with roles from active membership tiers
-      $memberships = wicket_get_current_person_memberships();
+      $memberships = wicket_get_current_person_active_memberships();
       $active_memberships_ids = [];
       if(isset($memberships["data"])) {
         foreach ($memberships["data"] as $key => $membership) {
