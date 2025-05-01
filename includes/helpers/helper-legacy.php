@@ -1987,7 +1987,8 @@ function wicket_assign_organization_membership(
     $ends_at = '',
     $max_seats = 0,
     $grace_period_days = 0,
-    $previous_membership_uuid = ''
+    $previous_membership_uuid = '',
+    $grant_owner_assignment = false
 ) {
     $client = wicket_api_client();
 
@@ -2031,6 +2032,10 @@ function wicket_assign_organization_membership(
       ]
     ];
 
+    if(!empty($grant_owner_assignment)) {
+      $payload['data']['attributes']['grant_owner_assignment'] = true;
+    }
+    
     if (!empty($previous_membership_uuid)) {
         $payload['data']['attributes']['copy_previous_assignments'] = true;
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
