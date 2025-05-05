@@ -35,6 +35,15 @@ function wicket_get_groups()
  */
 function wicket_get_person_groups($person_uuid = null, $args = [])
 {
+  // Default args
+  $defaults = [
+    'org_id'       => null,
+    'search_query' => null,
+    'per_page'     => 50,
+    'page'         => 1,
+  ];
+  $args = wp_parse_args($args, $defaults);
+
   if (is_null($person_uuid)) {
     $person_uuid = wicket_current_person_uuid();
   }
@@ -49,8 +58,8 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
     // Payload
     $query_params = [
       'page' => [
-        'number' => 1,
-        'size' => 50 // We shouldn't be querying 9999 or more groups here or anywhere. Remember: paginate or live search, with limits.
+        'number' => $args['page'],
+        'size'   => $args['per_page']
       ],
       'filter' => [
         'person_uuid_eq' => $person_uuid
@@ -59,23 +68,13 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
     ];
 
     // Arg: org_id
-    if (isset($args['org_id']) && !empty($args['org_id'])) {
+    if (!empty($args['org_id'])) {
       $query_params['filter']['group_organization_uuid_eq'] = $args['org_id'];
     }
 
     // Arg: search_query
-    if (isset($args['search_query']) && !empty($args['search_query'])) {
+    if (!empty($args['search_query'])) {
       $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
-    }
-
-    // Arg: per_page
-    if (isset($args['per_page']) && !empty($args['per_page'])) {
-      $query_params['page']['size'] = $args['per_page'];
-    }
-
-    // Arg: page
-    if (isset($args['page']) && !empty($args['page'])) {
-      $query_params['page']['number'] = $args['page'];
     }
 
     // Query the MDP
@@ -213,6 +212,15 @@ function wicket_get_group_members($group_uuid, $args = [])
     return new \WP_Error('missing_param', 'Group UUID is required.');
   }
 
+  // Default args
+  $defaults = [
+    'per_page' => 50,
+    'page'     => 1,
+    'active'   => true,
+    'role'     => null, // Default to no specific role filter
+  ];
+  $args = wp_parse_args($args, $defaults);
+
   $client = wicket_api_client();
   $endpoint = "/groups/{$group_uuid}/people";
   $role_query_string = ''; // Initialize role query string part
@@ -220,17 +228,17 @@ function wicket_get_group_members($group_uuid, $args = [])
   // Base Payload
   $query_params = [
     'page' => [
-      'number' => $args['page'] ?? 1,
-      'size' => $args['per_page'] ?? 50
+      'number' => $args['page'],
+      'size' => $args['per_page']
     ],
     'filter' => [
-      'active_eq' => $args['active'] ?? true,
+      'active_eq' => $args['active'],
     ],
     'include' => 'person'
   ];
 
   // Handle role filtering
-  if (isset($args['role']) && !empty($args['role'])) {
+  if (!empty($args['role'])) { // Use parsed args
     $trimmed_role = trim($args['role']);
     if (str_contains($trimmed_role, ',')) {
       // Multiple roles: Manually build query string part
@@ -302,6 +310,15 @@ function wicket_search_group_members($group_uuid, $search_query, $args = [])
     return new \WP_Error('missing_param', 'Search query is required.');
   }
 
+  // Default args
+  $defaults = [
+    'per_page' => 20,
+    'page'     => 1,
+    'active'   => true,
+    'role'     => null,
+  ];
+  $args = wp_parse_args($args, $defaults);
+
   $client = wicket_api_client();
   $endpoint = "/groups/{$group_uuid}/people";
   $role_query_string = ''; // Initialize role query string part
@@ -309,11 +326,11 @@ function wicket_search_group_members($group_uuid, $search_query, $args = [])
   // Base Payload
   $query_params = [
     'page' => [
-      'number' => $args['page'] ?? 1,
-      'size' => $args['per_page'] ?? 20
+      'number' => $args['page'],
+      'size' => $args['per_page']
     ],
     'filter' => [
-      'active_eq' => $args['active'] ?? true,
+      'active_eq' => $args['active'],
       'person_search_query' => [
         'keywords' => [
           'term' => $search_query,
@@ -325,7 +342,7 @@ function wicket_search_group_members($group_uuid, $search_query, $args = [])
   ];
 
   // Handle role filtering
-  if (isset($args['role']) && !empty($args['role'])) {
+  if (!empty($args['role'])) { // Use parsed args
     $trimmed_role = trim($args['role']);
     if (str_contains($trimmed_role, ',')) {
       // Multiple roles: Manually build query string part
