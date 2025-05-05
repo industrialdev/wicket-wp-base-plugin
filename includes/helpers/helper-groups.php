@@ -122,6 +122,12 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
   $end_date       = $args['end_date'];
   $skip_if_exists = $args['skip_if_exists'];
 
+  // No start_date? Let's set it to today and account for WP timezone
+  if (empty($start_date)) {
+    $today = (new \DateTime('@' . strtotime(date('Y-m-d H:i:s', current_time('timestamp'))), wp_timezone()))->format('Y-m-d\T00:00:00-05:00'); // MDP sends H:i:s in this format
+    $start_date = $today;
+  }
+
   if ($skip_if_exists) {
     // Check if the user is already a member of that group with the same role
     $current_user_groups = wicket_get_person_groups($person_id);
