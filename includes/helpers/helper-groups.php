@@ -97,22 +97,39 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
  * Add a member to a group with the specified role
  *
  * @param int|string $person_id ID of the person to add
- * @param int|string $group_id ID of the group to add the member to
+ * @param int|string $group_uuid ID of the group to add the member to
  * @param string $group_role_slug The type of group role to assign to the person
- * @param string $start_date [optional] The date to start the group membership
- * @param string $end_date [optional] The date to end the group membership
+ * @param array $args {
+ *     Optional. Arguments to pass to the function.
+ *     @type string $start_date     [optional] The date to start the group membership. Default null.
+ *     @type string $end_date       [optional] The date to end the group membership. Default null.
+ *     @type bool   $skip_if_exists [optional] Whether to skip adding if the user is already a member with the same role. Default true.
+ * }
  *
- * @return object The response object from the Wicket API
+ * @return object|array|WP_Error The response object from the Wicket API, the existing group membership array if skipped, or WP_Error on failure.
  */
-function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
+function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $args = [])
 {
+  // Default args
+  $defaults = [
+    'start_date'     => null,
+    'end_date'       => null,
+    'skip_if_exists' => true,
+  ];
+  $args = wp_parse_args($args, $defaults);
+
+  // Extract args
+  $start_date     = $args['start_date'];
+  $end_date       = $args['end_date'];
+  $skip_if_exists = $args['skip_if_exists'];
+
   if ($skip_if_exists) {
     // Check if the user is already a member of that group with the same role
     $current_user_groups = wicket_get_person_groups($person_id);
     if (isset($current_user_groups['data'])) {
       foreach ($current_user_groups['data'] as $group) {
         if (
-          $group['relationships']['group']['data']['id'] == $group_id
+          $group['relationships']['group']['data']['id'] == $group_uuid
           && $group['attributes']['type'] == $group_role_slug
         ) {
           // Matching group found - returning that group connection instead of adding them to the group again
@@ -129,7 +146,7 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
       'attributes'   => [
         'custom_data_field' => null,
         'end_date'          => $end_date,
-        'person_id'         => $person_id,
+        'person_id'         => $person_id, // Redundant in payload? Check API docs. Keeping for now.
         'start_date'        => $start_date,
         'type'              => $group_role_slug,
       ],
@@ -137,7 +154,7 @@ function wicket_add_group_member($person_id, $group_id, $group_role_slug, $start
       'relationships' => [
         'group' => [
           'data' => [
-            'id'   => $group_id,
+            'id'   => $group_uuid,
             'type' => 'groups',
           ],
         ],
