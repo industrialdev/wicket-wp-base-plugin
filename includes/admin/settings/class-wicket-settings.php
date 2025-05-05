@@ -344,6 +344,27 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 					'options' => array_merge(['' => ' - Not Applicable - '], $this->get_person_to_organizations_connection_types()),
 				]);
 			}
+			$section->add_option('checkbox', [
+        'name' => 'wicket_admin_settings_group_assignment_subscription_products',
+        'label' => __('Assign people to groups on product purchase', 'wicket'),
+        'description' => __('When certain subscription products are purchased manage group assignments based on susbcription dates.', 'wicket')
+      ]);
+			$section->add_option('select', [
+        'name' => 'wicket_admin_settings_group_assignment_product_category',
+        'label' => __('Group Assignment Product Category', 'wicket'),
+        'description' => __('Choose the category of product that will show the Group Assignment Tab and Settings.', 'wicket'),
+        'options' => $this->get_product_categories(),
+        'css' => [
+            'input_class' => 'wicket-group-product-categories wicket-admin-select2',
+        ]
+      ]);
+
+      $section->add_option('text', [
+      'name' => 'wicket_admin_settings_group_assignment_role_entity_object', 
+      'label' => __('Group Role Entity Object Slug', 'wicket'),
+      'description' => __('Use <code>group-members</code> unless it isn\'t working and only if you understand why it should be different. This retrieves Group Role resource entity options from Wicket.', 'wicket'),
+      'default' => 'group-members'  
+    ]);
 
 			// WP Cassify Integration Tab
 			$section = $tab_int->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);

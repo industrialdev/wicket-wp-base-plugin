@@ -119,6 +119,11 @@ if (! class_exists('Wicket_Main')) {
             // Include custom code snippets, such as those that additional functionality to complex components
             include_once WICKET_PLUGIN_DIR . 'includes/custom/woocommerce.php';
 
+            // Include custom code for subscription product group assignments
+            if(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products') === '1') {
+              include_once WICKET_PLUGIN_DIR . 'includes/custom/group-subscriptions.php';
+            }
+
             // Include Mailtrap settings for stage
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
