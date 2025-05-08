@@ -169,7 +169,18 @@ if ( ! empty( $pre_filter_categories ) ) {
 					class="flex w-full gap-3 items-center">
 					<span
 						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-						<?php echo $taxonomy_obj->labels->singular_name; ?>
+						<?php
+							$tax_name = $taxonomy_obj->labels->singular_name;
+							
+							if(defined('ICL_LANGUAGE_CODE')) {
+								$lang = ICL_LANGUAGE_CODE;
+								if ($lang != 'en') {
+									$tax_name = apply_filters( 'wpml_translate_single_string', $tax_name, 'WordPress', "taxonomy singular name: $tax_name", $lang);
+								}
+							}
+
+							echo $tax_name; 
+						?>
 					</span>
 					<?php if ( $taxonomy['tooltip'] ) {
 						get_component( 'tooltip', [ 
