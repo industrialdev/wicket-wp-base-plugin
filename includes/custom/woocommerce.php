@@ -1,5 +1,16 @@
 <?php 
 
+add_filter( 'woocommerce_rest_customer_allowed_roles', 'wicket_wc_api_allowed_roles', 10, 1 );
+
+/**
+ * Adding persistent role to WC API for mdp user sync
+ * @param mixed $allowed_roles
+ */
+function wicket_wc_api_allowed_roles( $allowed_roles ) {
+    $allowed_roles[] = 'user';
+    return $allowed_roles;
+}
+
 add_action( 'woocommerce_order_status_processing', 'wicket_org_search_select_on_order_complete', 10, 1); // Switched from woocommerce_payment_complete and woocommerce_order_status_completed
 
 function wicket_org_search_select_on_order_complete( $order_id ) {

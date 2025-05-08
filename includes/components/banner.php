@@ -17,7 +17,7 @@ $defaults                 = array(
 	'back_link'                => '',
 	'download_file'            => '',
 	'download_button_style'    => 'primary',
-	'download_button_label'    => __( 'Download', 'wicket' ),
+	'download_button_label'    => '',
 	'helper_link'              => '',
 	'helper_link_button_style' => 'secondary',
 );
@@ -40,7 +40,7 @@ $background_image         = $args['background_image'];
 $back_link                = $args['back_link'];
 $download_file            = $args['download_file'];
 $download_button_style    = $args['download_button_style'];
-$download_button_label    = $args['download_button_label'];
+$download_button_label    = $args['download_button_label'] == '' ? __( 'Download', 'wicket' ) : $args['download_button_label'];
 $helper_link              = $args['helper_link'];
 $helper_link_button_style = $args['helper_link_button_style'];
 
@@ -65,14 +65,14 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 } else {
 	$cta_classes          = [ 'cta-card flex-1 p-6 rounded-050 basis-full w-full lg:basis-3/12' ];
 	$wrapper_classes      = [ 'component-banner py-8 px-4 relative' ]; // border-b border-light-020
-	
+
 	if ( $reversed ) {
 		$wrapper_classes[] = 'bg-dark-100 text-white';
 		$cta_classes[]     = 'bg-dark-050';
 	} else {
 		$cta_classes[] = 'bg-light-010';
 	}
-	
+
 	if ( $background_style === 'reversed' ) {
 		$wrapper_classes[] = 'bg-mode-reversed';
 	} else if ( $background_style === 'image' ) {
@@ -116,11 +116,11 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 				} ?>
 
 				<?php if ( $back_link ) {
-					get_component( 'link', [ 
+					get_component( 'link', [
 						'url'        => $back_link,
 						'text'       => __( 'Back', 'wicket' ),
 						'reversed'   => $reversed,
-						'icon_start' => [ 
+						'icon_start' => [
 							'icon' => 'fa-solid fa-arrow-left',
 							'text' => __( 'Go back to ', 'wicket' ) . $back_link,
 						],
@@ -180,7 +180,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					<div class="flex items-start gap-4">
 						<?php
 						if ( ! empty( $download_file ) ) {
-							get_component( 'button', [ 
+							get_component( 'button', [
 								'variant'            => $download_button_style,
 								'label'              => $download_button_label,
 								'suffix_icon'        => 'fa-solid fa-arrow-down-to-bracket',
@@ -193,7 +193,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 						}
 
 						if ( ! empty( $helper_link ) ) {
-							get_component( 'button', [ 
+							get_component( 'button', [
 								'variant'            => $helper_link_button_style,
 								'label'              => $helper_link['title'],
 								'suffix_icon'        => $helper_link['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
@@ -214,13 +214,13 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					<div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5">
 
 						<?php if ( $show_share ) {
-							get_component( 'social-sharing', [ 
+							get_component( 'social-sharing', [
 								'reversed' => $reversed,
 							] );
 						} ?>
 
 						<?php if ( $member_only ) {
-							get_component( 'tag', [ 
+							get_component( 'tag', [
 								'label' => __( 'Members Only', 'wicket' ),
 								'icon'  => 'fa-regular fa-lock',
 								'link'  => '',
@@ -236,7 +236,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 					$image_classes = [ 'component-banner__featured-image', 'lg:max-h-[425px]', 'ml-auto' ];
 				?>
 				<div class="flex-grow-0 flex-shrink-0 basis-full lg:basis-5/12">
-					<?php get_component( 'image', [ 
+					<?php get_component( 'image', [
 						'id'      => $featured_image['id'],
 						'alt'     => $featured_image['alt'],
 						'classes' => $image_classes,
@@ -257,10 +257,10 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 
 					<?php if ( ! empty( $call_to_action['links'] ) ) : ?>
 						<div class="<?php echo ( defined( 'WICKET_WP_THEME_V2' ) ) ? 'cta-card__links' : 'flex flex-col gap-3' ?>">
-							<?php 
+							<?php
 							foreach ( $call_to_action['links'] as $cta ) {
 								if ( $cta['link'] ) {
-									get_component( 'button', [ 
+									get_component( 'button', [
 										'variant'     => $cta['variant'],
 										'label'       => $cta['link']['title'],
 										'suffix_icon' => $cta['link']['target'] === '_blank' ? 'fa fa-external-link-alt' : '',
@@ -281,7 +281,7 @@ if ( $image === 'featured-image' && has_post_thumbnail() ) {
 	</div>
 
 	<?php if ( ! empty( $background_image ) ) {
-		get_component( 'image', [ 
+		get_component( 'image', [
 			'id'           => $background_image['id'],
 			'alt'          => $background_image['alt'],
 			'aspect_ratio' => '3/2',
