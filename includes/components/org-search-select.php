@@ -126,7 +126,7 @@
 
 
 $defaults  = [
-    'classes'                                       => [],
+  'classes'                                       => [],
   'search_mode'                                   => 'org', // Options: org, groups, ...
   'search_org_type'                               => '',
   'relationship_type_upon_org_creation'           => 'employee',
@@ -158,6 +158,7 @@ $defaults  = [
   'display_removal_alert_message'                 => false,
   'title'                                         => '',
   'response_message'                              => '', // class name of the container where the response message will be displayed
+  'hide_membership_status'                        => false,
 ];
 $args                                          = wp_parse_args($args, $defaults);
 $classes                                       = $args['classes'];
@@ -192,6 +193,7 @@ $hide_select_buttons                           = $args['hide_select_buttons'];
 $display_removal_alert_message                 = $args['display_removal_alert_message'];
 $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
+$hide_membership_status                        = $args['hide_membership_status'];
 
 if(!empty($orgTermSingular)) {
     $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -565,7 +567,7 @@ if(!empty($active_membership_alert_button_2_text)
 							<div x-text="connection.org_name"
 								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__org-name' : 'font-bold text-body-sm mr-5' ?>">
 							</div>
-							<div>
+							<div x-show="!hideMembershipStatus">
 								<template x-if="connection.active_membership">
 									<div
 										class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__active-membership-label' : '' ?>">
@@ -768,6 +770,7 @@ if(!empty($active_membership_alert_button_2_text)
 			availableOrgTypes: <?php echo json_encode($available_org_types); ?> ,
 			disableCreateOrgUi: <?php echo $disable_create_org_ui ? 'true' : 'false'; ?> ,
 			disableSelectingOrgsWithActiveMembership: <?php echo $disable_selecting_orgs_with_active_membership ? 'true' : 'false'; ?> ,
+			hideMembershipStatus: <?php echo $hide_membership_status ? 'true' : 'false'; ?> ,
 
 			showingActiveMembershipAlert: false,
 			activeMembershipAlertAvailable: false,
