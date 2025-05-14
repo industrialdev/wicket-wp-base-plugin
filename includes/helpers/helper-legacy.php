@@ -3438,11 +3438,15 @@ function get_person_to_organizations_connection_types_list()
  *
  * @see https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
  */
-function get_individual_memberships()
+function get_individual_memberships( $id = '' )
 {
     $client = wicket_api_client();
+    $path = 'memberships';
+    if(!empty($id)) {
+      $path = $path . "/$id";
+    }
     try {
-        $search_organizations = $client->get('memberships');
+        $search_organizations = $client->get($path);
     } catch (\Exception $e) {
         // echo "<pre>";
         // print_r($e->getMessage());
