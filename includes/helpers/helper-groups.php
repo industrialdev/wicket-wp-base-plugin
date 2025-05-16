@@ -103,7 +103,8 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
-function wicket_get_org_groups($org_uuid = '', $args = []) {
+function wicket_get_org_groups($org_uuid = '', $args = [])
+{
   // Default args
   $defaults = [
     'search_query' => null,
@@ -239,6 +240,32 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
   }
 
   return $response;
+}
+
+
+/**
+ * Removes a member from a group, using group member id connection
+ *
+ * @param string $group_member_id_connection The UUID of the group member entry (person_to_group connection).
+ *
+ * @return bool
+ */
+function wicket_remove_group_member($group_member_id_connection = '')
+{
+  if (empty($group_member_id_connection)) {
+    return false;
+  }
+
+  $client = WACC()->MdpApi->init_client();
+
+  try {
+    $response = $client->delete("/group_members/{$group_member_id_connection}");
+    return true;
+  } catch (\GuzzleHttp\Exception\ClientException $e) {
+    return false;
+  } catch (\Exception $e) {
+    return false;
+  }
 }
 
 /**
