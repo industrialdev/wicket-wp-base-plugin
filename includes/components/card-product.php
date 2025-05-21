@@ -42,6 +42,9 @@ if ( ! class_exists( 'WooCommerce' ) ) {
 	return;
 }
 
+// Get the product and set it globally so WooCommerce functions can use it
+global $product;
+$product = wc_get_product($product_id);
 ?>
 
 <div class="@container">
