@@ -4,6 +4,10 @@
 defined('ABSPATH') || exit;
 
 /**
+ * Helpers to work with groups on the MDP
+ */
+
+/**
  * Get all groups
  *
  * @return array|false
