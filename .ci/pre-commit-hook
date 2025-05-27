@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Flag
+PHP_83_INSTALLED=0
+
+# Get the directory of the script and navigate to the root of the project
+HOOKS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$HOOKS_DIR/../../"
+
+# Navigate to the project root directory
+cd "$PROJECT_ROOT"
+
+# Make our files executables, only on macOS and Linux
+if [[ "$(uname -s)" == "Darwin" || "$(expr substr $(uname -s) 1 5)" == "Linux" ]]; then
+    chmod +x ./.ci/php-linux
+    chmod +x ./.ci/php-macos
+fi;
+
+# Check if PHP-CS-Fixer is installed
+if [ ! -f ./vendor/bin/php-cs-fixer ]; then
+    PHP_CS_FIXER="./vendor/bin/php-cs-fixer"
+else
+    # If not, use the phar version included in the project
+    PHP_CS_FIXER="./.ci/php-cs-fixer.phar"
+fi
+
+# Run PHP-CS-Fixer
+if [ -x "$(command -v php)" ]; then
+    # Detect if we have PHP installed and it's 8.3 or higher
+    PHP_VERSION=$(php -r "echo PHP_VERSION;")
+    if [[ $PHP_VERSION =~ ^8\.[3-9]\.[0-9]+$ ]] || [[ $PHP_VERSION =~ ^[7-9]\.[0-9]+\.[0-9]+$ ]]; then
+        PHP_83_INSTALLED=1
+        php "$PHP_CS_FIXER" fix
+    fi
+fi
+
+# If PHP_83_INSTALLED is 0, keep trying to run PHP-CS-Fixer
+if [ $PHP_83_INSTALLED -eq 0 ]; then
+    if [[ `uname -s` == 'Darwin' ]]; then
+        # macOS
+        ./.ci/php-macos "$PHP_CS_FIXER" fix
+    elif [[ `uname -s` == 'Linux' ]]; then
+        # Linux
+        ./.ci/php-linux "$PHP_CS_FIXER" fix
+    elif [[ `uname -s` == 'MINGW64_NT-10.0' ]]; then
+        # Windows
+        ./.ci/php.exe "$PHP_CS_FIXER" fix
+    fi
+fi
+
+if [ $? -ne 0 ]; then
+    echo "PHP-CS-Fixer found issues. Please fix them before committing."
+    exit 1
+fi
