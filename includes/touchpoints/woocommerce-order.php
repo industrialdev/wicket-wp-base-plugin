@@ -136,7 +136,8 @@ function woocommerce_order_touchpoint($order_id, $order = null) {
   // ---------------------------------------------------------------------------------------
   $externalEventIdParts = [$order_id, $order_status];
   if ($order_status === 'completed') {
-    $externalEventIdParts[] = $order->get_date_completed()->format('c');
+    // we're using $data instead of date_completed so that it's more unique. People were flipping it back and for the complete and we were getting duplicate touchpoints
+    $externalEventIdParts[] = hash('sha256', implode($data));
   }
   $params['external_event_id'] = implode('_', $externalEventIdParts);
 

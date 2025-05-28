@@ -123,6 +123,12 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
             'event_additional_fields' => $event_data['event_additional_fields'],
           ]
         ];
+        
+        // make sure this only writes once.
+        $externalEventIdParts = [$order->id, $order->status];
+        $externalEventIdParts[] = hash('sha256', implode($params['data']));
+        $params['external_event_id'] = implode('_', $externalEventIdParts);
+
         $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
         write_touchpoint($params, $service_id);
 
@@ -166,6 +172,12 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
               'event_additional_fields' => $event_data['event_additional_fields'],
             ]
           ];
+
+          // make sure this only writes once.
+          $externalEventIdParts = [$order->id, $order->status];
+          $externalEventIdParts[] = hash('sha256', implode($params['data']));
+          $params['external_event_id'] = implode('_', $externalEventIdParts);
+
           $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
           write_touchpoint($params, $service_id);
         }
