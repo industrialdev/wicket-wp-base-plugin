@@ -53,6 +53,13 @@ $wicket_settings = get_wicket_settings();
                 });
 
                 window.dispatchEvent(event);
+
+                let commonEventLoaded = new CustomEvent("wwidget-component-common-loaded", {
+                  detail: payload
+                });
+
+                window.dispatchEvent(commonEventLoaded);
+
                 widgetProfileIndUpdateHiddenFields(payload);
               });
               widget.listen(widget.eventTypes.SAVE_SUCCESS, function (payload) {

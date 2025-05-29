@@ -1,6 +1,5 @@
 <?php
 $defaults        = array(
-  'id'                               => '',
   'classes'                          => [],
   'additional_info_data_field_name'  => 'additional-info-data',
   'validation_data_field_name'       => 'additional-info-validation',
@@ -16,12 +15,6 @@ $resource_type                    = $args['resource_type'];
 $org_uuid                         = $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
 $unique_widget_id                 = rand( 1, PHP_INT_MAX );
-$id                               = sanitize_title_with_dashes($args['id']);
-$js_id                            = str_replace( '-', '_', $id );
-
-if(!empty($id)) {
-  $unique_widget_id = $id;
-}
 
 if( $resource_type == 'organizations' && strlen(strval($org_uuid)) < 4 ) {
   return; // Bail out if an improper org_uuid has been passed in, like a placeholder field ID in the GF wrapper
@@ -64,11 +57,11 @@ $wicket_settings = get_wicket_settings();
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
         Wicket.ready(function () {
-            let widgetRoot_<?php echo esc_js( $js_id ); ?> = document.getElementById('additional-info-<?php echo esc_attr( $unique_widget_id ); ?>');
+            let widgetRoot_<?php echo esc_js( $unique_widget_id ); ?> = document.getElementById('additional-info-<?php echo esc_attr( $unique_widget_id ); ?>');
 
             Wicket.widgets.editAdditionalInfo({
               loadIcons: true,
-              rootEl: widgetRoot_<?php echo esc_js( $js_id ); ?>,
+              rootEl: widgetRoot_<?php echo esc_js( $unique_widget_id ); ?>,
               apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
               accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
               resource: {
@@ -120,6 +113,13 @@ $wicket_settings = get_wicket_settings();
                 });
 
                 window.dispatchEvent(event);
+
+                let commonEventLoaded = new CustomEvent("wwidget-component-common-loaded", {
+                  detail: payload
+                });
+
+                window.dispatchEvent(commonEventLoaded);
+
                 widgetAiUpdateHiddenFields(payload);
               });
               widget.listen(widget.eventTypes.SAVE_SUCCESS, function (payload) {
