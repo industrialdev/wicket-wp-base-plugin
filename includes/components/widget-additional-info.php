@@ -147,12 +147,14 @@ $wicket_settings = get_wicket_settings();
           aiDataField.value = JSON.stringify(payload);
 
           validationDataField.value = true;
+          <?php
           // TODO: Update with AI-widget specific validation logic
           // if( payload.incompleteRequiredFields ) {
           //   if( payload.incompleteRequiredFields.length > 0 ) {
           //     validationDataField.value = false;
           //   }
           // }
+          ?>
         }
     });
 </script>
