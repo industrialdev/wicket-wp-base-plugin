@@ -1,7 +1,7 @@
 {
   "name": "industrialdev/wicket-wp-base-plugin",
   "description": "Wicket Core Plugin",
-  "version": "2.0.123",
+  "version": "2.0.124",
   "keywords": ["wordpress", "plugin"],
   "homepage": "https://github.com/industrialdev/wicket-wp-base-plugin",
   "authors": [
@@ -12,6 +12,7 @@
   ],
   "type": "wordpress-plugin",
   "require": {
+    "industrialdev/wicket-sdk-php": "dev-master",
     "php": ">=8.0",
     "jeffreyvanrossum/wp-settings": "1.2.1"
   },
@@ -19,5 +20,11 @@
     "version-bump": [
       "@php ./.ci/version-bump.php"
     ]
+  },
+  "repositories": [
+  {
+    "type": "git",
+    "url": "https://github.com/industrialdev/wicket-sdk-php.git"
   }
+ ]
 }
