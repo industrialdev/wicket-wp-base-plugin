@@ -4,48 +4,6 @@
 defined('ABSPATH') || exit;
 
 /**
- * Get the current person's Wicket person UUID.
- *
- * This function retrieves the UUID of the current person based on their WordPress user login.
- *
- * @return string|null The UUID of the current person, or null if the function `wicket_api_client` is not available.
- */
-function wicket_current_person_uuid()
-{
-  // Get the SDK client from the wicket module.
-  if (function_exists('wicket_api_client')) {
-    $person_id = wp_get_current_user()->user_login;
-
-    return $person_id;
-  }
-}
-
-/**
- * Get the current person from Wicket.
- *
- * This function retrieves the current person's details from Wicket.
- *
- * @return object|null The current person object if found, or null if not found.
- */
-function wicket_current_person()
-{
-    static $person = null;
-
-    if (is_null($person)) {
-        $person_id = wicket_current_person_uuid();
-
-        if ($person_id) {
-            $client = wicket_api_client_current_user();
-            $person = $client->people->fetch($person_id);
-
-            return $person;
-        }
-    }
-
-    return $person;
-}
-
-/**
  * Accepts a Wicket person object, like from wicket_current_person(),
  * and returns a clean array of the specified repeatable contact method.
  *
@@ -80,25 +38,6 @@ function wicket_person_obj_get_repeatable_contact_info($wicket_person_obj, $type
     }
 
     return $to_return;
-}
-
-/**------------------------------------------------------------------
- * Check if user is a Wicket person (compare UUID format)
-------------------------------------------------------------------*/
-function wicket_person_has_uuid()
-{
-    $user_id   = get_current_user_id();
-    $user_info = get_userdata($user_id);
-
-    if (!$user_info || !is_object($user_info)) {
-        return false;
-    }
-
-    if (is_string($user_info->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user_info->user_login) == 1)) {
-        return true;
-    }
-
-    return false;
 }
 
 /**
@@ -167,19 +106,6 @@ function wicket_get_all_people()
     $client = wicket_api_client();
     $person = $client->people->all();
     return $person;
-}
-
-/**------------------------------------------------------------------
- * Get person by UUID
-------------------------------------------------------------------*/
-function wicket_get_person_by_id($uuid)
-{
-    if ($uuid) {
-        $client = wicket_api_client();
-        $person = $client->people->fetch($uuid);
-        return $person;
-    }
-    return false;
 }
 
 /**
@@ -1044,16 +970,16 @@ function send_person_to_team_assignment_email($user, $org_id)
     $last_name = $person->family_name;
     $subject = "Welcome to NJBIA!";
     $body = "Hi $first_name, <br><br>
-	You have been assigned a membership as part of $organization_name.
-	<br>
-	<br>
-	Visit njbia.org and login to complete your profile and explore your member benefits.
-	<br>
-	<br>
-	Thank you,
-	<br>
-	<br>
-	New Jersey Business & Industry Association";
+    You have been assigned a membership as part of $organization_name.
+    <br>
+    <br>
+    Visit njbia.org and login to complete your profile and explore your member benefits.
+    <br>
+    <br>
+    Thank you,
+    <br>
+    <br>
+    New Jersey Business & Industry Association";
     $headers = array('Content-Type: text/html; charset=UTF-8');
     $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
     wp_mail($to, $subject, $body, $headers);
@@ -1075,17 +1001,17 @@ function send_new_person_to_team_assignment_email($first_name, $last_name, $emai
     $to = $email;
     $subject = "Welcome to NJBIA!";
     $body = "Hi $first_name, <br><br>
-	You have been assigned a membership as part of $organization_name.
-	<br>
-	<br>
-	You will soon receive an Account Confirmation email with instructions on how to finalize your login account.
-	Once you have confirmed your account, visit njbia.org and login to complete your profile and explore your member benefits.
-	<br>
-	<br>
-	Thank you,
-	<br>
-	<br>
-	New Jersey Business & Industry Association";
+    You have been assigned a membership as part of $organization_name.
+    <br>
+    <br>
+    You will soon receive an Account Confirmation email with instructions on how to finalize your login account.
+    Once you have confirmed your account, visit njbia.org and login to complete your profile and explore your member benefits.
+    <br>
+    <br>
+    Thank you,
+    <br>
+    <br>
+    New Jersey Business & Industry Association";
     $headers = array('Content-Type: text/html; charset=UTF-8');
     $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
     wp_mail($to, $subject, $body, $headers);
@@ -1100,7 +1026,7 @@ function send_approval_required_email($email, $membership_link)
     $to = $email;
     $subject = "Membership Pending Approval";
     $body = "You have a membership pending approval.
-	<br>
+    <br>
   Please login with the following link to process the membership request.
   <br>
   $membership_link";
@@ -2032,10 +1958,10 @@ function wicket_assign_organization_membership(
       ]
     ];
 
-    if(!empty($grant_owner_assignment)) {
-      $payload['data']['attributes']['grant_owner_assignment'] = true;
+    if (!empty($grant_owner_assignment)) {
+        $payload['data']['attributes']['grant_owner_assignment'] = true;
     }
-    
+
     if (!empty($previous_membership_uuid)) {
         $payload['data']['attributes']['copy_previous_assignments'] = true;
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
@@ -3006,10 +2932,10 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
         return $updated_connection;
     } catch (\Exception $e) {
         $error_message = $e->getMessage();
-        if(strpos($error_message, 'must be before') !== false) {
+        if (strpos($error_message, 'must be before') !== false) {
             // This is a special case where the end date is being set to the same day as the start date
             // So we need to simply remove the connection and return true
-            wicket_remove_connection( $connection_id );
+            wicket_remove_connection($connection_id);
             return true;
         }
         wicket_write_log($error_message);
@@ -3438,12 +3364,12 @@ function get_person_to_organizations_connection_types_list()
  *
  * @see https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
  */
-function get_individual_memberships( $id = '' )
+function get_individual_memberships($id = '')
 {
     $client = wicket_api_client();
     $path = 'memberships';
-    if(!empty($id)) {
-      $path = $path . "/$id";
+    if (!empty($id)) {
+        $path = $path . "/$id";
     }
     try {
         $search_organizations = $client->get($path);
