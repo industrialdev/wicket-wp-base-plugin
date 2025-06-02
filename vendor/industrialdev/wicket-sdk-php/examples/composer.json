@@ -1,0 +1,11 @@
+{
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/industrialdev/wicket-sdk-php.git"
+    }
+  ],
+  "require": {
+    "industrialdev/wicket-sdk-php": "dev-master"
+  }
+}
