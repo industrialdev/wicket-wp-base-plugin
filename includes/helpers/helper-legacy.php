@@ -2275,26 +2275,48 @@ function wicket_get_person_active_memberships($uuid)
     return false;
 }
 
-/**------------------------------------------------------------------
- * Gets the current person memberships
+/**
+ * Gets the person memberships for a specified UUID
  * using the person membership entries endpoint
- ------------------------------------------------------------------*/
-function wicket_get_current_person_memberships()
+ *
+ * @param array $args (Optional) Array of arguments to pass to the API
+ *              person_uuid (Optional) The person UUID to search for. If missing, uses current person.
+ *              include (Optional) The include parameter to pass to the API. Default: 'membership,organization_membership.organization,fusebill_subscription'.
+ *              filter (Optional) The filter parameter to pass to the API. Default: ['active_at' => 'now'].
+ *
+ * @return array|false Array of memberships on ['data'] or false on failure
+ */
+function wicket_get_current_person_memberships($args = [])
 {
+    $defaults = [
+        'person_uuid' => wicket_current_person_uuid(),
+        'include' => 'membership,organization_membership.organization,fusebill_subscription',
+        'filter' => [
+            'active_at' => 'now',
+        ],
+    ];
+
+    $args = wp_parse_args($args, $defaults);
+
     $client = wicket_api_client();
-    $uuid = wicket_current_person_uuid();
+    $uuid   = $args['person_uuid'];
+
     static $memberships = null;
+
     // prepare and memoize all connections from Wicket
     if (is_null($memberships)) {
         try {
-            $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
+            $memberships = $client->get('people/' . $uuid . '/membership_entries?' . http_build_query($args));
         } catch (Exception $e) {
-            wicket_write_log($e->getMessage());
+            return false;
         }
     }
+
     if ($memberships) {
         return $memberships;
     }
+
+    return false;
 }
 
 /**------------------------------------------------------------------
