@@ -14,6 +14,8 @@ $wicket_helpers = [
   'helper-organizations.php',
   'helper-groups.php',
   'helper-touchpoints.php',
+  'helper-segments.php',
+  'helper-memberships.php',
   'helper-multilang.php',
 ];
 

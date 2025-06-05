@@ -3,6 +3,22 @@
 // No direct access
 defined('ABSPATH') || exit;
 
+/*
+ * MARK: PLEASE READ...
+ * BEFORE EDITING THIS FILE
+ *
+ * DO NOT ADD ANYTHING BELOW THIS COMMENT
+ * DO NOT ADD ANYTHING BELOW THIS COMMENT
+ * DO NOT ADD ANYTHING BELOW THIS COMMENT
+ *
+ * Use the rest of the files (in this same directory) meant to contain helpers, based on their purpose.
+ *
+ * Be thoughtful and considerate of your fellow developers, please.
+ * This will make it easier for everyone, including you, to maintain this work in the future.
+ *
+ * Thanks!
+ */
+
 /**
  * Accepts a Wicket person object, like from wicket_current_person(),
  * and returns a clean array of the specified repeatable contact method.
@@ -2319,26 +2335,25 @@ function wicket_get_current_person_memberships($args = [])
     return false;
 }
 
-/**------------------------------------------------------------------
- * Gets the current person active memberships
+/**
+ * Gets the current person's active memberships
  * using the person membership entries endpoint
- ------------------------------------------------------------------*/
+ *
+ * @return array|false Array of active memberships on ['data'] or false on failure
+ */
 function wicket_get_current_person_active_memberships()
 {
-    $client = wicket_api_client();
-    $uuid = wicket_current_person_uuid();
-    static $memberships = null;
-    // prepare and memoize all connections from Wicket
-    if (is_null($memberships)) {
-        try {
-            $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription&filter[active_at]=now');
-        } catch (Exception $e) {
-            wicket_write_log($e->getMessage());
-        }
+    $response = wicket_get_current_person_memberships([
+        'filter' => [
+            'active_at' => 'now',
+        ],
+    ]);
+
+    if (is_wp_error($response) || empty($response['data'])) {
+        return false;
     }
-    if ($memberships) {
-        return $memberships;
-    }
+
+    return $response;
 }
 
 /**
@@ -3812,3 +3827,19 @@ function wicket_delete_phones_record($phone_uuid)
         return false;
     }
 }
+
+/*
+ * MARK: PLEASE READ...
+ * BEFORE EDITING THIS FILE
+ *
+ * DO NOT ADD ANYTHING ABOVE THIS COMMENT
+ * DO NOT ADD ANYTHING ABOVE THIS COMMENT
+ * DO NOT ADD ANYTHING ABOVE THIS COMMENT
+ *
+ * Use the rest of the files (in this same directory) meant to contain helpers, based on their purpose.
+ *
+ * Be thoughtful and considerate of your fellow developers, please.
+ * This will make it easier for everyone, including you, to maintain this work in the future.
+ *
+ * Thanks!
+ */
