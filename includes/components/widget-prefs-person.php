@@ -49,13 +49,13 @@ $wicket_settings = get_wicket_settings();
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     Wicket.ready(function() {
-      let widgetRoot_ <?php echo $unique_widget_id; ?> =
+      let widgetRoot_<?php echo $unique_widget_id; ?> =
         document.getElementById(
           'preferences-widget-<?php echo $unique_widget_id; ?>'
           );
 
       Wicket.widgets.editPersonPreferences({
-        rootEl: widgetRoot_ <?php echo $unique_widget_id; ?> ,
+        rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
         personId: '<?php echo wicket_current_person_uuid(); ?>',
