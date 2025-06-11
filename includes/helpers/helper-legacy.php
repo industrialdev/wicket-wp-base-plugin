@@ -449,9 +449,9 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             $args['filter']['type'] = $org_type;
         }
         if (!empty($lang)) {
-            $args['filter']['keywords']['fields'] = "legal_name_$lang";
+            $args['filter']['keywords']['fields'] = "legal_name_{$lang},alternate_name_{$lang}";
         } else {
-            $args['filter']['keywords']['fields'] = 'legal_name';
+            $args['filter']['keywords']['fields'] = 'legal_name,alternate_name';
         }
 
         // replace query string page[0] and page[1] etc. with page[] since ruby doesn't like it
