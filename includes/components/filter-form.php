@@ -162,6 +162,10 @@ if ( ! empty( $pre_filter_categories ) ) {
 			if ( is_wp_error( $terms ) ) {
 				$terms = [];
 			}
+
+			// Modify Terms 
+			$terms = apply_filters( 'wicket_listing_filter_modify_terms', $terms, $taxonomy['slug'] ); 
+			
 			?>
 			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}"
 				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
