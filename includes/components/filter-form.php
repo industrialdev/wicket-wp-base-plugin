@@ -304,6 +304,8 @@ if ( ! empty( $pre_filter_categories ) ) {
 			<?php
 		endforeach; ?>
 
+		<?php do_action( 'wicket_filter_form_before_date_range', $args ); ?>
+
 		<?php if ( ! $hide_date_filter ) : ?>
 			<div x-data="{open: true}"
 				class="date-range-controls <?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
