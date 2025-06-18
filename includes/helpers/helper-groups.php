@@ -28,8 +28,8 @@ function wicket_get_groups()
 /**
  * Get all groups that a person UUID is part of
  *
- * @param string $person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  * @param array $args (Optional) Array of arguments to pass to the API
+ *              person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *              search_query (Optional) The search query to find groups by their names, case insensitive.
  *              per_page (Optional) The number of groups to return per page (size). Default: 20.
@@ -37,10 +37,11 @@ function wicket_get_groups()
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
-function wicket_get_person_groups($person_uuid = null, $args = [])
+function wicket_get_person_groups($args = [])
 {
   // Default args
   $defaults = [
+    'person_uuid'  => null,
     'org_id'       => null,
     'search_query' => null,
     'per_page'     => 20,
@@ -48,11 +49,11 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
   ];
   $args = wp_parse_args($args, $defaults);
 
-  if (is_null($person_uuid)) {
-    $person_uuid = wicket_current_person_uuid();
+  if (is_null($args['person_uuid'])) {
+    $args['person_uuid'] = wicket_current_person_uuid();
   }
 
-  if (empty($person_uuid)) {
+  if (empty($args['person_uuid'])) {
     return false;
   }
 
@@ -66,7 +67,7 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
         'size'   => $args['per_page']
       ],
       'filter' => [
-        'person_uuid_eq' => $person_uuid
+        'person_uuid_eq' => $args['person_uuid']
       ],
       'include' => 'group'
     ];
