@@ -911,29 +911,29 @@ function wicket_assign_person_to_org_membership($person_id, $membership_id, $org
       'data' => [
         'type' => 'person_memberships',
         'attributes' => [
-          'starts_at' => $org_membership['data']['attributes']['starts_at'],
-          "ends_at" => $org_membership['data']['attributes']['ends_at'],
-          "status" => 'Active'
+            'starts_at' => $org_membership['data']['attributes']['starts_at'],
+            "ends_at" => $org_membership['data']['attributes']['ends_at'],
+            "status" => 'Active'
         ],
         'relationships' => [
-          'person' => [
-            'data' => [
-              'id' => $person_id,
-              'type' => 'people'
+            'person' => [
+                'data' => [
+                    'id' => $person_id,
+                    'type' => 'people'
+                ]
+            ],
+            'membership' => [
+                'data' => [
+                    'id' => $membership_id,
+                    'type' => 'memberships'
+                ]
+            ],
+            'organization_membership' => [
+                'data' => [
+                    'id' => $org_membership_id,
+                    'type' => 'organization_memberships'
+                ]
             ]
-          ],
-          'membership' => [
-            'data' => [
-              'id' => $membership_id,
-              'type' => 'memberships'
-            ]
-          ],
-          'organization_membership' => [
-            'data' => [
-              'id' => $org_membership_id,
-              'type' => 'organization_memberships'
-            ]
-          ]
         ]
       ]
     ];

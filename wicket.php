@@ -46,7 +46,7 @@ if (! class_exists('Wicket_Main')) {
             $this->wicket_global_constants_vars();
 
             // load text domain
-            add_action('plugins_loaded', array($this, 'wicket_init'));
+            add_action('init', array($this, 'wicket_init'));
 
             // Registration hook setting
             register_activation_hook(__FILE__, array($this, 'wicket_install_settings'));
