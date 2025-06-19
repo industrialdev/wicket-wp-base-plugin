@@ -4,13 +4,14 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.113
+ * Version: 2.0.132
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
  * Domain Path: /languages
- * Requires at least: 6.0
+ * Requires at least: 6.6
  * Requires PHP: 8.1
+ * Requires Plugins: advanced-custom-fields-pro
  *
  * @package Wicket
  */

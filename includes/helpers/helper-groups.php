@@ -4,6 +4,10 @@
 defined('ABSPATH') || exit;
 
 /**
+ * Helpers to work with groups on the MDP
+ */
+
+/**
  * Get all groups
  *
  * @return array|false
@@ -24,31 +28,32 @@ function wicket_get_groups()
 /**
  * Get all groups that a person UUID is part of
  *
- * @param string $person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  * @param array $args (Optional) Array of arguments to pass to the API
+ *              person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *              search_query (Optional) The search query to find groups by their names, case insensitive.
- *              per_page (Optional) The number of groups to return per page (size). Default: 50.
+ *              per_page (Optional) The number of groups to return per page (size). Default: 20.
  *              page (Optional) The page number to return. Default: 1.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
-function wicket_get_person_groups($person_uuid = null, $args = [])
+function wicket_get_person_groups($args = [])
 {
   // Default args
   $defaults = [
+    'person_uuid'  => null,
     'org_id'       => null,
     'search_query' => null,
-    'per_page'     => 50,
+    'per_page'     => 20,
     'page'         => 1,
   ];
   $args = wp_parse_args($args, $defaults);
 
-  if (is_null($person_uuid)) {
-    $person_uuid = wicket_current_person_uuid();
+  if (is_null($args['person_uuid'])) {
+    $args['person_uuid'] = wicket_current_person_uuid();
   }
 
-  if (empty($person_uuid)) {
+  if (empty($args['person_uuid'])) {
     return false;
   }
 
@@ -62,7 +67,7 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
         'size'   => $args['per_page']
       ],
       'filter' => [
-        'person_uuid_eq' => $person_uuid
+        'person_uuid_eq' => $args['person_uuid']
       ],
       'include' => 'group'
     ];
@@ -88,6 +93,70 @@ function wicket_get_person_groups($person_uuid = null, $args = [])
 
     return $response;
   } catch (Exception $e) {
+    return false;
+  }
+}
+
+/**
+ * Get all the groups associated with a specific Org UUID
+ *
+ * @param string $org_uuid The organization UUID to search for
+ * @param array $args (Optional) Array of arguments to pass to the API
+ *              search_query (Optional) The search query to find groups by their names, case insensitive.
+ *              per_page (Optional) The number of groups to return per page (size). Default: 20.
+ *              page (Optional) The page number to return. Default: 1.
+ *
+ * @return array|false Array of groups on ['data'] or false on failure
+ */
+function wicket_get_org_groups($org_uuid = '', $args = [])
+{
+  // Default args
+  $defaults = [
+    'search_query' => null,
+    'per_page'     => 20,
+    'page'         => 1,
+  ];
+
+  $args = wp_parse_args($args, $defaults);
+
+  if (empty($org_uuid)) {
+    return false;
+  }
+
+  $client = wicket_api_client();
+
+  try {
+    // Payload
+    $query_params = [
+      'page' => [
+        'number' => $args['page'],
+        'size'   => $args['per_page']
+      ],
+      'filter' => [
+        'organization_uuid_eq' => $org_uuid
+      ]
+    ];
+
+    // Arg: search_query
+    if (!empty($args['search_query'])) {
+      $query_params['filter']['name_en_i_cont'] = $args['search_query'];
+    }
+
+    // Query the MDP
+    $response = $client->get('/groups', [
+      'query' => $query_params
+    ]);
+
+    if (!isset($response['data']) || empty($response['data'])) {
+      return false;
+    }
+
+    return $response;
+  } catch (Exception $e) {
+    wc_get_logger()->error(
+      'Error in wicket_get_org_groups: ' . $e->getMessage(),
+      ['source' => 'wicket-wp-base-plugin']
+    );
     return false;
   }
 }
@@ -176,6 +245,32 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
   }
 
   return $response;
+}
+
+
+/**
+ * Removes a member from a group, using group member id connection
+ *
+ * @param string $group_member_id_connection The UUID of the group member entry (person_to_group connection).
+ *
+ * @return bool
+ */
+function wicket_remove_group_member($group_member_id_connection = '')
+{
+  if (empty($group_member_id_connection)) {
+    return false;
+  }
+
+  $client = WACC()->MdpApi->init_client();
+
+  try {
+    $response = $client->delete("/group_members/{$group_member_id_connection}");
+    return true;
+  } catch (\GuzzleHttp\Exception\ClientException $e) {
+    return false;
+  } catch (\Exception $e) {
+    return false;
+  }
 }
 
 /**
@@ -400,6 +495,42 @@ function wicket_search_group_members($group_uuid, $search_query, $args = [])
 
 /**
  * Get formatted group data for display
+ *
+ * @param array $groups The groups data from the API
+ * @return array|false Array of formatted group data or false if empty
+ */
+function wicket_get_org_groups_selector_data($groups = [])
+{
+  if (empty($groups)) {
+    return false;
+  }
+
+  $formatted_groups = [];
+  $lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+
+  foreach ($groups['data'] as $group) {
+    if ($group['type'] !== 'groups') {
+      continue;
+    }
+
+    $formatted_groups[] = [
+      'id' => $group['id'],
+      'name' => $group['attributes']["name_{$lang}"] ?? $group['attributes']['name'],
+      'type' => ucwords(str_replace('_', ' ', $group['attributes']['type'])),
+      'description' => $group['attributes']["description_{$lang}"] ?? $group['attributes']['description'],
+      'is_active' => $group['attributes']['active'],
+      'member_count' => $group['attributes']['active_member_count'],
+      'start_date' => $group['attributes']['start_date'],
+      'end_date' => $group['attributes']['end_date'],
+      'slug' => $group['attributes']['slug']
+    ];
+  }
+
+  return $formatted_groups;
+}
+
+/**
+ * Get formatted group data for display (legacy format for person groups)
  *
  * @param array $groups The groups data from the API
  * @return array|false Array of formatted group data or false if empty

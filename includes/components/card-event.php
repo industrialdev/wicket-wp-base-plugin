@@ -45,6 +45,7 @@ $event_day_number = tribe_get_start_date( $post_id, false, 'j' );
 $ticket_price = '';
 $login_link   = '';
 $tags         = [];
+$show_login_link = false;
 
 
 if ( class_exists( 'Tribe__Tickets__Tickets' ) ) {
@@ -98,7 +99,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	<div class="<?php echo implode( ' ', $classes ) ?>">
 		<?php if ( $member_only ) { ?>
 			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
-				<?php get_component( 'tag', [ 
+				<?php get_component( 'tag', [
 					'label'   => __( 'Members Only', 'wicket' ),
 					'icon'    => 'fa-regular fa-lock',
 					'link'    => '',
@@ -172,7 +173,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 			} ?>
 
 			<?php if ( $cta && $link ) {
-				get_component( 'button', [ 
+				get_component( 'button', [
 					'variant' => $cta,
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
@@ -185,7 +186,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 				<div class="card__topics">
 					<?php foreach ( $tags as $tag ) { ?>
 						<?php
-						get_component( 'tag', [ 
+						get_component( 'tag', [
 							'label' => $tag->name,
 							'link'  => get_term_link( $tag->term_id ),
 						] ); ?>
@@ -196,7 +197,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 
 		<?php if ( $image ) { ?>
 			<div class="<?php echo implode( ' ', $image_wrapper_classes ) ?>">
-				<?php get_component( 'image', [ 
+				<?php get_component( 'image', [
 					'id'           => $image['id'],
 					'alt'          => $image['alt'],
 					'aspect_ratio' => '3/2',

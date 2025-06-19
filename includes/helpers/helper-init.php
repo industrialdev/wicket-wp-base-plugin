@@ -7,11 +7,15 @@ defined('ABSPATH') || exit;
 
 // These files will be included at the end of the current file
 $wicket_helpers = [
+  'helper-general.php',
   'helper-legacy.php',
-  'helper-people.php',
+  'helper-persons.php',
   'helper-organizations.php',
   'helper-groups.php',
   'helper-touchpoints.php',
+  'helper-segments.php',
+  'helper-memberships.php',
+  'helper-multilang.php',
 ];
 
 /**

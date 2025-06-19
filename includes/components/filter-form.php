@@ -162,6 +162,10 @@ if ( ! empty( $pre_filter_categories ) ) {
 			if ( is_wp_error( $terms ) ) {
 				$terms = [];
 			}
+
+			// Modify Terms 
+			$terms = apply_filters( 'wicket_listing_filter_modify_terms', $terms, $taxonomy['slug'] ); 
+			
 			?>
 			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}"
 				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
@@ -169,7 +173,18 @@ if ( ! empty( $pre_filter_categories ) ) {
 					class="flex w-full gap-3 items-center">
 					<span
 						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-						<?php echo $taxonomy_obj->labels->singular_name; ?>
+						<?php
+							$tax_name = $taxonomy_obj->labels->singular_name;
+							
+							if(defined('ICL_LANGUAGE_CODE')) {
+								$lang = ICL_LANGUAGE_CODE;
+								if ($lang != 'en') {
+									$tax_name = apply_filters( 'wpml_translate_single_string', $tax_name, 'WordPress', "taxonomy singular name: $tax_name", $lang);
+								}
+							}
+
+							echo $tax_name; 
+						?>
 					</span>
 					<?php if ( $taxonomy['tooltip'] ) {
 						get_component( 'tooltip', [ 
@@ -288,6 +303,8 @@ if ( ! empty( $pre_filter_categories ) ) {
 			</div>
 			<?php
 		endforeach; ?>
+
+		<?php do_action( 'wicket_filter_form_before_date_range', $args ); ?>
 
 		<?php if ( ! $hide_date_filter ) : ?>
 			<div x-data="{open: true}"

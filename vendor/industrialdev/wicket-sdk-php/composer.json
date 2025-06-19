@@ -1,0 +1,31 @@
+{
+  "name": "industrialdev/wicket-sdk-php",
+  "description": "A PHP library for the Wicket Core API. https://wicket.io/technology",
+  "type": "php",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Scott Burlington",
+      "email": "sburlington@industrialagency.ca"
+    }
+  ],
+  "require": {
+    "guzzlehttp/guzzle": "^7.8",
+    "firebase/php-jwt": "^6.0",
+    "illuminate/support": "^10.33"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Wicket\\": "src"
+    }
+  },
+  "minimum-stability": "dev",
+  "config": {
+    "allow-plugins": {
+      "kylekatarnls/update-helper": true
+    }
+  }
+}

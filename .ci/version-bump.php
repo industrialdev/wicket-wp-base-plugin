@@ -5,8 +5,11 @@ class VersionBumper
 {
     private string $currentVersion;
     private array $filesToUpdate = [
-        'composer.json',
-        'wicket.php', // Wicket's Account Center plugin
+        'composer.json', // Main composer file
+        'wicket.php', // Wicket's Base plugin & Wicket's Memberships plugin
+        'style.css', // Wicket's Theme
+        'class-wicket-acc-main.php', // Wicket's Account Center plugin
+        'class-wicket-wp-gf.php', // Wicket's GF plugin
     ];
 
     /**
@@ -16,10 +19,7 @@ class VersionBumper
     public function __construct()
     {
         if (!$this->getCurrentVersion()) {
-            if (!$this->getCurrentVersionFromPHP()) {
-                echo "Error: Could not get version from either composer.json or plugin file.\n";
-                exit(1);
-            }
+            exit(1);
         }
     }
 
@@ -46,52 +46,11 @@ class VersionBumper
         }
 
         if (!isset($composerJson['version'])) {
-            echo "Note: No version field found in composer.json\n";
+            echo "Error: No version field found in composer.json\n";
             return false;
         }
 
         $this->currentVersion = $composerJson['version'];
-        return true;
-    }
-
-    /**
-     * Tries to read the current version from the Wicket plugin.
-     * If the file does not exist, or the version string is invalid, an error message is printed and the method returns false.
-     *
-     * @return bool
-     */
-    public function getCurrentVersionFromPHP(): bool
-    {
-        $pluginFile = '';
-
-        // Scan $filesToUpdate for a .php file
-        foreach ($this->filesToUpdate as $file) {
-            if (strpos($file, '.php') !== false) {
-                // Use this file
-                $pluginFile = $file;
-                break;
-            }
-        }
-
-        if ($pluginFile === '') {
-            echo "Error: No .php file found to read version from.\n";
-            return false;
-        }
-
-        // Get the version from the plugin header
-        $pluginContent = file_get_contents($pluginFile);
-        if ($pluginContent === false) {
-            echo "Error: Could not read plugin file.\n";
-            return false;
-        }
-
-        // Use regex to extract version
-        if (!preg_match('/\* Version:\s*([0-9.]+)/', $pluginContent, $matches)) {
-            echo "Error: Could not find version in plugin file.\n";
-            return false;
-        }
-
-        $this->currentVersion = $matches[1];
         return true;
     }
 
@@ -145,34 +104,55 @@ class VersionBumper
         switch ($extension) {
             case 'css':
                 // For CSS files, look for Version: X.X.X pattern
-                $pattern = '/Version:\s*' . $pattern . '/i';
+                $pattern = '/Version:\s*' . preg_quote($this->currentVersion, '/') . '/i';
                 $newContent = preg_replace($pattern, 'Version: ' . $newVersion, $content, -1, $count);
                 $updated = $count > 0;
                 break;
             case 'json':
                 // For JSON files, look for "version": "X.X.X" pattern
-                $pattern = '/"version":\s*"' . $pattern . '"/';
+                $pattern = '/"version":\s*"' . preg_quote($this->currentVersion, '/') . '"/';
                 $newContent = preg_replace($pattern, '"version": "' . $newVersion . '"', $content, -1, $count);
                 $updated = $count > 0;
                 break;
             case 'php':
-                // Try both patterns for PHP files
-                // Pattern 1: Version: X.X.X with possible multiple spaces
-                $pattern1 = '/(Version:)\s+' . $pattern . '/';
-                $newContent = preg_replace($pattern1, '$1 ' . $newVersion, $content, -1, $count1);
+                $updated = false;
+                $newContent = $content; // Default to original content
+                // Generic pattern for the version number part (numbers, letters, dots, hyphens)
+                $versionPatternPart = '[0-9a-zA-Z\\.-]+';
 
-                if ($count1 === 0) {
-                    // Pattern 2: Direct version number (fallback)
-                    $pattern2 = '/' . $pattern . '/';
-                    $newContent = preg_replace($pattern2, $newVersion, $content, -1, $count2);
-                    $updated = $count2 > 0;
-                } else {
+                // Pattern 1: For " * Version: X.X.X" in docblocks (typical WordPress plugin header)
+                // Replaces X.X.X with $newVersion, preserving the prefix.
+                $docblockPattern = '/(^\s*\*\s*Version:\s*)' . $versionPatternPart . '/m';
+                $tempContent = preg_replace($docblockPattern, '${1}' . $newVersion, $content, -1, $count1);
+
+                if ($count1 > 0) {
+                    $newContent = $tempContent;
                     $updated = true;
+                } else {
+                    // Pattern 2: For "Version: X.X.X" (plain header, not necessarily in docblock comment line start)
+                    // Replaces X.X.X with $newVersion, preserving the prefix.
+                    $plainHeaderPattern = '/(Version:\s*)' . $versionPatternPart . '/i'; // Case insensitive
+                    $tempContent = preg_replace($plainHeaderPattern, '${1}' . $newVersion, $content, -1, $count2);
+                    if ($count2 > 0) {
+                        $newContent = $tempContent;
+                        $updated = true;
+                    } else {
+                        // Pattern 3: Fallback to direct replacement of $this->currentVersion (from composer.json)
+                        // This handles cases where the version string is not in a standard "Version:" header
+                        // but was expected to be in sync with composer.json.
+                        $quotedCurrentVersion = preg_quote($this->currentVersion, '/');
+                        $directPattern = '/' . $quotedCurrentVersion . '/';
+                        $tempContent = preg_replace($directPattern, $newVersion, $content, -1, $count3);
+                        if ($count3 > 0) {
+                            $newContent = $tempContent;
+                            $updated = true;
+                        }
+                    }
                 }
                 break;
             default:
                 // For other files, do direct version replacement
-                $pattern = '/' . $pattern . '/';
+                $pattern = '/' . preg_quote($this->currentVersion, '/') . '/';
                 $newContent = preg_replace($pattern, $newVersion, $content, -1, $count);
                 $updated = $count > 0;
         }
@@ -219,12 +199,6 @@ class VersionBumper
 
         $successCount = 0;
         foreach ($this->filesToUpdate as $file) {
-            // Skip files that don't exist
-            if (!file_exists($file)) {
-                echo "Warning: File {$file} does not exist\n";
-                continue;
-            }
-
             if ($this->updateVersionInFile($file, $newVersion)) {
                 echo "Updated version in {$file}\n";
                 $successCount++;
@@ -237,7 +211,7 @@ class VersionBumper
         }
 
         if ($successCount !== count($this->filesToUpdate)) {
-            echo "Warning: Only {$successCount} out of " . count($this->filesToUpdate) . " files were updated\n";
+            echo "{$successCount} out of " . count($this->filesToUpdate) . " files were updated\n";
         }
 
         echo "Version bump completed: {$this->currentVersion} → {$newVersion}\n";
