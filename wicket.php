@@ -51,9 +51,7 @@ if (! class_exists('Wicket_Main')) {
             // Registration hook setting
             register_activation_hook(__FILE__, array($this, 'wicket_install_settings'));
 
-            // Load includes
-            //add_action('init', [$this, 'wicket_includes']); // We need to test this properly, before moving into a more WP way to load our functions and methods
-            $this->wicket_includes();
+            // Includes are loaded on the 'init' hook in the wicket_init() method.
 
             // Enqueue styles and scripts
             add_action('wp_enqueue_scripts', array('Wicket_Main', 'enqueue_plugin_styles'), 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
@@ -303,6 +301,8 @@ if (! class_exists('Wicket_Main')) {
             if (function_exists('load_plugin_textdomain')) {
                 load_plugin_textdomain('wicket', false, dirname(plugin_basename(__FILE__)) . '/languages/');
             }
+
+            $this->wicket_includes();
         }
     } // end Class Wicket_Main.
 
