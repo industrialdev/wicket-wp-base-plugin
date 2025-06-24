@@ -12,3 +12,6 @@ When running the wp-cassify plugin for SSO, you can bypass the SSO login if need
 https://localhost/wp/wp-login.php?wp_cassify_bypass=bypass
 
 Rarely do we recommend logging into a Wicket-powered site directly without going through SSO, but there might be cases when that is needed, such as to rescue a site or reconfigure SSO/Wicket plugin settings locally after bringing down a production DB.
+
+### Pantheon gotcha
+You will need to (when using wp-cassify) delete the mu-plugin "wp-native-php-sessions.php" as well as the folder "wp-native-php-sessions". This causes errors when trying to login
