@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.132
+ * Version: 2.0.133
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -97,7 +97,6 @@ if (! class_exists('Wicket_Main')) {
             // Include MDP Helpers
             include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
 
-
             // Include acf blocks
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-blocks.php';
 
@@ -120,6 +119,9 @@ if (! class_exists('Wicket_Main')) {
 
             // Include Mailtrap settings for stage
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
+
+            // Include Wicket MDP Schema Merge Tag Generator
+            include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
 
             // Include woo order touchpoints
             if (wicket_get_option('wicket_admin_settings_tp_woo_order') === '1') {
