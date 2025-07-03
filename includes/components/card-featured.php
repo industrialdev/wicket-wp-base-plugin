@@ -1,6 +1,7 @@
 <?php
 $defaults       = array(
 	'classes'        => [],
+	'post_id'        => '',
 	'post_type'      => '',
 	'content_type'   => '',
 	'title'          => '',
@@ -15,6 +16,7 @@ $defaults       = array(
 );
 $args           = wp_parse_args( $args, $defaults );
 $classes        = $args['classes'];
+$post_id        = $args['post_id'];
 $post_type      = $args['post_type'];
 $content_type   = $args['content_type'];
 $title          = $args['title'];
@@ -103,6 +105,8 @@ if ( $image_position === 'right' ) {
 					<?php } ?>
 				</a>
 			<?php } ?>
+
+			<?php do_action('wicket_card_featured_after_title', $args); ?>
 
 			<?php if ( $excerpt ) { ?>
 				<div class="component-card-featured__excerpt <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'leading-6' ?>">

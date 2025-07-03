@@ -67,6 +67,7 @@ if ( empty( $posts ) ) {
 
 				get_component( 'card-featured', [ 
 					'classes'        => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
+					'post_id'        => $post_id,
 					'title'          => get_the_title( $post_id ),
 					'image'          => $image,
 					'image_position' => 'top',
@@ -98,6 +99,7 @@ if ( empty( $posts ) ) {
 						}
 						get_component( 'card-featured', [ 
 							'classes'        => [ 'shadow-none' ],
+							'post_id'        => $post_id,
 							'title'          => get_the_title( $post_id ),
 							'image'          => $image,
 							'image_position' => 'right',
@@ -139,6 +141,7 @@ if ( empty( $posts ) ) {
 
 				get_component( 'card-featured', [ 
 					'classes'      => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
+					'post_id'      => $post_id,
 					'title'        => get_the_title( $post_id ),
 					'excerpt'      => ! $hide_excerpt ? get_the_excerpt( $post_id ) : '',
 					'image_position' => 'right',
