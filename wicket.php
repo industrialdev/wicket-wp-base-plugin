@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.135
+ * Version: 2.0.136
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -108,8 +108,10 @@ if (! class_exists('Wicket_Main')) {
             // Include wicket shortcodes
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
-            // Include internal API endpoints
-            include_once WICKET_PLUGIN_DIR . 'includes/wicket-internal-endpoints.php';
+
+// Include REST API endpoints
+include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
+
 
             // Include wicket components
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';

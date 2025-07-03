@@ -440,7 +440,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         $args = [
           'sort' => 'legal_name',
           'page' => [
-            'size' => 10,
+            'size' => 50,
           ],
         ];
 
