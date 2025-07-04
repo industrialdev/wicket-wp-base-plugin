@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.136
+ * Version: 2.0.137
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -109,8 +109,8 @@ if (! class_exists('Wicket_Main')) {
             include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
 
-// Include REST API endpoints
-include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
+            // Include REST API endpoints
+            include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
 
 
             // Include wicket components
@@ -213,10 +213,26 @@ include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
             $base_always_script_url  = WICKET_URL . 'assets/js/wicket_base.js';
             $base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
+            // Scripts and styles that get enqueued regardless of if the theme is wicket or not
+            wp_enqueue_script(
+                'wicket-plugin-alpine-script',
+                $alpine_scripts_url,
+                [],
+                filemtime($alpine_scripts_path)
+            );
+
+            wp_enqueue_script(
+                'wicket-plugin-base-always-script',
+                $base_always_script_url,
+                ['wicket-plugin-alpine-script'],
+                filemtime($base_always_script_path)
+            );
+
+            wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+
+            // Only on Wicket's theme v1
             if (str_contains(strtolower($theme_name), 'wicket')) {
-                if (defined('WICKET_WP_THEME_V2')) {
-                    //
-                } else {
+                if (!defined('WICKET_WP_THEME_V2')) {
                     // Wicket deprecated v1 theme is active, so just enqueue the compiled component styles
                     wp_enqueue_style(
                         'wicket-plugin-base-styles',
@@ -226,7 +242,10 @@ include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
                         'all'
                     );
                 }
-            } else {
+            }
+
+            // Only on non-Wicket themes
+            if (!str_contains(strtolower($theme_name), 'wicket')) {
                 // Wicket theme not in use, so enqueue the compiled component styles and
                 // the backup component Tailwind styles and Alpine
                 $use_legacy_styles       = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
@@ -281,12 +300,7 @@ include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
                 wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
                 wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
                 wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
-
             }
-
-            // Scripts and styles that get enqueued regardless of if the theme is wicket or not
-            wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
-
         }
 
         /**
