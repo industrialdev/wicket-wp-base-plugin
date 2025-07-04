@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.139
+ * Version: 2.0.140
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -213,17 +213,6 @@ if (! class_exists('Wicket_Main')) {
             $base_always_script_url  = WICKET_URL . 'assets/js/wicket_base.js';
             $base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
-            // Enqueue AlpineJS from CDN with 'defer' strategy to solve initialization warning.
-            wp_enqueue_script(
-                'alpine-js',
-                'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
-                [],
-                '3.14.9', // Using a specific version for stability
-                [
-                    'strategy' => 'defer'
-                ]
-            );
-
             wp_enqueue_script(
                 'wicket-plugin-base-always-script',
                 $base_always_script_url,
@@ -249,8 +238,7 @@ if (! class_exists('Wicket_Main')) {
 
             // Only on non-Wicket themes
             if (!str_contains(strtolower($theme_name), 'wicket')) {
-                // Wicket theme not in use, so enqueue the compiled component styles and
-                // the backup component Tailwind styles and Alpine
+                // Wicket theme not in use, so enqueue the compiled component styles
                 $use_legacy_styles       = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
 
                 if ($use_legacy_styles) {
@@ -289,14 +277,29 @@ if (! class_exists('Wicket_Main')) {
                 }
 
                 // Scripts and styles that always get enqueued when not using a wicket theme
-                wp_enqueue_script(
-                    'wicket-plugin-always-script',
-                    $base_always_script_url,
-                    array(),
-                    filemtime($base_always_script_path),
-                    array()
-                );
                 wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+
+                // Tailwind CSS CDN project
+                wp_enqueue_script(
+                    'wicket-plugin-tailwind-cdn',
+                    'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js',
+                    [],
+                    '3.4.10', // Using a specific version for stability
+                    [
+                        'strategy' => 'defer'
+                    ]
+                );
+
+                // Enqueue AlpineJS from CDN with 'defer' strategy to solve initialization warning.
+                wp_enqueue_script(
+                    'alpine-js',
+                    'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js',
+                    [],
+                    '3.14.9', // Using a specific version for stability
+                    [
+                        'strategy' => 'defer'
+                    ]
+                );
 
                 // Fontawesome
                 wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
