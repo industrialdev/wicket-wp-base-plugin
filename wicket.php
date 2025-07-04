@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.140
+ * Version: 2.0.141
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -280,15 +280,29 @@ if (! class_exists('Wicket_Main')) {
                 wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
 
                 // Tailwind CSS CDN project
-                wp_enqueue_script(
-                    'wicket-plugin-tailwind-cdn',
-                    'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js',
-                    [],
-                    '3.4.10', // Using a specific version for stability
-                    [
-                        'strategy' => 'defer'
-                    ]
-                );
+                $tailwindAllPlugins = false;
+
+                if (!$tailwindAllPlugins) {
+                    wp_enqueue_script(
+                        'wicket-plugin-tailwind-cdn',
+                        'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js',
+                        [],
+                        '3.4.10', // Using a specific version for stability
+                        [
+                            'strategy' => 'defer'
+                        ]
+                    );
+                } else {
+                    wp_enqueue_script(
+                        'wicket-plugin-tailwind-cdn',
+                        'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss-with-all-plugins.js',
+                        [],
+                        '3.4.10', // Using a specific version for stability
+                        [
+                            'strategy' => 'defer'
+                        ]
+                    );
+                }
 
                 // Enqueue AlpineJS from CDN with 'defer' strategy to solve initialization warning.
                 wp_enqueue_script(

@@ -1,0 +1,444 @@
+// General and global variables
+// Base variables with !default for module system compatibility
+$wicket-breakpoint-xl: 1536px;
+$wicket-breakpoint-lg-max: 1023px;
+$wicket-breakpoint-lg: 992px;
+$wicket-breakpoint-md: 768px;
+$wicket-breakpoint-sm: 576px;
+
+$font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-serif: Georgia, "Times New Roman", Times, serif !default;
+$font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace !default;
+
+$base-font-size: 1rem !default;
+$base-line-height: 1.5 !default;
+$base-font-weight: 400 !default;
+
+$font-weight-light: 300 !default;
+$font-weight-normal: 400 !default;
+$font-weight-medium: 500 !default;
+$font-weight-semibold: 600 !default;
+$font-weight-bold: 700 !default;
+$font-weight-extrabold: 800 !default;
+
+$letter-spacing-tight: -0.025em !default;
+$letter-spacing-normal: 0 !default;
+$letter-spacing-wide: 0.025em !default;
+
+// Typography Variables
+// Font families
+$font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-serif: Georgia, "Times New Roman", Times, serif !default;
+$font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace !default;
+
+// Base typography settings
+$base-font-size: 1rem !default;
+$base-line-height: 1.5 !default;
+$base-font-weight: 400 !default;
+
+// Font weights
+$font-weight-light: 300 !default;
+$font-weight-normal: 400 !default;
+$font-weight-medium: 500 !default;
+$font-weight-semibold: 600 !default;
+$font-weight-bold: 700 !default;
+$font-weight-extrabold: 800 !default;
+
+// Letter spacing
+$letter-spacing-tight: -0.025em !default;
+$letter-spacing-normal: 0 !default;
+$letter-spacing-wide: 0.025em !default;
+
+// Additional typography utilities will be generated from theme.json via the parseJsonTheme function
+:root {
+  --wicket-base-breakpoint-xl: 1536px;
+  --wicket-base-breakpoint-lg-max: 1023px;
+  --wicket-base-breakpoint-lg: 992px;
+  --wicket-base-breakpoint-md: 768px;
+  --wicket-base-breakpoint-sm: 576px;
+
+  --wicket-base-heading-3xl-font-size: clamp(2.5rem, 5vw, 3.25rem);
+  --wicket-base-heading-3xl-line-height: clamp(3rem, 5vw, 3.75rem);
+  --wicket-base-heading-3xl-font-weight-md: 700;
+  --wicket-base-heading-3xl-font-weight-sm: 700;
+  --wicket-base-heading-3xl-font-family: var(--font-family-name);
+
+  --wicket-base-heading-2xl-font-size: clamp(2.25rem, 5vw, 2.75rem);
+  --wicket-base-heading-2xl-line-height: clamp(2.75rem, 5vw, 3.25rem);
+  --wicket-base-heading-2xl-font-weight-md: 400;
+  --wicket-base-heading-2xl-font-weight-sm: 400;
+  --wicket-base-heading-2xl-font-family: var(--font-family-name);
+
+  --wicket-base-heading-xl-font-size: clamp(2rem, 5vw, 2.25rem);
+  --wicket-base-heading-xl-line-height: clamp(2.5rem, 5vw, 2.75rem);
+  --wicket-base-heading-xl-font-weight-md: 700;
+  --wicket-base-heading-xl-font-weight-sm: 700;
+  --wicket-base-heading-xl-font-family: var(--font-family-name);
+
+  --wicket-base-heading-lg-font-size: clamp(1.75rem, 5vw, 2rem);
+  --wicket-base-heading-lg-line-height: clamp(2.25rem, 5vw, 2.5rem);
+  --wicket-base-heading-lg-font-weight-md: 400;
+  --wicket-base-heading-lg-font-weight-sm: 400;
+  --wicket-base-heading-lg-font-family: var(--font-family-name);
+
+  --wicket-base-heading-md-font-size: clamp(1.5rem, 5vw, 1.75rem);
+  --wicket-base-heading-md-line-height: clamp(2rem, 5vw, 2.25rem);
+  --wicket-base-heading-md-font-weight-md: 700;
+  --wicket-base-heading-md-font-weight-sm: 700;
+  --wicket-base-heading-md-font-family: var(--font-family-name);
+
+  --wicket-base-heading-sm-font-size: clamp(1.25rem, 5vw, 1.5rem);
+  --wicket-base-heading-sm-line-height: clamp(1.75rem, 5vw, 2rem);
+  --wicket-base-heading-sm-font-weight-md: 700;
+  --wicket-base-heading-sm-font-weight-sm: 700;
+  --wicket-base-heading-sm-font-family: var(--font-family-name);
+
+  --wicket-base-heading-xs-font-size: clamp(1.125rem, 5vw, 1.25rem);
+  --wicket-base-heading-xs-line-height: clamp(1.625rem, 5vw, 1.75rem);
+  --wicket-base-heading-xs-font-weight-md: 700;
+  --wicket-base-heading-xs-font-weight-sm: 700;
+  --wicket-base-heading-xs-font-family: var(--font-family-name);
+
+  /* body-lg */
+  --wicket-base-body-lg-font-size: 1.25rem;
+  --wicket-base-body-lg-line-height: 1.75rem;
+  --wicket-base-body-lg-font-weight: 400;
+  --wicket-base-body-lg-font-family: var(--font-family-name);
+
+  /* body-md */
+  --wicket-base-body-md-font-size: 1rem;
+  --wicket-base-body-md-line-height: 1.5rem;
+  --wicket-base-body-md-font-weight: 400;
+  --wicket-base-body-md-font-family: var(--font-family-name);
+
+  /* body-sm */
+  --wicket-base-body-sm-font-size: 0.875rem;
+  --wicket-base-body-sm-line-height: 1.375rem;
+  --wicket-base-body-sm-font-weight: 400;
+  --wicket-base-body-sm-font-family: var(--font-family-name);
+
+  /* quote */
+  --wicket-base-quote-font-size: 1.5rem;
+  --wicket-base-quote-line-height: 2.25rem;
+  --wicket-base-quote-font-weight: 400;
+  --wicket-base-quote-font-family: var(--font-family-name);
+
+  /* placeholder */
+  --wicket-base-placeholder-font-size: 1rem;
+  --wicket-base-placeholder-line-height: 1.5rem;
+  --wicket-base-placeholder-font-weight: 400;
+  --wicket-base-placeholder-font-family: var(--font-family-name);
+
+  /* caption */
+  --wicket-base-caption-font-size: 0.875rem;
+  --wicket-base-caption-line-height: 1.375rem;
+  --wicket-base-caption-font-weight: 400;
+  --wicket-base-caption-font-family: var(--font-family-name);
+
+  /* button-label-lg */
+  --wicket-base-button-label-lg-font-size: 1.25rem;
+  --wicket-base-button-label-lg-line-height: 1.75rem;
+  --wicket-base-button-label-lg-font-weight: 700;
+  --wicket-base-button-label-lg-font-family: var(--font-family-name);
+
+  /* button-label-md */
+  --wicket-base-button-label-md-font-size: 1rem;
+  --wicket-base-button-label-md-line-height: 1.5rem;
+  --wicket-base-button-label-md-font-weight: 700;
+  --wicket-base-button-label-md-font-family: var(--font-family-name);
+
+  /* button-label-sm */
+  --wicket-base-button-label-sm-font-size: 0.875rem;
+  --wicket-base-button-label-sm-line-height: 1.375rem;
+  --wicket-base-button-label-sm-font-weight: 700;
+  --wicket-base-button-label-sm-font-family: var(--font-family-name);
+
+  /* form-label */
+  --wicket-base-form-label-font-size: 1rem;
+  --wicket-base-form-label-line-height: 1.5rem;
+  --wicket-base-form-label-font-weight: 700;
+  --wicket-base-form-label-font-family: var(--font-family-name);
+
+  /* date-label-md */
+  --wicket-base-date-label-md-font-size: 1rem;
+  --wicket-base-date-label-md-line-height: 1.5rem;
+  --wicket-base-date-label-md-font-weight: 400;
+  --wicket-base-date-label-md-font-family: var(--font-family-name);
+
+  /* date-label-sm */
+  --wicket-base-date-label-sm-font-size: 0.875rem;
+  --wicket-base-date-label-sm-line-height: 1.375rem;
+  --wicket-base-date-label-sm-font-weight: 400;
+  --wicket-base-date-label-sm-font-family: var(--font-family-name);
+
+  /* label-lg */
+  --wicket-base-label-lg-font-size: 1.25rem;
+  --wicket-base-label-lg-line-height: 1.75rem;
+  --wicket-base-label-lg-font-weight: 700;
+  --wicket-base-label-lg-font-family: var(--font-family-name);
+
+  /* label-md */
+  --wicket-base-label-md-font-size: 1rem;
+  --wicket-base-label-md-line-height: 1.5rem;
+  --wicket-base-label-md-font-weight: 700;
+  --wicket-base-label-md-font-family: var(--font-family-name);
+
+  /* label-sm */
+  --wicket-base-label-sm-font-size: 0.875rem;
+  --wicket-base-label-sm-line-height: 1.375rem;
+  --wicket-base-label-sm-font-weight: 700;
+  --wicket-base-label-sm-font-family: var(--font-family-name);
+}
+
+:root {
+  --wicket-base-text-content: #000000;
+  --wicket-base-text-content-reversed: #FFFFFF;
+  --wicket-base-text-content-secondary: #40739d;
+  --wicket-base-text-content-secondary-reversed: #fde4c6;
+  --wicket-base-interactive: #00447c;
+  --wicket-base-interactive-reversed: #FFFFFF;
+  --wicket-base-text-disabled: #7E7E7E;
+  --wicket-base-text-button-label: #003f73;
+  --wicket-base-text-button-label-reversed: #FFFFFF;
+  --wicket-base-text-accent: #00447c;
+  --wicket-base-text-accent-reversed: #fbc98e;
+  --wicket-base-text-label-1: #000000;
+  --wicket-base-text-label-2: #FFFFFF;
+  --wicket-base-text-tag: #000000;
+  --wicket-base-bg-body: #FFFFFF;
+  --wicket-base-bg-label: #ffc80a;
+  --wicket-base-bg-label-2: #00447c;
+  --wicket-base-bg-tag: #fff1c2;
+  --wicket-base-bg-interactive: #00447c;
+  --wicket-base-bg-interactive-reversed: #f7931d;
+  --wicket-base-bg-white: #FFFFFF;
+  --wicket-base-bg-card: #FFFFFF;
+  --wicket-base-bg-dark: #00447c;
+  --wicket-base-bg-dark-alternate: #00305a;
+  --wicket-base-bg-light: #ffffff;
+  --wicket-base-bg-light-alternate: #e5ecf2;
+  --wicket-base-bg-light-neutral: #f2f2f2;
+  --wicket-base-bg-image-overlay: rgba(0,68,124,0.85);
+  --wicket-base-bg-accent-dark: #00447c;
+  --wicket-base-bg-accent-light: #e5ecf2;
+  --wicket-base-bg-callout-1: #fde4c6;
+  --wicket-base-bg-callout-2: #e5ecf2;
+  --wicket-base-bg-disabled: #D3D4D6;
+  --wicket-base-highlight-light: #e5ecf2;
+  --wicket-base-highlight-dark: #00305a;
+  --wicket-base-status-active: #198754;
+  --wicket-base-status-inactive: #7B7F83;
+  --wicket-base-border-card: #f7931d;
+  --wicket-base-border-dark: #00447c;
+  --wicket-base-border-light: #e5e5e5;
+  --wicket-base-border-white: #FFFFFF;
+  --wicket-base-border-accent: #f7931d;
+  --wicket-base-border-interactive: #00447c;
+  --wicket-base-border-interactive-reversed: #FFFFFF;
+  --wicket-base-border-tag: #ffc80a;
+  --wicket-base-border-input-default: #80a1bd;
+  --wicket-base-border-disabled: #D3D4D6;
+  --wicket-base-state-info-primary: #f9ae56;
+  --wicket-base-state-info-primary-light: #fde4c6;
+  --wicket-base-state-info-secondary: #40739d;
+  --wicket-base-state-info-secondary-light: #e5ecf2;
+  --wicket-base-state-warning: #ffd647;
+  --wicket-base-state-warning-light: #fff1c2;
+  --wicket-base-state-error: #DC3545;
+  --wicket-base-state-error-light: #F5C2C7;
+  --wicket-base-state-success: #198754;
+  --wicket-base-state-success-light: #D1E7DD;
+  --wicket-base-table-header-bg: #00447c;
+  --wicket-base-table-header-label: #FFFFFF;
+  --wicket-base-table-row: #FFFFFF;
+  --wicket-base-table-row-alternate: #e5ecf2;
+  --wicket-base-table-row-border: #bfbfbf;
+  --wicket-base-table-footer-bg: #404040;
+  --wicket-base-table-footer-label: #FFFFFF;
+  --wicket-base-nav-contextual-title: #000000;
+  --wicket-base-nav-contextual-link-lvl-1: #00447c;
+  --wicket-base-nav-contextual-sublink: #000000;
+  --wicket-base-dropshadow: rgba(0,0,0,0.2);
+  --wicket-base-modal-bg-overlay: rgba(0,68,124,0.9);
+  --wicket-base-border-sm: 1px;
+  --wicket-base-border-md: 2px;
+  --wicket-base-border-lg: 4px;
+  --wicket-base-border-interactive-sm: 1px;
+  --wicket-base-border-interactive-md: 2px;
+  --wicket-base-border-interactive-lg: 4px;
+  --wicket-base-border-alert: 4px;
+  --wicket-base-border-call-out: 1px;
+  --wicket-base-border-main-nav-top: 0px;
+  --wicket-base-border-footer-top: 1px;
+  --wicket-base-border-main-nav-bottom: 0px;
+  --wicket-base-border-card-size: 4px;
+  --wicket-base-border-tag-size: 2px;
+  --wicket-base-border-dynamic-card: 0px;
+  --wicket-base-border-listing-card: 0px;
+  --wicket-base-border-featured-card: 1px;
+  --wicket-base-border-banner-bottom: 1px;
+  --wicket-base-border-footer-social: 2px;
+  --wicket-base-border-footer-divider: 1px;
+  --wicket-base-space-0: 0px;
+  --wicket-base-space-025: 2px;
+  --wicket-base-space-050: 4px;
+  --wicket-base-space-075: 6px;
+  --wicket-base-space-100: 8px;
+  --wicket-base-space-150: 12px;
+  --wicket-base-space-200: 16px;
+  --wicket-base-space-250: 20px;
+  --wicket-base-space-300: 24px;
+  --wicket-base-space-400: 32px;
+  --wicket-base-space-500: 40px;
+  --wicket-base-space-600: 48px;
+  --wicket-base-space-800: 64px;
+  --wicket-base-space-1000: 80px;
+  --wicket-base-card-corner-radius: 0px;
+  --wicket-base-interactive-corner-radius-lg: 8px;
+  --wicket-base-interactive-corner-radius-md: 4px;
+  --wicket-base-image-corner-radius: 0px;
+  --wicket-base-card-accent-corner-radius: 16px;
+  --wicket-base-label-corner-radius: 4px;
+  --wicket-base-tag-corner-radius: 2px;
+  --wicket-base-input-fields-corner-radius-md: 4px;
+  --wicket-base-input-fields-corner-radius-sm: 2px;
+  --wicket-base-alerts-corner-radius: 0px;
+  --wicket-base-dropdown-mega-corner-radius: 0px;
+  --wicket-base-main-menu-highlight-radius: 0px;
+  --wicket-base-nav-links-highlight-radius: 4px;
+  --wicket-base-banner-radius: 0px;
+  --wicket-base-social-media-radius: 100px;
+  --wicket-base-elevation-4: 0 4px 8px var(--wicket-base-dropshadow);
+  --wicket-base-elevation-8: 0 8px 12px var(--wicket-base-dropshadow);
+  --wicket-base-elevation-12: 0 12px 12px var(--wicket-base-dropshadow);
+  --wicket-base-nav-main-bg: #FFFFFF;
+  --wicket-base-nav-main-border: #e5e5e5;
+  --wicket-base-nav-main-label: #000000;
+  --wicket-base-nav-main-highlight: #ffffff;
+  --wicket-base-nav-main-border-interactive: #f7931d;
+  --wicket-base-nav-secondary-label: #00447c;
+  --wicket-base-dropdown-mega-bg: #FFFFFF;
+  --wicket-base-dropdown-mega-heading-link: #00447c;
+  --wicket-base-dropdown-mega-link: #00447c;
+  --wicket-base-dropdown-mega-bg-highlight: #e5ecf2;
+  --wicket-base-nav-utility-bg: #00447c;
+  --wicket-base-nav-utility-label: #FFFFFF;
+  --wicket-base-nav-utility-bg-highlight: #40739d;
+  --wicket-base-nav-footer-bg: #00447c;
+  --wicket-base-nav-footer-title: #bfd0de;
+  --wicket-base-nav-footer-sublink: #FFFFFF;
+  --wicket-base-nav-footer-border: #40739d;
+  --wicket-base-nav-footer-border-top: #00447c;
+  --wicket-base-nav-footer-social-bg: #f7931d;
+  --wicket-base-nav-footer-social-text: #003f73;
+  --wicket-base-nav-footer-social-text-hover: #FFFFFF;
+  --wicket-base-nav-footer-social-border-hover: #f7931d;
+  --wicket-base-nav-footer-text-content: #FFFFFF;
+  --wicket-base-nav-footer-text-interactive: #FFFFFF;
+  --wicket-base-nav-footer-newsletter-bg: #00305a;
+  --wicket-base-nav-footer-newsletter-text-content: #FFFFFF;
+  --wicket-base-font-family-name: Roboto,serif;
+}
+
+:root {
+  --wicket-base-size-1px: 0.0625rem;
+  --wicket-base-size-2px: 0.1250rem;
+  --wicket-base-size-3px: 0.1875rem;
+  --wicket-base-size-4px: 0.2500rem;
+  --wicket-base-size-5px: 0.3125rem;
+  --wicket-base-size-6px: 0.3750rem;
+  --wicket-base-size-7px: 0.4375rem;
+  --wicket-base-size-8px: 0.5000rem;
+  --wicket-base-size-9px: 0.5625rem;
+  --wicket-base-size-10px: 0.6250rem;
+  --wicket-base-size-11px: 0.6875rem;
+  --wicket-base-size-12px: 0.7500rem;
+  --wicket-base-size-13px: 0.8125rem;
+  --wicket-base-size-14px: 0.8750rem;
+  --wicket-base-size-15px: 0.9375rem;
+  --wicket-base-size-16px: 1.0000rem;
+  --wicket-base-size-17px: 1.0625rem;
+  --wicket-base-size-18px: 1.1250rem;
+  --wicket-base-size-19px: 1.1875rem;
+  --wicket-base-size-20px: 1.2500rem;
+  --wicket-base-size-21px: 1.3125rem;
+  --wicket-base-size-22px: 1.3750rem;
+  --wicket-base-size-23px: 1.4375rem;
+  --wicket-base-size-24px: 1.5000rem;
+  --wicket-base-size-25px: 1.5625rem;
+  --wicket-base-size-26px: 1.6250rem;
+  --wicket-base-size-27px: 1.6875rem;
+  --wicket-base-size-28px: 1.7500rem;
+  --wicket-base-size-29px: 1.8125rem;
+  --wicket-base-size-30px: 1.8750rem;
+  --wicket-base-size-31px: 1.9375rem;
+  --wicket-base-size-32px: 2.0000rem;
+  --wicket-base-size-33px: 2.0625rem;
+  --wicket-base-size-34px: 2.1250rem;
+  --wicket-base-size-35px: 2.1875rem;
+  --wicket-base-size-36px: 2.2500rem;
+  --wicket-base-size-37px: 2.3125rem;
+  --wicket-base-size-38px: 2.3750rem;
+  --wicket-base-size-39px: 2.4375rem;
+  --wicket-base-size-40px: 2.5000rem;
+  --wicket-base-size-41px: 2.5625rem;
+  --wicket-base-size-42px: 2.6250rem;
+  --wicket-base-size-43px: 2.6875rem;
+  --wicket-base-size-44px: 2.7500rem;
+  --wicket-base-size-45px: 2.8125rem;
+  --wicket-base-size-46px: 2.8750rem;
+  --wicket-base-size-47px: 2.9375rem;
+  --wicket-base-size-48px: 3.0000rem;
+  --wicket-base-size-49px: 3.0625rem;
+  --wicket-base-size-50px: 3.1250rem;
+  --wicket-base-size-51px: 3.1875rem;
+  --wicket-base-size-52px: 3.2500rem;
+  --wicket-base-size-53px: 3.3125rem;
+  --wicket-base-size-54px: 3.3750rem;
+  --wicket-base-size-55px: 3.4375rem;
+  --wicket-base-size-56px: 3.5000rem;
+  --wicket-base-size-57px: 3.5625rem;
+  --wicket-base-size-58px: 3.6250rem;
+  --wicket-base-size-59px: 3.6875rem;
+  --wicket-base-size-60px: 3.7500rem;
+  --wicket-base-size-61px: 3.8125rem;
+  --wicket-base-size-62px: 3.8750rem;
+  --wicket-base-size-63px: 3.9375rem;
+  --wicket-base-size-64px: 4.0000rem;
+  --wicket-base-size-65px: 4.0625rem;
+  --wicket-base-size-66px: 4.1250rem;
+  --wicket-base-size-67px: 4.1875rem;
+  --wicket-base-size-68px: 4.2500rem;
+  --wicket-base-size-69px: 4.3125rem;
+  --wicket-base-size-70px: 4.3750rem;
+  --wicket-base-size-71px: 4.4375rem;
+  --wicket-base-size-72px: 4.5000rem;
+  --wicket-base-size-73px: 4.5625rem;
+  --wicket-base-size-74px: 4.6250rem;
+  --wicket-base-size-75px: 4.6875rem;
+  --wicket-base-size-76px: 4.7500rem;
+  --wicket-base-size-77px: 4.8125rem;
+  --wicket-base-size-78px: 4.8750rem;
+  --wicket-base-size-79px: 4.9375rem;
+  --wicket-base-size-80px: 5.0000rem;
+  --wicket-base-size-81px: 5.0625rem;
+  --wicket-base-size-82px: 5.1250rem;
+  --wicket-base-size-83px: 5.1875rem;
+  --wicket-base-size-84px: 5.2500rem;
+  --wicket-base-size-85px: 5.3125rem;
+  --wicket-base-size-86px: 5.3750rem;
+  --wicket-base-size-87px: 5.4375rem;
+  --wicket-base-size-88px: 5.5000rem;
+  --wicket-base-size-89px: 5.5625rem;
+  --wicket-base-size-90px: 5.6250rem;
+  --wicket-base-size-91px: 5.6875rem;
+  --wicket-base-size-92px: 5.7500rem;
+  --wicket-base-size-93px: 5.8125rem;
+  --wicket-base-size-94px: 5.8750rem;
+  --wicket-base-size-95px: 5.9375rem;
+  --wicket-base-size-96px: 6.0000rem;
+  --wicket-base-size-97px: 6.0625rem;
+  --wicket-base-size-98px: 6.1250rem;
+  --wicket-base-size-99px: 6.1875rem;
+  --wicket-base-size-100px: 6.2500rem;
+}
