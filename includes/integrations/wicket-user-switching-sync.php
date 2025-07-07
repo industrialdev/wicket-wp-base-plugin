@@ -28,7 +28,9 @@ $maybe_run_sync = function () {
   if ( false === get_transient( $transient_key ) ) {
 
     $user = wp_get_current_user();
-    sync_wicket_data_for_person( $user->user_login );
+    if (is_string($user->user_login) && (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $user->user_login) == 1)) {
+      sync_wicket_data_for_person($user->user_login);
+    }   
 
     // Keep the flag for 12 hours (long enough for most sessions).
     set_transient( $transient_key, 1, 12 * HOUR_IN_SECONDS );
