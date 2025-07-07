@@ -31,10 +31,15 @@ class wicket_create_account extends WP_Widget
 				'customize_selective_refresh' => true,
 			)
 		);
-		// only run this when there's a form submission
-		if (isset($_POST['wicket_create_account'])) {
-			add_action('init', array($this, 'process_wicket_create_account_form'));
-		}
+	}
+
+	public static function init() {
+		add_action('init', function () {
+			if (isset($_POST['wicket_create_account'])) {
+				$widget = new self();
+				$widget->process_wicket_create_account_form();
+			}
+		});
 	}
 
 	public function form($instance)
@@ -51,9 +56,14 @@ class wicket_create_account extends WP_Widget
 	public function widget($args, $instance)
 	{
 		$client = wicket_api_client();
-		$result = '';
 		if (!$client) {
-			// if the API isn't up, just stop here
+			// If the API isn't up, display an error to admins.
+
+				echo '<div class="alert alert-danger" role="alert">';
+				echo '<strong>' . __('Wicket Block Error:', 'wicket') . '</strong> ';
+				echo __('Wicket API credentials are not configured. Please define them in your configuration to enable this block.', 'wicket');
+				echo '</div>';
+
 			return;
 		}
 		$this->build_form();
@@ -177,7 +187,7 @@ class wicket_create_account extends WP_Widget
 
 			// don't send anything if errors
 			if (empty($errors)) {
-			
+
 				$new_person = wicket_create_person($first_name, $last_name, $email, $password, $password_confirmation);
 
 				if(isset($new_person['errors'])) {
@@ -193,7 +203,7 @@ class wicket_create_account extends WP_Widget
 										'user' => [
 											'password' => $password,
 											'password_confirmation' => $password_confirmation
-										] 
+										]
 									]
 								]
 							];
@@ -229,8 +239,13 @@ class wicket_create_account extends WP_Widget
 
 	private function build_form()
 	{
+		if (!isset($_POST['wicket_create_account'])) {
+			if (isset($_SESSION['wicket_create_account_form_errors'])) {
+				unset($_SESSION['wicket_create_account_form_errors']);
+			}
+		}
 ?>
-	<div class="wicket-base-plugin-form" >
+	<div class="wicket-base-plugin-form">
 		<script src='https://www.google.com/recaptcha/api.js?hl=en'></script>
 		<?php if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) : ?>
 			<div class='alert alert-danger' role="alert">
@@ -367,7 +382,7 @@ class wicket_create_account extends WP_Widget
 			<input type="hidden" name="wicket_create_account" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 
 			<?php
-				get_component( 'button', [ 
+				get_component( 'button', [
 					'label'    => __('Submit', 'wicket'),
 					'type'    => 'submit',
 					'variant' => 'primary'
@@ -378,13 +393,3 @@ class wicket_create_account extends WP_Widget
 <?php
 	}
 }
-
-/*
- * Register the Create Account Widget
- *
- */
-function register_custom_widget_wicket_create_account()
-{
-	register_widget('wicket_create_account');
-}
-add_action('widgets_init', 'register_custom_widget_wicket_create_account');

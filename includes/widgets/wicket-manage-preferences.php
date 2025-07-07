@@ -7,48 +7,6 @@
 
 use Wicket\Client;
 
-function process_wicket_preferences_form() {
-	if (isset($_POST['wicket_preferences'])){
-		if(!session_id()) session_start();
-		
-		$client = wicket_api_client_current_user();
-
-		/**------------------------------------------------------------------
-		* Process preference data
-		------------------------------------------------------------------*/
-		$person = wicket_current_person();
-		$language = isset($_POST['language']) ? strtoupper($_POST['language']) : '';
-	  $email = isset($_POST['email']) && $_POST['email'] == true ? true : false;
-	  $email_third_party = isset($_POST['email_third_party']) && $_POST['email_third_party'] == true ? true : false;
-
-		$update_array = [];
-	  $update_array['data']['communications']['email'] = $email;
-	  $update_array['data']['communications']['sublists']['one'] = $email_third_party;
-	  $update_array['language'] = $language;
-
-	  $update_user = new Wicket\Entities\People($update_array);
-	  $update_user->id = $person->id;
-	  $update_user->type = $person->type;
-
-		try {
-			$client->people->update($update_user);
-		} catch (Exception $e) {
-			$_SESSION['wicket_preferences_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
-		}
-		// redirect here if there was updates made to reload person info and prevent form re-submission
-		if (empty($_SESSION['wicket_preferences_form_errors'])) {
-			unset($_SESSION['wicket_preferences_form_errors']);
-			header('Location: '.strtok($_SERVER["REQUEST_URI"],'?').'?success');
-			die;
-		}
-	} else if (isset($_SESSION['wicket_preferences_form_errors'])) {
-		unset($_SESSION['wicket_preferences_form_errors']);
-	}
-}
-add_action('init', 'process_wicket_preferences_form');
-
-
-
 // The widget class
 // http://www.wpexplorer.com/create-widget-plugin-wordpress
 class wicket_preferences extends WP_Widget {
@@ -80,15 +38,68 @@ class wicket_preferences extends WP_Widget {
 	{
 		$client = wicket_api_client_current_user();
 		$result = '';
-		if (!$client) {
-			// if the API isn't up, just stop here
-			return;
+			if ( !$client ) {
+				// if the API isn't up, just stop here
+				return;
+			}
+			$this->build_form();
+	}
+
+	public static function init() {
+		add_action('init', function () {
+			if (isset($_POST['wicket_preferences'])) {
+				$widget = new self();
+				$widget->process_form();
+			}
+		});
+	}
+
+	private function process_form() {
+		if (isset($_POST['wicket_preferences'])){
+			if(!session_id()) session_start();
+
+			$client = wicket_api_client_current_user();
+
+			/**------------------------------------------------------------------
+			* Process preference data
+			------------------------------------------------------------------*/
+			$person = wicket_current_person();
+			$language = isset($_POST['language']) ? strtoupper($_POST['language']) : '';
+		$email = isset($_POST['email']) && $_POST['email'] == true ? true : false;
+		$email_third_party = isset($_POST['email_third_party']) && $_POST['email_third_party'] == true ? true : false;
+
+			$update_array = [];
+		$update_array['data']['communications']['email'] = $email;
+		$update_array['data']['communications']['sublists']['one'] = $email_third_party;
+		$update_array['language'] = $language;
+
+		$update_user = new Wicket\Entities\People($update_array);
+		$update_user->id = $person->id;
+		$update_user->type = $person->type;
+
+			try {
+				$client->people->update($update_user);
+			} catch (Exception $e) {
+				$_SESSION['wicket_preferences_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+			}
+			// redirect here if there was updates made to reload person info and prevent form re-submission
+			if (empty($_SESSION['wicket_preferences_form_errors'])) {
+				unset($_SESSION['wicket_preferences_form_errors']);
+				header('Location: '.strtok($_SERVER["REQUEST_URI"],'?').'?success');
+				die;
+			}
+		} else if (isset($_SESSION['wicket_preferences_form_errors'])) {
+			unset($_SESSION['wicket_preferences_form_errors']);
 		}
-		$this->build_form();
 	}
 
 	private function build_form()
 	{
+		if (!isset($_POST['wicket_preferences'])) {
+			if (isset($_SESSION['wicket_preferences_form_errors'])) {
+				unset($_SESSION['wicket_preferences_form_errors']);
+			}
+		}
 		$person = wicket_current_person();
 		?>
 		<?php if(isset($_GET['success'])): ?>
@@ -134,7 +145,7 @@ class wicket_preferences extends WP_Widget {
 			<input type="hidden" name="wicket_preferences" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 
 			<?php
-				get_component( 'button', [ 
+				get_component( 'button', [
 					'label'    => __('Update Preferences'),
 					'type'    => 'submit',
 					'variant' => 'primary'
@@ -145,11 +156,3 @@ class wicket_preferences extends WP_Widget {
 	}
 
 }
-
-
-
-// Register the widget
-function register_custom_widget_wicket_preferences() {
-	register_widget('wicket_preferences');
-}
-add_action('widgets_init', 'register_custom_widget_wicket_preferences');

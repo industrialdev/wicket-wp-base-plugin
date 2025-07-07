@@ -7,79 +7,6 @@
 
 use Wicket\Client;
 
-function process_wicket_password_form() {
-	$errors = [];
-	if (isset($_POST['wicket_update_password'])){
-		if(!session_id()) session_start();
-		
-		$client = wicket_api_client_current_user();
-		$person = wicket_current_person();
-
-		/**------------------------------------------------------------------
-		* Update Password
-		------------------------------------------------------------------*/
-		$current_password = isset($_POST['current_password']) ? $_POST['current_password'] : '';
-		$password = isset($_POST['password']) ? $_POST['password'] : '';
-		$password_confirmation = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
-
-		if ($current_password == '') {
-			$current_pass_blank = [];
-			$current_pass_blank['meta'] = (object)['field' => 'user.current_password'];
-			$current_pass_blank['title'] = __("can't be blank");
-			$errors[] = (object)$current_pass_blank;
-		}
-		if ($password == '') {
-			$pass_blank = [];
-			$pass_blank['meta'] = (object)['field' => 'user.password'];
-			$pass_blank['title'] = __("can't be blank");
-			$errors[] = (object)$pass_blank;
-		}
-		if ($password_confirmation == '') {
-			$confirm_pass_blank = [];
-			$confirm_pass_blank['meta'] = (object)['field' => 'user.password_confirmation'];
-			$confirm_pass_blank['title'] = __("can't be blank");
-			$errors[] = (object)$confirm_pass_blank;
-		}
-		if ($password_confirmation != $password) {
-			$pass_blank = [];
-			$pass_blank['meta'] = (object)['field' => 'user.password'];
-			$pass_blank['title'] = __(" - Passwords do not match");
-			$errors[] = (object)$pass_blank;
-		}
-		$_SESSION['wicket_password_form_errors'] = $errors;
-
-		// don't send anything if errors
-		if (empty($errors)) {
-			$update_user = new Wicket\Entities\People([
-				'user' => [
-					'current_password' => $current_password,
-					'password' => $password,
-					'password_confirmation' => $password_confirmation
-				 ]
-			]);
-			$update_user->id = $person->id;
-			$update_user->type = $person->type;
-
-			try {
-				$client->people->update($update_user);
-			} catch (Exception $e) {
-				$_SESSION['wicket_password_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
-			}
-			// redirect here if there was updates made to reload person info and prevent form re-submission
-			if (empty($_SESSION['wicket_password_form_errors'])) {
-				unset($_SESSION['wicket_password_form_errors']);
-				header('Location: '.strtok($_SERVER["REQUEST_URI"],'?').'?success');
-				die;
-			}
-		}
-	} else if(isset($_SESSION['wicket_password_form_errors'])) {
-		unset($_SESSION['wicket_password_form_errors']);
-	}
-}
-add_action('init', 'process_wicket_password_form');
-
-
-
 // The widget class
 // http://www.wpexplorer.com/create-widget-plugin-wordpress
 class wicket_update_password extends WP_Widget {
@@ -109,7 +36,91 @@ class wicket_update_password extends WP_Widget {
 	// Display the widget
 	public function widget($args, $instance)
 	{
+		$client = wicket_api_client_current_user();
+		if (!$client) {
+			// if the API isn't up, just stop here
+			return;
+		}
 		$this->build_form();
+	}
+
+	public static function init() {
+		add_action('init', function () {
+			if (isset($_POST['wicket_update_password'])) {
+				$widget = new self();
+				$widget->process_form();
+			}
+		});
+	}
+
+	private function process_form() {
+		$errors = [];
+		if (isset($_POST['wicket_update_password'])){
+			if(!session_id()) session_start();
+
+			$client = wicket_api_client_current_user();
+			$person = wicket_current_person();
+
+			/**------------------------------------------------------------------
+			* Update Password
+			------------------------------------------------------------------*/
+			$current_password = isset($_POST['current_password']) ? $_POST['current_password'] : '';
+			$password = isset($_POST['password']) ? $_POST['password'] : '';
+			$password_confirmation = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
+
+			if ($current_password == '') {
+				$current_pass_blank = [];
+				$current_pass_blank['meta'] = (object)['field' => 'user.current_password'];
+				$current_pass_blank['title'] = __("can't be blank");
+				$errors[] = (object)$current_pass_blank;
+			}
+			if ($password == '') {
+				$pass_blank = [];
+				$pass_blank['meta'] = (object)['field' => 'user.password'];
+				$pass_blank['title'] = __("can't be blank");
+				$errors[] = (object)$pass_blank;
+			}
+			if ($password_confirmation == '') {
+				$confirm_pass_blank = [];
+				$confirm_pass_blank['meta'] = (object)['field' => 'user.password_confirmation'];
+				$confirm_pass_blank['title'] = __("can't be blank");
+				$errors[] = (object)$confirm_pass_blank;
+			}
+			if ($password_confirmation != $password) {
+				$pass_blank = [];
+				$pass_blank['meta'] = (object)['field' => 'user.password'];
+				$pass_blank['title'] = __(" - Passwords do not match");
+				$errors[] = (object)$pass_blank;
+			}
+			$_SESSION['wicket_password_form_errors'] = $errors;
+
+			// don't send anything if errors
+			if (empty($errors)) {
+				$update_user = new Wicket\Entities\People([
+					'user' => [
+						'current_password' => $current_password,
+						'password' => $password,
+						'password_confirmation' => $password_confirmation
+					 ]
+				]);
+				$update_user->id = $person->id;
+				$update_user->type = $person->type;
+
+				try {
+					$client->people->update($update_user);
+				} catch (Exception $e) {
+					$_SESSION['wicket_password_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+				}
+				// redirect here if there was updates made to reload person info and prevent form re-submission
+				if (empty($_SESSION['wicket_password_form_errors'])) {
+					unset($_SESSION['wicket_password_form_errors']);
+					header('Location: '.strtok($_SERVER["REQUEST_URI"],'?').'?success');
+					die;
+				}
+			}
+		} else if(isset($_SESSION['wicket_password_form_errors'])) {
+			unset($_SESSION['wicket_password_form_errors']);
+		}
 	}
 
 	private function build_form()
@@ -202,9 +213,9 @@ class wicket_update_password extends WP_Widget {
 			</div>
 
 		  <input type="hidden" name="wicket_update_password" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
-			
+
 			<?php
-				get_component( 'button', [ 
+				get_component( 'button', [
 					'label'    => __('Change password'),
 					'type'    => 'submit',
 					'variant' => 'primary'
@@ -215,11 +226,3 @@ class wicket_update_password extends WP_Widget {
 	}
 
 }
-
-
-
-// Register the widget
-function register_custom_widget_wicket_update_password() {
-	register_widget('wicket_update_password');
-}
-add_action('widgets_init', 'register_custom_widget_wicket_update_password');
