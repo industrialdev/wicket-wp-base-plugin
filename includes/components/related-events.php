@@ -106,7 +106,7 @@ if ( $highlight_featured_posts ) {
 	if ( ! function_exists( 'tribe_get_events' ) ) {
 		return;
 	}
-	$sticky_posts   = tribe_get_events( [ 
+	$sticky_posts   = tribe_get_events( [
 		'start_date'     => 'now',
 		'posts_per_page' => 8,
 		'featured'       => true,
@@ -179,7 +179,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [ 
+						$image = [
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -187,7 +187,7 @@ if ( $highlight_featured_posts ) {
 
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
-					get_component( 'card-event', [ 
+					get_component( 'card-event', [
 						'classes'      => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4', 'mb-4' ],
 						'post_type'    => $post_type,
 						'content_type' => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
@@ -201,6 +201,7 @@ if ( $highlight_featured_posts ) {
 						'cta_label'    => $cta_label,
 						'show_tags'    => $show_tags,
 						'tag_taxonomy' => $tag_taxonomy,
+						'hide_price'   => $hide_price,
 					] );
 				}
 				?>
@@ -222,7 +223,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [ 
+						$image = [
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -230,7 +231,7 @@ if ( $highlight_featured_posts ) {
 
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
-					get_component( 'card-event', [ 
+					get_component( 'card-event', [
 						'classes'                    => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4' ],
 						'post_id'                    => $post_id,
 						'hide_excerpt'               => $hide_excerpt,
@@ -244,6 +245,7 @@ if ( $highlight_featured_posts ) {
 						'remove_drop_shadow'         => $remove_drop_shadow,
 						'show_tags'                  => $show_tags,
 						'tag_taxonomy'               => $tag_taxonomy,
+						'hide_price'                 => $hide_price,
 					] );
 				}
 				wp_reset_postdata();
@@ -255,7 +257,7 @@ if ( $highlight_featured_posts ) {
 <?php elseif ( is_admin() ) : ?>
 	<div class="container">
 		<?php
-		get_component( 'alert', [ 
+		get_component( 'alert', [
 			'content' => __( 'No related posts found.', 'wicket' ),
 		] );
 		?>
