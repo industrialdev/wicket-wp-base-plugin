@@ -1,6 +1,8 @@
 /* HELPERS
 ------------------------------------------------------------------------------*/
+@import 'helpers/variables';
 @import 'helpers/mixins';
+@import 'helpers/alpinejs';
 
 /* THEME COMPONENTS
 ------------------------------------------------------------------------------*/
@@ -13,8 +15,4 @@
 @import 'components/footer';
 @import 'components/product-card';
 @import 'components/forms';
-
-/* AlpineJS Helpers */
-[x-cloak] {
-  display: none !important;
-}
+@import 'components/org-search-select';

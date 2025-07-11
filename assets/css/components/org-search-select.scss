@@ -1,0 +1,405 @@
+// Component styling
+.component-org-search-select {
+  font-family: var(--wicket-base-font-family-name);
+  width: 100%;
+
+  // Main container
+  &.container {
+    position: relative;
+    max-width: 100%;
+  }
+
+  // Loading overlay
+  &__loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 10;
+
+    .fa-arrows-rotate {
+      font-size: var(--wicket-base-heading-xl-font-size);
+      color: var(--wicket-base-text-content-secondary);
+    }
+  }
+
+  // Generic Popup/Modal Styles
+  &__confirmation-popup,
+  &__active-membership-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--wicket-base-modal-bg-overlay);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: var(--wicket-base-space-200);
+  }
+
+  &__confirmation-popup-content,
+  &__active-membership-alert-content {
+    background-color: var(--wicket-base-bg-white);
+    padding: var(--wicket-base-space-400);
+    border-radius: var(--wicket-base-interactive-corner-radius-lg);
+    border: var(--wicket-base-border-sm) solid var(--wicket-base-border-light);
+    box-shadow: var(--wicket-base-elevation-12);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wicket-base-space-200);
+    text-align: center;
+  }
+
+  &__confirmation-popup-header,
+  &__active-membership-alert-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__confirmation-popup-close-button,
+  &__active-membership-alert-close-button {
+    background: none;
+    border: none;
+    font-size: var(--wicket-base-body-lg-font-size);
+    font-weight: var(--wicket-base-font-weight-semibold);
+    cursor: pointer;
+    color: var(--wicket-base-text-content-secondary);
+
+    &:hover {
+      color: var(--wicket-base-text-content);
+    }
+  }
+
+  &__confirmation-popup-title,
+  &__active-membership-alert-title {
+    font-size: var(--wicket-base-heading-md-font-size);
+    font-weight: var(--wicket-base-heading-md-font-weight-md);
+  }
+
+  &__confirmation-popup-body,
+  &__active-membership-alert-body {
+    font-size: var(--wicket-base-body-md-font-size);
+    line-height: var(--wicket-base-body-md-line-height);
+    margin-bottom: var(--wicket-base-space-200);
+  }
+
+  &__confirmation-popup-actions,
+  &__active-membership-alert-actions {
+    display: flex;
+    gap: var(--wicket-base-space-200);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  // Search form container
+  &__search-form {
+    padding: var(--wicket-base-space-300);
+    border-radius: var(--wicket-base-interactive-corner-radius-lg);
+    margin-bottom: var(--wicket-base-space-300);
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Title sections
+  &__current-orgs-title,
+  &__matching-orgs-title,
+  &__cant-find-org-title {
+    font-size: var(--wicket-base-heading-lg-font-size);
+    line-height: var(--wicket-base-heading-lg-line-height);
+    font-weight: var(--wicket-base-heading-lg-font-weight-md);
+    margin-bottom: var(--wicket-base-space-200);
+    color: var(--wicket-base-text-content);
+  }
+
+  // Organization card
+  &__card {
+    background-color: var(--wicket-base-bg-white);
+    border: 1px solid var(--wicket-base-border-light);
+    border-radius: var(--wicket-base-interactive-corner-radius-lg);
+    padding: var(--wicket-base-space-300);
+    margin-bottom: var(--wicket-base-space-200);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wicket-base-space-200);
+    transition: all 0.2s ease-in-out;
+
+    @media (min-width: $wicket-breakpoint-md) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--wicket-base-space-300);
+    }
+
+    &:hover {
+      border-color: var(--wicket-base-border-interactive);
+      box-shadow: var(--wicket-base-elevation-4);
+    }
+
+    // Selected state
+    &--selected {
+      border-color: var(--wicket-base-state-success) !important;
+      border-width: 2px !important;
+    }
+  }
+
+  // Card content and actions layout
+  &__card-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__card-right {
+    display: flex;
+    gap: var(--wicket-base-space-150);
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch;
+
+    @media (min-width: $wicket-breakpoint-sm) {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .button {
+      min-width: 120px;
+      justify-content: center;
+    }
+  }
+
+  &__select-button,
+  &__select-result-button {
+    &:hover {
+      background: var(--wicket-base-border-interactive);
+      border-radius: var(--wicket-base-interactive-corner-radius-md);
+    }
+  }
+
+  // Org Type
+  &__org-type {
+    font-weight: var(--wicket-base-font-weight-bold);
+    font-size: var(--wicket-base-body-xs-font-size);
+    color: var(--wicket-base-text-content-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--wicket-base-space-100);
+  }
+
+  // Container for Org Name and Membership Badge
+  &__card-top-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--wicket-base-space-150);
+    margin-bottom: var(--wicket-base-space-150);
+  }
+
+  // Org Name
+  &__org-name {
+    font-weight: var(--wicket-base-font-weight-bold);
+    font-size: var(--wicket-base-heading-sm-font-size);
+    color: var(--wicket-base-text-content);
+    margin: 0;
+  }
+
+  // Membership Labels
+  &__active-membership-label,
+  &__inactive-membership-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--wicket-base-caption-font-size);
+    gap: var(--wicket-base-space-050);
+    padding: var(--wicket-base-space-050) var(--wicket-base-space-100);
+    border-radius: var(--wicket-base-interactive-corner-radius-md);
+    white-space: nowrap;
+    font-weight: var(--wicket-base-font-weight-medium);
+
+    .fa-circle {
+      font-size: 0.5rem;
+    }
+  }
+
+  &__active-membership-label {
+    color: var(--wicket-base-state-success);
+    background-color: var(--wicket-base-state-success-light);
+  }
+
+  &__inactive-membership-label {
+    color: var(--wicket-base-text-content-secondary);
+    background-color: var(--wicket-base-bg-light-neutral);
+  }
+
+  // Org Parent Name
+  &__org-parent-name {
+    font-size: var(--wicket-base-body-sm-font-size);
+    color: var(--wicket-base-text-content-secondary);
+    margin-bottom: var(--wicket-base-space-150);
+    font-style: italic;
+  }
+
+  // Org Description
+  &__org-description {
+    font-size: var(--wicket-base-body-sm-font-size);
+    line-height: var(--wicket-base-body-sm-line-height);
+    color: var(--wicket-base-text-content);
+  }
+
+  // Search 'Looking for...' label
+  &__search-label {
+    font-size: var(--wicket-base-form-label-font-size);
+    font-weight: var(--wicket-base-form-label-font-weight);
+    color: var(--wicket-base-text-content);
+    margin-bottom: var(--wicket-base-space-150);
+  }
+
+  // Search input/button container
+  &__search-controls {
+    display: flex;
+    gap: var(--wicket-base-space-200);
+    margin-bottom: var(--wicket-base-space-100);
+
+    // Give input the majority of space
+    .component-org-search-select__search-input {
+      flex: 1;
+    }
+  }
+
+  // Search text input
+  &__search-input {
+    // Inherits from theme's global input styles
+  }
+
+  // Search message (for errors or info)
+  &__search-message {
+    font-size: var(--wicket-base-body-sm-font-size);
+    color: var(--wicket-base-state-error);
+    min-height: 1.5em; // Prevent layout shift
+  }
+
+  // Results container
+  &__results {
+    background-color: var(--wicket-base-bg-white);
+    border: 1px solid var(--wicket-base-border-light);
+    border-radius: var(--wicket-base-interactive-corner-radius-md);
+    // Add a transition for when results appear
+    &.orgss-results--has-results {
+      min-height: 60px;
+    }
+  }
+
+  &__search-container {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: var(--wicket-base-space-100);
+  }
+
+  &__no-results {
+    padding: var(--wicket-base-space-300);
+    text-align: center;
+    color: var(--wicket-base-text-content-secondary);
+  }
+
+  // Individual result item
+  &__matching-org-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--wicket-base-space-150) var(--wicket-base-space-200);
+    border-bottom: 1px solid var(--wicket-base-border-light);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__matching-org-title {
+    font-weight: var(--wicket-base-font-weight-medium);
+  }
+
+  // Create Org form
+  &__create-org-form {
+    background-color: var(--wicket-base-bg-light-alternate);
+    padding: var(--wicket-base-space-300);
+    border-radius: var(--wicket-base-interactive-corner-radius-lg);
+    margin-top: var(--wicket-base-space-300);
+  }
+
+  &__create-org-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wicket-base-space-200);
+    align-items: flex-end;
+  }
+
+  &__create-org-name-wrapper,
+  &__create-org-type-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  &__create-org-label {
+    font-size: var(--wicket-base-form-label-font-size);
+    font-weight: var(--wicket-base-form-label-font-weight);
+    color: var(--wicket-base-text-content);
+    margin-bottom: var(--wicket-base-space-100);
+  }
+
+  &__create-org-button-wrapper {
+    flex-shrink: 0;
+  }
+
+  // Duplicate Org Warning
+  &__duplicate-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--wicket-base-space-200);
+    padding: var(--wicket-base-space-200);
+    margin-top: var(--wicket-base-space-300);
+    background-color: var(--wicket-base-state-error-light);
+    border-left: 4px solid var(--wicket-base-state-error);
+    border-radius: var(--wicket-base-interactive-corner-radius-md);
+  }
+
+  &__duplicate-warning-icon-col {
+    font-size: var(--wicket-base-heading-lg-font-size);
+    color: var(--wicket-base-state-error);
+  }
+
+  &__duplicate-warning-title {
+    font-weight: var(--wicket-base-font-weight-bold);
+    margin-bottom: var(--wicket-base-space-050);
+  }
+
+  &__duplicate-warning-body {
+    font-size: var(--wicket-base-body-sm-font-size);
+  }
+
+  // Disabled states
+  .orgss_disabled_button {
+    background: var(--wicket-base-button-disabled-bg-color) !important;
+    color: var(--wicket-base-button-disabled-text-color) !important;
+    border-color: var(--wicket-base-button-disabled-bg-color) !important;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  .orgss_disabled_button_hollow {
+    background: transparent !important;
+    color: var(--wicket-base-text-content-disabled) !important;
+    border-color: transparent !important;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+}

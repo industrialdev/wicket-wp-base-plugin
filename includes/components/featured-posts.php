@@ -2,6 +2,7 @@
 $defaults            = array(
 	'classes'             => defined('WICKET_WP_THEME_V2') ? [] : [ 'px-4', 'lg:px-0' ],
 	'title'               => __( 'Featured', 'wicket' ),
+	'title_color'         => '',
 	'hide_block_title'    => false,
 	'posts'               => [],
 	'hide_excerpt'        => false,
@@ -14,6 +15,7 @@ $defaults            = array(
 $args                = wp_parse_args( $args, $defaults );
 $classes             = $args['classes'];
 $title               = $args['title'];
+$title_color         = $args['title_color'];
 $posts               = $args['posts'];
 $hide_excerpt        = $args['hide_excerpt'];
 $hide_date           = $args['hide_date'];
@@ -34,7 +36,7 @@ if ( empty( $posts ) ) {
 
 	<?php if ( $title ) : ?>
 		<?php if ( defined('WICKET_WP_THEME_V2') ) : ?>
-			<div class="component-featured-posts__title">
+			<div class="component-featured-posts__title" style="<?php echo $title_color ? 'color: ' . esc_attr( $title_color ) : ''; ?>">
 				<?php echo $title; ?>
 			</div>
 		<?php else: ?>
@@ -67,6 +69,7 @@ if ( empty( $posts ) ) {
 
 				get_component( 'card-featured', [ 
 					'classes'        => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
+					'post_id'        => $post_id,
 					'title'          => get_the_title( $post_id ),
 					'image'          => $image,
 					'image_position' => 'top',
@@ -98,6 +101,7 @@ if ( empty( $posts ) ) {
 						}
 						get_component( 'card-featured', [ 
 							'classes'        => [ 'shadow-none' ],
+							'post_id'        => $post_id,
 							'title'          => get_the_title( $post_id ),
 							'image'          => $image,
 							'image_position' => 'right',
@@ -139,6 +143,7 @@ if ( empty( $posts ) ) {
 
 				get_component( 'card-featured', [ 
 					'classes'      => defined('WICKET_WP_THEME_V2') ? [] : [ 'p-4' ],
+					'post_id'      => $post_id,
 					'title'        => get_the_title( $post_id ),
 					'excerpt'      => ! $hide_excerpt ? get_the_excerpt( $post_id ) : '',
 					'image_position' => 'right',
