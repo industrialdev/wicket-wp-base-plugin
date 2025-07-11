@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.152
+ * Version: 2.0.153
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -166,28 +166,44 @@ class Wicket_Main
     /**
      * Check if the post content has a Wicket block.
      *
-     * @return bool
+     * @param array $specific_blocks Optional array of specific block names to check for
+     * @return bool|array Returns bool for general check, array of found blocks if specific blocks requested
      */
-    private function has_wicket_block()
+    private function has_wicket_block($specific_blocks = [])
     {
         if (is_singular()) {
             $post = get_post();
             if ($post && has_blocks($post->post_content)) {
                 $blocks = parse_blocks($post->post_content);
                 $wicket_prefixes = ['wicket/', 'wicket-acc'];
+                $found_specific_blocks = [];
 
                 foreach ($blocks as $block) {
                     if (isset($block['blockName'])) {
-                        foreach ($wicket_prefixes as $prefix) {
-                            if (strpos($block['blockName'], $prefix) === 0) {
-                                return true;
+                        // Check for specific blocks if requested
+                        if (!empty($specific_blocks) && in_array($block['blockName'], $specific_blocks)) {
+                            $found_specific_blocks[] = $block['blockName'];
+                        }
+
+                        // Original functionality - check for any Wicket block
+                        if (empty($specific_blocks)) {
+                            foreach ($wicket_prefixes as $prefix) {
+                                if (strpos($block['blockName'], $prefix) === 0) {
+                                    return true;
+                                }
                             }
                         }
                     }
                 }
+
+                // Return found specific blocks if that's what was requested
+                if (!empty($specific_blocks)) {
+                    return $found_specific_blocks;
+                }
             }
         }
-        return false;
+
+        return empty($specific_blocks) ? false : [];
     }
 
     /**
@@ -402,7 +418,18 @@ class Wicket_Main
                     filemtime($base_styles_path),
                     'all'
                 );
+            }
 
+            // Scripts and styles that always get enqueued when not using a wicket theme
+            wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+            wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
+            wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
+            wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
+            wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
+
+            // Some blocks from our theme require Tailwind CSS and AlpineJS alone, when they are embedded into a non-Wicket theme.
+            // If the user has enabled the Tailwind All Plugins option, we will enqueue the Tailwind CSS CDN project with all plugins. Filterable.
+            if($this->has_wicket_block(['wicket/org-search-select'])) {
                 // Tailwind CSS CDN project
                 $tailwindAllPlugins = apply_filters('wicket_tailwind_all_plugins', false);
 
@@ -439,13 +466,6 @@ class Wicket_Main
                     ]
                 );
             }
-
-            // Scripts and styles that always get enqueued when not using a wicket theme
-            wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
-            wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
         }
     }
 
