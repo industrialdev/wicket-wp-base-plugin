@@ -8,7 +8,7 @@ $defaults  = [
   'new_org_type_override'                         => '',
   'selected_uuid_hidden_field_name'               => 'orgss-selected-uuid',
   'checkbox_id_new_org'                           => '',
-  'key'                                           => rand(0, 99999999),
+  'key'                                           => rand(1, PHP_INT_MAX),
   'org_term_singular'                             => '',
   'org_term_plural'                               => '',
   'no_results_found_message'                      => '',
@@ -530,19 +530,23 @@ $available_org_types = wicket_get_resource_types('organizations');
       x-show="!justCreatedNewOrg">
     </div>
 
-    <div class="component-org-search-select__search-controls" x-show="!justCreatedNewOrg">
+    <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
       <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
       ?>
-      <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
-        class="orgss-search-box component-org-search-select__search-input w-full mr-2"
-        placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
-      <?php get_component('button', [
-        'variant'  => 'primary',
-        'label'    => __('Search', 'wicket'),
-        'type'     => 'button',
-        'classes'  => ['component-org-search-select__search-button'],
-        'atts'  => ['x-on:click.prevent="handleSearch()"'],
-      ]); ?>
+      <div class="flex-grow">
+        <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
+          class="orgss-search-box component-org-search-select__search-input w-full"
+          placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
+      </div>
+      <div class="sm:flex-shrink-0">
+        <?php get_component('button', [
+          'variant'  => 'primary',
+          'label'    => __('Search', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'],
+          'atts'  => ['x-on:click.prevent="handleSearch()"'],
+        ]); ?>
+      </div>
     </div>
     <div id="orgss_search_message" class="orgss_error component-org-search-select__search-message" x-cloak
       x-show="showSearchMessage"></div>
@@ -658,16 +662,11 @@ $available_org_types = wicket_get_resource_types('organizations');
     </div>
   </div>
 
-  <?php // Hidden form field that can be used to pass the selected UUID along, like in Gravity Forms
-  ?>
-  <input type="hidden"
-    name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
-                                                                echo $_POST[$selectedUuidHiddenFieldName];
-                                                              } ?>" />
-
+  <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
+                                                                                    echo $_POST[$selectedUuidHiddenFieldName];
+                                                                                  } ?>" />
 </div>
 
-<?php /* Broken-out Alpine data for tidyness */ ?>
 <script>
   document.addEventListener('alpine:init', () => {
     Alpine.data('orgss_<?php echo $key; ?>', () => ({
