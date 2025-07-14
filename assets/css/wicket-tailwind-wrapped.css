@@ -270,6 +270,9 @@
 .wicket-base-plugin .m-0 {
     margin: 0px
 }
+.wicket-base-plugin .m-\[1rem\] {
+    margin: 1rem
+}
 .wicket-base-plugin .mx-auto {
     margin-left: auto;
     margin-right: auto
@@ -984,6 +987,9 @@
 .wicket-base-plugin .bg-\[--state-error-light\] {
     background-color: var(--state-error-light)
 }
+.wicket-base-plugin .bg-\[var\(--bg-white\)\] {
+    background-color: var(--bg-white)
+}
 .wicket-base-plugin .bg-accent-a-100 {
     --tw-bg-opacity: 1;
     background-color: rgb(249 250 251 / var(--tw-bg-opacity))
@@ -1116,6 +1122,9 @@
 }
 .wicket-base-plugin .p-6 {
     padding: 1.5rem
+}
+.wicket-base-plugin .p-\[var\(--space-400\)\] {
+    padding: var(--space-400)
 }
 .wicket-base-plugin .px-1 {
     padding-left: 0.25rem;

@@ -196,7 +196,7 @@ $available_org_types = wicket_get_resource_types('organizations');
     class="component-org-search-select__loading-overlay flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' ">
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
-  </div>
+  </div> <!-- / .component-org-search-select__loading-overlay -->
 
   <?php // Confirmation Popup
   ?>
@@ -245,24 +245,26 @@ $available_org_types = wicket_get_resource_types('organizations');
         ]); ?>
       </div>
     </div>
-  </div> <?php // End confirmation popup
-          ?>
+  </div> <!-- / .component-org-search-select__confirmation-popup -->
 
-  <?php // Active Membership Alert Popup
-  ?>
   <div x-transition x-cloak
-    class="component-org-search-select__active-membership-alert flex justify-center items-center w-full text-dark-100 py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
+    class="component-org-search-select__active-membership-alert flex justify-center items-center w-full py-10 absolute h-full left-0 right-0 mx-auto"
+    style="background: var(--modal-bg-overlay);"
     x-bind:class="showingActiveMembershipAlert && activeMembershipAlertAvailable ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' ">
     <div x-transition
-      class="component-org-search-select__active-membership-alert-content rounded-150 bg-white border flex items-center flex-col p-5">
-      <div class="component-org-search-select__active-membership-alert-header flex w-full justify-end mb-4">
+      class="component-org-search-select__active-membership-alert-content rounded-150 border flex flex-col text-left m-[1rem] bg-[var(--bg-white)] p-[var(--space-400)]">
+      <div class="component-org-search-select__active-membership-alert-header flex w-full justify-end"
+        style="margin-bottom: var(--space-400);">
         <button x-on:click.prevent="showingActiveMembershipAlert = false"
-          class="component-org-search-select__active-membership-alert-close-button font-semibold"><?php _e('Close X', 'wicket') ?></button>
+          class="component-org-search-select__active-membership-alert-close-button"
+          style="color: var(--interactive); background: none; border: none; cursor: pointer;"><?php _e('Close X', 'wicket') ?></button>
       </div>
       <div x-text="activeMembershipAlertTitle"
-        class="component-org-search-select__active-membership-alert-title font-semibold"></div>
+        class="component-org-search-select__active-membership-alert-title"
+        style="font-size: var(--heading-md-font-size); margin-bottom: var(--space-400);"></div>
       <div x-text="activeMembershipAlertBody"
-        class="component-org-search-select__active-membership-alert-body mt-4 mb-6"></div>
+        class="component-org-search-select__active-membership-alert-body"
+        style="font-size: var(--body-md-font-size); margin-bottom: var(--space-400);"></div>
       <div class="component-org-search-select__active-membership-alert-actions flex w-full justify-evenly">
         <?php
         if (
@@ -272,7 +274,8 @@ $available_org_types = wicket_get_resource_types('organizations');
         ) {
           if ($active_membership_alert_button_1_url == 'PROCEED') {
             get_component('button', [
-              'variant'  => $active_membership_alert_button_1_style,
+              'variant'  => 'primary',
+              'size'     => 'md',
               'reversed' => false,
               'label'    => $active_membership_alert_button_1_text,
               'type'     => 'button',
@@ -289,7 +292,8 @@ $available_org_types = wicket_get_resource_types('organizations');
           } elseif ($active_membership_alert_button_1_url == 'BUTTON') {
             // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
             get_component('button', [
-              'variant'  => $active_membership_alert_button_1_style,
+              'variant'  => 'primary',
+              'size'     => 'md',
               'reversed' => false,
               'label'    => $active_membership_alert_button_1_text,
               'type'     => 'button',
@@ -306,7 +310,8 @@ $available_org_types = wicket_get_resource_types('organizations');
           } else {
             // Treat it as a link
             get_component('button', [
-              'variant'  => $active_membership_alert_button_1_style,
+              'variant'  => 'primary',
+              'size'     => 'md',
               'reversed' => false,
               'label'    => $active_membership_alert_button_1_text,
               'type'     => 'button',
@@ -333,7 +338,8 @@ $available_org_types = wicket_get_resource_types('organizations');
         ) {
           if ($active_membership_alert_button_2_url == 'PROCEED') {
             get_component('button', [
-              'variant'  => $active_membership_alert_button_2_style,
+              'variant'  => 'secondary',
+              'size'     => 'md',
               'reversed' => false,
               'label'    => $active_membership_alert_button_2_text,
               'type'     => 'button',
@@ -351,9 +357,10 @@ $available_org_types = wicket_get_resource_types('organizations');
           } elseif ($active_membership_alert_button_2_url == 'BUTTON') {
             // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
             get_component('button', [
-              'variant'  => $active_membership_alert_button_1_style,
+              'variant'  => 'secondary',
+              'size'     => 'md',
               'reversed' => false,
-              'label'    => $active_membership_alert_button_1_text,
+              'label'    => $active_membership_alert_button_2_text,
               'type'     => 'button',
               'atts'  => [
                 'style="margin-left:20px;"',
@@ -369,7 +376,8 @@ $available_org_types = wicket_get_resource_types('organizations');
           } else {
             // Treat it as a link
             get_component('button', [
-              'variant'  => $active_membership_alert_button_2_style,
+              'variant'  => 'secondary',
+              'size'     => 'md',
               'reversed' => false,
               'label'    => $active_membership_alert_button_2_text,
               'type'     => 'button',
@@ -392,8 +400,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         ?>
       </div>
     </div>
-  </div><?php // End active membership alert modal
-        ?>
+  </div> <!-- / .component-org-search-select__active-membership-alert -->
 
   <div
     class="orgss-search-form component-org-search-select__search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
@@ -590,7 +597,7 @@ $available_org_types = wicket_get_resource_types('organizations');
 
       </div>
     </div>
-  </div>
+  </div> <!-- / .component-org-search-select__search-form -->
 
   <div x-show="firstSearchSubmitted && !disableCreateOrgUi && !justCreatedNewOrg" x-cloak
     class="orgss-create-org-form component-org-search-select__create-org-form <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
@@ -660,7 +667,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         </div>
       </div>
     </div>
-  </div>
+  </div> <!-- / .component-org-search-select__create-org-form -->
 
   <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
                                                                                     echo $_POST[$selectedUuidHiddenFieldName];

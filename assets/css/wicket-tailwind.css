@@ -270,6 +270,9 @@
 .m-0 {
     margin: 0px
 }
+.m-\[1rem\] {
+    margin: 1rem
+}
 .mx-auto {
     margin-left: auto;
     margin-right: auto
@@ -984,6 +987,9 @@
 .bg-\[--state-error-light\] {
     background-color: var(--state-error-light)
 }
+.bg-\[var\(--bg-white\)\] {
+    background-color: var(--bg-white)
+}
 .bg-accent-a-100 {
     --tw-bg-opacity: 1;
     background-color: rgb(249 250 251 / var(--tw-bg-opacity))
@@ -1116,6 +1122,9 @@
 }
 .p-6 {
     padding: 1.5rem
+}
+.p-\[var\(--space-400\)\] {
+    padding: var(--space-400)
 }
 .px-1 {
     padding-left: 0.25rem;
