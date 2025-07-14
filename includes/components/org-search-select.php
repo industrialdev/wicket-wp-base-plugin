@@ -404,7 +404,77 @@ $available_org_types = wicket_get_resource_types('organizations');
 
   <div
     class="orgss-search-form component-org-search-select__search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
-    <div x-show="currentConnections.length > 0" x-cloak>
+
+    <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
+      <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
+      ?>
+      <div class="flex-grow">
+        <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
+          class="orgss-search-box component-org-search-select__search-input w-full"
+          placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
+      </div>
+      <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
+        <?php get_component('button', [
+          'variant'  => 'primary',
+          'label'    => __('Search', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'],
+          'atts'  => ['x-on:click.prevent="handleSearch()"'],
+        ]); ?>
+      </div>
+      <div class="sm:flex-shrink-0" x-show="firstSearchSubmitted" x-cloak>
+        <?php get_component('button', [
+          'variant'  => 'primary',
+          'label'    => __('Clear', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
+          'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
+        ]); ?>
+      </div>
+    </div>
+    <div id="orgss_search_message" class="orgss_error component-org-search-select__search-message" x-cloak
+      x-show="showSearchMessage"></div>
+    <div class="component-org-search-select__matching-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 mb-1' ?>"
+      x-show="(firstSearchSubmitted || isLoading) && !justCreatedNewOrg" x-cloak>
+      <?php _e('Matching', 'wicket') ?>
+      <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)
+                                        ?>
+    </div>
+    <div class="orgss-results component-org-search-select__results"
+      x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' "
+      x-show="!justCreatedNewOrg">
+      <div
+        class="component-org-search-select__search-container <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col bg-white px-4 max-h-80 overflow-y-scroll' ?>">
+        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading"
+          x-transition x-cloak
+          class="component-org-search-select__no-results <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex justify-center items-center w-full text-dark-100 text-body-md py-4' ?>">
+          <?php echo $noResultsFoundMessage; ?>
+        </div>
+        <template x-for="(result, uuid) in results" x-cloak>
+          <div
+            class="component-org-search-select__matching-org-item <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center' ?>">
+            <div class="component-org-search-select__matching-org-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold' ?>"
+              x-text="result.name"></div>
+            <?php get_component('button', [
+              'variant'  => 'secondary',
+              'reversed' => false,
+              'label'    => __('Select', 'wicket'),
+              'type'     => 'button',
+              'classes'  => ['component-org-search-select__select-result-button'],
+              'atts'     => [
+                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
+                'x-bind:class="{
+                  \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
+                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
+                }"'
+              ]
+            ]); ?>
+          </div>
+        </template>
+
+      </div>
+    </div>
+    <div class="component-org-search-select__current-orgs" x-show="currentConnections.length > 0 && !firstSearchSubmitted" x-cloak>
       <?php
       if (empty($title)) : ?>
         <h2
@@ -537,66 +607,6 @@ $available_org_types = wicket_get_resource_types('organizations');
       x-show="!justCreatedNewOrg">
     </div>*/ ?>
 
-    <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
-      <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
-      ?>
-      <div class="flex-grow">
-        <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
-          class="orgss-search-box component-org-search-select__search-input w-full"
-          placeholder="Search by <?php echo $orgTermSingularLower; ?> name" />
-      </div>
-      <div class="sm:flex-shrink-0">
-        <?php get_component('button', [
-          'variant'  => 'primary',
-          'label'    => __('Search', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'],
-          'atts'  => ['x-on:click.prevent="handleSearch()"'],
-        ]); ?>
-      </div>
-    </div>
-    <div id="orgss_search_message" class="orgss_error component-org-search-select__search-message" x-cloak
-      x-show="showSearchMessage"></div>
-    <div class="component-org-search-select__matching-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 mb-1' ?>"
-      x-show="(firstSearchSubmitted || isLoading) && !justCreatedNewOrg" x-cloak>
-      <?php _e('Matching', 'wicket') ?>
-      <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)
-                                        ?>
-    </div>
-    <div class="orgss-results component-org-search-select__results"
-      x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' "
-      x-show="!justCreatedNewOrg">
-      <div
-        class="component-org-search-select__search-container <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col bg-white px-4 max-h-80 overflow-y-scroll' ?>">
-        <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading"
-          x-transition x-cloak
-          class="component-org-search-select__no-results <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex justify-center items-center w-full text-dark-100 text-body-md py-4' ?>">
-          <?php echo $noResultsFoundMessage; ?>
-        </div>
-        <template x-for="(result, uuid) in results" x-cloak>
-          <div
-            class="component-org-search-select__matching-org-item <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center' ?>">
-            <div class="component-org-search-select__matching-org-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold' ?>"
-              x-text="result.name"></div>
-            <?php get_component('button', [
-              'variant'  => 'secondary',
-              'reversed' => false,
-              'label'    => __('Select', 'wicket'),
-              'type'     => 'button',
-              'classes'  => ['component-org-search-select__select-result-button'],
-              'atts'     => [
-                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
-                'x-bind:class="{
-                  \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
-                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
-                }"'
-              ]
-            ]); ?>
-          </div>
-        </template>
-
-      </div>
-    </div>
   </div> <!-- / .component-org-search-select__search-form -->
 
   <div x-show="firstSearchSubmitted && !disableCreateOrgUi && !justCreatedNewOrg" x-cloak
@@ -722,13 +732,23 @@ $available_org_types = wicket_get_resource_types('organizations');
         //console.log(this.currentConnections);
 
         // Set an initial value for the dynamic select
-        this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
+        if( this.availableOrgTypes.data.length > 0 ) {
+          this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
+        }
 
         // Determine if the active membership modal has enough data to use
         if (this.disableSelectingOrgsWithActiveMembership && (this.activeMembershipAlertTitle
             .length > 0 || this.activeMembershipAlertBody.length > 0)) {
           this.activeMembershipAlertAvailable = true;
         }
+
+        this.$watch('searchBox', (value) => {
+          if (value === '') {
+            this.results = [];
+            this.firstSearchSubmitted = false;
+            this.showSearchMessage = false;
+          }
+        });
       },
       handleSearch(e = null) {
         if (e) {
@@ -912,6 +932,8 @@ $available_org_types = wicket_get_resource_types('organizations');
             this.relationshipTypeUponOrgCreation);
         }
         this.selectOrg(orgUuid, event);
+
+        this.searchBox = '';
       },
       async flagForRosterManagementAccess(orgUuid) {
         let data = {
