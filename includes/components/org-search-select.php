@@ -532,10 +532,10 @@ $available_org_types = wicket_get_resource_types('organizations');
       </template>
     </div>
 
-    <div class="component-org-search-select__search-label <?php echo defined('WICKET_WP_THEME_V2') ? 'label' : 'font-bold text-body-md mb-2' ?>"
+    <?php /*<div class="component-org-search-select__search-label <?php echo defined('WICKET_WP_THEME_V2') ? 'label' : 'font-bold text-body-md mb-2' ?>"
       x-text=" currentConnections.length > 0 ? 'Looking for a different <?php echo $orgTermSingularLower; ?>?' : '<?php _e('Search for your', 'wicket') ?> <?php echo $orgTermSingularLower; ?>' "
       x-show="!justCreatedNewOrg">
-    </div>
+    </div>*/ ?>
 
     <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
       <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
