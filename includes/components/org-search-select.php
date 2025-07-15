@@ -264,7 +264,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         style="font-size: var(--heading-md-font-size); margin-bottom: var(--space-400);"></div>
       <div x-text="activeMembershipAlertBody"
         class="component-org-search-select__active-membership-alert-body"
-        style="font-size: var(--body-md-font-size); margin-bottom: var(--space-400);"></div>
+        style="font-size: var(--body-md-font-size); margin-bottom: var(--space-400); line-height: 1.6;"></div>
       <div class="component-org-search-select__active-membership-alert-actions flex w-full justify-evenly">
         <?php
         if (
@@ -436,9 +436,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       x-show="showSearchMessage"></div>
     <div class="component-org-search-select__matching-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 mb-1' ?>"
       x-show="(firstSearchSubmitted || isLoading) && !justCreatedNewOrg" x-cloak>
-      <?php _e('Matching', 'wicket') ?>
-      <?php echo $orgTermPluralLower; ?><?php // (Selected org: <span x-text="selectedOrgUuid"></span>)
-                                        ?>
+      <?php _e('Matching Organization(s)', 'wicket') ?>
     </div>
     <div class="orgss-results component-org-search-select__results"
       x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' "
@@ -479,8 +477,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       if (empty($title)) : ?>
         <h2
           class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>">
-          <?php _e('Your current', 'wicket') ?>
-          <?php echo $orgTermPluralLower; ?>
+          <?php _e('Your current Organization(s)', 'wicket') ?>
         </h2>
       <?php else: ?>
         <h2
@@ -492,14 +489,15 @@ $available_org_types = wicket_get_resource_types('organizations');
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div x-show="(connection.connection_type==relationshipMode
           && ( connection.org_type.toLowerCase()===searchOrgType.toLowerCase() || searchOrgType==='' )
-          && connection.active_connection) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid)"
+          && connection.active_connection) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || connection.org_id === selectedOrgUuid)"
           class="item-org-card component-org-search-select__card <?php if (!defined('WICKET_WP_THEME_V2')) : ?>rounded-100 flex flex-col md:flex-row md:justify-between p-4 mb-3<?php endif; ?>"
           x-bind:class="{
             '<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__card--selected' : 'border-success-040 border-opacity-100 border-4' ?>': connection.org_id == selectedOrgUuid,
             '<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'border border-dark-100 border-opacity-5' ?>': connection.org_id != selectedOrgUuid,
             'bg-[var(--highlight-light)]': justCreatedNewOrg && connection.org_id === justCreatedOrgUuid,
             'bg-white': !(justCreatedNewOrg && connection.org_id === justCreatedOrgUuid) && !<?php echo defined('WICKET_WP_THEME_V2') ? 'true' : 'false' ?>
-          }">
+          }"
+          x-ref="'org_card_' + connection.org_id">
 
           <div class="current-org-listing-left component-org-search-select__card-left" x-data="{
           description: connection.org_description,
@@ -586,6 +584,18 @@ $available_org_types = wicket_get_resource_types('organizations');
                   'x-bind:class="{
                     \'orgss_disabled_button\': connection.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
                   }"',
+                  'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
+                ]
+              ]); ?>
+            </template>
+            <template x-if="connection.org_id === selectedOrgUuid">
+              <?php get_component('button', [
+                'variant'  => 'secondary',
+                'reversed' => false,
+                'label'    => '✓ Selected',
+                'type'     => 'button',
+                'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
+                'atts'     => [
                   'x-show="!hideSelectButtons"',
                 ]
               ]); ?>
@@ -860,6 +870,15 @@ $available_org_types = wicket_get_resource_types('organizations');
         document.querySelector(
           'input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]'
         ).value = orgUuid;
+
+        // Scroll to the selected org card
+        this.$nextTick(() => {
+          const refName = 'org_card_' + orgUuid;
+          const card = this.$refs[refName];
+          if (card && card.scrollIntoView) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
 
         if (dispatchEvent) {
           // selectOrg() is the last function call used in the process, whether selecting an existing
@@ -1256,6 +1275,15 @@ $available_org_types = wicket_get_resource_types('organizations');
         if (this.justCreatedNewOrg && removedOrgId === this.justCreatedOrgUuid) {
           this.justCreatedNewOrg = false;
           this.justCreatedOrgUuid = '';
+        }
+
+        // Clear selection state if removing the currently selected org
+        if (removedOrgId === this.selectedOrgUuid) {
+          this.selectedOrgUuid = '';
+          // Clear the hidden field value
+          document.querySelector(
+            'input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]'
+          ).value = '';
         }
       },
       isOrgAlreadyAConnection(uuid) {
