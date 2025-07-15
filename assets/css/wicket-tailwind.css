@@ -984,11 +984,8 @@
     --tw-bg-opacity: 1;
     background-color: rgb(245 194 199 / var(--tw-bg-opacity))
 }
-.bg-\[--state-error-light\] {
-    background-color: var(--state-error-light)
-}
-.bg-\[var\(--bg-white\)\] {
-    background-color: var(--bg-white)
+.bg-\[var\(--highlight-light\)\] {
+    background-color: var(--highlight-light)
 }
 .bg-accent-a-100 {
     --tw-bg-opacity: 1;
@@ -1122,9 +1119,6 @@
 }
 .p-6 {
     padding: 1.5rem
-}
-.p-\[var\(--space-400\)\] {
-    padding: var(--space-400)
 }
 .px-1 {
     padding-left: 0.25rem;

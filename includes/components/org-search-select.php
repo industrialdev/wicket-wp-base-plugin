@@ -252,7 +252,7 @@ $available_org_types = wicket_get_resource_types('organizations');
     style="background: var(--modal-bg-overlay);"
     x-bind:class="showingActiveMembershipAlert && activeMembershipAlertAvailable ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' ">
     <div x-transition
-      class="component-org-search-select__active-membership-alert-content rounded-150 border flex flex-col text-left m-[1rem] bg-[var(--bg-white)] p-[var(--space-400)]">
+      class="component-org-search-select__active-membership-alert-content rounded-150 border flex flex-col text-left m-[1rem]" style="background-color: var(--bg-white); padding: var(--space-400);">
       <div class="component-org-search-select__active-membership-alert-header flex w-full justify-end"
         style="margin-bottom: var(--space-400);">
         <button x-on:click.prevent="showingActiveMembershipAlert = false"
@@ -493,9 +493,13 @@ $available_org_types = wicket_get_resource_types('organizations');
         <div x-show="(connection.connection_type==relationshipMode
           && ( connection.org_type.toLowerCase()===searchOrgType.toLowerCase() || searchOrgType==='' )
           && connection.active_connection) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid)"
-          class="item-org-card component-org-search-select__card <?php if (!defined('WICKET_WP_THEME_V2')) : ?>rounded-100 flex flex-col md:flex-row md:justify-between bg-white p-4 mb-3<?php endif; ?>"
-          x-bind:class="connection.org_id == selectedOrgUuid ? '<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__card--selected' : 'border-success-040 border-opacity-100 border-4' ?>' :
-                    '<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'border border-dark-100 border-opacity-5' ?>' ">
+          class="item-org-card component-org-search-select__card <?php if (!defined('WICKET_WP_THEME_V2')) : ?>rounded-100 flex flex-col md:flex-row md:justify-between p-4 mb-3<?php endif; ?>"
+          x-bind:class="{
+            '<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__card--selected' : 'border-success-040 border-opacity-100 border-4' ?>': connection.org_id == selectedOrgUuid,
+            '<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'border border-dark-100 border-opacity-5' ?>': connection.org_id != selectedOrgUuid,
+            'bg-[var(--highlight-light)]': justCreatedNewOrg && connection.org_id === justCreatedOrgUuid,
+            'bg-white': !(justCreatedNewOrg && connection.org_id === justCreatedOrgUuid) && !<?php echo defined('WICKET_WP_THEME_V2') ? 'true' : 'false' ?>
+          }">
 
           <div class="current-org-listing-left component-org-search-select__card-left" x-data="{
           description: connection.org_description,
@@ -562,7 +566,7 @@ $available_org_types = wicket_get_resource_types('organizations');
               <?php get_component('button', [
                 'variant'  => 'secondary',
                 'reversed' => false,
-                'label'    => 'Selected Organization',
+                'label'    => '✓ Selected',
                 'type'     => 'button',
                 'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                 'atts'     => [
@@ -652,7 +656,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       </div>
     </div>
     <div x-show="displayDuplicateOrgWarning"
-      class="orgss-red-alert component-org-search-select__duplicate-warning flex mt-4 p-4 border-solid border-l-4 border-t-0 border-r-0 border-b-0 <?php echo defined('WICKET_WP_THEME_V2') ? 'bg-[--state-error-light] border-[--state-error]' : 'bg-[#f5c2c7] border-[#dc3545]' ?>">
+      class="orgss-red-alert component-org-search-select__duplicate-warning flex mt-4 p-4 border-solid border-l-4 border-t-0 border-r-0 border-b-0 <?php echo defined('WICKET_WP_THEME_V2') ? 'border-[--state-error]' : 'bg-[#f5c2c7] border-[#dc3545]' ?>" style="background-color: var(--state-error-light);">
       <div
         class="icon-col component-org-search-select__duplicate-warning-icon-col flex flex-col justify-center px-2">
         <?php

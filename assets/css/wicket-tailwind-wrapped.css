@@ -984,11 +984,8 @@
     --tw-bg-opacity: 1;
     background-color: rgb(245 194 199 / var(--tw-bg-opacity))
 }
-.wicket-base-plugin .bg-\[--state-error-light\] {
-    background-color: var(--state-error-light)
-}
-.wicket-base-plugin .bg-\[var\(--bg-white\)\] {
-    background-color: var(--bg-white)
+.wicket-base-plugin .bg-\[var\(--highlight-light\)\] {
+    background-color: var(--highlight-light)
 }
 .wicket-base-plugin .bg-accent-a-100 {
     --tw-bg-opacity: 1;
@@ -1122,9 +1119,6 @@
 }
 .wicket-base-plugin .p-6 {
     padding: 1.5rem
-}
-.wicket-base-plugin .p-\[var\(--space-400\)\] {
-    padding: var(--space-400)
 }
 .wicket-base-plugin .px-1 {
     padding-left: 0.25rem;
