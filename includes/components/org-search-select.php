@@ -648,7 +648,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         class="component-org-search-select__create-org-button-wrapper flex flex-col w-2/12 items-center justify-end">
         <?php get_component('button', [
           'variant'  => 'primary',
-          'label'    => __('Add Details', 'wicket'),
+          'label'    => __('Add', 'wicket'),
           'type'     => 'button',
           'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
           'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
