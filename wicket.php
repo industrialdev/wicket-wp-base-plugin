@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.160
+ * Version: 2.0.161
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -106,6 +106,9 @@ class Wicket_Main
         // Set plugin path and url properties
         $this->plugin_url    = WICKET_URL;
         $this->plugin_path   = WICKET_PLUGIN_DIR;
+
+        // File includes
+        $this->wicket_includes();
 
         // load text domain and includes
         add_action('init', array($this, 'wicket_init'), 0);
@@ -228,8 +231,6 @@ class Wicket_Main
         // Include MDP Helpers
         include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
 
-
-
         // Include wicket shortcodes
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
@@ -240,17 +241,6 @@ class Wicket_Main
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-create-account.php';
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-update-password.php';
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-manage-preferences.php';
-
-        // Initialize widget form processors
-        if (class_exists('wicket_create_account')) {
-            wicket_create_account::init();
-        }
-        if (class_exists('wicket_update_password')) {
-            wicket_update_password::init();
-        }
-        if (class_exists('wicket_preferences')) {
-            wicket_preferences::init();
-        }
 
         // Include wicket components
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
@@ -478,6 +468,15 @@ class Wicket_Main
             load_plugin_textdomain('wicket', false, dirname(plugin_basename(__FILE__)) . '/languages/');
         }
 
-        $this->wicket_includes();
+        // Initialize widget form processors
+        if (class_exists('wicket_create_account')) {
+            wicket_create_account::init();
+        }
+        if (class_exists('wicket_update_password')) {
+            wicket_update_password::init();
+        }
+        if (class_exists('wicket_preferences')) {
+            wicket_preferences::init();
+        }
     }
 } // end Class Wicket_Main.
