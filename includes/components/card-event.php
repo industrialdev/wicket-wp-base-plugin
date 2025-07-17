@@ -191,7 +191,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 	<div class="<?php echo implode( ' ', $classes ) ?>">
 		<?php if ( ! $remove_drop_shadow && $member_only ) { ?>
 			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
-				<?php get_component( 'tag', [ 
+				<?php get_component( 'tag', [
 					'label'   => __( 'Members Only', 'wicket' ),
 					'icon'    => 'fa-regular fa-lock',
 					'link'    => '',
@@ -228,7 +228,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 					<?php echo $title; ?>
 
 					<?php if ( $remove_drop_shadow && $member_only ) { ?>
-						<?php get_component( 'tag', [ 
+						<?php get_component( 'tag', [
 							'label'   => '',
 							'icon'    => 'fa-regular fa-lock',
 							'link'    => '',
@@ -254,9 +254,6 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 							<span class="font-bold"><?php echo __( 'Virtual Event', 'wicket' ); ?></span>
 						<?php } elseif ( $is_hybrid ) { ?>
 							<span class="font-bold"><?php echo __( 'Hybrid Event', 'wicket' ); ?></span>
-							<?php if ( $venue_name ) { ?>
-								<span> - <?php echo $venue_name; ?></span>
-							<?php } ?>
 						<?php } elseif ( $venue_name ) { ?>
 							<span class="font-bold"><?php echo $venue_name; ?></span>
 							<?php if ( $venue_address ) { ?>
@@ -288,18 +285,18 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 
 			<?php if ( $show_login_link ) {
 				get_component(
-					'link', [ 
+					'link', [
 						'default_link_style' => true,
 						'url'                => get_login_url(),
 						'text'               => __( 'Login to Purchase Ticket', 'woocommerce' ),
-						'icon_end'           => [ 
+						'icon_end'           => [
 							'icon' => 'fa-solid fa-arrow-up-right-from-square',
 						],
 					] );
 			} ?>
 
 			<?php if ( $cta && $link ) {
-				get_component( 'button', [ 
+				get_component( 'button', [
 					'variant' => $cta,
 					'label'   => $cta_label ?: __( 'Read More', 'wicket' ),
 					'a_tag'   => true,
@@ -312,7 +309,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 				<div class="card__topics">
 					<?php foreach ( $tags as $tag ) { ?>
 						<?php
-						get_component( 'tag', [ 
+						get_component( 'tag', [
 							'label' => $tag->name,
 						] ); ?>
 					<?php } ?>
@@ -322,7 +319,7 @@ if ( defined( 'WICKET_WP_THEME_V2' ) ) {
 
 		<?php if ( $image ) { ?>
 			<div class="<?php echo implode( ' ', $image_wrapper_classes ) ?>">
-				<?php get_component( 'image', [ 
+				<?php get_component( 'image', [
 					'id'           => $image['id'],
 					'alt'          => $image['alt'],
 					'aspect_ratio' => '3/2',

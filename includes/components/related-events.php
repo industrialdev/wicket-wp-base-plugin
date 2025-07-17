@@ -9,6 +9,7 @@ $defaults                   = array(
 	'column_count'               => 3,
 	'max_posts'                  => 3,
 	'taxonomies'                 => [],
+	'format'                     => 'all',
 	'hide_excerpt'               => false,
 	'hide_date'                  => false,
 	'hide_featured_image'        => false,
@@ -38,6 +39,7 @@ $view_all_link              = $args['view_all_link'];
 $column_count               = $args['column_count'];
 $max_posts                  = $args['max_posts'];
 $taxonomies                 = $args['taxonomies'];
+$format                     = $args['format'];
 $hide_excerpt               = $args['hide_excerpt'];
 $hide_date                  = $args['hide_date'];
 $hide_featured_image        = $args['hide_featured_image'];
@@ -66,6 +68,25 @@ $query_args = array(
 	'posts_per_page' => $max_posts,
 	'post__not_in'   => [ $current_post_id ],
 );
+
+// Add meta query based on format
+if ( $format === 'virtual' ) {
+	$query_args['meta_query'] = array(
+		array(
+			'key'     => '_tribe_virtual_events_type',
+			'value'   => 'virtual',
+			'compare' => '=',
+		),
+	);
+} elseif ( $format === 'hybrid' ) {
+	$query_args['meta_query'] = array(
+		array(
+			'key'     => '_tribe_virtual_events_type',
+			'value'   => 'hybrid',
+			'compare' => '=',
+		),
+	);
+}
 
 // If taxonomies are set, add them to the query
 if ( ! empty( $taxonomies ) ) {
@@ -106,11 +127,33 @@ if ( $highlight_featured_posts ) {
 	if ( ! function_exists( 'tribe_get_events' ) ) {
 		return;
 	}
-	$sticky_posts   = tribe_get_events( [
+
+	$sticky_post_args = [ 
 		'start_date'     => 'now',
 		'posts_per_page' => 8,
 		'featured'       => true,
-	] );
+	];
+
+	// Apply format filtering to featured posts as well
+	if ( $format === 'virtual' ) {
+		$sticky_post_args['meta_query'] = array(
+			array(
+				'key'     => '_tribe_virtual_events_type',
+				'value'   => 'virtual',
+				'compare' => '=',
+			),
+		);
+	} elseif ( $format === 'hybrid' ) {
+		$sticky_post_args['meta_query'] = array(
+			array(
+				'key'     => '_tribe_virtual_events_type',
+				'value'   => 'hybrid',
+				'compare' => '=',
+			),
+		);
+	}
+
+	$sticky_posts   = tribe_get_events( $sticky_post_args );
 	$featured_posts = $sticky_posts;
 
 	// Exclude featured posts from related posts
@@ -125,7 +168,8 @@ if ( $highlight_featured_posts ) {
 		<div class="container">
 			<?php if ( $title && ! $hide_block_title ) : ?>
 				<div class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-related-events__top-wrap' : 'mb-10' ?>">
-					<span class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-related-events__title' : 'text-heading-sm font-bold' ?>">
+					<span
+						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-related-events__title' : 'text-heading-sm font-bold' ?>">
 						<?php echo $title; ?>
 					</span>
 
@@ -133,12 +177,12 @@ if ( $highlight_featured_posts ) {
 						<?php if ( $set_custom_view_all && isset( $view_all_link['url'] ) ) : ?>
 
 							<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
-								<?php get_component('link', [
+								<?php get_component( 'link', [ 
 									'classes'            => [ 'component-related-events__view-all' ],
 									'default_link_style' => true,
 									'text'               => $view_all_link['title'],
-									'url'                => $view_all_link['url']
-								]) ?>
+									'url'                => $view_all_link['url'],
+								] ) ?>
 							<?php else : ?>
 								<a href="<?php echo $view_all_link['url'] ?>" target="<?php echo $view_all_link['target'] ?>"
 									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070">
@@ -147,15 +191,15 @@ if ( $highlight_featured_posts ) {
 							<?php endif; ?>
 						<?php else : ?>
 							<?php if ( defined( 'WICKET_WP_THEME_V2' ) ) : ?>
-								<?php get_component('link', [
+								<?php get_component( 'link', [ 
 									'classes'            => [ 'component-related-events__view-all' ],
 									'default_link_style' => true,
 									'text'               => __( 'View All', 'wicket' ),
-									'url'                => $post_type_archive_link
-								]) ?>
+									'url'                => $post_type_archive_link,
+								] ) ?>
 							<?php else : ?>
 								<a href="<?php echo $post_type_archive_link ?>"
-									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline" >
+									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
 									<?php echo __( 'View All', 'wicket' ) ?>
 								</a>
 							<?php endif; ?>
@@ -179,7 +223,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [
+						$image = [ 
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -187,7 +231,7 @@ if ( $highlight_featured_posts ) {
 
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
-					get_component( 'card-event', [
+					get_component( 'card-event', [ 
 						'classes'      => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4', 'mb-4' ],
 						'post_type'    => $post_type,
 						'content_type' => ! $hide_content_type ? get_related_content_type_term( $post_id ) : '',
@@ -208,7 +252,6 @@ if ( $highlight_featured_posts ) {
 			<?php endif; ?>
 
 
-
 			<div class="grid gap-10 grid-cols-1 lg:gap-x-4 lg:gap-y-6 lg:grid-cols-<?php echo $column_count ?>">
 				<?php
 				while ( $related_posts->have_posts() ) {
@@ -223,7 +266,7 @@ if ( $highlight_featured_posts ) {
 					$date               = get_the_date( $date_format, $post_id );
 
 					if ( ! $hide_featured_image && $featured_image_id !== 0 ) {
-						$image = [
+						$image = [ 
 							'id'  => $featured_image_id,
 							'alt' => $featured_image_alt,
 						];
@@ -231,7 +274,7 @@ if ( $highlight_featured_posts ) {
 
 					$date = tribe_get_start_date( $post_id, false, $date_format );
 
-					get_component( 'card-event', [
+					get_component( 'card-event', [ 
 						'classes'                    => defined( 'WICKET_WP_THEME_V2' ) ? [ "cols-{$column_count}" ] : [ 'p-4' ],
 						'post_id'                    => $post_id,
 						'hide_excerpt'               => $hide_excerpt,
@@ -257,7 +300,7 @@ if ( $highlight_featured_posts ) {
 <?php elseif ( is_admin() ) : ?>
 	<div class="container">
 		<?php
-		get_component( 'alert', [
+		get_component( 'alert', [ 
 			'content' => __( 'No related posts found.', 'wicket' ),
 		] );
 		?>
