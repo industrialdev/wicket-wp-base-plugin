@@ -14,7 +14,7 @@
   "require": {
     "industrialdev/wicket-sdk-php": "dev-master",
     "php": ">=8.0",
-    "jeffreyvanrossum/wp-settings": "1.2.1"
+    "jeffreyvanrossum/wp-settings": "^1"
   },
   "scripts": {
     "version-bump": [

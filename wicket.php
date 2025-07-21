@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.164
+ * Version: 2.0.163
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -164,49 +164,6 @@ class Wicket_Main
         if (! defined('WICKET_PLUGIN_DIR')) {
             define('WICKET_PLUGIN_DIR', plugin_dir_path(__FILE__));
         }
-    }
-
-    /**
-     * Check if the post content has a Wicket block.
-     *
-     * @param array $specific_blocks Optional array of specific block names to check for
-     * @return bool|array Returns bool for general check, array of found blocks if specific blocks requested
-     */
-    private function has_wicket_block($specific_blocks = [])
-    {
-        if (is_singular()) {
-            $post = get_post();
-            if ($post && has_blocks($post->post_content)) {
-                $blocks = parse_blocks($post->post_content);
-                $wicket_prefixes = ['wicket/', 'wicket-acc'];
-                $found_specific_blocks = [];
-
-                foreach ($blocks as $block) {
-                    if (isset($block['blockName'])) {
-                        // Check for specific blocks if requested
-                        if (!empty($specific_blocks) && in_array($block['blockName'], $specific_blocks)) {
-                            $found_specific_blocks[] = $block['blockName'];
-                        }
-
-                        // Original functionality - check for any Wicket block
-                        if (empty($specific_blocks)) {
-                            foreach ($wicket_prefixes as $prefix) {
-                                if (strpos($block['blockName'], $prefix) === 0) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Return found specific blocks if that's what was requested
-                if (!empty($specific_blocks)) {
-                    return $found_specific_blocks;
-                }
-            }
-        }
-
-        return empty($specific_blocks) ? false : [];
     }
 
     /**
@@ -371,7 +328,7 @@ class Wicket_Main
         }
 
         // Only on non-Wicket themes, and only if a wicket block is present
-        if (!$is_wicket_theme && $this->has_wicket_block()) {
+        if (!$is_wicket_theme) {
             // Wicket theme not in use, so enqueue the compiled component styles
             $use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
 
@@ -399,15 +356,6 @@ class Wicket_Main
                         'strategy' => 'defer'
                     )
                 );
-            } else {
-                // Regular Wicket Web enqueues
-                wp_enqueue_style(
-                    'wicket-plugin-base-styles',
-                    $base_styles_url,
-                    false,
-                    filemtime($base_styles_path),
-                    'all'
-                );
             }
 
             // Scripts and styles that always get enqueued when not using a wicket theme
@@ -416,46 +364,6 @@ class Wicket_Main
             wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
             wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
             wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
-
-            // Some blocks from our theme require Tailwind CSS and AlpineJS alone, when they are embedded into a non-Wicket theme.
-            // If the user has enabled the Tailwind All Plugins option, we will enqueue the Tailwind CSS CDN project with all plugins. Filterable.
-            if($this->has_wicket_block(['wicket/org-search-select'])) {
-                // Tailwind CSS CDN project
-                $tailwindAllPlugins = apply_filters('wicket_tailwind_all_plugins', false);
-
-                if (!$tailwindAllPlugins) {
-                    wp_enqueue_script(
-                        'wicket-plugin-tailwind-cdn',
-                        'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js',
-                        [],
-                        '3.4.10', // Using a specific version for stability
-                        [
-                            'strategy' => 'defer'
-                        ]
-                    );
-                } else {
-                    wp_enqueue_script(
-                        'wicket-plugin-tailwind-cdn',
-                        'https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss-with-all-plugins.js',
-                        [],
-                        '3.4.10', // Using a specific version for stability
-                        [
-                            'strategy' => 'defer'
-                        ]
-                    );
-                }
-
-                // Enqueue AlpineJS from CDN with 'defer' strategy to solve initialization warning.
-                wp_enqueue_script(
-                    'alpine-js',
-                    'https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js',
-                    [],
-                    '3.14.9', // Using a specific version for stability
-                    [
-                        'strategy' => 'defer'
-                    ]
-                );
-            }
         }
     }
 
