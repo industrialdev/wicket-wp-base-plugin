@@ -473,18 +473,32 @@ $available_org_types = wicket_get_resource_types('organizations');
       </div>
     </div>
     <div class="component-org-search-select__current-orgs" x-show="currentConnections.length > 0 && !firstSearchSubmitted" x-cloak>
-      <?php
-      if (empty($title)) : ?>
-        <h2
-          class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>">
-          <?php _e('Your current Organization(s)', 'wicket') ?>
-        </h2>
-      <?php else: ?>
-        <h2
-          class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>">
-          <?php esc_html_e($title, 'wicket'); ?>
-        </h2>
-      <?php endif; ?>
+      <div class="component-org-search-select__header-section flex justify-between items-center">
+        <?php
+        if (empty($title)) : ?>
+          <h2
+            class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"
+            x-text="selectedOrgUuid ? '<?php _e('Selected Organization:', 'wicket') ?>' : '<?php _e('Your current Organization(s)', 'wicket') ?>'">
+          </h2>
+        <?php else: ?>
+          <h2
+            class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"
+            x-text="selectedOrgUuid ? '<?php _e('Selected Organization:', 'wicket') ?>' : '<?php esc_html_e($title, 'wicket'); ?>'">
+          </h2>
+        <?php endif; ?>
+
+        <div x-show="selectedOrgUuid" x-cloak>
+          <?php get_component('button', [
+            'variant'  => 'secondary',
+            'label'    => __('Clear Selection', 'wicket'),
+            'type'     => 'button',
+            'classes'  => ['component-org-search-select__clear-selection-button'],
+            'atts'     => [
+              'x-on:click.prevent="selectedOrgUuid = \'\'; $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"'
+            ]
+          ]); ?>
+        </div>
+      </div>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
         <div x-show="(connection.connection_type==relationshipMode
