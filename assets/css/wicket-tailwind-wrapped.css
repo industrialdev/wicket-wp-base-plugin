@@ -270,6 +270,9 @@
 .wicket-base-plugin .m-0 {
     margin: 0px
 }
+.wicket-base-plugin .m-\[1rem\] {
+    margin: 1rem
+}
 .wicket-base-plugin .mx-auto {
     margin-left: auto;
     margin-right: auto
@@ -445,6 +448,12 @@
     -webkit-flex-shrink: 0;
     -ms-flex-negative: 0;
     flex-shrink: 0
+}
+.wicket-base-plugin .flex-grow {
+    -webkit-box-flex: 1;
+    -webkit-flex-grow: 1;
+    -ms-flex-positive: 1;
+    flex-grow: 1
 }
 .wicket-base-plugin .flex-grow-0 {
     -webkit-box-flex: 0;
@@ -975,8 +984,8 @@
     --tw-bg-opacity: 1;
     background-color: rgb(245 194 199 / var(--tw-bg-opacity))
 }
-.wicket-base-plugin .bg-\[--state-error-light\] {
-    background-color: var(--state-error-light)
+.wicket-base-plugin .bg-\[var\(--highlight-light\)\] {
+    background-color: var(--highlight-light)
 }
 .wicket-base-plugin .bg-accent-a-100 {
     --tw-bg-opacity: 1;
@@ -1216,6 +1225,9 @@
 }
 .wicket-base-plugin .font-bold {
     font-weight: 700
+}
+.wicket-base-plugin .font-extralight {
+    font-weight: 200
 }
 .wicket-base-plugin .font-normal {
     font-weight: 400
@@ -2055,6 +2067,14 @@
 @media (min-width: 640px) {
     .wicket-base-plugin .sm\:mr-5 {
         margin-right: 1.25rem
+    }
+    .wicket-base-plugin .sm\:w-auto {
+        width: auto
+    }
+    .wicket-base-plugin .sm\:flex-shrink-0 {
+        -webkit-flex-shrink: 0;
+        -ms-flex-negative: 0;
+        flex-shrink: 0
     }
     .wicket-base-plugin .sm\:flex-row {
         -webkit-box-orient: horizontal;

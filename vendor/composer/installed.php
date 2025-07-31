@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'industrialdev/wicket-wp-base-plugin',
-        'pretty_version' => '2.0.123',
-        'version' => '2.0.123.0',
+        'pretty_version' => '2.0.164',
+        'version' => '2.0.164.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -130,8 +130,8 @@
             'dev_requirement' => false,
         ),
         'industrialdev/wicket-wp-base-plugin' => array(
-            'pretty_version' => '2.0.123',
-            'version' => '2.0.123.0',
+            'pretty_version' => '2.0.164',
+            'version' => '2.0.164.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
@@ -139,9 +139,9 @@
             'dev_requirement' => false,
         ),
         'jeffreyvanrossum/wp-settings' => array(
-            'pretty_version' => '1.2.1',
-            'version' => '1.2.1.0',
-            'reference' => 'efcb94bef441dba65af213f796f815a3c550f513',
+            'pretty_version' => '1.2.2',
+            'version' => '1.2.2.0',
+            'reference' => '89f4713690a800c4e23f7578f12035ce4f6d0007',
             'type' => 'library',
             'install_path' => __DIR__ . '/../jeffreyvanrossum/wp-settings',
             'aliases' => array(),
@@ -271,9 +271,9 @@
             'dev_requirement' => false,
         ),
         'symfony/translation' => array(
-            'pretty_version' => 'v6.4.22',
-            'version' => '6.4.22.0',
-            'reference' => '7e3b3b7146c6fab36ddff304a8041174bf6e17ad',
+            'pretty_version' => 'v6.4.23',
+            'version' => '6.4.23.0',
+            'reference' => 'de8afa521e04a5220e9e58a1dc99971ab7cac643',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/translation',
             'aliases' => array(),

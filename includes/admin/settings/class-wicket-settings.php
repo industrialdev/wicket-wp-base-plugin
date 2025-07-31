@@ -105,7 +105,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			$section->add_option('select', [
 			    'name' => 'wicket_admin_settings_create_account_page',
 			    'label' => __('Create Account Page', 'wicket'),
-			    'description' => __('Choose the create acount page. This must contain the [wicket_create_account] shortcode. Logged-out users will be redirected here if visiting any protected pages.', 'wicket'),
+			    'description' => __('Choose the create acount page. This must contain the "Create Account Form" block.', 'wicket'),
 			    'options' => $this->get_all_pages(),
 			    'css' => [
 			        'input_class' => 'wicket-create-account',

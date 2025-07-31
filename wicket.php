@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.151
+ * Version: 2.0.166
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -34,7 +34,7 @@ if (is_file(ABSPATH . 'vendor/autoload.php')) {
 
 add_action(
     'plugins_loaded',
-    array ( Wicket_Main::get_instance(), 'plugin_setup' ),
+    array(Wicket_Main::get_instance(), 'plugin_setup'),
     99
 );
 
@@ -107,9 +107,8 @@ class Wicket_Main
         $this->plugin_url    = WICKET_URL;
         $this->plugin_path   = WICKET_PLUGIN_DIR;
 
-
-
-
+        // File includes
+        $this->wicket_includes();
 
         // load text domain and includes
         add_action('init', array($this, 'wicket_init'), 0);
@@ -119,14 +118,13 @@ class Wicket_Main
         $this->blocks = new Wicket_Blocks();
 
         // Enqueue styles and scripts
-        add_action('wp_enqueue_scripts', array('Wicket_Main', 'enqueue_plugin_styles'), 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_plugin_styles'], 15); // Using 15 so these will enqueue after the parent theme but before the child theme, so child theme can override
 
         // Initialize ACF dependent components
         add_action('acf/init', array($this, 'initialize_block_handler'));
 
         // Register widgets
         add_action('widgets_init', array($this, 'register_widgets'));
-
     }
 
     /**
@@ -190,32 +188,16 @@ class Wicket_Main
         // Include MDP Helpers
         include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
 
-
-
         // Include wicket shortcodes
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
         // Include REST API endpoints
         include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
-        include_once WICKET_PLUGIN_DIR . 'includes/rest-api/class-wicket-rest-api-person.php';
-        include_once WICKET_PLUGIN_DIR . 'includes/rest-api/class-wicket-rest-api-health.php';
 
         // Widgets
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-create-account.php';
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-update-password.php';
         include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-manage-preferences.php';
-
-        // Initialize widget form processors
-        if (class_exists('wicket_create_account')) {
-            wicket_create_account::init();
-        }
-        if (class_exists('wicket_update_password')) {
-            wicket_update_password::init();
-        }
-        if (class_exists('wicket_preferences')) {
-            wicket_preferences::init();
-        }
-
 
         // Include wicket components
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
@@ -263,6 +245,7 @@ class Wicket_Main
         if (is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1')) {
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';
         }
+
         // Include woocommerce functions
         if (is_plugin_active('woocommerce/woocommerce.php')) {
             if (wicket_get_option('wicket_admin_settings_woo_sync_addresses') === '1') {
@@ -270,11 +253,13 @@ class Wicket_Main
             }
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customizations.php';
         }
+
         // Include WooCommerce memberships team functions
         if (is_plugin_active('woocommerce-memberships-for-teams/woocommerce-memberships-for-teams.php')) {
             // include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team-metabox.php';
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-team.php';
         }
+
         // Include user switching functions
         if (is_plugin_active('user-switching/user-switching.php')) {
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-user-switching-sync.php';
@@ -286,7 +271,7 @@ class Wicket_Main
      *
      * If the Wicket theme is active, this method will only enqueue the compiled component styles.
      * If the Wicket theme is not active, this method will enqueue both the compiled component styles
-     * and the backup component Tailwind styles and Alpine.
+     * and the backup component Tailwind styles and Alpine only if a Wicket block is present on the page.
      *
      * The user can also choose to enable the legacy styles via the Wicket settings page.
      * If the legacy styles are enabled, this method will enqueue the wrapped compiled component styles,
@@ -294,7 +279,7 @@ class Wicket_Main
      *
      * @return void
      */
-    public static function enqueue_plugin_styles()
+    public function enqueue_plugin_styles()
     {
         $theme = wp_get_theme(); // gets the current theme
         $theme_name = $theme->name;
@@ -317,10 +302,20 @@ class Wicket_Main
         $base_always_script_url  = WICKET_URL . 'assets/js/wicket_base.js';
         $base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
-        if (str_contains(strtolower($theme_name), 'wicket')) {
-            if (defined('WICKET_WP_THEME_V2')) {
-                //
-            } else {
+        // Always enqueue the base script
+        wp_enqueue_script(
+            'wicket-plugin-base-always-script',
+            $base_always_script_url,
+            [],
+            filemtime($base_always_script_path)
+        );
+
+        // Check if it's a Wicket theme
+        $is_wicket_theme = str_contains(strtolower($theme_name), 'wicket');
+
+        // Only on Wicket's theme v1
+        if ($is_wicket_theme) {
+            if (!defined('WICKET_WP_THEME_V2')) {
                 // Wicket deprecated v1 theme is active, so just enqueue the compiled component styles
                 wp_enqueue_style(
                     'wicket-plugin-base-styles',
@@ -330,10 +325,12 @@ class Wicket_Main
                     'all'
                 );
             }
-        } else {
-            // Wicket theme not in use, so enqueue the compiled component styles and
-            // the backup component Tailwind styles and Alpine
-            $use_legacy_styles       = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
+        }
+
+        // Only on non-Wicket themes, and only if a wicket block is present
+        if (!$is_wicket_theme) {
+            // Wicket theme not in use, so enqueue the compiled component styles
+            $use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
 
             if ($use_legacy_styles) {
                 wp_enqueue_style(
@@ -359,36 +356,20 @@ class Wicket_Main
                         'strategy' => 'defer'
                     )
                 );
-            } else {
-                // Regular Wicket Web enqueues
-                wp_enqueue_style(
-                    'wicket-plugin-base-styles',
-                    $base_styles_url,
-                    false,
-                    filemtime($base_styles_path),
-                    'all'
-                );
             }
 
             // Scripts and styles that always get enqueued when not using a wicket theme
-            wp_enqueue_script(
-                'wicket-plugin-always-script',
-                $base_always_script_url,
-                array(),
-                filemtime($base_always_script_path),
-                array()
-            );
-            wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+            if (!wp_style_is('material-icons', 'enqueued')) {
+                wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+            }
 
-            // Fontawesome
-            wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
-            wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
+            if (!wp_style_is('font-awesome', 'enqueued')) {
+                wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
+                wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
+                wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
+                wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
+            }
         }
-
-        // Scripts and styles that get enqueued regardless of if the theme is wicket or not
-        wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
     }
 
     /**
@@ -400,6 +381,15 @@ class Wicket_Main
             load_plugin_textdomain('wicket', false, dirname(plugin_basename(__FILE__)) . '/languages/');
         }
 
-        $this->wicket_includes();
+        // Initialize widget form processors
+        if (class_exists('wicket_create_account')) {
+            wicket_create_account::init();
+        }
+        if (class_exists('wicket_update_password')) {
+            wicket_update_password::init();
+        }
+        if (class_exists('wicket_preferences')) {
+            wicket_preferences::init();
+        }
     }
 } // end Class Wicket_Main.
