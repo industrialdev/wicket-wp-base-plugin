@@ -1,7 +1,7 @@
 {
 	"name": "wicket/settings",
-	"title": "Wicket Settings",
-	"description": "A Wicket block for displaying all settings",
+	"title": "Wicket Display Settings",
+	"description": "A Wicket block for displaying all settings, for debugging and development purposes.",
 	"style": "block-wicket-settings",
 	"category": "wicket",
 	"icon": "",
