@@ -205,6 +205,9 @@ class Wicket_Main
         // Include custom code snippets, such as those that additional functionality to complex components
         include_once WICKET_PLUGIN_DIR . 'includes/custom/woocommerce.php';
 
+        // Include custom code snippets for group management by subscription product integration
+        include_once WICKET_PLUGIN_DIR . 'includes/custom/group-subscriptions.php';
+
         // Include Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
