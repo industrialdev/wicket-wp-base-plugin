@@ -2,8 +2,6 @@
 // No direct access
 defined( 'ABSPATH' ) || exit;
 
-add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
-
 // Ref: https://developer.wordpress.org/reference/functions/register_rest_route/
 function wicket_base_register_rest_routes(){
   register_rest_route( 'wicket-base/v1', 'search-orgs',array(
@@ -89,7 +87,16 @@ function wicket_base_register_rest_routes(){
       return is_user_logged_in();
     },
   ));
+
+  register_rest_route( 'wicket-base/v1', 'wicket-component-do-action',array(
+    'methods'  => 'POST',
+    'callback' => 'wicket_internal_endpoint_component_do_action',
+    'permission_callback' => function() {
+      return is_user_logged_in();
+    },
+  ));
 }
+add_action('rest_api_init', 'wicket_base_register_rest_routes', 8, 1 );
 
 /**
  * Calls the Wicket helper functions to search for a given organization name
@@ -276,6 +283,7 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   $toUuid                      = $params['toUuid'];
   $relationshipType            = $params['relationshipType'];
   $userRoleInRelationship      = $params['userRoleInRelationship'];
+  $description                 = isset($params['description']) ? $params['description'] : null;
   $userRoleInRelationshipArray = explode(',', $userRoleInRelationship );
 
   $return = [];
@@ -289,7 +297,7 @@ function wicket_internal_endpoint_create_relationship( $request ) {
           'type'              => trim($userRoleInRelationship),
           'starts_at'         => date('Y-m-d'),
           'ends_at'           => null,
-          'description'       => null,
+          'description'       => $description,
           'tags'              => [],
         ],
         'relationships' => [
@@ -396,7 +404,7 @@ function wicket_internal_endpoint_create_org( $request ) {
     // Check if the org of that name and type already exists
     $org_name_lowercase = trim(strtolower($org_name));
 
-    // Search by org name, filtering to the org type, and use the autocomplete API for better speed 
+    // Search by org name, filtering to the org type, and use the autocomplete API for better speed
     $search = wicket_search_organizations($org_name_lowercase, 'org_name', $org_type, true);
 
     $found = false;

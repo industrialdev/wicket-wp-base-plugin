@@ -32,6 +32,7 @@ $defaults  = [
   'display_removal_alert_message'                 => false,
   'title'                                         => '',
   'response_message'                              => '', // class name of the container where the response message will be displayed
+  'description'                                   => '', // Description to be set on the connection
 ];
 $args                                          = wp_parse_args($args, $defaults);
 $classes                                       = $args['classes'];
@@ -66,6 +67,7 @@ $hide_select_buttons                           = $args['hide_select_buttons'];
 $display_removal_alert_message                 = $args['display_removal_alert_message'];
 $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
+$description                                   = $args['description'];
 
 if (!empty($orgTermSingular)) {
   $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -755,6 +757,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       displayDuplicateOrgWarning: false,
       justCreatedNewOrg: false,
       justCreatedOrgUuid: '',
+      description: '<?php echo esc_js($description); ?>',
 
       init() {
         //console.log(this.currentConnections);
@@ -906,6 +909,8 @@ $available_org_types = wicket_get_resource_types('organizations');
             event: incomingEvent,
           });
         }
+
+
 
         if (this.grantRosterManOnPurchase) {
           this.flagForRosterManagementAccess(orgUuid);
@@ -1071,6 +1076,7 @@ $available_org_types = wicket_get_resource_types('organizations');
           "toUuid": toUuid,
           "relationshipType": relationshipType,
           "userRoleInRelationship": userRoleInRelationship,
+          "description": this.description,
         };
 
         let endPointUrl = this.apiUrl + 'create-relationship';
