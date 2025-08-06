@@ -15,4 +15,26 @@ jQuery(document).ready(function($) {
 	  placeholder: 'Select a category',
 	  allowClear: true,
 	});
+
+  var productCategoryRow = $('#wicket_settingswicket_admin_settings_group_assignment_product_category').closest('tr');
+  var roleEntityObjectRow = $('#wicket_settingswicket_admin_settings_group_assignment_role_entity_object').closest('tr');
+
+  $('#wicket_settingswicket_admin_settings_group_assignment_subscription_products').on('click', function() {
+  
+    if ($(this).is(':checked')) {
+      productCategoryRow.show();
+      roleEntityObjectRow.show();
+    } else {
+      productCategoryRow.hide();
+      roleEntityObjectRow.hide();
+    }
+  });
+
+  productCategoryRow.hide();
+  roleEntityObjectRow.hide();
+
+  if ($('#wicket_settingswicket_admin_settings_group_assignment_subscription_products').is(':checked')) {
+    productCategoryRow.show();
+    roleEntityObjectRow.show();
+  }
 });
