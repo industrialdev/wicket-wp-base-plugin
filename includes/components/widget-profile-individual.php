@@ -92,6 +92,12 @@ $wicket_settings = get_wicket_settings();
               validationDataField.value = false;
             }
           }
+
+          if( payload.incompleteRequiredResources ) {
+            if( payload.incompleteRequiredResources.length > 0 ) {
+              validationDataField.value = false;
+            }
+          }
         }
     });
 </script>

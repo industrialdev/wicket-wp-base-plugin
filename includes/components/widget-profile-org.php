@@ -9,6 +9,7 @@ $defaults        = [
 $args                       = wp_parse_args( $args, $defaults );
 $classes                    = $args['classes'];
 $org_id                     = $args['org_id'];
+$org_required_resources     = $args['org_required_resources'] === '' ? '{}' : $args['org_required_resources'];
 $org_info_data_field_name   = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $unique_widget_id           = rand( 1, PHP_INT_MAX );
@@ -49,7 +50,8 @@ $wicket_settings = get_wicket_settings();
         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
         accessToken: '<?php echo wicket_get_access_token( wicket_current_person_uuid() , $org_id ); ?>',
         orgId: '<?php echo $org_id; ?>',
-        lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>"
+        lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
+        requiredResources: <?php echo $org_required_resources; ?>,
       }).then(function (widget) {
         <?php
         // Dispatch custom events to the page on each available widget listener,
@@ -99,6 +101,12 @@ $wicket_settings = get_wicket_settings();
       validationDataField.value = true;
       if( payload.incompleteRequiredFields ) {
         if( payload.incompleteRequiredFields.length > 0 ) {
+          validationDataField.value = false;
+        }
+      }
+
+      if( payload.incompleteRequiredResources ) {
+        if( payload.incompleteRequiredResources.length > 0 ) {
           validationDataField.value = false;
         }
       }
