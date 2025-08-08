@@ -2615,47 +2615,36 @@ function wicket_create_organization_web_address($org_id, $payload)
     return false;
 }
 
-/**------------------------------------------------------------------
- * Create connection
- * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
- * an example might be the following:
-$relationship_payload = [
-    'data' => [
-      'type' => 'connections',
-      'attributes' => [
-        'type' => 'employee',
-        'starts_at' => date("Y-m-d"),
-        'description' => 'my description goes here'
-      ],
-      'relationships' => [
-        'organization' => [
-          'data' => [
-            'id' => $org_id, //org id
-            'type' => 'organizations'
-          ]
-        ],
-        'person' => [
-          'data' => [
-            'id' => $person['data']['id'],
-            'type' => 'people'
-          ]
-        ],
-        'from' => [
-          'data' => [
-            'id' => $person['data']['id'],
-            'type' => 'people'
-          ]
-        ],
-        'to' => [
-          'data' => [
-            'id' => $org_id, //org id
-            'type' => 'organizations'
-          ]
-        ],
-      ],
-    ]
-  ];
- ------------------------------------------------------------------*/
+/**
+ * Create a connection in Wicket/MDP.
+ *
+ * Expects a JSON:API payload for the "connections" resource. The payload should
+ * include the desired connection attributes (e.g., type/connection_type, starts_at,
+ * ends_at, description, tags) and relationships for the "from" and "to" entities.
+ *
+ * Example payload:
+ * $payload = [
+ *   'data' => [
+ *     'type' => 'connections',
+ *     'attributes' => [
+ *       'type' => 'employee',
+ *       'starts_at' => date('Y-m-d'),
+ *       'description' => 'my description goes here',
+ *     ],
+ *     'relationships' => [
+ *       'from' => [
+ *         'data' => [ 'id' => $person['data']['id'], 'type' => 'people' ],
+ *       ],
+ *       'to' => [
+ *         'data' => [ 'id' => $org_id, 'type' => 'organizations' ],
+ *       ],
+ *     ],
+ *   ],
+ * ];
+ *
+ * @param array $payload JSON:API payload to POST to the connections endpoint.
+ * @return array API response decoded as an associative array with keys like 'data' and 'attributes'.
+ */
 function wicket_create_connection($payload)
 {
     $client = wicket_api_client();
