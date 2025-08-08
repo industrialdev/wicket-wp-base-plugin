@@ -180,6 +180,7 @@ function group_membership_subscription_renewal_completed( $sub ) {
  */
 
  add_action('woocommerce_subscription_date_updated', function($sub, $date_type, $datetime) {
+
   if($date_type != 'next_payment') {
     return;
   }
@@ -206,14 +207,15 @@ function group_membership_subscription_renewal_completed( $sub ) {
   if(!empty($group_memberships)) {
     $group_membership_uuids = wicket_get_group_membership_uuids( $group_memberships );
   }
-
+  
   if(!empty($group_membership_uuids)) {
     $args['end_date'] = (new \DateTime( '@' . strtotime($datetime)))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
     foreach( $group_membership_uuids as $group_membership_uuid ) {
-      $response = wicket_wicket_update_group_membership( $group_membership_uuid['id'], $args );
+      $response[] = wicket_wicket_update_group_membership( $group_membership_uuid['id'], $args );
       $sub->add_order_note("Group subscription end date updated to "
         . date("Y-m-d", strtotime($datetime))." on Next Payment Date changed for Group: {$group_membership_uuid['name']}.");
     }
+      wicket_wc_log_group_sync(['woocommerce_subscription_date_updated', 'API RESPONSE', $response]);
   }
 }, 10, 3);
 
@@ -262,8 +264,8 @@ function wicket_group_membership_subscription_status_active( $sub ){
   $subscription_id = $sub->get_id();
   $group_assigned_next_payment = get_post_meta($subscription_id, '_group_assigned_next_payment', true);
   if(!empty($group_assigned_next_payment)) {
-    group_membership_subscription_renewal_completed($sub);
-    return;
+    //group_membership_subscription_renewal_completed($sub);
+    //return;
   }
 
   $items = $sub->get_items();
@@ -273,10 +275,12 @@ function wicket_group_membership_subscription_status_active( $sub ){
     if ( !empty($item_product_id) && has_term( $group_product_category, 'product_cat', $item_product_id ) ) {
       $found_group_role =  get_post_meta($item_product_id, '_group_role_assignment_slug', true);
       $found_group_id =  get_post_meta($item_product_id, '_group_assignment_uuid', true);
-      $group_ids[ $found_group_role ] = $found_group_id;
+      $group_ids[ $found_group_role.'|'.$item_product_id ] = $found_group_id;
       //$sub->add_order_note("Group subscription activated firing for $found_group_id.")  ;    
     }
   }
+
+  wicket_wc_log_group_sync(['wicket_group_membership_subscription_status_active - items found', $group_ids]);
 
   if(!empty($group_ids)) {
     $user_id = $sub->get_user_id();
@@ -290,10 +294,12 @@ function wicket_group_membership_subscription_status_active( $sub ){
     $next_payment_date =  (new \DateTime( '@' . $sub_next_payment_date))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
 
     if (class_exists('WC_Logger') && 'prod' != wicket_get_option('wicket_admin_settings_environment')) {
-      (new \WC_Logger)->log('error',wc_print_r(['Processing Group Subscription Product' => [$group_ids, $person_id, $start_date, $next_payment_date]], true), ['source' => 'wicket-wp-base-plugin']);
+      (new \WC_Logger)->log('error',wc_print_r(['Processing Group Subscription Product' => [$group_ids, $person_id, $start_date, $next_payment_date]], true), ['source' => 'wicket-group-sync']);
     }
   
     foreach($group_ids as $group_role_slug => $group_id) {
+      $group_role_slug_parts = explode('|', $group_role_slug);
+      $group_role_slug = $group_role_slug_parts[0];
       $group_info = wicket_wicket_get_group_info( $group_id );
       $group_name = $group_info['data']['attributes']['name'];  
       $wicket_api_response = wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date, $next_payment_date, true);
@@ -317,6 +323,10 @@ function wicket_group_membership_subscription_status_active( $sub ){
  */
 function wicket_get_group_membership_uuids( $group_memberships ) {
   foreach($group_memberships as $group_role_slug => $group_membership) {
+      //this is necessary to handle case where same role on different groups in same subscription
+      $group_role_slug_parts = explode('|', $group_role_slug);
+      $group_role_slug = $group_role_slug_parts[0];
+
     $attributes = $group_membership['data'][0]['attributes'];
     $group_id = $group_membership['data'][0]['relationships']['group']['data']['id'];
     if($attributes['type'] == $group_role_slug) {
@@ -326,6 +336,7 @@ function wicket_get_group_membership_uuids( $group_memberships ) {
       $group_membership_uuids[] = $group_membership_uuids_item;
     }
   }
+  wicket_wc_log_group_sync(['wicket_get_group_membership_uuids', $group_membership_uuids]);  
   return $group_membership_uuids;
 }
 
@@ -358,7 +369,7 @@ function wicket_get_subscription_group_ids( $sub ) {
       $item_product_id = $item->get_product_id();
       if ( !empty($item_product_id) && has_term( $group_product_category, 'product_cat', $item_product_id ) ) {
         $group_role_slug = get_post_meta($item_product_id, '_group_role_assignment_slug', true);
-        $group_ids[ $group_role_slug ] =  get_post_meta($item_product_id, '_group_assignment_uuid', true);
+        $group_ids[ $group_role_slug.'|'. $item_product_id] =  get_post_meta($item_product_id, '_group_assignment_uuid', true);
       }
     }
   }
@@ -503,3 +514,14 @@ function wicket_wicket_update_group_membership( $group_membership_uuid, $args = 
     }
   }  
 }
+
+ function wicket_wc_log_group_sync( $data, $level = 'error' ) {
+    if (class_exists('WC_Logger')) {
+      $logger = new \WC_Logger();
+      if(is_array( $data )) {
+        $data = wc_print_r( $data, true );
+      }
+      $logger->log($level, $data, ['source' => 'wicket-group-sync']);
+    }
+  }
+
