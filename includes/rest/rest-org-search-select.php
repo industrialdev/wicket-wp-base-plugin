@@ -8,8 +8,6 @@ function wicket_base_register_rest_routes(){
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_search_orgs',
     'permission_callback' => function() {
-      //return true;
-      //return current_user_can('edit_posts'); // Can just return true if it's a public endpoint
       return is_user_logged_in();
     },
   ));
@@ -18,8 +16,6 @@ function wicket_base_register_rest_routes(){
     'methods'  => 'POST',
     'callback' => 'wicket_internal_endpoint_search_groups',
     'permission_callback' => function() {
-      //return true;
-      //return current_user_can('edit_posts'); // Can just return true if it's a public endpoint
       return is_user_logged_in();
     },
   ));
@@ -266,16 +262,26 @@ function wicket_internal_endpoint_terminate_relationship( $request ) {
 function wicket_internal_endpoint_create_relationship( $request ) {
   $params = $request->get_json_params();
 
+  // Initialize logger (WooCommerce)
+  $logger  = wc_get_logger();
+  $context = array('source' => 'wicket-membership-role');
+  $logger->info('create_relationship: request received', $context);
+  $logger->info('create_relationship: raw params: ' . json_encode($params), $context);
+
   if( !isset( $params['fromUuid'] ) ) {
+    $logger->warning('create_relationship: fromUuid not provided', $context);
     wp_send_json_error( 'fromUuid not provided' );
   }
   if( !isset( $params['toUuid'] ) ) {
+    $logger->warning('create_relationship: toUuid not provided', $context);
     wp_send_json_error( 'toUuid not provided' );
   }
   if( !isset( $params['relationshipType'] ) ) {
+    $logger->warning('create_relationship: relationshipType not provided', $context);
     wp_send_json_error( 'relationshipType not provided' );
   }
   if( !isset( $params['userRoleInRelationship'] ) ) {
+    $logger->warning('create_relationship: userRoleInRelationship not provided', $context);
     wp_send_json_error( 'userRoleInRelationship not provided' );
   }
 
@@ -285,6 +291,9 @@ function wicket_internal_endpoint_create_relationship( $request ) {
   $userRoleInRelationship      = $params['userRoleInRelationship'];
   $description                 = isset($params['description']) ? $params['description'] : null;
   $userRoleInRelationshipArray = explode(',', $userRoleInRelationship );
+
+  $logger->info('create_relationship: from=' . $fromUuid . ' to=' . $toUuid . ' relationshipType=' . $relationshipType . ' roles=' . $userRoleInRelationship, $context);
+  $logger->info('create_relationship: description=' . ($description !== null ? $description : 'null'), $context);
 
   $return = [];
 
@@ -321,11 +330,12 @@ function wicket_internal_endpoint_create_relationship( $request ) {
       ]
       ];
 
+    $logger->info('create_relationship: payload=' . wp_json_encode($payload), $context);
     try {
       $new_connection = wicket_create_connection( $payload );
-      //wicket_write_log('creating connection:');
-      //wicket_write_log($new_connection);
+      $logger->info('create_relationship: response=' . wp_json_encode($new_connection), $context);
     } catch (\Exception $e) {
+      $logger->error('create_relationship: error creating connection: ' . $e->getMessage(), $context);
       wp_send_json_error( $e->getMessage() );
     }
 
@@ -338,8 +348,10 @@ function wicket_internal_endpoint_create_relationship( $request ) {
 
     // Grab information about the new org connection to send back
     $org_info = wicket_get_organization_basic_info( $toUuid );
+    $logger->info('create_relationship: org_info=' . wp_json_encode($org_info), $context);
 
     $org_memberships = wicket_get_org_memberships( $toUuid );
+    $logger->info('create_relationship: org_memberships count=' . ( is_array($org_memberships) ? count($org_memberships) : 0 ), $context);
     $has_active_membership = false;
     if( !empty( $org_memberships ) ) {
       foreach( $org_memberships as $membership ) {
@@ -348,12 +360,14 @@ function wicket_internal_endpoint_create_relationship( $request ) {
             if( isset( $membership['membership']['attributes']['active'] ) ) {
               if( $membership['membership']['attributes']['active'] ) {
                 $has_active_membership = true;
+                $logger->info('create_relationship: active membership detected for organization ' . $toUuid, $context);
               }
             }
           }
         }
       }
     }
+    $logger->info('create_relationship: has_active_membership=' . ( $has_active_membership ? 'true' : 'false' ), $context);
 
     $return[] =  [
       'connection_id'     => $new_connection['data']['id'] ?? '',
@@ -374,6 +388,7 @@ function wicket_internal_endpoint_create_relationship( $request ) {
     ];
   }
 
+  $logger->info('create_relationship: returning ' . count($return) . ' connection(s)', $context);
   wp_send_json_success($return);
 }
 
