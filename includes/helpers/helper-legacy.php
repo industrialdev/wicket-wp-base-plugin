@@ -420,9 +420,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             if (isset($result['attributes']['type']) && !is_null($org_type)) {
                 $result_type = $result['attributes']['type'];
                 if ($result_type != $org_type) {
-                    //wicket_write_log('Skipped');
-                    // Skip this record if an org type filter was passed to this endpoint
-                    // and it doesn't match
+                    // Skip this record if an org type filter was passed to this endpoint and it doesn't match
                     continue;
                 }
             }
@@ -1855,15 +1853,8 @@ function wicket_assign_role($person_uuid, $role_name, $org_uuid = '')
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2260,7 +2251,7 @@ function wicket_get_person_memberships($uuid)
         try {
             $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription');
         } catch (Exception $e) {
-            wicket_write_log($e->getMessage());
+
         }
     }
     if ($memberships) {
@@ -2277,12 +2268,13 @@ function wicket_get_person_active_memberships($uuid)
 {
     $client = wicket_api_client();
     static $memberships = null;
+
     // prepare and memoize all connections from Wicket
     if (is_null($memberships)) {
         try {
             $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription&filter[active_at]=now');
         } catch (Exception $e) {
-            wicket_write_log($e->getMessage());
+
         }
     }
     if ($memberships) {
@@ -2444,15 +2436,8 @@ function wicket_create_organization_address($org_id, $payload)
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2483,15 +2468,8 @@ function wicket_create_person_address($person_uuid, $payload)
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2515,15 +2493,8 @@ function wicket_create_organization_email($org_id, $payload)
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2546,15 +2517,8 @@ function wicket_create_organization_phone($org_id, $payload)
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2571,15 +2535,8 @@ function wicket_create_person_phone($person_uuid, $payload)
         return true;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($e->getMessage());
-        // echo "</pre>";
-        //
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
     }
+
     return false;
 }
 
@@ -2615,36 +2572,47 @@ function wicket_create_organization_web_address($org_id, $payload)
     return false;
 }
 
-/**
- * Create a connection in Wicket/MDP.
- *
- * Expects a JSON:API payload for the "connections" resource. The payload should
- * include the desired connection attributes (e.g., type/connection_type, starts_at,
- * ends_at, description, tags) and relationships for the "from" and "to" entities.
- *
- * Example payload:
- * $payload = [
- *   'data' => [
- *     'type' => 'connections',
- *     'attributes' => [
- *       'type' => 'employee',
- *       'starts_at' => date('Y-m-d'),
- *       'description' => 'my description goes here',
- *     ],
- *     'relationships' => [
- *       'from' => [
- *         'data' => [ 'id' => $person['data']['id'], 'type' => 'people' ],
- *       ],
- *       'to' => [
- *         'data' => [ 'id' => $org_id, 'type' => 'organizations' ],
- *       ],
- *     ],
- *   ],
- * ];
- *
- * @param array $payload JSON:API payload to POST to the connections endpoint.
- * @return array API response decoded as an associative array with keys like 'data' and 'attributes'.
- */
+/**------------------------------------------------------------------
+ * Create connection
+ * $payload is an array of attributes. See how wicket does this via the API/network tab in chrome
+ * an example might be the following:
+$relationship_payload = [
+    'data' => [
+      'type' => 'connections',
+      'attributes' => [
+        'type' => 'employee',
+        'starts_at' => date("Y-m-d"),
+        'description' => 'my description goes here'
+      ],
+      'relationships' => [
+        'organization' => [
+          'data' => [
+            'id' => $org_id, //org id
+            'type' => 'organizations'
+          ]
+        ],
+        'person' => [
+          'data' => [
+            'id' => $person['data']['id'],
+            'type' => 'people'
+          ]
+        ],
+        'from' => [
+          'data' => [
+            'id' => $person['data']['id'],
+            'type' => 'people'
+          ]
+        ],
+        'to' => [
+          'data' => [
+            'id' => $org_id, //org id
+            'type' => 'organizations'
+          ]
+        ],
+      ],
+    ]
+  ];
+ ------------------------------------------------------------------*/
 function wicket_create_connection($payload)
 {
     $client = wicket_api_client();
@@ -2743,7 +2711,7 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
     try {
         $new_connection = wicket_create_connection($payload);
     } catch (\Exception $e) {
-        wicket_write_log($e->getMessage());
+
     }
 
     $new_connection_id = '';
@@ -2842,7 +2810,7 @@ function wicket_create_org_to_org_connection($from_org_uuid, $to_org_uuid, $rela
     try {
         $new_connection = wicket_create_connection($payload);
     } catch (\Exception $e) {
-        wicket_write_log($e->getMessage());
+
     }
 
     $new_connection_id = '';
@@ -2906,7 +2874,6 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
 {
 
     if (empty($end_date)) {
-        //wicket_write_log('End date is empty');
         return false;
     }
 
@@ -2921,7 +2888,6 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
         $current_connection_info = wicket_get_connection_by_id($connection_id);
 
         if (empty($current_connection_info)) {
-            //wicket_write_log('Current connection info is empty');
             return false;
         }
 
@@ -2950,8 +2916,6 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
             'type'          => $current_connection_info['data']['type'],
           ]
         ];
-        // wicket_write_log('payload before send:');
-        // wicket_write_log($payload);
 
         $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
 
@@ -2964,11 +2928,11 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
             wicket_remove_connection($connection_id);
             return true;
         }
-        wicket_write_log($error_message);
+
+
         return false;
     }
 
-    //wicket_write_log('wicket_set_connection_start_end_dates() reached the end of the function without success');
     return false;
 }
 
@@ -3128,7 +3092,6 @@ function wicket_remove_tag_organization($org_uuid, $tags)
         $result = $client->patch("organizations/$org_uuid", ['json' => $payload]);
         return $result;
     } catch (\Exception $e) {
-        wicket_write_log($e->getMessage());
         return false;
     }
 }
@@ -3166,8 +3129,6 @@ function wicket_get_org_memberships($org_id)
         try {
             $organization_memberships = $client->get("/organizations/$org_id/membership_entries?sort=-ends_at&include=membership");
         } catch (\Exception $e) {
-            //wicket_write_log('wicket_get_org_memberships() error:');
-            //wicket_write_log($e->getMessage());
             return [];
         }
         $memberships = [];
@@ -3368,9 +3329,15 @@ function wicket_get_resource_types($entity_type_slug = '')
     return false;
 }
 
-/**------------------------------------------------------------------
- * Gets org connection types resource list
-------------------------------------------------------------------*/
+/**
+ * Get the resource types for person-to-organization connections.
+ *
+ * Fetches all available resource types from Wicket and filters the list
+ * to those where `resource_type` equals `connection_person_to_organizations`.
+ *
+ * @since 1.0.0
+ * @return \Illuminate\Support\Collection|array Filtered collection/array of matching resource types.
+ */
 function get_person_to_organizations_connection_types_list()
 {
     $client = wicket_api_client();
@@ -3410,20 +3377,7 @@ function get_individual_memberships($id = '')
 }
 
 /**
- * -!-!-!-!-!-!-
  * DEPRECATED - Use wicket_update_schema_by_slug() instead as it supports MDP slugs and more than updating persons.
- * -!-!-!-!-!-!-
- *
- * Enables writing a single AI value for a person based on a single key/value pair.
- *
- * This function updates a person's data field with a specified key/value pair within a schema.
- * To pass a custom payload for multiple value updates, pass null for $key and True for $pass_raw_value,
- * then you can pass your custom payload to $value.
- *
- * Example usage:
- * ```php
- * wicket_update_schema_single_value(wicket_current_person_uuid(), 'membership_mgmt', 'application_status', 'not_submitted');
- * ```
  *
  * @param string  $schema_slug     The schema slug to identify the schema.
  * @param string  $key             The key to update within the schema. Pass null to update multiple values.
@@ -3431,6 +3385,8 @@ function get_individual_memberships($id = '')
  * @param bool    $pass_raw_value  Set to true to pass a custom payload in $value. Default is false.
  * @param string  $person_uuid     The UUID of the person to update. Default is 0, which means the current user.
  * @return array                   Returns an array with a boolean indicating success, and an error message if failed.
+ *
+ * @deprecated 1.0.0 Use wicket_update_schema_by_slug() instead. This function will be removed in a future release.
  */
 function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw_value = false, $person_uuid = 0)
 {
@@ -3560,9 +3516,6 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
         }
     }
 
-    // wicket_write_log($schema_values);
-    // wicket_write_log($sub_payload);
-
     // Make the API call
     $api_path = $type == 'org' ? 'organizations' : 'people';
     try {
@@ -3579,14 +3532,9 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
           ]
         ];
 
-        // wicket_write_log('wicket_update_schema_by_slug before send');
-        // wicket_write_log($payload);
-
         $output = $client->patch("$api_path/$target_uuid", ['json' => $payload]);
         return array(true, $output);
     } catch (Exception $e) {
-        // wicket_write_log("Error in wicket_update_schema_by_slug - see details:");
-        // wicket_write_log($e->getMessage());
         return array(false, $e->getMessage());
     }
     return array(false, 'Something went wrong.');

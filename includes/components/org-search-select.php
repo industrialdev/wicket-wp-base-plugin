@@ -187,7 +187,12 @@ $available_org_types = wicket_get_resource_types('organizations');
 </style>
 
 <div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>"
-  x-data="orgss_<?php echo $key; ?>" x-init="init">
+  x-data="orgss_<?php echo $key; ?>" x-init="
+    console.log('org-search-select init');
+    $watch('searchQuery', value => console.log('searchQuery changed to:', value));
+    $watch('selectedOrg', value => console.log('selectedOrg changed to:', value));
+    $watch('isLoading', value => console.log('isLoading changed to:', value));
+  ">
 
   <?php // Debug log of the selection custom event when fired
   ?>
@@ -717,6 +722,8 @@ $available_org_types = wicket_get_resource_types('organizations');
 <script>
   document.addEventListener('alpine:init', () => {
     Alpine.data('orgss_<?php echo $key; ?>', () => ({
+      searchQuery: '',
+      selectedOrg: null,
       lang: '<?php echo $lang; ?>',
       isLoading: false,
       showingRemoveConfirmation: false,

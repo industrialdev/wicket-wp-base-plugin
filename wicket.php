@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.173
+ * Version: 2.0.174
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -202,13 +202,13 @@ class Wicket_Main
         // Include wicket components
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
 
-        // Include custom code snippets, such as those that additional functionality to complex components
-        include_once WICKET_PLUGIN_DIR . 'includes/custom/woocommerce.php';
+        // Organization search select for woocommerce
+        include_once WICKET_PLUGIN_DIR . 'includes/custom/org-search-select-woocommerce.php';
 
-        // Include custom code snippets for group management by subscription product integration
+        // Group subscriptions
         include_once WICKET_PLUGIN_DIR . 'includes/custom/group-subscriptions.php';
 
-        // Include Mailtrap settings for stage
+        // Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
         // Include Wicket MDP Schema Merge Tag Generator
