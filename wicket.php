@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.174
+ * Version: 2.0.175
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -202,27 +202,14 @@ class Wicket_Main
         // Include wicket components
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
 
-        // Organization search select for woocommerce
-        include_once WICKET_PLUGIN_DIR . 'includes/custom/org-search-select-woocommerce.php';
-
         // Group subscriptions
-        include_once WICKET_PLUGIN_DIR . 'includes/custom/group-subscriptions.php';
+        include_once WICKET_PLUGIN_DIR . 'includes/integrations/group-subscriptions.php';
 
         // Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
         // Include Wicket MDP Schema Merge Tag Generator
         include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
-
-        // Include woo order touchpoints
-        if (wicket_get_option('wicket_admin_settings_tp_woo_order') === '1') {
-            include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce-order.php';
-        }
-
-        // Include event tickets attendee registered touchpoints
-        if (wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1') {
-            include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce_payment_complete_event_ticket_attendees.php';
-        }
 
         // Include event tickets attendee registered touchpoints
         if (wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1') {
@@ -251,10 +238,23 @@ class Wicket_Main
 
         // Include woocommerce functions
         if (is_plugin_active('woocommerce/woocommerce.php')) {
+            // Include woo order touchpoints
+            if (wicket_get_option('wicket_admin_settings_tp_woo_order') === '1') {
+                include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce-order.php';
+            }
+
+            // Include event tickets attendee registered touchpoints
+            if (wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1') {
+                include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/woocommerce_payment_complete_event_ticket_attendees.php';
+            }
+
             if (wicket_get_option('wicket_admin_settings_woo_sync_addresses') === '1') {
                 include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-checkout-addresses.php';
             }
+
+            include_once WICKET_PLUGIN_DIR . 'includes/integrations/org-search-select-woocommerce.php';
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customizations.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/integrations/woocommerce-emails.php';
         }
 
         // Include WooCommerce memberships team functions
