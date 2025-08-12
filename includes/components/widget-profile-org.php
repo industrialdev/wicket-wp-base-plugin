@@ -141,3 +141,32 @@ $wicket_settings = get_wicket_settings();
 
   });
 </script>
+<style>
+  .wicket__widgets {
+    ul,
+    li {
+      list-style: none !important;
+    }
+
+    /* Add Address button with red asterisk indicator */
+    [data-cy="uni-add_address_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
+
+    /* Add email button with red asterisk indicator */
+    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
+
+    /* Add phone button with red asterisk indicator */
+    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
+  }
+</style>
