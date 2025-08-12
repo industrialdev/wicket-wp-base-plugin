@@ -14,7 +14,7 @@ $unique_widget_id           = rand(1, PHP_INT_MAX);
 $wicket_settings = get_wicket_settings();
 ?>
 
-<div class="wicket-section <?php implode(' ', $classes); ?>"
+<div class="wicket-section wicket__widgets <?php implode(' ', $classes); ?>"
   role="complementary">
   <h2>Profile</h2>
   <div id="profile-<?php echo $unique_widget_id; ?>"></div>
@@ -82,10 +82,15 @@ $wicket_settings = get_wicket_settings();
 
           widgetProfileIndUpdateHiddenFields(payload);
           // Add visual required markers
-          ensureWicketRequiredAsteriskStyles();
           markRequiredLabels(document.getElementById(
             'profile-<?php echo $unique_widget_id; ?>'
             ));
+          markAddressHeadingAsRequired(document.getElementById(
+            'profile-<?php echo $unique_widget_id; ?>'
+          ));
+          markAddPhoneButtonAsRequired(document.getElementById(
+            'profile-<?php echo $unique_widget_id; ?>'
+          ));
         });
         widget.listen(widget.eventTypes.SAVE_SUCCESS, function(payload) {
           let event = new CustomEvent(
@@ -96,10 +101,15 @@ $wicket_settings = get_wicket_settings();
           window.dispatchEvent(event);
           widgetProfileIndUpdateHiddenFields(payload);
           // Refresh visual required markers
-          ensureWicketRequiredAsteriskStyles();
           markRequiredLabels(document.getElementById(
             'profile-<?php echo $unique_widget_id; ?>'
             ));
+          markAddressHeadingAsRequired(document.getElementById(
+            'profile-<?php echo $unique_widget_id; ?>'
+          ));
+          markAddPhoneButtonAsRequired(document.getElementById(
+            'profile-<?php echo $unique_widget_id; ?>'
+          ));
         });
         widget.listen(widget.eventTypes.DELETE_SUCCESS, function(payload) {
           let event = new CustomEvent(
@@ -154,17 +164,20 @@ $wicket_settings = get_wicket_settings();
       document.body.classList.toggle('wicket-person-profile-denied', !approved);
     }
 
-    // Inject minimal CSS once per page
-    function ensureWicketRequiredAsteriskStyles() {
-      if (document.getElementById('wicket-required-asterisk-style')) {
-        return;
-      }
-      const style = document.createElement('style');
-      style.id = 'wicket-required-asterisk-style';
-      style.type = 'text/css';
-      style.textContent =
-        '.wicket-required::after{content:" *";color:#d32f2f;margin-left:2px;font-weight:600;}';
-      document.head.appendChild(style);
+    // Add a required asterisk to the "Add phone" button label
+    function markAddPhoneButtonAsRequired(rootEl) {
+      try {
+        if (!rootEl) { return; }
+        const buttons = rootEl.querySelectorAll('button[data-cy="uni-email_phone_web-add_btn"]');
+        buttons.forEach(function(btn) {
+          const labelSpan = btn.querySelector('.btn-label');
+          if (!labelSpan) { return; }
+          const text = (labelSpan.textContent || '').trim().toLowerCase();
+          if (text.includes('add phone')) {
+            labelSpan.classList.add('wicket-required');
+          }
+        });
+      } catch (e) {}
     }
 
     // Mark labels for required inputs within the widget root
@@ -191,6 +204,29 @@ $wicket_settings = get_wicket_settings();
           if (label) {
             label.classList.add('wicket-required');
           }
+        });
+      } catch (e) {}
+    }
+
+    // Add a required asterisk to the "Address details" heading
+    function markAddressHeadingAsRequired(rootEl) {
+      try {
+        if (!rootEl) { return; }
+        // Prefer structural detection: find AddressList container and walk backwards to h4
+        const addressList = rootEl.querySelector('.AddressList');
+        if (addressList) {
+          let prev = addressList.previousElementSibling;
+          while (prev && prev.tagName !== 'H4') { prev = prev.previousElementSibling; }
+          if (prev && prev.tagName === 'H4') {
+            prev.classList.add('wicket-required');
+            return;
+          }
+        }
+        // Fallback: find H4 that includes the word Address
+        const headings = rootEl.querySelectorAll('h4');
+        headings.forEach(function(h){
+          const txt = (h.textContent || '').trim().toLowerCase();
+          if (txt.includes('address')) { h.classList.add('wicket-required'); }
         });
       } catch (e) {}
     }
@@ -239,3 +275,17 @@ $wicket_settings = get_wicket_settings();
     setupPersonNextButtonGuard();
   });
 </script>
+<style>
+  .wicket__widgets {
+    & .wicket-required::after {
+      content: " *";
+      color: #d32f2f;
+      margin-left: 2px;
+      font-weight: 600;
+    }
+
+    ul, li {
+      list-style: none !important;
+    }
+  }
+</style>
