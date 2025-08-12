@@ -61,13 +61,13 @@ $wicket_settings = get_wicket_settings();
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
     Wicket.ready(function() {
-      let widgetRoot_ <?php echo $unique_widget_id; ?> =
+      let widgetRoot_<?php echo $unique_widget_id; ?> =
         document.getElementById(
           'org-profile-widget-<?php echo $unique_widget_id; ?>'
           );
 
       Wicket.widgets.editOrganizationProfile({
-        rootEl: widgetRoot_ <?php echo $unique_widget_id; ?> ,
+        rootEl: widgetRoot_<?php echo $unique_widget_id; ?>,
         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
         accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
         orgId: '<?php echo $org_id; ?>',
