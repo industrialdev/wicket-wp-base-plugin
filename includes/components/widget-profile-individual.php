@@ -52,13 +52,17 @@ $wicket_settings = get_wicket_settings();
         document.getElementById(
           'profile-<?php echo $unique_widget_id; ?>');
 
-      Wicket.widgets.createPersonProfile({
-        rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
-        apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-        accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
-        personId: '<?php echo wicket_current_person_uuid(); ?>',
-        lang: "<?php echo wicket_get_current_language(); ?>",
-      }).then(function(widget) {
+             Wicket.widgets.createPersonProfile({
+         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
+         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
+         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
+         personId: '<?php echo wicket_current_person_uuid(); ?>',
+         lang: "<?php echo wicket_get_current_language(); ?>",
+         requiredResources: {
+           addresses: "work",
+           phones: "work"
+         }
+       }).then(function(widget) {
         <?php
                 // Dispatch custom events to the page on each available widget listener,
                 // so that actions can be taken based on that information if needed,

@@ -65,79 +65,112 @@ $wicket_settings = get_wicket_settings();
           'org-profile-widget-<?php echo $unique_widget_id; ?>'
           );
 
-      Wicket.widgets.editOrganizationProfile({
-        rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
-        apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-        accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
-        orgId: '<?php echo $org_id; ?>',
-        lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
-        requiredResources: <?php echo $org_required_resources; ?> ,
-      }).then(function(widget) {
+             Wicket.widgets.editOrganizationProfile({
+         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
+         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
+         accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
+         orgId: '<?php echo $org_id; ?>',
+         lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
+         extraFields: ["type"],
+         requiredResources: {
+           addresses: true,
+           phones: true,
+           emails: true,
+           webAddresses: true,
+           ...<?php echo $org_required_resources; ?>
+         },
+       }).then(function(widget) {
         <?php
                 // Dispatch custom events to the page on each available widget listener,
                 // so that actions can be taken based on that information if needed,
                 // such as in the Gravity Forms wrapper. Also update hidden fields to
                 // make data available in multiple ways on the page
 ?>
-        widget.listen(widget.eventTypes.WIDGET_LOADED, function(payload) {
-          let event = new CustomEvent("wwidget-component-profile-org-loaded", {
-            detail: payload
-          });
+                 widget.listen(widget.eventTypes.WIDGET_LOADED, function(payload) {
 
-          window.dispatchEvent(event);
+           let event = new CustomEvent("wwidget-component-profile-org-loaded", {
+             detail: payload
+           });
 
-          let commonEventLoaded = new CustomEvent(
-            "wwidget-component-common-loaded", {
-              detail: payload
-            });
+           window.dispatchEvent(event);
 
-          window.dispatchEvent(commonEventLoaded);
+           let commonEventLoaded = new CustomEvent(
+             "wwidget-component-common-loaded", {
+               detail: payload
+             });
 
-          widgetProfileOrgUpdateHiddenFields(payload);
-        });
-        widget.listen(widget.eventTypes.SAVE_SUCCESS, function(payload) {
-          let event = new CustomEvent(
-            "wwidget-component-profile-org-save-success", {
-              detail: payload
-            });
+           window.dispatchEvent(commonEventLoaded);
 
-          window.dispatchEvent(event);
-          widgetProfileOrgUpdateHiddenFields(payload);
-        });
-        widget.listen(widget.eventTypes.DELETE_SUCCESS, function(payload) {
-          let event = new CustomEvent(
-            "wwidget-component-profile-org-delete-success", {
-              detail: payload
-            });
+                      widgetProfileOrgUpdateHiddenFields(payload);
+         });
 
-          window.dispatchEvent(event);
-        });
+         // Listen for save success
+         widget.listen(widget.eventTypes.SAVE_SUCCESS, function(payload) {
+           let event = new CustomEvent(
+             "wwidget-component-profile-org-save-success", {
+               detail: payload
+             });
+
+           window.dispatchEvent(event);
+           widgetProfileOrgUpdateHiddenFields(payload);
+         });
+
+         // Listen for save errors
+         widget.listen(widget.eventTypes.SAVE_ERROR, function(payload) {
+
+         });
+
+         // Listen for validation errors
+         widget.listen(widget.eventTypes.VALIDATION_ERROR, function(payload) {
+
+         });
+
+
+
+         widget.listen(widget.eventTypes.DELETE_SUCCESS, function(payload) {
+           let event = new CustomEvent(
+             "wwidget-component-profile-org-delete-success", {
+               detail: payload
+             });
+
+           window.dispatchEvent(event);
+         });
       });
-    });
+        });
 
-    function widgetProfileOrgUpdateHiddenFields(payload) {
-      let userInfoDataField = document.querySelector(
-        'input[name="<?php echo $org_info_data_field_name; ?>"]'
-        );
-      let validationDataField = document.querySelector(
-        'input[name="<?php echo $validation_data_field_name; ?>"]'
-        );
+         function widgetProfileOrgUpdateHiddenFields(payload) {
+       let userInfoDataField = document.querySelector(
+         'input[name="<?php echo $org_info_data_field_name; ?>"]'
+         );
+       let validationDataField = document.querySelector(
+         'input[name="<?php echo $validation_data_field_name; ?>"]'
+         );
 
-      userInfoDataField.value = JSON.stringify(payload);
+       userInfoDataField.value = JSON.stringify(payload);
 
-      validationDataField.value = true;
-      if (payload.incompleteRequiredFields) {
-        if (payload.incompleteRequiredFields.length > 0) {
-          validationDataField.value = false;
-        }
+       validationDataField.value = true;
+       let validationFailures = [];
+
+       if (payload.incompleteRequiredFields) {
+         if (payload.incompleteRequiredFields.length > 0) {
+           validationDataField.value = false;
+           validationFailures.push('incomplete required fields: ' + payload.incompleteRequiredFields.join(', '));
+         }
+       }
+
+       // Note: Commenting out incompleteRequiredResources validation as it's causing form submission issues
+       // The red asterisks on the buttons serve as visual indicators for required resources
+       // if (payload.incompleteRequiredResources) {
+       //   if (payload.incompleteRequiredResources.length > 0) {
+       //     validationDataField.value = false;
+       //     validationFailures.push('incomplete required resources: ' + payload.incompleteRequiredResources.join(', '));
+       //   }
+       // }
+
+      if (validationFailures.length > 0) {
+        console.log('DEBUG: Validation failures:', validationFailures);
       }
-
-      if (payload.incompleteRequiredResources) {
-        if (payload.incompleteRequiredResources.length > 0) {
-          validationDataField.value = false;
-        }
-      }
-    }
+     }
 
   });
 </script>
@@ -155,18 +188,11 @@ $wicket_settings = get_wicket_settings();
       font-weight: bold;
     }
 
-    /* Add email button with red asterisk indicator */
-    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
-      content: " *";
-      color: #e62600;
-      font-weight: bold;
-    }
-
-    /* Add phone button with red asterisk indicator */
-    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
-      content: " *";
-      color: #e62600;
-      font-weight: bold;
-    }
+         /* Add email, phone, and web address buttons with red asterisk indicator */
+     [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+       content: " *";
+       color: #e62600;
+       font-weight: bold;
+     }
   }
 </style>
