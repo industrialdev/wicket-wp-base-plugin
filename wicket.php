@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.0.180
+ * Version: 2.0.181
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -254,7 +254,6 @@ class Wicket_Main
 
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/org-search-select-woocommerce.php';
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customizations.php';
-            include_once WICKET_PLUGIN_DIR . 'includes/integrations/woocommerce-emails.php';
         }
 
         // Include WooCommerce memberships team functions
