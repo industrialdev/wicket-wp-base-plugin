@@ -982,20 +982,20 @@ function send_person_to_team_assignment_email($user, $org_id)
     $to = $person->primary_email_address;
     $first_name = $person->given_name;
     $last_name = $person->family_name;
-    $subject = "Welcome to NJBIA!";
+    $subject = "Welcome!";
     $body = "Hi $first_name, <br><br>
     You have been assigned a membership as part of $organization_name.
     <br>
     <br>
-    Visit njbia.org and login to complete your profile and explore your member benefits.
+    Visit our site and login to complete your profile and explore your member benefits.
     <br>
     <br>
     Thank you,
     <br>
     <br>
-    New Jersey Business & Industry Association";
+    ";
     $headers = array('Content-Type: text/html; charset=UTF-8');
-    $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
+    $headers[] = 'From: Wicket <no-reply@wicketcloud.com>';
     wp_mail($to, $subject, $body, $headers);
 }
 
@@ -1013,21 +1013,21 @@ function send_new_person_to_team_assignment_email($first_name, $last_name, $emai
     }
 
     $to = $email;
-    $subject = "Welcome to NJBIA!";
+    $subject = "Welcome!";
     $body = "Hi $first_name, <br><br>
     You have been assigned a membership as part of $organization_name.
     <br>
     <br>
     You will soon receive an Account Confirmation email with instructions on how to finalize your login account.
-    Once you have confirmed your account, visit njbia.org and login to complete your profile and explore your member benefits.
+    Once you have confirmed your account, visit our site and login to complete your profile and explore your member benefits.
     <br>
     <br>
     Thank you,
     <br>
     <br>
-    New Jersey Business & Industry Association";
+    ";
     $headers = array('Content-Type: text/html; charset=UTF-8');
-    $headers[] = 'From: New Jersey Business & Industry Association <info@njbia.org>';
+    $headers[] = 'From: Wicket <no-reply@wicketcloud.com>';
     wp_mail($to, $subject, $body, $headers);
 }
 
