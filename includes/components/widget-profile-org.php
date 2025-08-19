@@ -57,6 +57,11 @@ $wicket_settings = get_wicket_settings();
   }
 </script>
 
+<?php
+  $widget_profile_org_extra_fields = apply_filters('widget_profile_org_extra_fields', ['type']);
+  $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields);
+?>
+
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
     Wicket.ready(function() {
@@ -71,7 +76,7 @@ $wicket_settings = get_wicket_settings();
          accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
          orgId: '<?php echo $org_id; ?>',
          lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
-         extraFields: ["type"],
+         extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
          requiredResources: {
            addresses: true,
            phones: true,
