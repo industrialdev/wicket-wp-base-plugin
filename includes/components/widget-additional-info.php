@@ -40,7 +40,7 @@ $wicket_settings = get_wicket_settings();
   id="<?php echo esc_attr( $unique_widget_id ); ?>"
   data-widget-id="<?php echo esc_attr( $unique_widget_id ); ?>"
   role="complementary">
-  <h2>Additional Info</h2>
+  <h2><?php _e('Additional Info', 'wicket'); ?></h2>
   <div id="additional-info-<?php echo esc_attr( $unique_widget_id ); ?>"></div>
   <input type="hidden" name="<?php echo $additional_info_data_field_name; ?>" />
   <input type="hidden" name="<?php echo $additional_info_validation; ?>" />
@@ -158,3 +158,25 @@ $wicket_settings = get_wicket_settings();
         }
     });
 </script>
+<style>
+  .wicket__widgets {
+    ul,
+    li {
+      list-style: none !important;
+    }
+
+    /* Add Address button with red asterisk indicator */
+    [data-cy="uni-add_address_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
+
+    /* Organization profile: Add asterisk for Email, Phone and Web address */
+    .OrganizationProfile [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
+  }
+</style>

@@ -16,7 +16,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode(' ', $classes); ?>"
   role="complementary">
-  <h2>Profile</h2>
+  <h2><?php _e('Profile', 'wicket'); ?></h2>
   <div id="profile-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden"
     name="<?php echo $user_info_data_field_name; ?>" />
@@ -144,15 +144,8 @@ $wicket_settings = get_wicket_settings();
       font-weight: bold;
     }
 
-    /* Add email button with red asterisk indicator */
-    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
-      content: " *";
-      color: #e62600;
-      font-weight: bold;
-    }
-
-    /* Add phone button with red asterisk indicator */
-    [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+    /* Person profile: Add asterisk for Email and Phone add buttons (exclude Web) */
+    .PersonProfile .ResourceListRow__row:not(:last-of-type) [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
       content: " *";
       color: #e62600;
       font-weight: bold;

@@ -27,7 +27,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode(' ', $classes); ?>"
   role="complementary">
-  <h2>Organization Profile</h2>
+  <h2><?php _e('Organization Profile', 'wicket'); ?></h2>
   <div id="org-profile-widget-<?php echo $unique_widget_id; ?>">
   </div>
   <input type="hidden"
@@ -193,11 +193,11 @@ $wicket_settings = get_wicket_settings();
       font-weight: bold;
     }
 
-         /* Add email, phone, and web address buttons with red asterisk indicator */
-     [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
-       content: " *";
-       color: #e62600;
-       font-weight: bold;
-     }
+    /* Organization profile: Add asterisk for Email, Phone and Web address */
+    .OrganizationProfile [data-cy="uni-email_phone_web-add_btn"] .btn-label::after {
+      content: " *";
+      color: #e62600;
+      font-weight: bold;
+    }
   }
 </style>
