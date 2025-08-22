@@ -77,13 +77,7 @@ $wicket_settings = get_wicket_settings();
          orgId: '<?php echo $org_id; ?>',
          lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
          extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
-         requiredResources: {
-           addresses: true,
-           phones: true,
-           emails: true,
-           webAddresses: true,
-           ...<?php echo $org_required_resources; ?>
-         },
+         requiredResources: <?php echo $org_required_resources; ?>,
        }).then(function(widget) {
         <?php
                 // Dispatch custom events to the page on each available widget listener,
@@ -120,26 +114,27 @@ $wicket_settings = get_wicket_settings();
            widgetProfileOrgUpdateHiddenFields(payload);
          });
 
-         // Listen for save errors
-         widget.listen(widget.eventTypes.SAVE_ERROR, function(payload) {
+         // Listen for save errors and re-evaluate validation state
+        widget.listen(widget.eventTypes.SAVE_ERROR, function(payload) {
+          widgetProfileOrgUpdateHiddenFields(payload);
+        });
 
-         });
-
-         // Listen for validation errors
-         widget.listen(widget.eventTypes.VALIDATION_ERROR, function(payload) {
-
-         });
+         // Listen for validation errors and re-evaluate validation state
+        widget.listen(widget.eventTypes.VALIDATION_ERROR, function(payload) {
+          widgetProfileOrgUpdateHiddenFields(payload);
+        });
 
 
 
          widget.listen(widget.eventTypes.DELETE_SUCCESS, function(payload) {
-           let event = new CustomEvent(
-             "wwidget-component-profile-org-delete-success", {
-               detail: payload
-             });
+          let event = new CustomEvent(
+            "wwidget-component-profile-org-delete-success", {
+              detail: payload
+            });
 
-           window.dispatchEvent(event);
-         });
+          window.dispatchEvent(event);
+          widgetProfileOrgUpdateHiddenFields(payload);
+        });
       });
         });
 
@@ -163,14 +158,29 @@ $wicket_settings = get_wicket_settings();
          }
        }
 
-       // Note: Commenting out incompleteRequiredResources validation as it's causing form submission issues
-       // The red asterisks on the buttons serve as visual indicators for required resources
-       // if (payload.incompleteRequiredResources) {
-       //   if (payload.incompleteRequiredResources.length > 0) {
-       //     validationDataField.value = false;
-       //     validationFailures.push('incomplete required resources: ' + payload.incompleteRequiredResources.join(', '));
-       //   }
-       // }
+       // Validate required resources so the hidden validation field reflects current state
+      if (payload.incompleteRequiredResources) {
+        if (payload.incompleteRequiredResources.length > 0) {
+          validationDataField.value = false;
+          validationFailures.push('incomplete required resources: ' + payload.incompleteRequiredResources.join(', '));
+        }
+      }
+
+      // Fallback/override: if all four resource collections have at least one item, consider resources satisfied
+      const hasAddresses    = Array.isArray(payload.addresses) && payload.addresses.length > 0;
+      const hasEmails       = Array.isArray(payload.emails) && payload.emails.length > 0;
+      const hasPhones       = Array.isArray(payload.phones) && payload.phones.length > 0;
+      const hasWebAddresses = Array.isArray(payload.webAddresses) && payload.webAddresses.length > 0;
+      if (hasAddresses && hasEmails && hasPhones && hasWebAddresses) {
+        // Remove any previously-added resource-related failure message
+        validationFailures = validationFailures.filter(function(msg){
+          return !/^incomplete required resources:/.test(msg);
+        });
+        // Only keep fields-related failures, otherwise mark as valid
+        if (validationFailures.length === 0) {
+          validationDataField.value = true;
+        }
+      }
 
       if (validationFailures.length > 0) {
         console.log('DEBUG: Validation failures:', validationFailures);
