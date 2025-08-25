@@ -321,14 +321,20 @@ function wicket_internal_endpoint_create_or_update_relationship($request)
     }
 
     $return = [];
+    // Use helper to detect duplicates per role
 
     foreach ($userRoleInRelationshipArray as $userRoleInRelationship) {
+        $roleSlug = trim($userRoleInRelationship);
+
+        // Attempt to find an existing matching connection via helper (includes ended if no active)
+        $existing_match = wicket_find_person_org_connection($fromUuid, $toUuid, $relationshipType, $roleSlug, true);
+
         $payload = [
           'data' => [
             'type' => 'connections',
             'attributes' => [
               'connection_type'   => $relationshipType,
-              'type'              => trim($userRoleInRelationship),
+              'type'              => $roleSlug,
               'starts_at'         => date('Y-m-d'),
               'ends_at'           => null,
               'description'       => $description,
@@ -355,10 +361,31 @@ function wicket_internal_endpoint_create_or_update_relationship($request)
           ]
         ];
 
-        try {
-            $new_connection = wicket_create_connection($payload);
-        } catch (\Exception $e) {
-            wp_send_json_error($e->getMessage());
+        // If matching connection exists, UPDATE it instead of creating a duplicate
+        if ($existing_match) {
+            $connection_id = $existing_match['id'] ?? '';
+            if ($connection_id === '') {
+                wp_send_json_error('Unable to determine existing connection ID for update.');
+            }
+
+            // Update description and reactivate (clear ends_at). Keep starts_at as-is.
+            $updated = wicket_update_connection_attributes($connection_id, [
+              'description' => $description,
+              'ends_at' => null,
+            ]);
+
+            if ($updated === false) {
+                wp_send_json_error('Something went wrong updating the existing connection.');
+            }
+
+            $new_connection = $updated;
+        } else {
+            // No existing connection found: CREATE a new one
+            try {
+                $new_connection = wicket_create_connection($payload);
+            } catch (\Exception $e) {
+                wp_send_json_error($e->getMessage());
+            }
         }
 
         $new_connection_id = '';

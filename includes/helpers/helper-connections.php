@@ -166,3 +166,89 @@ function wicket_patch_connection_description(string $connection_id, ?string $des
     return false;
   }
 }
+
+/**
+ * Find an existing person->organization connection matching org, connection type and role.
+ *
+ * This helper queries the person's connections from Wicket directly (no memoized helper)
+ * and returns the first ACTIVE matching connection. If none active is found and
+ * $includeEnded is true, it will return an ended matching connection instead.
+ *
+ * @param string $person_uuid       Person UUID (from)
+ * @param string $org_uuid          Organization UUID (to)
+ * @param string $connection_type   Connection type (e.g., person_to_organization)
+ * @param string $role_slug         Role/type slug (e.g., employee)
+ * @param bool   $includeEnded      Whether to allow returning an ended matching connection if no active one exists
+ *
+ * @return array|null The matching connection resource array, or null if none found
+ */
+function wicket_find_person_org_connection(
+  string $person_uuid,
+  string $org_uuid,
+  string $connection_type,
+  string $role_slug,
+  bool $includeEnded = false
+): ?array {
+  if ($person_uuid === '' || $org_uuid === '' || $connection_type === '' || $role_slug === '') {
+    return null;
+  }
+
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    return null;
+  }
+
+  try {
+    // Query all connections for the person, newest first
+    $connections = $client->get('people/' . $person_uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+  } catch (\Exception $e) {
+    return null;
+  }
+
+  if (!is_array($connections) || !isset($connections['data']) || !is_array($connections['data'])) {
+    return null;
+  }
+
+  $ended_match = null;
+  foreach ($connections['data'] as $conn) {
+    $to_id = $conn['relationships']['to']['data']['id'] ?? '';
+    $to_type = $conn['relationships']['to']['data']['type'] ?? '';
+    $conn_type = $conn['attributes']['connection_type'] ?? '';
+    $role_type = isset($conn['attributes']['type']) ? trim(strval($conn['attributes']['type'])) : '';
+
+    if ($to_id === $org_uuid && $to_type === 'organizations' && $conn_type === $connection_type && $role_type === trim($role_slug)) {
+      $is_active = (bool)($conn['attributes']['active'] ?? false);
+      $is_ended = !empty($conn['attributes']['ends_at']);
+      if ($is_active && !$is_ended) {
+        return $conn;
+      }
+      if ($includeEnded && $ended_match === null) {
+        $ended_match = $conn;
+      }
+    }
+  }
+
+  return $ended_match;
+}
+
+/**
+ * Check if a person already has a matching person->organization connection.
+ *
+ * @param string $person_uuid
+ * @param string $org_uuid
+ * @param string $connection_type
+ * @param string $role_slug
+ * @param bool   $includeEnded Whether to consider ended connections as existing
+ *
+ * @return bool True if a matching connection exists, false otherwise
+ */
+function wicket_person_has_org_connection(
+  string $person_uuid,
+  string $org_uuid,
+  string $connection_type,
+  string $role_slug,
+  bool $includeEnded = false
+): bool {
+  return wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role_slug, $includeEnded) !== null;
+}
