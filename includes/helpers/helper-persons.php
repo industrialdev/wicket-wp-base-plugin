@@ -99,15 +99,16 @@ function wicket_get_person_by_id($uuid)
 }
 
 /**
- * Retrieve a person's profile from Wicket by their UUID.
+ * Retrieve a person's profile from Wicket by their UUID as a plain array.
  *
  * If no UUID is provided, it attempts to use the UUID of the current logged-in WordPress user.
+ * Uses wicket_convert_obj_to_array() to provide a simple array payload for developers.
  *
  * @param string|null $person_uuid The UUID of the person. Defaults to null.
  *
- * @return object|null The person's profile object on success, or null on failure or if not found.
+ * @return array|null The person's profile array on success, or null on failure or if not found.
  */
-function wicket_get_person_profile_by_uuid(?string $person_uuid = null): ?object
+function wicket_get_person_profile(?string $person_uuid = null): ?array
 {
     if (empty($person_uuid)) {
         // Attempt to get the current person's UUID if not provided
@@ -115,6 +116,7 @@ function wicket_get_person_profile_by_uuid(?string $person_uuid = null): ?object
             // Optionally log this error: error_log('Wicket helper function wicket_current_person_uuid() not found.');
             return null;
         }
+
         $person_uuid = wicket_current_person_uuid();
     }
 
@@ -131,9 +133,15 @@ function wicket_get_person_profile_by_uuid(?string $person_uuid = null): ?object
 
     try {
         $client = wicket_api_client();
-        // The Wicket SDK's fetch method typically returns the resource object or throws an exception if not found/error.
+        // Fetch SDK resource object then convert to a plain array for easier consumption.
         $profile = $client->people->fetch($person_uuid);
-        return $profile;
+
+        if (function_exists('wicket_convert_obj_to_array')) {
+            return wicket_convert_obj_to_array($profile);
+        }
+
+        // Fallback: basic cast if legacy helper unavailable (keys may be less clean)
+        return (array) $profile;
     } catch (\Exception $e) {
         // Optionally log the exception message for debugging purposes
         // error_log("Error fetching Wicket person profile for UUID {$person_uuid}: " . $e->getMessage());

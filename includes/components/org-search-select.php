@@ -33,6 +33,7 @@ $defaults  = [
   'title'                                         => '',
   'response_message'                              => '', // class name of the container where the response message will be displayed
   'description'                                   => '', // Description to be set on the connection
+  'job_title'                                     => '',
 ];
 $args                                          = wp_parse_args($args, $defaults);
 $classes                                       = $args['classes'];
@@ -68,6 +69,7 @@ $display_removal_alert_message                 = $args['display_removal_alert_me
 $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
 $description                                   = $args['description'];
+$job_title                                     = $args['job_title'];
 
 if (!empty($orgTermSingular)) {
   $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -761,10 +763,14 @@ $available_org_types = wicket_get_resource_types('organizations');
       grantOrgEditorOnPurchase: <?php echo $grant_org_editor_on_purchase ? 'true' : 'false'; ?>,
       hideRemoveButtons: <?php echo $hide_remove_buttons ? 'true' : 'false'; ?>,
       hideSelectButtons: <?php echo $hide_select_buttons ? 'true' : 'false'; ?>,
+      // If true, always create relationship on select even when the 4th param (skipCreateRelationship) is true.
+      // Backward compatible: defaults to false. Can be enabled per-site via the 'wicket_orgss_force_create_on_existing_select' filter.
+      forceCreateOnExistingSelect: <?php echo apply_filters('wicket_orgss_force_create_on_existing_select', false) ? 'true' : 'false'; ?>,
       displayDuplicateOrgWarning: false,
       justCreatedNewOrg: false,
       justCreatedOrgUuid: '',
       description: '<?php echo esc_js($description); ?>',
+      jobTitle: '<?php echo esc_js($job_title); ?>',
 
       init() {
         //console.log(this.currentConnections);
@@ -976,8 +982,10 @@ $available_org_types = wicket_get_resource_types('organizations');
         // ------------------
         // Usual operations
         // ------------------
-        if (!skipCreateRelationship) {
-          this.createRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
+        // If the site forces creation on select, ignore the skip flag passed by the caller
+        const shouldCreate = this.forceCreateOnExistingSelect || !skipCreateRelationship;
+        if (shouldCreate) {
+          this.createOrUpdateRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
             this.relationshipTypeUponOrgCreation);
         }
         this.selectOrg(orgUuid, event);
@@ -1075,7 +1083,7 @@ $available_org_types = wicket_get_resource_types('organizations');
           });
 
       },
-      async createRelationship(fromUuid, toUuid, relationshipType, userRoleInRelationship) {
+      async createOrUpdateRelationship(fromUuid, toUuid, relationshipType, userRoleInRelationship) {
         this.isLoading = true;
 
         let data = {

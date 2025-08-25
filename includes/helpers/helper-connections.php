@@ -17,23 +17,19 @@ defined('ABSPATH') || exit;
 function wicket_update_connection_attributes(string $connection_id, array $attributes = []): mixed
 {
   if (empty($connection_id)) {
-    error_log('Connection ID is empty');
     return false;
   }
 
   if (empty($attributes)) {
-    error_log('Attributes array is empty');
     return false;
   }
 
   try {
     $client = wicket_api_client();
     if (!$client) {
-      error_log('Failed to initialize Wicket API client');
       return false;
     }
   } catch (\Exception $e) {
-    error_log($e->getMessage());
     return false;
   }
 
@@ -42,7 +38,6 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
     $current_connection_info = wicket_get_connection_by_id($connection_id);
 
     if (empty($current_connection_info)) {
-      error_log('Current connection info is empty');
       return false;
     }
 
@@ -110,7 +105,6 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
       wicket_remove_connection($connection_id);
       return true;
     }
-    error_log($error_message);
     return false;
   }
 
@@ -128,4 +122,47 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
 function wicket_set_connection_description(string $connection_id, string $description = ''): mixed
 {
   return wicket_update_connection_attributes($connection_id, ['description' => $description]);
+}
+
+/**
+ * Patch ONLY the description of a connection, leaving all other attributes and relationships untouched.
+ *
+ * This sends a minimal payload compliant with Wicket API expectations.
+ *
+ * @param string $connection_id The connection ID to update.
+ * @param string|null $description The description to set (null clears it).
+ *
+ * @return mixed Response from the API call on success, false otherwise.
+ */
+function wicket_patch_connection_description(string $connection_id, ?string $description = null): mixed
+{
+  if ($connection_id === '') {
+    return false;
+  }
+
+  try {
+    $client = wicket_api_client();
+  } catch (\Exception $e) {
+    return false;
+  }
+
+  // Normalize empty string to null as per API conventions
+  $desc = (isset($description) && $description !== '') ? strval($description) : null;
+
+  $payload = [
+    'data' => [
+      'type' => 'connections',
+      'id' => $connection_id,
+      'attributes' => [
+        'description' => $desc,
+      ],
+    ],
+  ];
+
+  try {
+    $res = $client->patch('connections/' . $connection_id, ['json' => $payload]);
+    return $res;
+  } catch (\Exception $e) {
+    return false;
+  }
 }

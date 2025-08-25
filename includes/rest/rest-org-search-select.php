@@ -40,7 +40,7 @@ function wicket_base_register_rest_routes()
 
     register_rest_route('wicket-base/v1', 'create-relationship', array(
       'methods'  => 'POST',
-      'callback' => 'wicket_internal_endpoint_create_relationship',
+      'callback' => 'wicket_internal_endpoint_create_or_update_relationship',
       'permission_callback' => function () {
           return is_user_logged_in();
       },
@@ -81,14 +81,6 @@ function wicket_base_register_rest_routes()
     register_rest_route('wicket-base/v1', 'grant-org-editor', array(
       'methods'  => 'POST',
       'callback' => 'wicket_internal_endpoint_grant_org_editor',
-      'permission_callback' => function () {
-          return is_user_logged_in();
-      },
-    ));
-
-    register_rest_route('wicket-base/v1', 'wicket-component-do-action', array(
-      'methods'  => 'POST',
-      'callback' => 'wicket_internal_endpoint_component_do_action',
       'permission_callback' => function () {
           return is_user_logged_in();
       },
@@ -267,7 +259,7 @@ function wicket_internal_endpoint_terminate_relationship($request)
  *
  * @return JSON success:false or success:true, along with any related information or notices.
  */
-function wicket_internal_endpoint_create_relationship($request)
+function wicket_internal_endpoint_create_or_update_relationship($request)
 {
     $params = $request->get_json_params();
 
@@ -290,6 +282,43 @@ function wicket_internal_endpoint_create_relationship($request)
     $userRoleInRelationship      = $params['userRoleInRelationship'];
     $description                 = isset($params['description']) ? $params['description'] : null;
     $userRoleInRelationshipArray = explode(',', $userRoleInRelationship);
+
+    // Inject current user's job title into the connection description (server-side authoritative)
+    // Prefer using the CURRENT LOGGED-IN user's person profile; fall back to fromUuid if needed
+    $personProfile = wicket_current_person();
+
+    // Attempt to derive job_title from current user's profile; fallback to fromUuid profile if needed
+    $jobTitle = null;
+    if (is_object($personProfile)) {
+        // Wicket SDK entities expose attributes via magic getters
+        $jobTitle = $personProfile->job_title ?? null;
+    } elseif (is_array($personProfile)) {
+        // Legacy/array-style responses (defensive)
+        $jobTitle = $personProfile['job_title']
+            ?? ($personProfile['data']['attributes']['job_title'] ?? ($personProfile['attributes']['job_title'] ?? null));
+    }
+
+    if (empty($jobTitle) && !empty($fromUuid)) {
+        $fallbackProfile = wicket_get_person_profile($fromUuid);
+
+
+        if (is_object($fallbackProfile)) {
+            $jobTitle = $fallbackProfile->job_title ?? null;
+        } elseif (is_array($fallbackProfile)) {
+            $jobTitle = $fallbackProfile['job_title']
+                ?? ($fallbackProfile['data']['attributes']['job_title'] ?? ($fallbackProfile['attributes']['job_title'] ?? null));
+        }
+    }
+
+    // Server is authoritative: if description is empty, use job title when available.
+    if ($description === '' || $description === null) {
+        $description = !empty($jobTitle) ? (string) $jobTitle : null;
+    }
+
+    // Normalize empty description to null (API is friendlier with nulls than empty strings)
+    if ($description === '') {
+        $description = null;
+    }
 
     $return = [];
 
@@ -569,7 +598,7 @@ function wicket_internal_endpoint_component_do_action($request)
 {
     $params = $request->get_json_params();
     $action_name = $params['action_name'] ?? 'generic';
-    $action_data = $params['action_data'] ?? []; // TODO: maybe JSON parse this if needed
+    $action_data = $params['action_data'] ?? [];
 
     do_action('wicket_component_' . $action_name, $action_data);
 
