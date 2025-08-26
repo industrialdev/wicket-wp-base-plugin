@@ -261,7 +261,9 @@ function wicket_remove_group_member($group_member_id_connection = '')
     return false;
   }
 
-  $client = WACC()->MdpApi->init_client();
+
+$client = WACC()->Mdp()->initClient();
+
 
   try {
     $response = $client->delete("/group_members/{$group_member_id_connection}");
