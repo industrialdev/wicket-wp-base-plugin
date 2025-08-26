@@ -34,6 +34,9 @@ add_filter('woocommerce_product_data_tabs', 'wicket_base_product_data_tabs');
 
 function wicket_base_product_data_tabs($tabs)
 {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return $tabs;
+  }
   global $post;
   $group_product_category = wicket_get_option('wicket_admin_settings_group_assignment_product_category');
   if (has_term($group_product_category, 'product_cat', $post->ID)) {
@@ -52,6 +55,9 @@ add_action('woocommerce_product_data_panels', 'wicket_base_product_tab_content')
 
 function wicket_base_product_tab_content()
 {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return;
+  }
   global $post;
   $product = wc_get_product($post->ID);
   $group_options[''] = __('None', 'wicket-child');
@@ -95,23 +101,23 @@ function wicket_base_product_tab_content()
         }
         if (empty($group_role_entity_type)) {
           echo "<p style='color:red;font-weight:bold'>Group role entity slug from <code>$resource_type_slug</code> set on page <a href='?page=wicket-settings&tab=integrations&section=woocommerce'>Wicket > Settings > Integrations > Woocommerce</a> not found. Please correct this value to use this feature.</p>";
-          return;
+        } else {
+          $group_roles = $client->get('resource_types?filter[entity_type_uuid_eq]=' . $group_role_entity_type . '&page%5Bnumber%5D=1&page%5Bsize%5D=9999');
+          foreach ($group_roles['data'] as $grouprole) {
+            $group_role_options[$grouprole['attributes']['slug']] = $grouprole['attributes']['name'];
+          }
+          $assigned_group_role_slug =  get_post_meta($post->ID, '_group_role_assignment_slug', true);
+          $group_role_options[''] = __('None', 'wicket-child');
+          woocommerce_wp_select(
+            array(
+              'id' => '_group_role_assignment_slug',
+              'label' => __('Role Assigned', 'wicket-child'),
+              'options' => $group_role_options,
+              'value'    => $assigned_group_role_slug,
+              'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person the selected role in the group.', 'wicket-child')),
+            )
+          );
         }
-        $group_roles = $client->get('resource_types?filter[entity_type_uuid_eq]=' . $group_role_entity_type . '&page%5Bnumber%5D=1&page%5Bsize%5D=9999');
-        foreach ($group_roles['data'] as $grouprole) {
-          $group_role_options[$grouprole['attributes']['slug']] = $grouprole['attributes']['name'];
-        }
-        $assigned_group_role_slug =  get_post_meta($post->ID, '_group_role_assignment_slug', true);
-        $group_role_options[''] = __('None', 'wicket-child');
-        woocommerce_wp_select(
-          array(
-            'id' => '_group_role_assignment_slug',
-            'label' => __('Role Assigned', 'wicket-child'),
-            'options' => $group_role_options,
-            'value'    => $assigned_group_role_slug,
-            'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person the selected role in the group.', 'wicket-child')),
-          )
-        );
         ?>
 
       </div>
