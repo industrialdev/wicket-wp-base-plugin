@@ -205,7 +205,7 @@ add_action('woocommerce_subscription_date_updated', function ($sub, $date_type, 
   $group_assigned_next_payment = get_post_meta($subscription_id, '_group_assigned_next_payment', true);
 
   if (empty($group_assigned_next_payment) || $group_assigned_next_payment == $sub->get_time('next_payment')) {
-    $sub->add_order_note("Group subscription creation incomplete or skipped a date change on creation. You may try reactivating subscription if group membership failed.");
+    //$sub->add_order_note("Group subscription creation incomplete or skipped a date change on creation. You may try reactivating subscription if group membership failed.");
     wicket_group_membership_subscription_status_active($sub);
   }
 
