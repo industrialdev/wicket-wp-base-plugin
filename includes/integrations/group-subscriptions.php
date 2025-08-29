@@ -164,6 +164,10 @@ add_action('wcs_subscription_renewal_payment_complete', 'wicket_base_group_membe
 
 function wicket_base_group_membership_subscription_renewal_completed($sub)
 {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return $sub;
+  }
+
   $group_memberships = [];
   $group_membership_uuids = [];
 
@@ -196,6 +200,9 @@ function wicket_base_group_membership_subscription_renewal_completed($sub)
  */
 
 add_action('woocommerce_subscription_date_updated', function ($sub, $date_type, $datetime) {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return $sub;
+  }
 
   if ($date_type != 'next_payment') {
     return;
@@ -241,6 +248,10 @@ add_action('woocommerce_subscription_date_updated', function ($sub, $date_type, 
  * Tested: May 3 2025 - Wicket Memberships Test Site
  */
 add_action('woocommerce_subscription_status_cancelled', function ($sub) {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return $sub;
+  }
+
   $group_memberships = [];
   $group_membership_uuids = [];
   $sub = wcs_get_subscription($sub);
@@ -275,6 +286,10 @@ add_action('woocommerce_subscription_status_active', 'wicket_group_membership_su
 
 function wicket_group_membership_subscription_status_active($sub)
 {
+  if(empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
+    return $sub;
+  }
+
   $group_product_category = wicket_get_option('wicket_admin_settings_group_assignment_product_category');
   //$sub = wcs_get_subscription( $sub );
   $subscription_id = $sub->get_id();
