@@ -34,6 +34,7 @@ $defaults  = [
   'response_message'                              => '', // class name of the container where the response message will be displayed
   'description'                                   => '', // Description to be set on the connection
   'job_title'                                     => '',
+  'form_id'                                       => 0,
 ];
 $args                                          = wp_parse_args($args, $defaults);
 $classes                                       = $args['classes'];
@@ -70,6 +71,7 @@ $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
 $description                                   = $args['description'];
 $job_title                                     = $args['job_title'];
+$formId                                        = $args['form_id'];
 
 if (!empty($orgTermSingular)) {
   $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -717,8 +719,8 @@ $available_org_types = wicket_get_resource_types('organizations');
   </div> <!-- / .component-org-search-select__create-org-form -->
 
   <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
-                                                                                    echo $_POST[$selectedUuidHiddenFieldName];
-                                                                                  } ?>" />
+    echo $_POST[$selectedUuidHiddenFieldName];
+  } ?>" />
 </div>
 
 <script>
@@ -920,6 +922,7 @@ $available_org_types = wicket_get_resource_types('organizations');
             searchType: this.searchType,
             orgDetails: orgInfo,
             event: incomingEvent,
+            formId: <?php echo $formId; ?>
           });
         }
 
