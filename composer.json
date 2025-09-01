@@ -1,7 +1,7 @@
 {
   "name": "industrialdev/wicket-wp-base-plugin",
   "description": "Wicket Core Plugin",
-  "version": "2.0.189",
+  "version": "2.1.0",
   "keywords": ["wordpress", "plugin"],
   "homepage": "https://github.com/industrialdev/wicket-wp-base-plugin",
   "authors": [
@@ -16,10 +16,16 @@
     "php": ">=8.0",
     "jeffreyvanrossum/wp-settings": "^1"
   },
+  "autoload": {
+    "psr-4": {
+      "WicketWP\\": "src/"
+    }
+  },
   "scripts": {
     "version-bump": [
       "@php ./.ci/version-bump.php"
-    ]
+    ],
+    "dump-autoload-prod": "@php composer dump-autoload --optimize --no-dev"
   },
   "repositories": [
   {
