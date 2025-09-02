@@ -6,6 +6,7 @@ $defaults  = [
   'relationship_type_upon_org_creation'           => 'employee',
   'relationship_mode'                             => 'person_to_organization',
   'relationship_type_filter'                      => '',
+  'enable_relationship_filtering'                 => false,
   'new_org_type_override'                         => '',
   'selected_uuid_hidden_field_name'               => 'orgss-selected-uuid',
   'checkbox_id_new_org'                           => '',
@@ -44,6 +45,7 @@ $searchOrgType                                 = $args['search_org_type'];
 $relationshipTypeUponOrgCreation               = $args['relationship_type_upon_org_creation'];
 $relationshipMode                              = $args['relationship_mode'];
 $relationshipTypeFilter                        = $args['relationship_type_filter'];
+$enable_relationship_filtering                 = $args['enable_relationship_filtering'];
 $newOrgTypeOverride                            = $args['new_org_type_override'];
 $selectedUuidHiddenFieldName                   = $args['selected_uuid_hidden_field_name'];
 $checkboxIdNewOrg                              = $args['checkbox_id_new_org'];
@@ -517,7 +519,8 @@ $available_org_types = wicket_get_resource_types('organizations');
         <div x-show="(connection.connection_type==relationshipMode
           && ( connection.org_type.toLowerCase()===searchOrgType.toLowerCase() || searchOrgType==='' )
           && connection.active_connection
-          && (relationshipTypeFilter === '' || (connection.tags && connection.tags.includes(relationshipTypeFilter)))) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || connection.org_id === selectedOrgUuid)"
+          && ( !enableRelationshipFiltering || relationshipTypeFilter === '' || (connection.tags && connection.tags.includes(relationshipTypeFilter)) )
+          ) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || connection.org_id === selectedOrgUuid)"
           class="item-org-card component-org-search-select__card <?php if (!defined('WICKET_WP_THEME_V2')) : ?>rounded-100 flex flex-col md:flex-row md:justify-between p-4 mb-3<?php endif; ?>"
           x-bind:class="{
             '<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__card--selected' : 'border-success-040 border-opacity-100 border-4' ?>': connection.org_id == selectedOrgUuid,
@@ -766,6 +769,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       grantOrgEditorOnPurchase: <?php echo $grant_org_editor_on_purchase ? 'true' : 'false'; ?>,
       hideRemoveButtons: <?php echo $hide_remove_buttons ? 'true' : 'false'; ?>,
       hideSelectButtons: <?php echo $hide_select_buttons ? 'true' : 'false'; ?>,
+      enableRelationshipFiltering: <?php echo $enable_relationship_filtering ? 'true' : 'false'; ?>,
       forceCreateOnExistingSelect: <?php echo apply_filters('wicket_orgss_force_create_on_existing_select', false) ? 'true' : 'false'; ?>,
       displayDuplicateOrgWarning: false,
       justCreatedNewOrg: false,
@@ -775,7 +779,11 @@ $available_org_types = wicket_get_resource_types('organizations');
       relationshipTypeFilter: '<?php echo $relationshipTypeFilter; ?>',
 
       init() {
-        //console.log(this.currentConnections);
+        // Normalize optional filter for backward compatibility
+        if (typeof this.relationshipTypeFilter !== 'string') {
+          this.relationshipTypeFilter = '';
+        }
+        this.relationshipTypeFilter = this.relationshipTypeFilter.trim();
 
         // Set an initial value for the dynamic select
         if (this.availableOrgTypes.data.length > 0) {
