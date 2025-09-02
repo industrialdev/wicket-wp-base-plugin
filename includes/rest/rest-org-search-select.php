@@ -417,6 +417,7 @@ function wicket_internal_endpoint_create_or_update_relationship($request)
         $return[] =  [
           'connection_id'     => $new_connection['data']['id'] ?? '',
           'connection_type'   => $relationshipType,
+          'relationship_type' => $roleSlug,
           'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
           'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
           'tags'              => $new_connection['data']['attributes']['tags'] ?? '',

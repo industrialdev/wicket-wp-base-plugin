@@ -145,6 +145,7 @@ if ($searchMode == 'org') {
       $person_to_org_connections[] = [
         'connection_id'     => $connection['id'],
         'connection_type'   => $connection['attributes']['connection_type'],
+        'relationship_type' => $connection['attributes']['type'] ?? '',
         'starts_at'         => $connection['attributes']['starts_at'],
         'ends_at'           => $connection['attributes']['ends_at'],
         'tags'              => $connection['attributes']['tags'],
@@ -195,15 +196,7 @@ $available_org_types = wicket_get_resource_types('organizations');
 </style>
 
 <div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>"
-  x-data="orgss_<?php echo $key; ?>" x-init="
-    console.log('org-search-select init');
-    $watch('searchQuery', value => console.log('searchQuery changed to:', value));
-    $watch('selectedOrg', value => console.log('selectedOrg changed to:', value));
-    $watch('isLoading', value => console.log('isLoading changed to:', value));
-  ">
-
-  <?php // Debug log of the selection custom event when fired
-  ?>
+  x-data="orgss_<?php echo $key; ?>" x-init="">
 
   <?php // Loading overlay
   ?>
@@ -516,11 +509,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       </div>
 
       <template x-for="(connection, index) in currentConnections" :key="connection.connection_id" x-transition>
-        <div x-show="(connection.connection_type==relationshipMode
-          && ( connection.org_type.toLowerCase()===searchOrgType.toLowerCase() || searchOrgType==='' )
-          && connection.active_connection
-          && ( !enableRelationshipFiltering || relationshipTypeFilter === '' || (connection.tags && connection.tags.includes(relationshipTypeFilter)) )
-          ) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || connection.org_id === selectedOrgUuid)"
+        <div x-show="matchesFilter(connection) && (!justCreatedNewOrg || connection.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || connection.org_id === selectedOrgUuid)"
           class="item-org-card component-org-search-select__card <?php if (!defined('WICKET_WP_THEME_V2')) : ?>rounded-100 flex flex-col md:flex-row md:justify-between p-4 mb-3<?php endif; ?>"
           x-bind:class="{
             '<?php echo defined('WICKET_WP_THEME_V2') ? 'component-org-search-select__card--selected' : 'border-success-040 border-opacity-100 border-4' ?>': connection.org_id == selectedOrgUuid,
@@ -777,6 +766,25 @@ $available_org_types = wicket_get_resource_types('organizations');
       description: '<?php echo esc_js($description); ?>',
       jobTitle: '<?php echo esc_js($job_title); ?>',
       relationshipTypeFilter: '<?php echo $relationshipTypeFilter; ?>',
+
+      // Encapsulate filtering logic to avoid complex inline expressions
+      matchesFilter(connection) {
+        const rm = this.relationshipMode;
+        const sType = (this.searchOrgType || '').toLowerCase();
+        const filt = (this.relationshipTypeFilter || '').toLowerCase();
+
+        if (connection.connection_type != rm) return false;
+        const connOrgType = (connection.org_type || '').toLowerCase();
+        if (!(connOrgType === sType || sType === '')) return false;
+        if (!connection.active_connection) return false;
+
+        // If filtering disabled or empty filter, pass through
+        if (!this.enableRelationshipFiltering || filt === '') return true;
+
+        // Strict: only match on definitive relationship_type
+        const relType = ((connection.relationship_type || '') + '').toLowerCase();
+        return relType === filt;
+      },
 
       init() {
         // Normalize optional filter for backward compatibility
@@ -1221,7 +1229,6 @@ $available_org_types = wicket_get_resource_types('organizations');
             if (!data.success) {
               // Handle error
               let errorMessage = data.data.toLowerCase();
-              console.log(errorMessage);
               if (errorMessage.indexOf('relationships do not match') !== -1) {
                 // The user tried to remove a relationship of a different type than was specified
                 // for this ORGSS component. If this is a common occurrence, should display an error.
@@ -1246,7 +1253,6 @@ $available_org_types = wicket_get_resource_types('organizations');
         this.isLoading = true;
 
         if (orgName.length <= 0 || orgType.length <= 0) {
-          console.log('createOrganization name or type not provided');
           return false;
         }
 
