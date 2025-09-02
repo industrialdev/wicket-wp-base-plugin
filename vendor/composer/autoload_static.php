@@ -792,6 +792,7 @@ class ComposerStaticInit547c7332901762d49388c901d48d15fc
         'WicketWP\\Blocks' => __DIR__ . '/../..' . '/src/Blocks.php',
         'WicketWP\\Includes' => __DIR__ . '/../..' . '/src/Includes.php',
         'WicketWP\\Main' => __DIR__ . '/../..' . '/src/Main.php',
+        'WicketWP\\Rest' => __DIR__ . '/../..' . '/src/Rest.php',
         'WicketWP\\Widgets' => __DIR__ . '/../..' . '/src/Widgets.php',
         'WicketWP\\Widgets\\CreateAccount' => __DIR__ . '/../..' . '/src/Widgets/CreateAccount.php',
         'WicketWP\\Widgets\\ManagePreferences' => __DIR__ . '/../..' . '/src/Widgets/ManagePreferences.php',

@@ -11,20 +11,30 @@ namespace WicketWP;
 class Widgets
 {
     /**
-     * Initialize the Widgets class
+     * Reference to Main
+     *
+     * @var Main
      */
-    public static function init()
+    protected $main;
+
+    public function __construct(Main $main)
     {
-        $self = new self();
-        
+        $this->main = $main;
+    }
+
+    /**
+     * Initialize widgets (register hooks)
+     */
+    public function init()
+    {
         // Register widgets on widgets_init hook
-        add_action('widgets_init', [$self, 'register_widgets']);
+        add_action('widgets_init', [$this, 'register_widgets']);
 
         // Also register widgets early for block usage
-        add_action('acf/init', [$self, 'register_widgets'], 5);
+        add_action('acf/init', [$this, 'register_widgets'], 5);
 
         // Initialize widget form processors
-        add_action('init', [$self, 'initialize_widgets']);
+        add_action('init', [$this, 'initialize_widgets']);
     }
 
     /**
@@ -36,9 +46,9 @@ class Widgets
         add_action('acf/init', [$this, 'initialize_widgets']);
 
         // Register wicket widgets
-        register_widget('WicketWP\Widgets\CreateAccount');
-        register_widget('WicketWP\Widgets\UpdatePassword');
-        register_widget('WicketWP\Widgets\ManagePreferences');
+        register_widget('WicketWP\\Widgets\\CreateAccount');
+        register_widget('WicketWP\\Widgets\\UpdatePassword');
+        register_widget('WicketWP\\Widgets\\ManagePreferences');
     }
 
     /**
@@ -47,21 +57,21 @@ class Widgets
     public function initialize_widgets()
     {
         // Check if widget classes exist, if not try to load them
-        if (! class_exists('WicketWP\Widgets\CreateAccount')) {
+        if (! class_exists('WicketWP\\Widgets\\CreateAccount')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/CreateAccount.php';
             if (file_exists($file)) {
                 require_once $file;
             }
         }
 
-        if (! class_exists('WicketWP\Widgets\UpdatePassword')) {
+        if (! class_exists('WicketWP\\Widgets\\UpdatePassword')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/UpdatePassword.php';
             if (file_exists($file)) {
                 require_once $file;
             }
         }
 
-        if (! class_exists('WicketWP\Widgets\ManagePreferences')) {
+        if (! class_exists('WicketWP\\Widgets\\ManagePreferences')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/ManagePreferences.php';
             if (file_exists($file)) {
                 require_once $file;

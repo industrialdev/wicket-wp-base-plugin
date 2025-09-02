@@ -620,6 +620,7 @@ return array(
     'WicketWP\\Blocks' => $baseDir . '/src/Blocks.php',
     'WicketWP\\Includes' => $baseDir . '/src/Includes.php',
     'WicketWP\\Main' => $baseDir . '/src/Main.php',
+    'WicketWP\\Rest' => $baseDir . '/src/Rest.php',
     'WicketWP\\Widgets' => $baseDir . '/src/Widgets.php',
     'WicketWP\\Widgets\\CreateAccount' => $baseDir . '/src/Widgets/CreateAccount.php',
     'WicketWP\\Widgets\\ManagePreferences' => $baseDir . '/src/Widgets/ManagePreferences.php',

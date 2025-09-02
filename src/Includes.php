@@ -60,14 +60,6 @@ class Includes {
         // Include wicket shortcodes
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-shortcodes.php';
 
-        // Include REST API endpoints
-        include_once WICKET_PLUGIN_DIR . 'includes/rest/rest-org-search-select.php';
-
-        // Widgets
-        include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-create-account.php';
-        include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-update-password.php';
-        include_once WICKET_PLUGIN_DIR . 'includes/widgets/wicket-manage-preferences.php';
-
         // Include wicket components
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-components.php';
 

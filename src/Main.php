@@ -31,11 +31,32 @@ class Main {
     public $assets;
 
     /**
+     * Instance of the Blocks class
+     *
+     * @var Blocks|null
+     */
+    public $blocks;
+
+    /**
+     * Instance of the Widgets class
+     *
+     * @var Widgets|null
+     */
+    public $widgets;
+
+    /**
      * Instance of the Includes class
      *
      * @var Includes
      */
     public $includes;
+
+    /**
+     * Instance of the Rest class
+     *
+     * @var Rest|null
+     */
+    public $rest;
 
     /**
      * Get the instance of the Main class
@@ -66,8 +87,20 @@ class Main {
     public function init($plugin) {
         // Initialize Assets class
         $this->assets = new Assets($this);
-        
+
         // Initialize Includes class
         $this->includes = new Includes($this);
+
+        // Initialize REST routes
+        $this->rest = new Rest($this);
+        $this->rest->init();
+
+        // Initialize blocks
+        $this->blocks = new Blocks($this);
+        $this->blocks->init();
+
+        // Initialize widgets
+        $this->widgets = new Widgets($this);
+        $this->widgets->init();
     }
 }
