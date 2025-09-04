@@ -419,7 +419,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       <div class="flex-grow">
         <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
           class="orgss-search-box component-org-search-select__search-input w-full"
-          placeholder="<?php __('Search by '.$orgTermSingularLower.' name', 'wicket') ?>" />
+          placeholder="<?php _e('Search by '.$orgTermSingularLower.' name', 'wicket') ?>" />
       </div>
       <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
         <?php get_component('button', [
