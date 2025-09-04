@@ -584,7 +584,7 @@ $available_org_types = wicket_get_resource_types('organizations');
               <?php get_component('button', [
                 'variant'  => 'secondary',
                 'reversed' => false,
-                'label'    => '✓ Selected',
+                'label'    => '✓ '.__('Selected', 'wicket'),
                 'type'     => 'button',
                 'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                 'atts'     => [
