@@ -10,19 +10,21 @@ $args                         = wp_parse_args($args, $defaults);
 $classes                      = $args['classes'];
 $hide_comm_prefs              = $args['hide_comm_prefs'];
 $preferences_data_field_name  = $args['preferences_data_field_name'];
+$validation_data_field_name   = $args['validation_data_field_name'];
 $unique_widget_id             = rand(1, PHP_INT_MAX);
 
 $wicket_settings = get_wicket_settings();
 ?>
 
-<div class="wicket-section <?php implode(' ', $classes); ?>"
+<div class="wicket-section <?php echo implode(' ', $classes); ?>"
   role="complementary">
   <h2>Preferences</h2>
   <div id="preferences-widget-<?php echo $unique_widget_id; ?>">
   </div>
   <input type="hidden"
     name="<?php echo $preferences_data_field_name; ?>" />
-  <?php /* No hidden validation field as the preferences widget doesn't need validation */ ?>
+  <input type="hidden"
+    name="<?php echo $validation_data_field_name; ?>" />
 </div>
 
 <script type="text/javascript">
@@ -106,7 +108,7 @@ $wicket_settings = get_wicket_settings();
 
     function widgetPrefsPersonUpdateHiddenFields(payload) {
       let userInfoDataField = document.querySelector(
-        'input[name="<?php echo $org_info_data_field_name; ?>"]'
+        'input[name="<?php echo $preferences_data_field_name; ?>"]'
         );
       let validationDataField = document.querySelector(
         'input[name="<?php echo $validation_data_field_name; ?>"]'
