@@ -65,6 +65,7 @@ $wicket_settings = get_wicket_settings();
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
     Wicket.ready(function() {
+
       let widgetRoot_<?php echo $unique_widget_id; ?> =
         document.getElementById(
           'org-profile-widget-<?php echo $unique_widget_id; ?>'

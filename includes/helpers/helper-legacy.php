@@ -3404,7 +3404,13 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
     }
 
     $schema_uuid = $schema['id'];
-    $schema_values = wicket_get_field_from_data_fields($wicket_person->data_fields, $schema_slug)['value'];
+    $data_fields = $wicket_person->data_fields ?? null;
+    if (!is_array($data_fields)) {
+        error_log('[wicket-base-helper] Person data_fields missing or not array in wicket_update_schema_single_value; schema_slug=' . $schema_slug . '; person_uuid=' . $person_uuid . '; received_type=' . gettype($data_fields));
+        $schema_values = [];
+    } else {
+        $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
+    }
     $sub_payload = array();
     if (!$pass_raw_value) {
         $schema_values[$key] = $value;
@@ -3485,12 +3491,23 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
     }
 
     // Set schema values depending on the type of entity we're working with
-    $schema_values;
+    $schema_values = [];
     if ($type == 'person') {
-        $schema_values = wicket_get_field_from_data_fields($wicket_person->data_fields, $schema_slug)['value'];
+        $data_fields = $wicket_person->data_fields ?? null;
+        if (!is_array($data_fields)) {
+            error_log('[wicket-base-helper] Person data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields));
+            $schema_values = [];
+        } else {
+            $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
+        }
     } elseif ($type == 'org') {
-        $data_fields = $wicket_org['data']['attributes']['data_fields'];
-        $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
+        $data_fields = $wicket_org['data']['attributes']['data_fields'] ?? null;
+        if (!is_array($data_fields)) {
+            error_log('[wicket-base-helper] Org data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields));
+            $schema_values = [];
+        } else {
+            $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
+        }
     }
 
     // --------------------------------------------------------------------
@@ -3547,13 +3564,26 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
  * @param string $key
  *
  * @return array
- */
+  */
 function wicket_get_field_from_data_fields($data_fields, $key)
 {
+    // Ensure we are working with an array to avoid fatal errors
+    $isArray = is_array($data_fields);
+    if (!$isArray) {
+        error_log('[wicket-base-helper] wicket_get_field_from_data_fields received non-array data_fields; key=' . $key . '; type=' . gettype($data_fields));
+        // Return an empty value container to maintain expected shape
+        return [ 'value' => [] ];
+    }
+
     // get matches
     $matches = array_filter($data_fields, function ($field) use ($key) {
         return isset($field['key']) && $field['key'] == $key;
     });
+
+    if (empty($matches)) {
+        error_log('[wicket-base-helper] No matching data_field found for key=' . $key);
+        return [ 'value' => [] ];
+    }
 
     // return first match
     return reset($matches);

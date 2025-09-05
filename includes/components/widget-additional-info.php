@@ -12,13 +12,9 @@ $classes                          = $args['classes'];
 $additional_info_data_field_name  = $args['additional_info_data_field_name'];
 $additional_info_validation       = $args['validation_data_field_name'];
 $resource_type                    = $args['resource_type'];
-$org_uuid                         = $args['org_uuid'];
+$org_uuid                         = (string) $args['org_uuid'];
 $schemas_and_overrides            = $args['schemas_and_overrides'];
 $unique_widget_id                 = rand( 1, PHP_INT_MAX );
-
-if( $resource_type == 'organizations' && strlen(strval($org_uuid)) < 4 ) {
-  return; // Bail out if an improper org_uuid has been passed in, like a placeholder field ID in the GF wrapper
-}
 
 // Example $schemas_and_overrides:
 /*
@@ -57,9 +53,10 @@ $wicket_settings = get_wicket_settings();
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
         Wicket.ready(function () {
+
             let widgetRoot_<?php echo esc_js( $unique_widget_id ); ?> = document.getElementById('additional-info-<?php echo esc_attr( $unique_widget_id ); ?>');
 
-            Wicket.widgets.editAdditionalInfo({
+            const options = {
               loadIcons: true,
               rootEl: widgetRoot_<?php echo esc_js( $unique_widget_id ); ?>,
               apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
@@ -70,23 +67,17 @@ $wicket_settings = get_wicket_settings();
               },
               lang: "<?php echo esc_js( wicket_get_current_language() ); ?>",
               schemas: [
-                <?php // If schemas are not provided, the widget defaults to show all schemas.
-                // separate schema overrides exist to make certain fields readonly just in the account center, hence the resource ID below.
-                // To access resource schema overrides, login to wicket using a wicket.io email -> settings -> additional info
-
+                <?php
                 $schema_outputs = [];
                 foreach( $schemas_and_overrides as $schema ) {
                   $schema_obj = [];
 
                   if( isset( $schema['slug'] ) && !empty( $schema['slug'] ) ) {
-                    // Using the slug option
                     $schema_obj[] = "slug: '" . esc_js( $schema['slug'] ) . "'";
                     if( isset( $schema['resourceSlug'] ) && !empty( $schema['resourceSlug'] ) ) {
                       $schema_obj[] = "resourceSlug: '" . esc_js( $schema['resourceSlug'] ) . "'";
                     }
-                    // TODO: There's an option to only provide resourceSlug and let it infer the slug - support if needed
                   } else {
-                    // Using the legacy ID option
                     $schema_obj[] = "id: '" . esc_js( $schema['id'] ) . "'";
                     if( isset( $schema['resourceId'] ) && !empty( $schema['resourceId'] ) ) {
                       $schema_obj[] = "resourceId: '" . esc_js( $schema['resourceId'] ) . "'";
@@ -102,31 +93,18 @@ $wicket_settings = get_wicket_settings();
                 echo implode( ",\n                ", $schema_outputs );
                 ?>
               ],
-            }).then(function (widget) {
-              <?php // Dispatch custom events to the page on each available widget listener,
-              // so that actions can be taken based on that information if needed,
-              // such as in the Gravity Forms wrapper. Also update hidden fields to
-              // make data available in multiple ways on the page ?>
-              widget.listen(widget.eventTypes.WIDGET_LOADED, function (payload) {
-                let event = new CustomEvent("wwidget-component-additional-info-loaded", {
-                  detail: payload
-                });
+            };
 
-                window.dispatchEvent(event);
-
-                let commonEventLoaded = new CustomEvent("wwidget-component-common-loaded", {
-                  detail: payload
-                });
-
-                window.dispatchEvent(commonEventLoaded);
-
+            Wicket.widgets.editAdditionalInfo(options).then(function(widget) {
+              widget.listen(widget.eventTypes.WIDGET_LOADED, function(payload) {
+                window.dispatchEvent(new CustomEvent("wwidget-component-additional-info-loaded"));
+                window.dispatchEvent(new CustomEvent("wwidget-component-common-loaded"));
                 widgetAiUpdateHiddenFields(payload);
               });
               widget.listen(widget.eventTypes.SAVE_SUCCESS, function (payload) {
                 let event = new CustomEvent("wwidget-component-additional-info-save-success", {
                   detail: payload
                 });
-
                 window.dispatchEvent(event);
                 widgetAiUpdateHiddenFields(payload);
               });
@@ -134,7 +112,6 @@ $wicket_settings = get_wicket_settings();
                 let event = new CustomEvent("wwidget-component-additional-info-delete-success", {
                   detail: payload
                 });
-
                 window.dispatchEvent(event);
               });
             });
@@ -147,14 +124,9 @@ $wicket_settings = get_wicket_settings();
           aiDataField.value = JSON.stringify(payload);
 
           validationDataField.value = true;
-          <?php
-          // TODO: Update with AI-widget specific validation logic
-          // if( payload.incompleteRequiredFields ) {
-          //   if( payload.incompleteRequiredFields.length > 0 ) {
-          //     validationDataField.value = false;
-          //   }
-          // }
-          ?>
+          if (typeof jQuery !== 'undefined') {
+            jQuery(validationDataField).trigger('change');
+          }
         }
     });
 </script>
