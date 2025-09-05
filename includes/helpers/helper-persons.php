@@ -149,3 +149,49 @@ function wicket_get_person_profile(?string $person_uuid = null): ?array
     }
 }
 
+/**
+ * Add one or more tags to a Wicket person.
+ *
+ * This function adds tags to a person identified by their UUID. It merges new tags with existing ones.
+ *
+ * @param string       $person_uuid The UUID of the person to whom tags will be added.
+ * @param string|array $tags        A single tag or an array of tags to add.
+ *
+ * @return object|false The response from the Wicket API on success, or false on failure.
+ */
+function wicket_person_add_tag($person_uuid, $tags) {
+    try {
+        $client = wicket_api_client();
+    } catch (\Exception $e) {
+        error_log($e->getMessage());
+        return false;
+    }
+
+    if (!is_array($tags)) {
+        $tags = [$tags];
+    }
+
+    // Grab current tags, if any
+    $wicket_person = wicket_get_person_by_id($person_uuid);
+    $existing_tags = $wicket_person->tags ?? [];
+
+    $tags = array_merge($existing_tags, $tags);
+
+    // Add new tags to current tags
+    $payload = [
+        'data' => [
+            'type' => 'people',
+            'id' => $person_uuid,
+            'attributes' => [
+                'tags' => $tags
+            ]
+        ]
+    ];
+
+    try {
+        return $client->patch("people/$person_uuid", ['json' => $payload]);
+    } catch (\Exception $e) {
+        error_log($e->getMessage());
+        return false;
+    }
+}
