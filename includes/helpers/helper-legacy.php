@@ -2621,15 +2621,19 @@ function wicket_create_connection($payload)
         $apiCall = $client->post('connections', ['json' => $payload]);
         return $apiCall;
     } catch (\Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
-        echo "<pre>";
-        print_r($e->getMessage());
-        echo "</pre>";
-
-        echo "<pre>";
-        print_r($errors);
-        echo "</pre>";
-        die;
+        // Log and return safely instead of echo/die
+        $msg = '[wicket-base-helper] wicket_create_connection exception: ' . $e->getMessage();
+        error_log($msg);
+        // Try to log API error details if available
+        try {
+            $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
+            if (!empty($responseBody)) {
+                error_log('[wicket-base-helper] wicket_create_connection response body: ' . $responseBody);
+            }
+        } catch (\Throwable $t) {
+            // Swallow logging failures
+        }
+        return false;
     }
     return false;
 }
@@ -2672,6 +2676,12 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
         }
     }
 
+    // Defensive: ensure we have valid IDs
+    if (empty($person_uuid) || empty($org_uuid)) {
+        error_log('[wicket-base-helper] wicket_create_person_to_org_connection missing IDs: person_uuid=' . ($person_uuid ?: 'EMPTY') . ' org_uuid=' . ($org_uuid ?: 'EMPTY') . ' type=' . $relationship_type);
+        return false;
+    }
+
     $attributes = [
       'connection_type'   => 'person_to_organization',
       'type'              => $relationship_type,
@@ -2688,6 +2698,19 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
         'type' => 'connections',
         'attributes' => $attributes,
         'relationships' => [
+          // Explicit relationships for API validation
+          'organization' => [
+            'data' => [
+              'type' => 'organizations',
+              'id'   => $org_uuid,
+            ],
+          ],
+          'person' => [
+            'data' => [
+              'type' => 'people',
+              'id'   => $person_uuid,
+            ],
+          ],
           'from' => [
             'data' => [
               'type' => 'people',
@@ -2707,6 +2730,9 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
         ],
       ]
     ];
+
+    // Brief debug log for diagnostics (IDs only)
+    error_log('[wicket-base-helper] Creating person->org connection: person_uuid=' . $person_uuid . ' org_uuid=' . $org_uuid . ' type=' . $relationship_type);
 
     try {
         $new_connection = wicket_create_connection($payload);
