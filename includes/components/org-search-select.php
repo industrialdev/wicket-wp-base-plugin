@@ -915,9 +915,18 @@ $available_org_types = wicket_get_resource_types('organizations');
       selectOrg(orgUuid, incomingEvent = null, dispatchEvent = true) {
         // Update state
         this.selectedOrgUuid = orgUuid;
-        document.querySelector(
-          'input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]'
-        ).value = orgUuid;
+
+        // Update both hidden fields to ensure compatibility
+        const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        if (componentField) {
+          componentField.value = orgUuid;
+        }
+
+        // Also update the standard GF hidden field if it exists
+        const gfField = document.querySelector('input[name="input_<?php echo $key; ?>"]');
+        if (gfField) {
+          gfField.value = orgUuid;
+        }
 
         // Scroll to the selected org card
         this.$nextTick(() => {
@@ -1335,10 +1344,18 @@ $available_org_types = wicket_get_resource_types('organizations');
         // Clear selection state if removing the currently selected org
         if (removedOrgId === this.selectedOrgUuid) {
           this.selectedOrgUuid = '';
-          // Clear the hidden field value
-          document.querySelector(
-            'input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]'
-          ).value = '';
+
+          // Clear both hidden field values
+          const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+          if (componentField) {
+            componentField.value = '';
+          }
+
+          // Also clear the standard GF hidden field if it exists
+          const gfField = document.querySelector('input[name="input_<?php echo $key; ?>"]');
+          if (gfField) {
+            gfField.value = '';
+          }
         }
       },
       isOrgAlreadyAConnection(uuid) {
