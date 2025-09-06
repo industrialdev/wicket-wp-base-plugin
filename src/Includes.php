@@ -69,6 +69,10 @@ class Includes {
         // Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
+
+// Deprecated REST endpoints
+include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
+
         // Include Wicket MDP Schema Merge Tag Generator
         include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
 
