@@ -14,8 +14,8 @@ defined('ABSPATH') || exit;
  *
  * @package WicketWP
  */
-class Includes {
-
+class Includes
+{
     /**
      * Instance of the main plugin class
      *
@@ -28,7 +28,8 @@ class Includes {
      *
      * @param WicketWP $plugin Instance of the main plugin class
      */
-    public function __construct($plugin) {
+    public function __construct($plugin)
+    {
         $this->plugin = $plugin;
 
         // Hook into WordPress
@@ -44,6 +45,9 @@ class Includes {
     {
         // Debug
         include_once WICKET_PLUGIN_DIR . 'includes/wicket-debug.php';
+
+        // Early include: shared role sync utils to ensure function availability across integrations
+        include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-role-sync-utils.php';
 
         // Include admin files
         if (is_admin()) {
@@ -69,9 +73,8 @@ class Includes {
         // Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
-
-// Deprecated REST endpoints
-include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
+        // Deprecated REST endpoints
+        include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
 
         // Include Wicket MDP Schema Merge Tag Generator
         include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
