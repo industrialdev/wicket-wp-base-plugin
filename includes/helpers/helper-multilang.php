@@ -75,3 +75,53 @@ function wicket_get_current_language()
   // 4. Default fallback
   return 'en';
 }
+
+/**
+ * Return an array of active multilanguage providers detected on this site.
+ * Common providers detected: 'wpml', 'polylang', 'translatepress', 'weglot', 'qtranslate'
+ *
+ * @return array<string>
+ */
+function wicket_get_active_multilang_provider()
+{
+  $providers = [];
+
+  // WPML
+  if (defined('ICL_SITEPRESS_VERSION')) {
+    $providers[] = 'wpml';
+  }
+
+  // Polylang
+  if (function_exists('pll_current_language')) {
+    $providers[] = 'polylang';
+  }
+
+  // TranslatePress
+  if (function_exists('trp_get_language') || function_exists('trp_locale')) {
+    $providers[] = 'translatepress';
+  }
+
+  // Weglot
+  if (function_exists('weglot_get_current_language') || function_exists('weglot_current_language')) {
+    $providers[] = 'weglot';
+  }
+
+  // qTranslate / qTranslate-X
+  if (function_exists('qtranxf_getLanguage') || function_exists('qtrans_getLanguage')) {
+    $providers[] = 'qtranslate';
+  }
+
+  return $providers;
+}
+
+/**
+ * Shortcut boolean helper: true when any multilanguage provider is detected.
+ *
+ * @return bool
+ */
+function wicket_is_multilang_active()
+{
+  return (bool) wicket_get_active_multilang_provider();
+}
+
+
