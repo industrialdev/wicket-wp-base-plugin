@@ -32,6 +32,8 @@ function wicket_get_groups()
  *              person_uuid (Optional) The person UUID to search for. If missing, uses current person.
  *              org_id (Optional) The organization UUID to search for. If missing, search in all groups.
  *              search_query (Optional) The search query to find groups by their names, case insensitive.
+ *              active_only (Optional) Boolean to filter by active status. Default: false (all groups).
+ *              group_type (Optional) The type of group to filter by (e.g., 'subscription', 'event', etc.).
  *              per_page (Optional) The number of groups to return per page (size). Default: 20.
  *              page (Optional) The page number to return. Default: 1.
  *
@@ -44,6 +46,8 @@ function wicket_get_person_groups($args = [])
     'person_uuid'  => null,
     'org_id'       => null,
     'search_query' => null,
+    'active_only'  => false,
+    'group_type'  =>  null,
     'per_page'     => 20,
     'page'         => 1,
   ];
@@ -80,6 +84,16 @@ function wicket_get_person_groups($args = [])
     // Arg: search_query
     if (!empty($args['search_query'])) {
       $query_params['filter']['group_name_en_i_cont'] = $args['search_query'];
+    }
+
+    // Arg: active_only
+    if ($args['active_only']) {
+      $query_params['filter']['active_true'] = true;
+    }
+
+    // Arg: group_type
+    if (!empty($args['group_type'])) {
+      $query_params['filter']['group_resource_type_slug_eq'] = $args['group_type'];
     }
 
     // Query the MDP
