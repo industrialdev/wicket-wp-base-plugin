@@ -124,4 +124,86 @@ function wicket_is_multilang_active()
   return (bool) wicket_get_active_multilang_provider();
 }
 
+/**
+ * Handle WooCommerce product IDs in multilanguage context.
+ * Returns the appropriate product ID based on current language and use case.
+ *
+ * @param int $product_id The original product ID
+ * @param string $target_language The target language code (default: 'en' for English)
+ * @return array Array with 'original' and 'translated' product IDs, plus current language info
+ */
+function wicket_get_multilang_product_id( $product_id, $target_language = 'en' )
+{
+  if ( ! is_numeric( $product_id ) || $product_id <= 0 ) {
+    return [
+      'original' => $product_id,
+      'translated' => $product_id,
+      'current_lang' => wicket_get_current_language(),
+      'is_multilang' => false,
+      'was_translated' => false
+    ];
+  }
 
+  $current_lang = wicket_get_current_language();
+  $is_multilang = wicket_is_multilang_active();
+
+  // If not in multilanguage context or already in target language, return original
+  if ( ! $is_multilang || $current_lang === $target_language ) {
+    return [
+      'original' => $product_id,
+      'translated' => $product_id,
+      'current_lang' => $current_lang,
+      'is_multilang' => $is_multilang,
+      'was_translated' => false
+    ];
+  }
+
+  // Check if WPML is active and translate the product ID
+  if ( defined( 'ICL_SITEPRESS_VERSION' ) && function_exists( 'wpml_object_id_filter' ) ) {
+    $translated_id = apply_filters( 'wpml_object_id', $product_id, 'product', false, $target_language );
+
+    // If translation failed or returned same ID, use original
+    if ( empty( $translated_id ) || $translated_id === $product_id ) {
+      $translated_id = $product_id;
+      $was_translated = false;
+    } else {
+      $was_translated = true;
+    }
+
+    return [
+      'original' => $product_id,
+      'translated' => $translated_id,
+      'current_lang' => $current_lang,
+      'target_lang' => $target_language,
+      'is_multilang' => $is_multilang,
+      'was_translated' => $was_translated
+    ];
+  }
+
+  // Fallback for other multilanguage plugins or if WPML translation fails
+  return [
+    'original' => $product_id,
+    'translated' => $product_id,
+    'current_lang' => $current_lang,
+    'target_lang' => $target_language,
+    'is_multilang' => $is_multilang,
+    'was_translated' => false
+  ];
+}
+
+/**
+ * Get the correct product ID for WooCommerce operations based on context.
+ * Use 'original' for user-facing operations (like role assignment, cart display).
+ * Use 'translated' for internal operations (like membership tier lookups).
+ *
+ * @param int $product_id The original product ID
+ * @param string $context 'original' or 'translated' - which version to return
+ * @param string $target_language The target language for translation (default: 'en')
+ * @return int The appropriate product ID for the context
+ */
+function wicket_get_product_id_for_context( $product_id, $context = 'original', $target_language = 'en' )
+{
+  $product_data = wicket_get_multilang_product_id( $product_id, $target_language );
+
+  return $context === 'translated' ? $product_data['translated'] : $product_data['original'];
+}
