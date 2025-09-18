@@ -29,6 +29,9 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-api-check.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-plugin-check.php';
 
+			// Include Finance settings
+			include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/wicket-finance-settings.php';
+
 	    	// Add Settings page options
 	        add_action('admin_menu', [$this, 'register_wicket_settings']);
 
@@ -51,7 +54,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 
 			    $page_list[ $id ] = $title;
 			}
-			return $page_list;  	 
+			return $page_list;
 	    }
 
 		/**
@@ -67,16 +70,16 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 
 				        $category_list[$id] = $cat->name;
 					}
-				return $category_list; 
+				return $category_list;
 
-				} 
+				}
 	    }
 
 		/**
 		 * Get person to organization relationship (connection) types - for settings select fields
 		 */
 	    public function get_person_to_organizations_connection_types() {
-				
+
 				$resource_types = wicket_get_resource_types('relationships-person-to-organization');
 				$person_to_organizations_connection_types = [];
 	    	foreach ($resource_types['data'] as $key => $value) {
@@ -125,7 +128,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'name' => 'wicket_admin_settings_google_captcha_enable',
 			    'label' => __('Google Captcha', 'wicket'),
 			    'description' => __('Enable Google Captcha on Create Account Form', 'wicket'),
-			]);	
+			]);
 			$section->add_option('text', [
 			    'name' => 'wicket_admin_settings_google_captcha_key',
 			    'label' => __('Google Captcha Key', 'wicket'),
@@ -133,7 +136,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'css' => [
 			        'input_class' => 'regular-text',
 			    ]
-			]);	
+			]);
 			$section->add_option('text', [
 			    'name' => 'wicket_admin_settings_google_captcha_secret_key',
 			    'label' => __('Google Captcha Secret Key', 'wicket'),
@@ -141,7 +144,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'css' => [
 			        'input_class' => 'regular-text',
 			    ]
-			]);	
+			]);
 
 			// Styles section
 			$section = $tab_gen->add_section(__('Styles', 'wicket'));
@@ -149,7 +152,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 				'name' => 'wicket_admin_settings_legacy_styles_enable',
 				'label' => __('Legacy Styles', 'wicket'),
 				'description' => __('Enable Legacy Styles: Will add missing styles to the site, and wrap everything in a "wicket-base-plugin" class for safer use. Useful for non-Wicket Web sites.', 'wicket'),
-			]);	
+			]);
 
 			/*
 			 * Start Environments tab
@@ -244,7 +247,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			]);
 
 			$section->add_option('wicket-plugin-check');
-			$section->add_option('wicket-membership-overview');	
+			$section->add_option('wicket-membership-overview');
 
 			$section = $tab_memb->add_section(__('Membership Settings', 'wicket'), [
 				'description' => __('Configure settings related to Memberships', 'wicket'),
@@ -292,7 +295,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'label' => __('Event Tickets attendee RSVP for an event', 'wicket'),
 			    'description' => __('Enable a touchpoint to be written when attendees RSVP for an event', 'wicket')
 			]);
-			
+
 
 			//Custom Touchpoints Section
 			$section = $tab_tp->add_section('Custom', ['as_link' => true]);
@@ -308,7 +311,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 				'as_link' => true,
 				'description' => __('Configure settings for common customizations with default WooCommerce behaviour.', 'wicket')
 			]);
-			
+
 			$section->add_option('checkbox', [
 			    'name' => 'wicket_admin_settings_woo_sync_addresses',
 			    'label' => __('Sync Checkout Addresses', 'wicket'),
@@ -335,7 +338,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'description' => __('When redirected to a checkout disable the "X added to cart, continue shopping?" message.', 'wicket')
 			]);
 
-			// run a client check, otherwise the whole site will die if there's no connection filled out yet to an MDP 
+			// run a client check, otherwise the whole site will die if there's no connection filled out yet to an MDP
 			if ($client = wicket_api_client()) {
 				$section->add_option('select-multiple', [
 					'name' => 'wicket_admin_settings_woo_person_to_org_types',
@@ -360,10 +363,10 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
       ]);
 
       $section->add_option('text', [
-      'name' => 'wicket_admin_settings_group_assignment_role_entity_object', 
+      'name' => 'wicket_admin_settings_group_assignment_role_entity_object',
       'label' => __('Group Role Entity Object Slug', 'wicket'),
       'description' => __('Use <code>group-members</code> unless it isn\'t working and only if you understand why it should be different. This retrieves Group Role resource entity options from Wicket.', 'wicket'),
-      'default' => 'group-members'  
+      'default' => 'group-members'
     ]);
 
 			// WP Cassify Integration Tab
@@ -379,25 +382,25 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			    'description' => __('Sync active user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called "Student" within the MDP, when they log in, a role will be created called "Student" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!<em></strong>', 'wicket'),
 			]);
 			$section->add_option('text', [
-			    'name' => 'wicket_admin_settings_wpcassify_sync_tags_as_roles', 
+			    'name' => 'wicket_admin_settings_wpcassify_sync_tags_as_roles',
 			    'label' => __('Sync Tags as Roles', 'wicket'),
 			    'description' => __('Sync selected user tags from the MDP for a user when they log in to WordPress. Type the allowed tag(s) in this field. Values in field must match the tag in the MDP exactly. Multiple values must be comma separated.', 'wicket'),
 			]);
 			$section->add_option('text', [
-			    'name' => 'wicket_admin_settings_wpcassify_ignore_roles', 
+			    'name' => 'wicket_admin_settings_wpcassify_ignore_roles',
 			    'label' => __('Ignore Roles', 'wicket'),
 			    'description' => __('Ignore certain user roles from the MDP for a user when they log in to WordPress. Type the allowed role(s) in this field. Values in field must match the roles in the MDP exactly. Multiple values must be comma separated. - NOTE: This only applies to security roles found on the users profile in the MDP. It does not apply to derived roles such as the ones mentioned above for memberships, etc', 'wicket'),
 			]);
-			
-			
-			
+
+
+
 
 			// Mailtrap Integration Tab
 			$section = $tab_int->add_section(__('Mailtrap', 'wicket'), [
 				'as_link' => true,
 				'description' => __('Used to send all Wordpress mail to mailtrap. Typically used on staging/local for testing and will only take effect when the Wicket environment is toggled to "Staging". <br> NOTE! Remember to disable any SMTP plugin(s) while using the stage environment. Otherwise these settings won\'t take effect.', 'wicket')
 			]);
-			
+
 			$section->add_option('text', [
 				'name' => 'wicket_admin_settings_mailtrap_host',
 				'label' => __('Host', 'wicket'),
@@ -430,15 +433,20 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 
 			// Extend Membership - add new sections and options
 			$tab_memb = apply_filters( 'wicket_settings_tab_memb', $tab_memb );
-			
+
 			// Extend Environments - add new sections and options
 			$tab_env = apply_filters( 'wicket_settings_tab_env', $tab_env );
-			
+
 			// Extend Touchpoints - add new sections and options
 			$tab_tp = apply_filters( 'wicket_settings_tab_tp', $tab_tp );
 
 			// Extend Integrations - add new sections and options
 			$tab_int = apply_filters( 'wicket_settings_tab_int', $tab_int );
+
+			// Add Finance settings if function exists
+			if ( function_exists( 'wicket_add_finance_settings' ) ) {
+				wicket_add_finance_settings( $settings );
+			}
 
 			$settings->make();
 	    }
