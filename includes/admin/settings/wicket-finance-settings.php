@@ -34,30 +34,9 @@ function wicket_add_finance_settings( $settings ) {
 	$feature_control_section = $finance_tab->add_section( __( 'Revenue Deferral Dates — Feature Control', 'wicket' ) );
 
 	$feature_control_section->add_option( 'checkbox', [
-		'id'          => 'wicket_finance_enable_system',
+		'name'        => 'wicket_finance_enable_system',
 		'label'       => __( 'Enable Finance Mapping System', 'wicket' ),
 		'description' => __( 'Enable the entire finance mapping and deferral dates system.', 'wicket' ),
-		'default'     => '0',
-	] );
-
-	$feature_control_section->add_option( 'checkbox', [
-		'id'          => 'wicket_finance_enable_deferral_dates',
-		'label'       => __( 'Enable Deferral Date Functionality', 'wicket' ),
-		'description' => __( 'Enable deferral date fields and functionality for products and orders.', 'wicket' ),
-		'default'     => '1',
-	] );
-
-	$feature_control_section->add_option( 'checkbox', [
-		'id'          => 'wicket_finance_enable_lms_integration',
-		'label'       => __( 'Enable LMS Course Integration', 'wicket' ),
-		'description' => __( 'Enable LMS course data fields for products.', 'wicket' ),
-		'default'     => '0',
-	] );
-
-	$feature_control_section->add_option( 'checkbox', [
-		'id'          => 'wicket_finance_enable_customer_display',
-		'label'       => __( 'Enable Customer-Facing Display Options', 'wicket' ),
-		'description' => __( 'Allow deferral dates to be displayed to customers on various surfaces.', 'wicket' ),
 		'default'     => '0',
 	] );
 
@@ -285,32 +264,7 @@ function wicket_is_finance_system_enabled() {
 	return wicket_get_finance_option( 'wicket_finance_enable_system', '0' ) === '1';
 }
 
-/**
- * Check if deferral dates functionality is enabled
- *
- * @return bool True if enabled, false otherwise
- */
-function wicket_is_deferral_dates_enabled() {
-	return wicket_get_finance_option( 'wicket_finance_enable_deferral_dates', '1' ) === '1';
-}
-
-/**
- * Check if LMS integration is enabled
- *
- * @return bool True if enabled, false otherwise
- */
-function wicket_is_lms_integration_enabled() {
-	return wicket_get_finance_option( 'wicket_finance_enable_lms_integration', '0' ) === '1';
-}
-
-/**
- * Check if customer-facing display is enabled
- *
- * @return bool True if enabled, false otherwise
- */
-function wicket_is_customer_display_enabled() {
-	return wicket_get_finance_option( 'wicket_finance_enable_customer_display', '0' ) === '1';
-}
+// Removed legacy per-feature toggles; the Finance system is now gated solely by wicket_is_finance_system_enabled().
 
 /**
  * Get array of order statuses that should trigger dynamic deferral dates
@@ -346,9 +300,10 @@ function wicket_get_dynamic_deferral_triggers() {
  * @return bool True if eligible, false otherwise
  */
 function wicket_is_product_category_eligible_for_customer_display( $product_categories ) {
-	if ( ! wicket_is_customer_display_enabled() ) {
-		return false;
-	}
+    // Require overall Finance system enabled
+    if ( ! function_exists('wicket_is_finance_system_enabled') || ! wicket_is_finance_system_enabled() ) {
+        return false;
+    }
 
 	$eligible_categories = wicket_get_finance_option( 'wicket_finance_customer_visible_categories', [] );
 
