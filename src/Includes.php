@@ -122,6 +122,7 @@ include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
             // Finance Mapping - load only if enabled in settings
             if (function_exists('wicket_is_finance_system_enabled') && wicket_is_finance_system_enabled()) {
                 include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-finance-mapping.php';
+                include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-order-finance.php';
             }
         }
 
