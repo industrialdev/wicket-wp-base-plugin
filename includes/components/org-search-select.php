@@ -419,7 +419,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       <div class="flex-grow">
         <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
           class="orgss-search-box component-org-search-select__search-input w-full"
-          placeholder="<?php _e('Search by '.$orgTermSingularLower.' name', 'wicket') ?>" />
+          placeholder="<?php _e('Search by ' . $orgTermSingularLower . ' name', 'wicket') ?>" />
       </div>
       <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
         <?php get_component('button', [
@@ -584,7 +584,7 @@ $available_org_types = wicket_get_resource_types('organizations');
               <?php get_component('button', [
                 'variant'  => 'secondary',
                 'reversed' => false,
-                'label'    => '✓ '.__('Selected', 'wicket'),
+                'label'    => '✓ ' . __('Selected', 'wicket'),
                 'type'     => 'button',
                 'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                 'atts'     => [
@@ -664,8 +664,8 @@ $available_org_types = wicket_get_resource_types('organizations');
         <label
           class="component-org-search-select__create-org-label"><?php _e('Type of', 'wicket') ?>
           <?php echo $orgTermSingularCap; ?>*</label>
-        <select x-model="newOrgTypeSelect" x-on:change="newOrgTypeSelect = $el.value;"
-          class="component-org-search-select__create-org-type-select w-full">
+        <select x-model="newOrgTypeSelect" x-on:change="newOrgTypeSelect = $el.value;" class="component-org-search-select__create-org-type-select w-full">
+          <option value=""><?php _e('Select one', 'wicket') ?></option>
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:class="'orgss_org_type_' + orgType.attributes.slug"
               x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]">
@@ -793,11 +793,6 @@ $available_org_types = wicket_get_resource_types('organizations');
         }
         this.relationshipTypeFilter = this.relationshipTypeFilter.trim();
 
-        // Set an initial value for the dynamic select
-        if (this.availableOrgTypes.data.length > 0) {
-          this.newOrgTypeSelect = this.availableOrgTypes.data[0].attributes.slug;
-        }
-
         // Determine if the active membership modal has enough data to use
         if (this.disableSelectingOrgsWithActiveMembership && (this.activeMembershipAlertTitle
             .length > 0 || this.activeMembershipAlertBody.length > 0)) {
@@ -845,11 +840,21 @@ $available_org_types = wicket_get_resource_types('organizations');
           // Creating an org
           let newOrgName = this.newOrgNameBox;
 
+          if (!newOrgName.trim()) {
+            alert('Please enter an organization name.');
+            return;
+          }
+
           let newOrgType = '';
           if (this.newOrgTypeOverride.length > 0) {
             newOrgType = this.newOrgTypeOverride;
           } else {
             newOrgType = this.newOrgTypeSelect;
+          }
+
+          if (!newOrgType) {
+            alert('Please select an organization type.');
+            return;
           }
 
           this.createOrganization(newOrgName, newOrgType, e);
