@@ -124,6 +124,7 @@ include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-finance-mapping.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-order-finance.php';
 			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-membership-finance.php';
+			include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-woocommerce-customer-display.php';
 		}
         }
 
