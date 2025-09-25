@@ -322,6 +322,12 @@ function wicket_group_membership_subscription_status_active($sub)
     $start_date = (new \DateTime('@' . $sub_start_date))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
 
     $sub_next_payment_date = $sub->get_time('next_payment');
+
+    // If next payment date is not set then use end date instead.
+    if ($sub_next_payment_date === 0) {
+      $sub_next_payment_date = $sub->get_time('end_date');
+    }
+
     $next_payment_date =  (new \DateTime('@' . $sub_next_payment_date))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
 
     if (class_exists('WC_Logger') && 'prod' != wicket_get_option('wicket_admin_settings_environment')) {
