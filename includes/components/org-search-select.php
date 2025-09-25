@@ -218,10 +218,10 @@ $available_org_types = wicket_get_resource_types('organizations');
           class="component-org-search-select__confirmation-popup-close-button font-semibold"><?php _e('Close X', 'wicket') ?></button>
       </div>
       <div class="component-org-search-select__confirmation-popup-title font-semibold">
-        <?php _e('Please confirm you\'d like to end your relationship with this Organization', 'wicket') ?>
+        <span x-text="'<?php echo esc_js(__('You\'d like to remove your connection with %s?', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
       </div>
       <div class="component-org-search-select__confirmation-popup-body mt-4 mb-6">
-        <?php _e('Any assigned membership with the organization will be inactivated.', 'wicket') ?>
+        <span x-text="'<?php echo esc_js(__('This will remove all connections you have with %s, including membership.', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
       </div>
       <div class="component-org-search-select__confirmation-popup-actions flex w-full justify-evenly">
         <?php get_component('button', [
@@ -241,9 +241,12 @@ $available_org_types = wicket_get_resource_types('organizations');
         ]); ?>
         <?php get_component('button', [
           'variant'  => 'primary',
-          'label'    => __('Remove Location/Subsidiary', 'wicket'),
+          'label'    => '',
           'type'     => 'button',
-          'atts'  => ['x-on:click.prevent="terminateRelationship()"'],
+          'atts'  => [
+            'x-on:click.prevent="terminateRelationship()"',
+            'x-text' => 'removeButtonLabel'
+          ],
           'classes' => [
             'component-org-search-select__confirmation-popup-remove-button',
             'items-center',
@@ -728,6 +731,8 @@ $available_org_types = wicket_get_resource_types('organizations');
       showingRemoveConfirmation: false,
       removeConfirmationIsEnabled: <?php echo $display_removal_alert_message ? 'true' : 'false'; ?>,
       connectionIdSelectedForRemoval: '',
+      removeConfirmationOrgName: '',
+      removeButtonLabel: '',
       firstSearchSubmitted: false,
       searchType: '<?php echo $searchMode; ?>',
       relationshipTypeUponOrgCreation: '<?php echo $relationshipTypeUponOrgCreation; ?>',
@@ -1203,6 +1208,13 @@ $available_org_types = wicket_get_resource_types('organizations');
             this.showingRemoveConfirmation = false;
           } else {
             this.connectionIdSelectedForRemoval = connectionId;
+            // Find the connection to get the org name
+            this.currentConnections.forEach((connection) => {
+              if (connection.connection_id == connectionId) {
+                this.removeConfirmationOrgName = connection.org_name;
+                this.removeButtonLabel = 'Remove ' + connection.org_name;
+              }
+            });
             this.showingRemoveConfirmation = true;
             return; // Return to skip any logic executing  yet
           }
