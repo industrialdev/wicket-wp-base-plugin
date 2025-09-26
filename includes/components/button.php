@@ -68,32 +68,21 @@ if ($a_tag) {
 /////////////////// DISABLED MODE ///////////////////
 if ($disabled) {
     $classes[] = 'button--disabled';
+    $classes[] = 'pointer-events-none';
     $atts[]    = 'disabled';
 }
 /////////////////// END DISABLED MODE ///////////////////
-?>
-
-<?php
 $formatted_atts = [];
 foreach ($atts as $key => $value) {
     if (is_int($key)) {
-        $attribute = trim((string) $value);
-        if ($attribute !== '') {
-            $formatted_atts[] = $attribute;
+        $formatted_atts[] = $value;
+    } else {
+        if ($value === true) {
+            $formatted_atts[] = $key;
+        } elseif ($value !== false && $value !== null) {
+            $formatted_atts[] = $key . '="' . esc_attr($value) . '"';
         }
-        continue;
     }
-
-    if ($value === false || $value === null) {
-        continue;
-    }
-
-    if ($value === true) {
-        $formatted_atts[] = $key;
-        continue;
-    }
-
-    $formatted_atts[] = sprintf('%s="%s"', $key, esc_attr((string) $value));
 }
 ?>
 
@@ -104,7 +93,8 @@ foreach ($atts as $key => $value) {
     <?php echo implode(' ', $classes) ?>"
 
     <?php if (! $a_tag) {
-        echo "type='" . $type . "'"
+        echo "type='" . $type . "'";
+    } ?>
     >
     <?php
     if ($prefix) {
