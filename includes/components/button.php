@@ -68,36 +68,58 @@ if ($a_tag) {
 /////////////////// DISABLED MODE ///////////////////
 if ($disabled) {
     $classes[] = 'button--disabled';
-    $classes[] = 'pointer-events-none';
     $atts[]    = 'disabled';
 }
 /////////////////// END DISABLED MODE ///////////////////
 ?>
 
+<?php
+$formatted_atts = [];
+foreach ($atts as $key => $value) {
+    if (is_int($key)) {
+        $attribute = trim((string) $value);
+        if ($attribute !== '') {
+            $formatted_atts[] = $attribute;
+        }
+        continue;
+    }
+
+    if ($value === false || $value === null) {
+        continue;
+    }
+
+    if ($value === true) {
+        $formatted_atts[] = $key;
+        continue;
+    }
+
+    $formatted_atts[] = sprintf('%s="%s"', $key, esc_attr((string) $value));
+}
+?>
+
 <<?php echo $tag_type; ?>
-	<?php echo $href_markup; ?>
-	<?php echo implode(' ', $atts); ?>
-	class="
-	<?php echo implode(' ', $classes) ?>"
+    <?php echo $href_markup; ?>
+    <?php echo implode(' ', $formatted_atts); ?>
+    class="
+    <?php echo implode(' ', $classes) ?>"
 
-	<?php if (! $a_tag) {
-	    echo "type='" . $type . "'";
-	} ?>
-	>
-	<?php
-	if ($prefix) {
-	    $icon_classes = [ 'custom-icon-class' ];
+    <?php if (! $a_tag) {
+        echo "type='" . $type . "'"
+    >
+    <?php
+    if ($prefix) {
+        $icon_classes = [ 'custom-icon-class' ];
 
-	    if (defined('WICKET_WP_THEME_V2') && ! empty($label)) {
-	        $icon_classes[] = 'me-2';
-	    }
+        if (defined('WICKET_WP_THEME_V2') && ! empty($label)) {
+            $icon_classes[] = 'me-2';
+        }
 
-	    get_component('icon', [
-	        'classes' => $icon_classes,
-	        'icon'    => $prefix,
-	        'text'    => $screen_reader_text,
-	    ]);
-	}
+        get_component('icon', [
+            'classes' => $icon_classes,
+            'icon'    => $prefix,
+            'text'    => $screen_reader_text,
+        ]);
+    }
 
 echo $label;
 

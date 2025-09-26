@@ -218,7 +218,7 @@ $available_org_types = wicket_get_resource_types('organizations');
           class="component-org-search-select__confirmation-popup-close-button font-semibold"><?php _e('Close X', 'wicket') ?></button>
       </div>
       <div class="component-org-search-select__confirmation-popup-title font-semibold">
-        <span x-text="'<?php echo esc_js(__('You\'d like to remove your connection with %s?', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
+        <span x-text="'<?php echo esc_js(__('Please confirm: You\'d like to remove your connection with %s?', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
       </div>
       <div class="component-org-search-select__confirmation-popup-body mt-4 mb-6">
         <span x-text="'<?php echo esc_js(__('This will remove all connections you have with %s, including membership.', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
