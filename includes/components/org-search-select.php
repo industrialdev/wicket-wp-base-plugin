@@ -615,7 +615,7 @@ $available_org_types = wicket_get_resource_types('organizations');
               <?php get_component('button', [
                 'variant'  => 'secondary',
                 'reversed' => false,
-                'label'    => '✓ Selected',
+                'label'    => '✓ ' . __('Selected', 'wicket'),
                 'type'     => 'button',
                 'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                 'atts'     => [
@@ -846,7 +846,7 @@ $available_org_types = wicket_get_resource_types('organizations');
           let newOrgName = this.newOrgNameBox;
 
           if (!newOrgName.trim()) {
-            alert('Please enter an organization name.');
+            alert('<?php _e('Please enter an organization name.', 'wicket') ?>');
             return;
           }
 
@@ -858,7 +858,7 @@ $available_org_types = wicket_get_resource_types('organizations');
           }
 
           if (!newOrgType) {
-            alert('Please select an organization type.');
+            alert('<?php _e('Please select an organization type.', 'wicket') ?>');
             return;
           }
 
@@ -1212,7 +1212,7 @@ $available_org_types = wicket_get_resource_types('organizations');
             this.currentConnections.forEach((connection) => {
               if (connection.connection_id == connectionId) {
                 this.removeConfirmationOrgName = connection.org_name;
-                this.removeButtonLabel = 'Remove ' + connection.org_name;
+                this.removeButtonLabel = '<?php _e('Remove', 'wicket') ?> ' + connection.org_name;
               }
             });
             this.showingRemoveConfirmation = true;
