@@ -289,9 +289,13 @@ function wicket_get_organization_by_slug($slug, $return_uuid_only = false)
  * as the parent org ID (if applicable) and its name. More info can be added
  * to the return payload as it's useful in more scenarios.
 ------------------------------------------------------------------*/
-function wicket_get_organization_basic_info($uuid, $lang = 'en')
+function wicket_get_organization_basic_info($uuid, $lang = '')
 {
     $org_info = wicket_get_organization($uuid);
+
+    if (empty($lang)) {
+        $lang = wicket_get_current_language();
+    }
 
     $org_parent_id = $org_info['data']['relationships']['parent_organization']['data']['id'] ?? '';
     $org_parent_name = '';
@@ -318,19 +322,21 @@ function wicket_get_organization_basic_info($uuid, $lang = 'en')
         $org_type_name = wicket_get_resource_type_name_by_slug($org_type_slug);
     }
 
-    return [
-      'org_id'          => $uuid,
-      'org_name'        => $org_name,
-      'org_name_alt'    => $org_name_alt,
-      'org_description' => $org_description,
-      'org_type'        => $org_type,
-      'org_type_pretty' => $org_type_pretty,
-      'org_type_slug'   => $org_type_slug,
-      'org_type_name'   => $org_type_name,
-      'org_status'      => $org_info['data']['attributes']['status'] ?? '',
-      'org_parent_id'   => $org_parent_id ?? '',
-      'org_parent_name' => $org_parent_name ?? '',
+    $return = [
+      'org_id'            => $uuid,
+      'org_name'          => $org_name,
+      'org_name_alt'      => $org_name_alt,
+      'org_description'   => $org_description,
+      'org_type'          => $org_type,
+      'org_type_pretty'   => $org_type_pretty,
+      'org_type_slug'     => $org_type_slug,
+      'org_type_name'     => $org_type_name,
+      'org_status'        => $org_info['data']['attributes']['status'] ?? '',
+      'org_parent_id'     => $org_parent_id ?? '',
+      'org_parent_name'   => $org_parent_name ?? '',
     ];
+
+    return $return;
 }
 
 /**
@@ -344,6 +350,7 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
 {
     $client = wicket_api_client();
     $resource_types = $client->get('/resource_types');
+    $lang = wicket_get_current_language();
 
     if (!isset($resource_types['data']) || !is_array($resource_types['data'])) {
         return false;
@@ -355,6 +362,11 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
             && $resource_type['attributes']['slug'] === $slug
             && isset($resource_type['attributes']['name'])
         ) {
+            // Check for a localized if $lang != 'en'
+            if ($lang !== 'en') {
+                return $resource_type['attributes']['name_' . $lang] ?? $resource_type['attributes']['name'];
+            }
+
             return $resource_type['attributes']['name'];
         }
     }

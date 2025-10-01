@@ -76,6 +76,7 @@ $responseMessage                               = $args['response_message'];
 $description                                   = $args['description'];
 $job_title                                     = $args['job_title'];
 $formId                                        = $args['form_id'];
+$lang                                          = wicket_get_current_language();
 
 if (!empty($orgTermSingular)) {
   $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -112,9 +113,6 @@ if (empty($noResultsFoundMessage)) {
 
 $current_person_uuid = wicket_current_person_uuid();
 
-// Get current lang
-$lang = wicket_get_current_language();
-
 // Get users current org/group relationships
 $person_to_org_connections = [];
 if ($searchMode == 'org') {
@@ -125,7 +123,8 @@ if ($searchMode == 'org') {
     if (isset($connection['attributes']['connection_type'])) {
       $org_id = $connection['relationships']['organization']['data']['id'];
 
-      $org_info = wicket_get_organization_basic_info($org_id, $lang);
+      $org_info = wicket_get_organization_basic_info($org_id);
+
       $org_memberships = wicket_get_org_memberships($org_id);
 
       $has_active_membership = false;
