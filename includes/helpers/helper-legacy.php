@@ -381,7 +381,7 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
  * @param String $search_term The query term, e.g. 'My company'
  * @param String $search_by   Currently not used, but can be expanded in the future if we want to
  *                            differentiate between searching by org name verses some other attribute
- * @param String $org_type    The org type slug you want to filter results down to. Note that autocomplete will
+ * @param String|Array $org_type    The org type slug you want to filter results down to. Note that autocomplete will
  *                            filter post-search and full will filter pre-search, as it has that option available.
  * @param Bool $autocomplete  Whether or not to use the autocomplete API or the search API.
  * @param String $lang        Language code to utilize, defaults to 'en'. Not fully implemented, especially in full search.
@@ -427,12 +427,15 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         ]);
 
         $return = [];
+        $temp_org_type = is_array($org_type) ? $org_type : [$org_type]; // make sure it's an array for easier checking
         foreach ($autocomplete_results['included'] as $result) {
             $tmp = [];
             if (isset($result['attributes']['type']) && !is_null($org_type)) {
                 $result_type = $result['attributes']['type'];
-                if ($result_type != $org_type) {
-                    // Skip this record if an org type filter was passed to this endpoint and it doesn't match
+                if (!in_array($result_type, $temp_org_type)) {
+                    //wicket_write_log('Skipped');
+                    // Skip this record if an org type filter was passed to this endpoint
+                    // and it doesn't match
                     continue;
                 }
             }
