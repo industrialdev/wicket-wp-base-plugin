@@ -20,7 +20,7 @@ jQuery(document).ready(function($) {
   var roleEntityObjectRow = $('#wicket_settingswicket_admin_settings_group_assignment_role_entity_object').closest('tr');
 
   $('#wicket_settingswicket_admin_settings_group_assignment_subscription_products').on('click', function() {
-  
+
     if ($(this).is(':checked')) {
       productCategoryRow.show();
       roleEntityObjectRow.show();
@@ -36,5 +36,10 @@ jQuery(document).ready(function($) {
   if ($('#wicket_settingswicket_admin_settings_group_assignment_subscription_products').is(':checked')) {
     productCategoryRow.show();
     roleEntityObjectRow.show();
+  }
+
+  // Initialize datepickers for finance/order line item fields when present
+  if ($.fn.datepicker) {
+    $('.wicket-date-picker').datepicker({ dateFormat: 'yy-mm-dd' });
   }
 });
