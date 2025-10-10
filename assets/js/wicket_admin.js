@@ -94,4 +94,54 @@ jQuery(document).ready(function ($) {
     // Initial check after editor loads
     setTimeout(checkAndLockEditor, 800);
   }
+
+  // WooCommerce Order edit screen: validate order item deferral dates
+  function addOrderScreenError(message) {
+    let $wrap = $('#wpbody .wrap').first();
+    if (!$wrap.length) { $wrap = $('.wrap').first(); }
+    let $notice = $('#wicket-order-deferral-notice');
+    if (!$notice.length) {
+      $notice = $('<div id="wicket-order-deferral-notice" class="notice notice-error is-dismissible"><p></p></div>');
+      $wrap.prepend($notice);
+    }
+    $notice.find('p').text(message);
+  }
+
+  function validateOrderItemDeferralDates(e) {
+    var isValid = true;
+    // Each line item has unique IDs, but share the class names we added
+    $('.wicket-finance-order-item-meta').each(function(){
+      const $container = $(this);
+      const $start = $container.find('input[id^="wicket_finance_start_date_"]');
+      const $end   = $container.find('input[id^="wicket_finance_end_date_"]');
+      const startVal = ($start.val() || '').trim();
+      const endVal   = ($end.val() || '').trim();
+      if (startVal && !endVal) {
+        isValid = false;
+      } else if (startVal && endVal) {
+        const s = parseYMD(startVal);
+        const en = parseYMD(endVal);
+        if (!s || !en || en < s) {
+          isValid = false;
+        }
+      }
+    });
+
+    if (!isValid) {
+      if (e) e.preventDefault();
+      addOrderScreenError('Please ensure each order item has a valid deferral end date when a start date is set, and that end date is not before start date.');
+      return false;
+    }
+    return true;
+  }
+
+  // Validate before updating/saving order
+  $(document).on('click', '#save_order, .save_order, #woocommerce-order-items .save-action button, #publish', function(e){
+    // Apply only on order screens
+    if ($('body.post-type-shop_order').length) {
+      if (!validateOrderItemDeferralDates(e)) {
+        return false;
+      }
+    }
+  });
 });

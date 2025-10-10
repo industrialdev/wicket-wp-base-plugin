@@ -200,6 +200,58 @@ function wicket_finance_save_order_item_meta($order_id, $items)
 add_action('woocommerce_saved_order_items', 'wicket_finance_save_order_item_meta', 10, 2);
 
 /**
+ * Also persist finance fields when WooCommerce saves each order item (covers AJAX save flows)
+ */
+function wicket_finance_before_save_order_item($item_or_id)
+{
+	// Accept both an item object and an item ID
+	if (is_object($item_or_id)) {
+		$item = $item_or_id;
+		$item_id = method_exists($item, 'get_id') ? $item->get_id() : 0;
+	} else {
+		$item_id = is_numeric($item_or_id) ? intval($item_or_id) : 0;
+		$item = $item_id ? WC_Order_Factory::get_order_item($item_id) : null;
+	}
+
+	// Load the item object and ensure it's a product line item
+	if (!$item || !is_a($item, 'WC_Order_Item_Product')) {
+		return;
+	}
+
+	// Read submitted values
+	$start_date = ($item_id && isset($_POST['wicket_finance_start_date']) && is_array($_POST['wicket_finance_start_date']) && isset($_POST['wicket_finance_start_date'][$item_id])) ? sanitize_text_field(wp_unslash($_POST['wicket_finance_start_date'][$item_id])) : '';
+	$end_date = ($item_id && isset($_POST['wicket_finance_end_date']) && is_array($_POST['wicket_finance_end_date']) && isset($_POST['wicket_finance_end_date'][$item_id])) ? sanitize_text_field(wp_unslash($_POST['wicket_finance_end_date'][$item_id])) : '';
+	$gl_code = ($item_id && isset($_POST['wicket_finance_gl_code']) && is_array($_POST['wicket_finance_gl_code']) && isset($_POST['wicket_finance_gl_code'][$item_id])) ? sanitize_text_field(wp_unslash($_POST['wicket_finance_gl_code'][$item_id])) : '';
+
+	// If nothing was submitted for this item, skip.
+	if ($start_date === '' && $end_date === '' && $gl_code === '') {
+		return;
+	}
+
+	// Minimal validation to avoid invalid ordering (mirror main save handler)
+	if (!empty($start_date) && !empty($end_date)) {
+		$start_ts = strtotime($start_date);
+		$end_ts = strtotime($end_date);
+		if ($start_ts !== false && $end_ts !== false && $end_ts < $start_ts) {
+			// Do not persist invalid combo; let main handler/notices deal with UI feedback
+			return;
+		}
+	} elseif (!empty($start_date) && empty($end_date)) {
+		// Incomplete pair, do not persist here
+		return;
+	}
+
+	// Persist values to the item meta
+	$item->update_meta_data('_wicket_finance_start_date', $start_date);
+	$item->update_meta_data('_wicket_finance_end_date', $end_date);
+	if (!empty($gl_code)) {
+		$item->update_meta_data('_wicket_finance_gl_code', $gl_code);
+	}
+}
+
+add_action('woocommerce_before_save_order_item', 'wicket_finance_before_save_order_item', 10, 1);
+
+/**
  * Ensure finance meta fields are included in WooCommerce exports
  * This adds our custom meta keys to the list of exportable order item meta
  */
@@ -315,6 +367,19 @@ function wicket_finance_display_order_item_meta($formatted_meta, $item)
 }
 
 add_filter('woocommerce_order_item_get_formatted_meta_data', 'wicket_finance_display_order_item_meta', 10, 2);
+
+/**
+ * Hide raw finance meta keys in order item meta display to avoid duplication.
+ */
+function wicket_finance_hide_raw_order_item_meta_keys($hidden)
+{
+	$hidden[] = '_wicket_finance_start_date';
+	$hidden[] = '_wicket_finance_end_date';
+	$hidden[] = '_wicket_finance_gl_code';
+	return $hidden;
+}
+
+add_filter('woocommerce_hidden_order_itemmeta', 'wicket_finance_hide_raw_order_item_meta_keys');
 
 /**
  * Add finance fields to WooCommerce CSV export headers

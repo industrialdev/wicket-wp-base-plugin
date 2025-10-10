@@ -49,8 +49,12 @@ if (!class_exists('Wicket_Admin')) {
 				wp_enqueue_script('select2', WICKET_URL . 'assets/js/select2.js', false, '1.0', array('jquery'), '1.0', false);
 			}
 
-			// WooCommerce product edit screens: load admin JS so deferral date validation runs
-			if ((isset($screen->post_type) && $screen->post_type === 'product') || $screen->id === 'product') {
+			// WooCommerce product and order edit screens: load admin JS so deferral date validation runs
+			if (
+				(isset($screen->post_type) && ($screen->post_type === 'product' || $screen->post_type === 'shop_order')) ||
+				$screen->id === 'product' ||
+				$screen->id === 'shop_order'
+			) {
 				// Ensure datepicker is available
 				wp_enqueue_script('jquery-ui-datepicker');
 				// Reuse admin JS
