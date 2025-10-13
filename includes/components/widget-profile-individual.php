@@ -63,7 +63,12 @@ $wicket_settings = get_wicket_settings();
          lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: {
            addresses: "work",
-           phones: "work"
+           phones: "work",
+           salutation: true,
+           gender: true,
+           birthDate: true,
+           given_name: true,
+           family_name: true
          }
        }).then(function(widget) {
         <?php
