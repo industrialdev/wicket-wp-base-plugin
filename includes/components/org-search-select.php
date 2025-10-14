@@ -36,6 +36,7 @@ $defaults  = [
   'response_message'                              => '', // class name of the container where the response message will be displayed
   'description'                                   => '', // Description to be set on the connection
   'job_title'                                     => '',
+  'display_org_fields'                            => 'name', // Options: name, name_location, name_address
   'form_id'                                       => 0,
 ];
 $args                                          = wp_parse_args($args, $defaults);
@@ -75,6 +76,7 @@ $title                                         = $args['title'];
 $responseMessage                               = $args['response_message'];
 $description                                   = $args['description'];
 $job_title                                     = $args['job_title'];
+$display_org_fields                            = $args['display_org_fields'];
 $formId                                        = $args['form_id'];
 $lang                                          = wicket_get_current_language();
 
@@ -461,8 +463,17 @@ $available_org_types = wicket_get_resource_types('organizations');
         <template x-for="(result, uuid) in results" x-cloak>
           <div
             class="component-org-search-select__matching-org-item <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'px-1 py-3 border-b border-dark-100 border-opacity-5 flex justify-between items-center' ?>">
-            <div class="component-org-search-select__matching-org-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold' ?>"
-              x-text="result.name"></div>
+            <div>
+              <div class="component-org-search-select__matching-org-title mb-1 <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold' ?>"
+                x-text="result.name"></div>
+              <div class="component-org-search-select__matching-org-subtitle"
+                <?php if ($display_org_fields === 'name_location') : ?>
+                  x-text="`${result.city ? result.city + (result.state_name ? ', ' : '') : ''}${result.state_name ? result.state_name : ''}${result.country_code ? (result.city || result.state_name ? ', ' : '') + result.country_code : ''}`"
+                <?php elseif ($display_org_fields === 'name_address') : ?>
+                  x-text="`${result.address1 ? result.address1 + (result.city ? ', ' : '') : ''}${result.city ? result.city + (result.state_name ? ', ' : '') : ''}${result.state_name ? result.state_name + (result.zip_code ? ' ' : '') : ''}${result.zip_code ? result.zip_code : ''}${result.country_code ? (result.address1 || result.city || result.state_name || result.zip_code ? ', ' : '') + result.country_code : ''}`"
+                <?php endif; ?>
+                ></div>
+            </div>
             <?php get_component('button', [
               'variant'  => 'secondary',
               'reversed' => false,
