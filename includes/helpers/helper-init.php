@@ -81,17 +81,8 @@ function get_wicket_settings($environment = null)
 function wicket_api_client()
 {
   try {
-      if (!class_exists('\Wicket\Client')) {
-          // No SDK available!
-          return false;
-      }
-
-      // connect to the wicket api and get the current person
-      $wicket_settings = get_wicket_settings();
-      $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
-      $client->authorize($wicket_settings['person_id']);
-  } catch (Exception $e) {
-      // don't return the $client unless the API is up.
+    if (!class_exists('\Wicket\Client')) {
+      // No SDK available!
       return false;
     }
 
