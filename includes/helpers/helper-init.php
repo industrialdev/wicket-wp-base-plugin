@@ -10,6 +10,7 @@ $wicket_helpers = [
   'helper-general.php',
   'helper-legacy.php',
   'helper-persons.php',
+  'helper-person-preferences.php',
   'helper-organizations.php',
   'helper-groups.php',
   'helper-touchpoints.php',
@@ -92,6 +93,15 @@ function wicket_api_client()
   } catch (Exception $e) {
       // don't return the $client unless the API is up.
       return false;
+    }
+
+    // connect to the wicket api and get the current person
+    $wicket_settings = get_wicket_settings();
+    $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
+    $client->authorize($wicket_settings['person_id']);
+  } catch (Exception $e) {
+    // don't return the $client unless the API is up.
+    return false;
   }
 
   return $client;
@@ -113,9 +123,9 @@ function wicket_api_client_current_user()
     $person_id = wicket_current_person_uuid();
 
     if ($person_id) {
-        $client->authorize($person_id);
+      $client->authorize($person_id);
     } else {
-        $client = null;
+      $client = null;
     }
   }
 
@@ -173,13 +183,13 @@ function wicket_get_access_token($person_id, $org_uuid)
   ];
 
   try {
-      $token = $client->post("widget_tokens", ['json' => $payload]);
+    $token = $client->post("widget_tokens", ['json' => $payload]);
 
-      return $token['token'];
+    return $token['token'];
   } catch (Exception $e) {
-      $errors = json_decode($e->getResponse()->getBody())->errors;
+    $errors = json_decode($e->getResponse()->getBody())->errors;
 
-      error_log($e->getMessage());
+    error_log($e->getMessage());
   }
 
   return false;
