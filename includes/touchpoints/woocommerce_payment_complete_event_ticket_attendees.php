@@ -123,10 +123,21 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
             'event_additional_fields' => $event_data['event_additional_fields'],
           ]
         ];
-        
-        // make sure this only writes once.
-        $externalEventIdParts = [$order->id, $order->status];
-        $externalEventIdParts[] = hash('sha256', implode($params['data']));
+
+        // Build a predictable, hashable string
+        $hashInput = json_encode([
+          'data' => $params['data'],
+          'person_id' => $params['person_id'], // include per-attendee uniqueness
+          'action' => $params['action'],       // optional, for extra context
+        ], JSON_UNESCAPED_SLASHES);
+
+        // Compose final unique identifier
+        $externalEventIdParts = [
+          $order->get_id(),    // order ID
+          $order->get_status(), // order status
+          hash('sha256', $hashInput), // hash of structured, stable data
+        ];
+
         $params['external_event_id'] = implode('_', $externalEventIdParts);
 
         $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
@@ -173,9 +184,20 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id) {
             ]
           ];
 
-          // make sure this only writes once.
-          $externalEventIdParts = [$order->id, $order->status];
-          $externalEventIdParts[] = hash('sha256', implode($params['data']));
+          // Build a predictable, hashable string
+          $hashInput = json_encode([
+            'data' => $params['data'],
+            'person_id' => $params['person_id'], // include per-attendee uniqueness
+            'action' => $params['action'],       // optional, for extra context
+          ], JSON_UNESCAPED_SLASHES);
+
+          // Compose final unique identifier
+          $externalEventIdParts = [
+            $order->get_id(),    // order ID
+            $order->get_status(), // order status
+            hash('sha256', $hashInput), // hash of structured, stable data
+          ];
+
           $params['external_event_id'] = implode('_', $externalEventIdParts);
 
           $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
