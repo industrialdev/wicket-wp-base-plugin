@@ -55,8 +55,8 @@ class Assets
      */
     public function enqueue_plugin_styles()
     {
-        $theme = wp_get_theme(); // gets the current theme
-        $theme_name = $theme->name;
+        // Check if it's a Wicket theme
+        $is_wicket_theme = is_wicket_theme_active();
 
         $base_styles_url      = WICKET_URL . 'assets/css/min/wicket.min.css';
         $base_styles_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
@@ -69,9 +69,6 @@ class Assets
 
         $tailwind_styles_wrapped_url  = WICKET_URL . 'assets/css/min/wicket-tailwind-wrapped.min.css';
         $tailwind_styles_wrapped_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind-wrapped.min.css';
-
-        // Check if it's a Wicket theme
-        $is_wicket_theme = str_contains(strtolower($theme_name), 'wicket');
 
         // Only on Wicket's theme v1
         if ($is_wicket_theme) {
@@ -87,12 +84,12 @@ class Assets
             }
         }
 
-        // Only on non-Wicket themes, and only if a wicket block is present
+        // Only on non-Wicket themes
         if (!$is_wicket_theme) {
-            // Wicket theme not in use, so enqueue the compiled component styles
-            $use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
+            // Wicket theme not in use, so enqueue the compiled component styles unless disabled
+            $disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
 
-            if ($use_legacy_styles) {
+            if (!$disable_default_styling) {
                 wp_enqueue_style(
                     'wicket-plugin-base-styles-wrapped',
                     $base_styles_wrapped_url,
@@ -107,18 +104,17 @@ class Assets
                     filemtime($tailwind_styles_wrapped_path),
                     'all'
                 );
-            }
 
-            // Scripts and styles that always get enqueued when not using a wicket theme
-            if (!wp_style_is('material-icons', 'enqueued')) {
-                wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
-            }
+                if (!wp_style_is('material-icons', 'enqueued')) {
+                    wp_enqueue_style('material-icons', 'https://fonts.googleapis.com/icon?family=Material+Icons');
+                }
 
-            if (!wp_style_is('font-awesome', 'enqueued')) {
-                wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
-                wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
-                wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
-                wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
+                if (!wp_style_is('font-awesome', 'enqueued')) {
+                    wp_enqueue_style('font-awesome', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/fontawesome.css', false, '5.15.4', 'all');
+                    wp_enqueue_style('font-awesome-brands', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/brands.css', false, '5.15.4', 'all');
+                    wp_enqueue_style('font-awesome-solid', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/solid.css', false, '5.15.4', 'all');
+                    wp_enqueue_style('font-awesome-regular', WICKET_URL . 'assets/fonts/FontAwesome/web-fonts-with-css/css/regular.css', false, '5.15.4', 'all');
+                }
             }
         }
     }
@@ -130,8 +126,8 @@ class Assets
      */
     public function enqueue_plugin_scripts()
     {
-        $theme = wp_get_theme(); // gets the current theme
-        $theme_name = $theme->name;
+        // Check if it's a Wicket theme
+        $is_wicket_theme = is_wicket_theme_active();
 
         $alpine_scripts_url   = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
         $alpine_scripts_path  = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
@@ -147,10 +143,7 @@ class Assets
             filemtime($base_always_script_path)
         );
 
-        // Check if it's a Wicket theme
-        $is_wicket_theme = str_contains(strtolower($theme_name), 'wicket');
-
-        // Only on non-Wicket themes, and only if a wicket block is present
+        // Only on non-Wicket themes
         if (!$is_wicket_theme) {
             // Wicket theme not in use, we need to enqueue the Alpine script
             wp_enqueue_script(

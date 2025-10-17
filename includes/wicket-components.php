@@ -62,9 +62,10 @@ function get_component( $slug, array $args = [], $output = true ) {
 	}
 
 	// Wrap with the wrapper class to the component classes
-	$use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
+	$uses_wicket_theme = is_wicket_theme_active();
+	$disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
 
-	if ( $use_legacy_styles ): ?>
+	if ( ! $disable_default_styling && ! $uses_wicket_theme ): ?>
 	<div class="wicket-base-plugin">
 	<?php
 	endif;
@@ -82,7 +83,7 @@ function get_component( $slug, array $args = [], $output = true ) {
 		throw new \RuntimeException( "Could not find component $slug" );
 	}
 
-	if ( $use_legacy_styles ): ?>
+	if ( ! $disable_default_styling && ! $uses_wicket_theme ): ?>
 	</div>
 	<?php
 	endif;

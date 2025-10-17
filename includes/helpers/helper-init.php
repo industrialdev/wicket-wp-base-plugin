@@ -18,6 +18,7 @@ $wicket_helpers = [
   'helper-memberships.php',
   'helper-multilang.php',
   'helper-connections.php',
+  'helper-theme.php',
   'helper-woocommerce.php',
 ];
 
