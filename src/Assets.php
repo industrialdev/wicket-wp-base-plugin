@@ -14,7 +14,8 @@ defined('ABSPATH') || exit;
  *
  * @package WicketWP
  */
-class Assets {
+class Assets
+{
 
     /**
      * Instance of the main plugin class
@@ -28,7 +29,8 @@ class Assets {
      *
      * @param WicketWP $plugin Instance of the main plugin class
      */
-    public function __construct($plugin) {
+    public function __construct($plugin)
+    {
         $this->plugin = $plugin;
 
         // Hook into WordPress
@@ -51,7 +53,8 @@ class Assets {
      *
      * @return void
      */
-    public function enqueue_plugin_styles() {
+    public function enqueue_plugin_styles()
+    {
         $theme = wp_get_theme(); // gets the current theme
         $theme_name = $theme->name;
 
@@ -125,7 +128,8 @@ class Assets {
      *
      * @return void
      */
-    public function enqueue_plugin_scripts() {
+    public function enqueue_plugin_scripts()
+    {
         $theme = wp_get_theme(); // gets the current theme
         $theme_name = $theme->name;
 
@@ -148,20 +152,16 @@ class Assets {
 
         // Only on non-Wicket themes, and only if a wicket block is present
         if (!$is_wicket_theme) {
-            // Wicket theme not in use, so enqueue the compiled component styles
-            $use_legacy_styles = wicket_get_option('wicket_admin_settings_legacy_styles_enable', false);
-
-            if ($use_legacy_styles) {
-                wp_enqueue_script(
-                    'wicket-plugin-alpine-script',
-                    $alpine_scripts_url,
-                    array(),
-                    filemtime($alpine_scripts_path),
-                    array(
-                        'strategy' => 'defer'
-                    )
-                );
-            }
+            // Wicket theme not in use, we need to enqueue the Alpine script
+            wp_enqueue_script(
+                'wicket-plugin-alpine-script',
+                $alpine_scripts_url,
+                [],
+                filemtime($alpine_scripts_path),
+                [
+                    'strategy' => 'defer'
+                ]
+            );
         }
     }
 
@@ -171,7 +171,8 @@ class Assets {
      * @param string $hook The current admin page
      * @return void
      */
-    public function enqueue_admin_assets($hook) {
+    public function enqueue_admin_assets($hook)
+    {
         // This method can be used to enqueue admin-specific assets
         // based on the current admin page
     }
@@ -181,7 +182,8 @@ class Assets {
      *
      * @return void
      */
-    public function enqueue_block_editor_assets() {
+    public function enqueue_block_editor_assets()
+    {
         // This method can be used to enqueue assets specifically for
         // the Gutenberg block editor
     }
