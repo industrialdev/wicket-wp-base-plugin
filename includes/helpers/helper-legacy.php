@@ -319,6 +319,7 @@ function wicket_get_organization_basic_info($uuid, $lang = '')
     $org_type_name = '';
     if (!empty($org_info['data']['attributes']['type'])) {
         $org_type_slug = $org_info['data']['attributes']['type'];
+        $org_type = $org_info['data']['attributes']['type'];
         $org_type_name = wicket_get_resource_type_name_by_slug($org_type_slug);
     }
 
@@ -327,7 +328,7 @@ function wicket_get_organization_basic_info($uuid, $lang = '')
       'org_name'          => $org_name,
       'org_name_alt'      => $org_name_alt,
       'org_description'   => $org_description,
-      'org_type'          => $org_type,
+      'org_type'          => $org_type, // Some solutions like orgs select still need this to be defined as 'org_type'
       'org_type_pretty'   => $org_type_pretty,
       'org_type_slug'     => $org_type_slug,
       'org_type_name'     => $org_type_name,
