@@ -36,6 +36,9 @@ $classes[]          = 'inline-flex';
 $classes[]          = 'items-center';
 $atts               = $args['atts'];
 
+
+$is_wicket_theme    = defined('WICKET_THEME');
+
 /////////////////// VARIANTS ///////////////////
 $classes[] = 'button';
 $classes[] = "button--{$variant}";

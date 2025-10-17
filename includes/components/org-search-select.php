@@ -79,6 +79,7 @@ $job_title                                     = $args['job_title'];
 $display_org_fields                            = $args['display_org_fields'];
 $formId                                        = $args['form_id'];
 $lang                                          = wicket_get_current_language();
+$is_wicket_theme                               = defined('WICKET_THEME');
 
 if (!empty($orgTermSingular)) {
   $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -426,11 +427,15 @@ $available_org_types = wicket_get_resource_types('organizations');
           placeholder="<?php _e('Search by ' . $orgTermSingularLower . ' name', 'wicket') ?>" />
       </div>
       <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
+        <?php
+        $buttonClasses = ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'];
+
+        if (!$is_wicket_theme) { $buttonClasses[] = 'button--reversed'; } ?>
         <?php get_component('button', [
           'variant'  => 'primary',
           'label'    => __('Search', 'wicket'),
           'type'     => 'button',
-          'classes'  => ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'],
+          'classes'  => $buttonClasses,
           'atts'  => ['x-on:click.prevent="handleSearch()"'],
         ]); ?>
       </div>
@@ -452,7 +457,7 @@ $available_org_types = wicket_get_resource_types('organizations');
     </div>
     <div class="orgss-results component-org-search-select__results"
       x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' "
-      x-show="!justCreatedNewOrg">
+      x-show="(firstSearchSubmitted || isLoading) && !justCreatedNewOrg">
       <div
         class="component-org-search-select__search-container <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col bg-white px-4 max-h-80 overflow-y-scroll' ?>">
         <div x-show="results.length == 0 && searchBox.length > 0 && firstSearchSubmitted && !isLoading"
