@@ -148,7 +148,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_disable_default_styling',
                 'label' => __('Disable Default Styling', 'wicket'),
-                'description' => __('Disable Wicket default styling wrappers. Only for advanced users. If you enable this, no styling from this plugin will be loaded. Will be on you to add the necessary styles for all components and blocks.', 'wicket'),
+                'description' => __('Disable Wicket default styling. Only for advanced users. If you enable this, no styling from this plugin will be loaded. Will be on you to add the necessary styles for all components and blocks.', 'wicket'),
             ]);
 
 			/*
