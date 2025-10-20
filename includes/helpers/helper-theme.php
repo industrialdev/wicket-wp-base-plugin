@@ -10,7 +10,12 @@ defined('ABSPATH') || exit;
  */
 function is_wicket_theme_active(): bool
 {
+    if (defined('WICKET_THEME') && true === WICKET_THEME) {
+        return true;
+    }
+
     $theme = wp_get_theme();
+
     if (!$theme) {
         return false;
     }
