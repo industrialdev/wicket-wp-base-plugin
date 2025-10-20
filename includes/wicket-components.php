@@ -65,7 +65,19 @@ function get_component( $slug, array $args = [], $output = true ) {
 	$uses_wicket_theme = is_wicket_theme_active();
 	$disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
 
-	if ( ! $disable_default_styling && ! $uses_wicket_theme ): ?>
+	// Example (add to theme's functions.php) to disable wrapping:
+	// add_filter('wicket_base_plugin_should_wrap_component', static function ($wrap, $component_slug) {
+	// 	return false;
+	// }, 10, 2);
+
+	$should_we_wrap = apply_filters(
+		'wicket_base_plugin_should_wrap_component',
+		! $disable_default_styling && ! $uses_wicket_theme,
+		$slug,
+		$args
+	);
+
+	if ( $should_we_wrap ): ?>
 	<div class="wicket-base-plugin">
 	<?php
 	endif;
@@ -83,7 +95,7 @@ function get_component( $slug, array $args = [], $output = true ) {
 		throw new \RuntimeException( "Could not find component $slug" );
 	}
 
-	if ( ! $disable_default_styling && ! $uses_wicket_theme ): ?>
+	if ( $should_we_wrap ): ?>
 	</div>
 	<?php
 	endif;
