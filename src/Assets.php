@@ -16,7 +16,6 @@ defined('ABSPATH') || exit;
  */
 class Assets
 {
-
     /**
      * Instance of the main plugin class
      *
@@ -88,6 +87,16 @@ class Assets
         if (!$is_wicket_theme) {
             // Wicket theme not in use, so enqueue the compiled component styles unless disabled
             $disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
+
+
+            // Example (add to theme's functions.php) to disable wrapping:
+            // add_filter('wicket_base_plugin_should_wrap_component', function ($wrap) {
+            // 	return false;
+            // });
+            $should_we_wrap = apply_filters(
+                'wicket_base_plugin_should_wrap_component',
+                ! $disable_default_styling
+            );
 
             if (!$disable_default_styling) {
                 wp_enqueue_style(
