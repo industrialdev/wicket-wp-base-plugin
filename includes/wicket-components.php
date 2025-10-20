@@ -66,15 +66,13 @@ function get_component( $slug, array $args = [], $output = true ) {
 	$disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
 
 	// Example (add to theme's functions.php) to disable wrapping:
-	// add_filter('wicket_base_plugin_should_wrap_component', static function ($wrap, $component_slug) {
+	// add_filter('wicket_base_plugin_should_wrap_component', function ($wrap) {
 	// 	return false;
-	// }, 10, 2);
+	// });
 
 	$should_we_wrap = apply_filters(
 		'wicket_base_plugin_should_wrap_component',
-		! $disable_default_styling && ! $uses_wicket_theme,
-		$slug,
-		$args
+		! $disable_default_styling && ! $uses_wicket_theme
 	);
 
 	if ( $should_we_wrap ): ?>
