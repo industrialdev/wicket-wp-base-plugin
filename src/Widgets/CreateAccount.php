@@ -229,15 +229,30 @@ class CreateAccount extends \WP_Widget
                         }
                     }
                 }
-                /**------------------------------------------------------------------
+                /**------------------------------------------------------------------ 
                  * Redirect to a verify page if person was created
                 ------------------------------------------------------------------*/
                 if (empty($_SESSION['wicket_create_account_form_errors'])) {
                     unset($_SESSION['wicket_create_account_form_errors']);
-                    $creation_redirect_id = wicket_get_option('wicket_admin_settings_person_creation_redirect');
-                    $creation_redirect_path = get_permalink($creation_redirect_id);
-                    header('Location: ' . $creation_redirect_path);
-                    die;
+
+                    // Allow devs to hook in once new person exists
+                    do_action('after_person_create_account', $new_person);
+
+                    // Try to get the configured redirect page
+                    $creation_redirect_id   = wicket_get_option('wicket_admin_settings_person_creation_redirect');
+                    $creation_redirect_path = $creation_redirect_id ? get_permalink($creation_redirect_id) : false;
+
+                    // Fallback if missing
+                    if (!$creation_redirect_path) {
+                        $creation_redirect_path = site_url('/verify-account');
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log('[wicket-create-account] Redirect option missing or invalid, falling back to /verify-account. Please set this under Wicket -> General -> New Account Redirect');
+                        }
+                    }
+
+                    ob_clean();
+                    wp_safe_redirect($creation_redirect_path);
+                    exit;
                 }
             }
         } else {
