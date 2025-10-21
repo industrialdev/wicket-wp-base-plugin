@@ -114,7 +114,7 @@ if ( ! class_exists( 'Wicket_Settings' ) ) {
 			$section->add_option('select', [
 			    'name' => 'wicket_admin_settings_person_creation_redirect',
 			    'label' => __('New Account Redirect', 'wicket'),
-			    'description' => __('Where users are directed once they complete the create account form. Leave empty for no redirect.', 'wicket'),
+			    'description' => __('Where users are directed once they complete the create account form. Default is /verify-account', 'wicket'),
 			    'options' => $this->get_all_pages(),
 			    'css' => [
 			        'input_class' => 'wicket-verify-account',
