@@ -328,7 +328,7 @@ class Rest
               'org_id'            => $toUuid,
               'org_name'          => $org_info['org_name'],
               'org_description'   => $org_info['org_description'],
-              'org_type'          => $org_info['org_type_pretty'],
+              'org_type'          => $org_info['org_type'],
               'org_status'        => $org_info['org_status'],
               'org_parent_id'     => $org_info['org_parent_id'],
               'org_parent_name'   => $org_info['org_parent_name'],
