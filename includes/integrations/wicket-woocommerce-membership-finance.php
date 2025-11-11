@@ -42,10 +42,9 @@ function wicket_finance_get_trigger_statuses() {
 
 	// Check each possible trigger status
 	$possible_triggers = array( 'draft', 'pending', 'on-hold', 'completed' );
-
 	foreach ( $possible_triggers as $status ) {
 		$option_key = 'wicket_finance_trigger_' . str_replace( '-', '_', $status );
-		if ( get_option( $option_key ) === '1' ) {
+		if (wicket_get_finance_option( $option_key ) === '1' ) {
 			$triggers[] = $status;
 		}
 	}

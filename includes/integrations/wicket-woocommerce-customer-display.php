@@ -23,27 +23,27 @@ function wicket_finance_init_customer_display() {
 	}
 
 	// Order confirmation page
-	if ( get_option( 'wicket_finance_display_order_confirmation' ) === '1' ) {
+	if (wicket_get_finance_option( 'wicket_finance_display_order_confirmation' ) === '1' ) {
 		add_action( 'woocommerce_order_details_after_order_table', 'wicket_finance_display_order_confirmation_dates', 10, 1 );
 	}
 
 	// Email integration
-	if ( get_option( 'wicket_finance_display_emails' ) === '1' ) {
+	if (wicket_get_finance_option( 'wicket_finance_display_emails' ) === '1' ) {
 		add_action( 'woocommerce_email_after_order_table', 'wicket_finance_display_email_dates', 10, 4 );
 	}
 
 	// My Account order details
-	if ( get_option( 'wicket_finance_display_my_account' ) === '1' ) {
+	if (wicket_get_finance_option( 'wicket_finance_display_my_account' ) === '1' ) {
 		add_action( 'woocommerce_order_details_after_order_table', 'wicket_finance_display_my_account_dates', 10, 1 );
 	}
 
 	// WooCommerce Subscriptions integration
-	if ( get_option( 'wicket_finance_display_subscriptions' ) === '1' && function_exists( 'wcs_get_subscriptions' ) ) {
+	if (wicket_get_finance_option( 'wicket_finance_display_subscriptions' ) === '1' && function_exists( 'wcs_get_subscriptions' ) ) {
 		add_action( 'woocommerce_subscription_details_after_subscription_table', 'wicket_finance_display_subscription_dates', 10, 1 );
 	}
 
 	// PDF Invoice integration
-	if ( get_option( 'wicket_finance_display_pdf_invoices' ) === '1' ) {
+	if (wicket_get_finance_option( 'wicket_finance_display_pdf_invoices' ) === '1' ) {
 		// Support for WooCommerce PDF Invoices & Packing Slips plugin
 		add_action( 'wpo_wcpdf_after_order_details', 'wicket_finance_display_pdf_invoice_dates', 10, 2 );
 	}
@@ -248,7 +248,7 @@ function wicket_finance_is_item_eligible_for_customer_display( $item, $eligible_
 	$parent_product_id = $item->get_variation_id() !== 0 ? $item->get_product_id() : $product_id;
 
 	// Check if product is in eligible categories
-	$product_categories = wp_get_post_terms( $parent_product_id, 'product_cat', array( 'fields' => 'slugs' ) );
+	$product_categories = wp_get_post_terms( $parent_product_id, 'product_cat', array( 'fields' => 'ids' ) );
 
 	if ( is_wp_error( $product_categories ) || empty( $product_categories ) ) {
 		return false;
@@ -266,7 +266,7 @@ function wicket_finance_is_item_eligible_for_customer_display( $item, $eligible_
  * @return array Array of product category slugs
  */
 function wicket_finance_get_eligible_categories() {
-	$categories = get_option( 'wicket_finance_customer_categories', array() );
+	$categories = wicket_get_finance_option( 'wicket_finance_customer_visible_categories', array() );
 
 	if ( ! is_array( $categories ) ) {
 		return array();
