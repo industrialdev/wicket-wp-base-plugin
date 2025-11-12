@@ -36,6 +36,7 @@ function wicket_get_groups()
  *              group_type (Optional) The type of group to filter by (e.g., 'subscription', 'event', etc.).
  *              per_page (Optional) The number of groups to return per page (size). Default: 20.
  *              page (Optional) The page number to return. Default: 1.
+ *              return_group_data_only (Optional) Boolean to return only group data instead of full group_members response. Default: false.
  *
  * @return array|false Array of groups on ['data'] or false on failure
  */
@@ -43,13 +44,14 @@ function wicket_get_person_groups($args = [])
 {
   // Default args
   $defaults = [
-    'person_uuid'  => null,
-    'org_id'       => null,
-    'search_query' => null,
-    'active_only'  => false,
-    'group_type'  =>  null,
-    'per_page'     => 20,
-    'page'         => 1,
+    'person_uuid'            => null,
+    'org_id'                 => null,
+    'search_query'           => null,
+    'active_only'            => false,
+    'group_type'             => null,
+    'per_page'               => 20,
+    'page'                   => 1,
+    'return_group_data_only' => false,
   ];
   $args = wp_parse_args($args, $defaults);
 
@@ -105,6 +107,37 @@ function wicket_get_person_groups($args = [])
       return false;
     }
 
+    // NEW: If return_group_data_only is true, extract and return only the group data
+    if ($args['return_group_data_only']) {
+      $groups_only = [
+        'data' => [],
+        'meta' => $response['meta'] ?? [] // Preserve pagination metadata for template compatibility
+      ];
+
+      // Create lookup for included groups
+      $groups_lookup = [];
+      if (isset($response['included'])) {
+        foreach ($response['included'] as $included) {
+          if ($included['type'] === 'groups') {
+            $groups_lookup[$included['id']] = $included;
+          }
+        }
+      }
+
+      // Extract group data from group_members response
+      foreach ($response['data'] as $group_member) {
+        if (isset($group_member['relationships']['group']['data']['id'])) {
+          $group_id = $group_member['relationships']['group']['data']['id'];
+          if (isset($groups_lookup[$group_id])) {
+            $groups_only['data'][] = $groups_lookup[$group_id];
+          }
+        }
+      }
+
+      return $groups_only;
+    }
+
+    // Default behavior: return full response
     return $response;
   } catch (Exception $e) {
     return false;
