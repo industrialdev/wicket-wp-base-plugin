@@ -172,9 +172,60 @@ function wicket_finance_get_membership_dates( $order, $item ) {
 	// First, try to get dates from existing membership record if it exists
 	$membership_uuid = $item->get_meta( '_membership_wicket_uuid', true );
 
+	// We have a membership UUID, so we can just get the dates from the membership
 	if ( ! empty( $membership_uuid ) ) {
-		// If we have a membership UUID, try to find the membership record
-		$membership_posts = get_posts( array(
+		return wicket_finance_get_membership_dates_by_uuid($order, $item);
+	}
+
+	// Membership UUID doesn't exist as the membership may not exist (i.e. pending approval), so we'll need to figure out the dates.
+	$dates = wicket_finance_get_membership_dates_by_membership_config($order, $item);
+	if  ( !empty( $dates ) ) {
+		return $dates;
+	}
+
+	return null;
+}
+
+/**
+ * Get membership dates based on membership configuration
+ *
+ * @param WC_Order $order The order object
+ * @param WC_Order_Item_Product $item The order line item
+ * @return array|null Array with 'start_date' and 'end_date' keys, or null if not available
+ */
+function wicket_finance_get_membership_dates_by_membership_config($order, $item) {
+
+	// Get variation ID if it's a variation, otherwise get product ID
+	$product_id = $item->get_variation_id() !== 0 ? $item->get_variation_id() : $item->get_product_id();
+
+	// We need to get the tier, followed by the membership config to be able to get the membership config dates.
+	// This mimics the functionality on Wicket_Memberships\create_membership_record without actually creating the membership.
+	$membership_tier = Wicket_Memberships\Membership_Tier::get_tier_by_product_id($product_id);
+	$config = new Wicket_Memberships\Membership_Config( $membership_tier->tier_data['config_id'] );
+	$dates = $config->get_membership_dates();
+
+	if (!empty($dates)) {
+
+		$membership_starts_at = ( new DateTime( $dates['start_date'] ) )->format('Y-m-d');
+		$membership_ends_at = ( new DateTime( $dates['end_date'] ) )->format('Y-m-d');
+
+		return array(
+			'start_date' => $membership_starts_at,
+			'end_date' => $membership_ends_at,
+		);
+	}
+
+	return null;
+}
+
+/**
+ * Get membership dates by membership UUID
+ *
+ * @param string $membership_uuid The membership UUID
+ * @return array|null Array with 'start_date' and 'end_date' keys, or null if not available
+ */
+function wicket_finance_get_membership_dates_by_uuid($membership_uuid) {
+			$membership_posts = get_posts( array(
 			'post_type' => 'wicket_membership',
 			'meta_key' => 'membership_wicket_uuid',
 			'meta_value' => $membership_uuid,
@@ -197,13 +248,8 @@ function wicket_finance_get_membership_dates( $order, $item ) {
 				);
 			}
 		}
-	}
 
-	// For early order statuses (draft, pending, on-hold), membership record may not exist yet
-	// In these cases, we'll rely on the membership plugin hooks to write the dates
-	// when the membership is actually created
-
-	return null;
+		return null;
 }
 
 /**
