@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace WicketWP\Widgets;
 
 /**
- * Wicket Create Account
- * Description: Providies a widget to sign up to Wicket as a person
+ * Wicket Create Account (No Password)
+ * Description: Providies a widget to sign up to Wicket as a person without password entry
  *
  */
 
@@ -20,7 +20,7 @@ use Wicket\Client;
  * The widget class
  * http://www.wpexplorer.com/create-widget-plugin-wordpress
  */
-class CreateAccount extends \WP_Widget
+class CreateAccountNoPassword extends \WP_Widget
 {
 
     public $errors;
@@ -29,8 +29,8 @@ class CreateAccount extends \WP_Widget
     public function __construct()
     {
         parent::__construct(
-            'wicket_create_account',
-            __('Wicket Create Account', 'wicket'),
+            'wicket_create_account_no_password',
+            __('Wicket Create Account (No Password)', 'wicket'),
             array(
                 'customize_selective_refresh' => true,
             )
@@ -39,11 +39,11 @@ class CreateAccount extends \WP_Widget
 
     public static function init() {
         add_action('init', function () {
-            if (isset($_POST['wicket_create_account'])) {
+            if (isset($_POST['wicket_create_account_no_password'])) {
                 // Get the widget instance that's registered
                 global $wp_widget_factory;
-                if (isset($wp_widget_factory->widgets['wicket_create_account'])) {
-                    $widget = $wp_widget_factory->widgets['wicket_create_account'];
+                if (isset($wp_widget_factory->widgets['wicket_create_account_no_password'])) {
+                    $widget = $wp_widget_factory->widgets['wicket_create_account_no_password'];
                     $widget->process_wicket_create_account_form();
                 } else {
                     // Fallback to creating a new instance
@@ -123,7 +123,7 @@ class CreateAccount extends \WP_Widget
             if (!session_id()) session_start();
         }
 
-        if (isset($_POST['wicket_create_account'])) {
+        if (isset($_POST['wicket_create_account_no_password'])) {
             $client = wicket_api_client();
             /**------------------------------------------------------------------
              * Create Account
@@ -131,8 +131,6 @@ class CreateAccount extends \WP_Widget
             $first_name = isset($_POST['given_name']) ? $_POST['given_name'] : '';
             $last_name = isset($_POST['family_name']) ? $_POST['family_name'] : '';
             $email = isset($_POST['address']) ? $_POST['address'] : '';
-            $password = isset($_POST['password']) ? $_POST['password'] : '';
-            $password_confirmation = isset($_POST['password_confirmation']) ? $_POST['password_confirmation'] : '';
 
             if ($first_name == '') {
                 $first_name_blank = new \stdClass;
@@ -158,30 +156,7 @@ class CreateAccount extends \WP_Widget
                 $email_invalid->title = __("must be a valid email address", 'wicket');
                 $errors[] = $email_invalid;
             }
-            if (strlen($password) < 8) {
-                $pass_blank = new \stdClass;
-                $pass_blank->meta = (object)['field' => 'user.password'];
-                $pass_blank->title = __("must be a minimum of 8 characters", 'wicket');
-                $errors[] = $pass_blank;
-            }
-            if ($password == '') {
-                $pass_blank = new \stdClass;
-                $pass_blank->meta = (object)['field' => 'user.password'];
-                $pass_blank->title = __("can't be blank", 'wicket');
-                $errors[] = $pass_blank;
-            }
-            if ($password_confirmation == '') {
-                $confirm_pass_blank = new \stdClass;
-                $confirm_pass_blank->meta = (object)['field' => 'user.password_confirmation'];
-                $confirm_pass_blank->title = __("can't be blank", 'wicket');
-                $errors[] = $confirm_pass_blank;
-            }
-            if ($password_confirmation != $password) {
-                $pass_blank = new \stdClass;
-                $pass_blank->meta = (object)['field' => 'user.password'];
-                $pass_blank->title = __(" - Passwords do not match", 'wicket');
-                $errors[] = $pass_blank;
-            }
+
             $enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
             if ($enable_google_captcha === '1') {
                 $passes_google_check = $this->wicket_check_google_captcha();
@@ -194,11 +169,11 @@ class CreateAccount extends \WP_Widget
                     ];
                 }
             }
-            $_SESSION['wicket_create_account_form_errors'] = $errors;
+            $_SESSION['wicket_create_account_no_password_form_errors'] = $errors;
 
             // don't send anything if errors
             if (empty($errors)) {
-                $new_person = wicket_create_person($first_name, $last_name, $email, $password, $password_confirmation);
+                $new_person = wicket_create_person($first_name, $last_name, $email);
 
                 if(isset($new_person['errors'])) {
                     foreach ($new_person['errors'] as $error) {
@@ -209,11 +184,7 @@ class CreateAccount extends \WP_Widget
                                     'type' => 'people',
                                     'attributes' => [
                                     'given_name' => $first_name,
-                                    'family_name' => $last_name,
-                                        'user' => [
-                                            'password' => $password,
-                                            'password_confirmation' => $password_confirmation
-                                        ]
+                                    'family_name' => $last_name
                                     ]
                                 ]
                             ];
@@ -222,18 +193,18 @@ class CreateAccount extends \WP_Widget
                                 $patch_person = $client->patch('people/' . $error->meta->taken_by->id, ['json' => $payload]);
                                 break;
                             } catch (\Throwable $th) {
-                                $_SESSION['wicket_create_account_form_errors'] = $new_person['errors'];
+                                $_SESSION['wicket_create_account_no_password_form_errors'] = $new_person['errors'];
                             }
                         }else{
-                            $_SESSION['wicket_create_account_form_errors'] = $new_person['errors'];
+                            $_SESSION['wicket_create_account_no_password_form_errors'] = $new_person['errors'];
                         }
                     }
                 }
                 /**------------------------------------------------------------------ 
                  * Redirect to a verify page if person was created
                 ------------------------------------------------------------------*/
-                if (empty($_SESSION['wicket_create_account_form_errors'])) {
-                    unset($_SESSION['wicket_create_account_form_errors']);
+                if (empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                    unset($_SESSION['wicket_create_account_no_password_form_errors']);
 
                     // Allow devs to hook in once new person exists
                     do_action('after_person_create_account', $new_person);
@@ -246,7 +217,7 @@ class CreateAccount extends \WP_Widget
                     if (!$creation_redirect_path) {
                         $creation_redirect_path = site_url('/verify-account');
                         if (defined('WP_DEBUG') && WP_DEBUG) {
-                            error_log('[wicket-create-account] Redirect option missing or invalid, falling back to /verify-account. Please set this under Wicket -> General -> New Account Redirect');
+                            error_log('[wicket-create-account-no-password] Redirect option missing or invalid, falling back to /verify-account. Please set this under Wicket -> General -> New Account Redirect');
                         }
                     }
 
@@ -256,29 +227,29 @@ class CreateAccount extends \WP_Widget
                 }
             }
         } else {
-            if (isset($_SESSION['wicket_create_account_form_errors'])) {
-                unset($_SESSION['wicket_create_account_form_errors']);
+            if (isset($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                unset($_SESSION['wicket_create_account_no_password_form_errors']);
             }
         }
     }
 
     private function build_form()
     {
-        if (!isset($_POST['wicket_create_account'])) {
-            if (isset($_SESSION['wicket_create_account_form_errors'])) {
-                unset($_SESSION['wicket_create_account_form_errors']);
+        if (!isset($_POST['wicket_create_account_no_password'])) {
+            if (isset($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                unset($_SESSION['wicket_create_account_no_password_form_errors']);
             }
         }
 ?>
     <div class="wicket-base-plugin-form">
         <script src='https://www.google.com/recaptcha/api.js?hl=en'></script>
-        <?php if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) : ?>
+        <?php if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) : ?>
             <div class='alert alert-danger' role="alert">
-                <p><?php printf(_n('The form could not be submitted because 1 error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_create_account_form_errors']), 'wicket'), number_format_i18n(count($_SESSION['wicket_create_account_form_errors']))); ?></p>
+                <p><?php printf(_n('The form could not be submitted because 1 error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_create_account_no_password_form_errors']), 'wicket'), number_format_i18n(count($_SESSION['wicket_create_account_no_password_form_errors']))); ?></p>
                 <?php
                 $counter = 1;
                 echo "<ul>";
-                foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
+                foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
                     if ($error->meta->field == 'user.given_name') {
                         $prefix = __("First Name", 'wicket') . ' ';
                         printf(__("<li><a href='#given_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
@@ -290,14 +261,6 @@ class CreateAccount extends \WP_Widget
                     if ($error->meta->field == 'emails.address') {
                         $prefix = __("Email", 'wicket') . ' - ';
                         printf(__("<li><a href='#address'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    if ($error->meta->field == 'user.password') {
-                        $prefix = __("Password", 'wicket') . ' ';
-                        printf(__("<li><a href='#password'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    if ($error->meta->field == 'user.password_confirmation') {
-                        $prefix = __("Confirm Password", 'wicket') . ' ';
-                        printf(__("<li><a href='#password_confirmation'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
                     }
                     if ($error->meta->field == 'google') {
                         $prefix = __("Captcha", 'wicket') . ' ';
@@ -319,8 +282,8 @@ class CreateAccount extends \WP_Widget
                 <label class="form__label" for="given_name"><?php _e('First Name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
+                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
                             if (isset($error->meta->field) && $error->meta->field == 'user.given_name') {
                                 $given_name_err = true;
                             }
@@ -335,8 +298,8 @@ class CreateAccount extends \WP_Widget
                 <label class="form__label" for="family_name"><?php _e('Last Name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
+                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
                             if (isset($error->meta->field) && $error->meta->field == 'user.family_name') {
                                 $last_name_err = true;
                             }
@@ -351,8 +314,8 @@ class CreateAccount extends \WP_Widget
                 <label class="form__label" for="address"><?php _e('Email', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
+                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
                             if (isset($error->meta->field) && $error->meta->field == 'emails.address') {
                                 $address_err = true;
                             }
@@ -363,39 +326,6 @@ class CreateAccount extends \WP_Widget
                 <input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo isset($_POST['address']) ? $_POST['address'] : '' ?>">
             </div>
 
-            <div class="form__group">
-                <label class="form__label" for="password"><?php _e('Password', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
-                    <?php
-                    if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
-                            if (isset($error->meta->field) && $error->meta->field == 'user.password') {
-                                $password_err = true;
-                            }
-                        }
-                    }
-                    ?>
-                </label>
-                <small id='create_account_form_minimum_char_message'><?php _e('Minimum of 8 characters', 'wicket') ?></small>
-                <input class="form__input <?php echo isset($password_err) ? 'error_input' : '' ?>" required type="password" name="password" id="password" value="">
-            </div>
-
-            <div class="form__group">
-                <label class="form__label" for="password_confirmation"><?php _e('Confirm password', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
-                    <?php
-                    if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
-                            if (isset($error->meta->field) && $error->meta->field == 'user.password_confirmation') {
-                                $password_confirm_err = true;
-                            }
-                        }
-                    }
-                    ?>
-                </label>
-                <input class="form__input <?php echo isset($password_confirm_err) ? 'error_input' : '' ?>" type="password" id="password_confirmation" name="password_confirmation" value="">
-            </div>
-
             <a name="google"></a>
             <?php
             $enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
@@ -404,7 +334,7 @@ class CreateAccount extends \WP_Widget
             ?>
                 <div class="g-recaptcha" data-sitekey="<?php echo $recaptcha_key ?>"></div>
             <?php endif; ?>
-            <input type="hidden" name="wicket_create_account" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
+            <input type="hidden" name="wicket_create_account_no_password" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 
             <?php
                 get_component( 'button', [

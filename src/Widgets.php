@@ -47,6 +47,7 @@ class Widgets
 
         // Register wicket widgets
         register_widget('WicketWP\\Widgets\\CreateAccount');
+        register_widget('WicketWP\\Widgets\\CreateAccountNoPassword');
         register_widget('WicketWP\\Widgets\\UpdatePassword');
         register_widget('WicketWP\\Widgets\\ManagePreferences');
     }
@@ -59,6 +60,13 @@ class Widgets
         // Check if widget classes exist, if not try to load them
         if (! class_exists('WicketWP\\Widgets\\CreateAccount')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/CreateAccount.php';
+            if (file_exists($file)) {
+                require_once $file;
+            }
+        }
+
+        if (! class_exists('WicketWP\\Widgets\\CreateAccountNoPassword')) {
+            $file = WICKET_PLUGIN_DIR . 'src/Widgets/CreateAccountNoPassword.php';
             if (file_exists($file)) {
                 require_once $file;
             }
@@ -80,6 +88,7 @@ class Widgets
 
         // Initialize widget form processors
         \WicketWP\Widgets\CreateAccount::init();
+        \WicketWP\Widgets\CreateAccountNoPassword::init();
         \WicketWP\Widgets\UpdatePassword::init();
         \WicketWP\Widgets\ManagePreferences::init();
     }
