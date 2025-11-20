@@ -1,0 +1,20 @@
+{
+  "assets/js/wicket.js": {
+    "file": "assets/wicket-BAAIBh0y.js",
+    "name": "wicket",
+    "src": "assets/js/wicket.js",
+    "isEntry": true,
+    "css": [
+      "assets/wicket-Cgs8ZRDW.css"
+    ]
+  },
+  "assets/js/wicket_wrapped.js": {
+    "file": "assets/wicket_wrapped-BAAIBh0y.js",
+    "name": "wicket_wrapped",
+    "src": "assets/js/wicket_wrapped.js",
+    "isEntry": true,
+    "css": [
+      "assets/wicket-Cgs8ZRDW.css"
+    ]
+  }
+}

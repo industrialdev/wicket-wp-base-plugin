@@ -1,3 +1,5 @@
+@use '../helpers/mixins';
+
 a {
   &:hover {
     text-decoration: underline;
@@ -11,6 +13,6 @@ a {
 
 p {
   & > a[target='_blank'] {
-    @include add-external-icon;
+    @include mixins.add-external-icon;
   }
 }

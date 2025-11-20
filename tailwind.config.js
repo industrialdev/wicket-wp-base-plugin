@@ -200,10 +200,10 @@ module.exports = {
 }
 
 // Uncomment to see config that gets generated:
-console.log(
+/*console.log(
   'Tailwind is using these settings combined from theme.json and manual overrides:'
 )
-console.log(module.exports)
+console.log(module.exports)*/
 
 /**
  * Example of the final generated theme config:

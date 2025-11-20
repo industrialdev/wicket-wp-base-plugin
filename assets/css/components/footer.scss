@@ -1,7 +1,9 @@
+@use '../helpers/mixins';
+
 footer {
   .menu-item {
     & > a[target='_blank'] {
-      @include add-external-icon;
+      @include mixins.add-external-icon;
     }
   }
 }

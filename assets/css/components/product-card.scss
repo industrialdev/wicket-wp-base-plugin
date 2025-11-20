@@ -1,3 +1,5 @@
+@use '../helpers/mixins';
+
 .component-card-product,
 .product {
   .onsale {
@@ -24,11 +26,11 @@
   }
 
   .button {
-    @extend .button--primary;
+    @extend .button--primary !optional;
     display: inline-flex;
 
     &.product_type_external {
-      @include add-external-icon;
+      @include mixins.add-external-icon;
     }
 
     .add_to_cart_button__text-added {

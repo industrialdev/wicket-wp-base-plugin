@@ -1,3 +1,5 @@
+@use '../helpers/variables';
+
 // Component styling
 .component-org-search-select {
   font-family: var(--wicket-base-font-family-name);
@@ -135,7 +137,7 @@
     gap: var(--wicket-base-space-200);
     transition: all 0.2s ease-in-out;
 
-    @media (min-width: $wicket-breakpoint-md) {
+    @media (min-width: variables.$wicket-breakpoint-md) {
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
@@ -167,7 +169,7 @@
     flex-direction: column;
     align-items: stretch;
 
-    @media (min-width: $wicket-breakpoint-sm) {
+    @media (min-width: variables.$wicket-breakpoint-sm) {
       flex-direction: row;
       align-items: center;
     }

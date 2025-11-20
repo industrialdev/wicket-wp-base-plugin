@@ -1,18 +1,25 @@
+/* TAILWIND
+------------------------------------------------------------------------------*/
+@use 'tailwindcss/base';
+@use 'tailwindcss/components';
+@use 'tailwindcss/utilities';
+
 /* HELPERS
 ------------------------------------------------------------------------------*/
-@import 'helpers/variables';
-@import 'helpers/mixins';
-@import 'helpers/alpinejs';
+@use 'helpers/variables';
+@use 'helpers/mixins';
+@use 'helpers/alpinejs';
 
 /* THEME COMPONENTS
 ------------------------------------------------------------------------------*/
-@import 'components/accordion';
-@import 'components/breadcrumbs';
-@import 'components/button';
-@import 'components/links';
-@import 'components/breadcrumbs';
-@import 'components/social-links';
-@import 'components/footer';
-@import 'components/product-card';
-@import 'components/forms';
-@import 'components/org-search-select';
+@use 'components/accordion';
+@use 'components/breadcrumbs';
+@use 'components/button';
+@use 'components/links';
+@use 'components/social-links';
+@use 'components/footer';
+@use 'components/product-card';
+@use 'components/forms';
+@use 'components/org-search-select';
+
+
