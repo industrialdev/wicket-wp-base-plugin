@@ -42,6 +42,11 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
     }
 
     if (!$sync_ok) {
+        // Store an error message (short TTL – just for the immediate next page load).
+        set_transient(WICKET_SWITCH_ERROR_PREFIX . (int) $old_user_id, __('Unable to switch: The Wicket account no longer exists or the UUIDs do not match.', 'wicket'), 60);
+        // Force transient flush to ensure it's available immediately.
+        if (function_exists('wp_cache_flush')) { wp_cache_flush(); }
+
         // Revert the switch – restore original user session.
         if (function_exists('switch_to_user') && $old_user_id) {
             // Use plugin's helper so cookies & session are correctly reset. Third param false triggers switch_back logic.
@@ -53,20 +58,20 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
             wp_set_current_user($old_user_id);
         }
 
-        // Store an error message (short TTL – just for the immediate next page load).
-        set_transient(WICKET_SWITCH_ERROR_PREFIX . (int) $old_user_id, __('Unable to switch: The Wicket account no longer exists or the UUIDs do not match.', 'wicket'), 60);
-        
         // Redirect back to the referring page to prevent the default User Switching redirect.
         $redirect_url = wp_get_referer();
         if (!$redirect_url) {
             // Fallback to admin users page if no referer available.
             $redirect_url = admin_url('users.php');
         }
-        
+
         // Add error flag to URL for the notice.
         $redirect_url = add_query_arg('wicket_switch_failed', '1', $redirect_url);
-        
-        wp_safe_redirect($redirect_url);
+
+        // Use wp_redirect for reliability if safe redirect fails
+        if (!wp_safe_redirect($redirect_url)) {
+            wp_redirect($redirect_url);
+        }
         exit;
     }
 }
