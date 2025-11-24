@@ -176,17 +176,6 @@ function wicket_add_finance_settings( $settings ) {
 }
 
 /**
- * Helper function to get finance setting value
- *
- * @param string $option_name The option name
- * @param mixed  $default     Default value if option doesn't exist
- * @return mixed The option value
- */
-function wicket_get_finance_option( $option_name, $default = null ) {
-	return wicket_get_option( $option_name, $default );
-}
-
-/**
  * Helper function to get parsed organizations as array
  *
  * @return array Array of organizations in format ['slug' => 'Display Name']
@@ -253,15 +242,6 @@ function wicket_get_finance_sales_reps() {
 	}
 
 	return $sales_reps;
-}
-
-/**
- * Check if finance system is enabled
- *
- * @return bool True if enabled, false otherwise
- */
-function wicket_is_finance_system_enabled() {
-	return wicket_get_finance_option( 'wicket_finance_enable_system', '0' ) === '1';
 }
 
 // Removed legacy per-feature toggles; the Finance system is now gated solely by wicket_is_finance_system_enabled().
