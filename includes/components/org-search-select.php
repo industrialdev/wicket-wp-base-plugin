@@ -896,10 +896,9 @@ $available_org_types = wicket_get_resource_types('organizations');
           this.isLoading = true;
         }
 
-        let orgType = this.searchOrgType;
-        const orgTypes = orgType.split(',').map(type => type.trim());
+        const orgTypes = this.searchOrgType.split(',').map(type => type.trim());
         let data = {};
-        if (orgTypes.length > 0) {
+        if (this.searchOrgType.length > 0) {
           data = {
             "searchTerm": searchTerm,
             "orgType": orgTypes,
