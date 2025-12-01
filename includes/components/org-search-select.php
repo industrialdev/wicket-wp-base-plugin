@@ -669,15 +669,15 @@ $available_org_types = wicket_get_resource_types('organizations');
       <?php echo $orgTermSingularLower; ?>?<br /><span class="font-bold"><?php _e('Create a new one:', 'wicket') ?></span>
     </div>
     <div class="flex component-org-search-select__create-org-fields">
-      <div x-bind:class="newOrgTypeOverride.length <= 0 ? 'w-5/12' : 'w-10/12'"
-        class="component-org-search-select__create-org-name-wrapper flex flex-col mr-2">
+      <div
+        class="component-org-search-select__create-org-name-wrapper flex flex-col mr-2 w-5/12">
         <label
           class="component-org-search-select__create-org-label"><?php _e('Name of the', 'wicket') ?>
           <?php echo $orgTermSingularCap; ?>*</label>
         <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate($event)" type="text"
           name="company-name" class="component-org-search-select__create-org-name-input w-full" />
       </div>
-      <div x-show="newOrgTypeOverride.length <= 0"
+      <div
         class="component-org-search-select__create-org-type-wrapper flex flex-col w-5/12 mr-2">
         <label
           class="component-org-search-select__create-org-label"><?php _e('Type of', 'wicket') ?>
@@ -791,11 +791,12 @@ $available_org_types = wicket_get_resource_types('organizations');
       matchesFilter(connection) {
         const rm = this.relationshipMode;
         const sType = (this.searchOrgType || '').toLowerCase();
+        const sTypes = sType.split(',').map(type => type.trim());
         const filt = (this.relationshipTypeFilter || '').toLowerCase();
 
         if (connection.connection_type != rm) return false;
         const connOrgType = (connection.org_type || '').toLowerCase();
-        if (!(connOrgType === sType || sType === '')) return false;
+        if (!(sTypes.includes(connOrgType) || sTypes.length === 0)) return false;
         if (!connection.active_connection) return false;
 
         // If filtering disabled or empty filter, pass through
@@ -817,6 +818,16 @@ $available_org_types = wicket_get_resource_types('organizations');
         if (this.disableSelectingOrgsWithActiveMembership && (this.activeMembershipAlertTitle
             .length > 0 || this.activeMembershipAlertBody.length > 0)) {
           this.activeMembershipAlertAvailable = true;
+        }
+
+        // Override available org types when creating a new org, if specified
+        if (this.newOrgTypeOverride.length > 0) {
+          let newOrgTypes = this.newOrgTypeOverride.split(',').map(type => type.trim());
+
+          // We should have only specified slugs from newOrgTypes, and exclude the rest.
+          this.availableOrgTypes.data = this.availableOrgTypes.data.filter(orgType =>
+            newOrgTypes.includes(orgType.attributes.slug)
+          );
         }
 
         this.$watch('searchBox', (value) => {
@@ -865,12 +876,7 @@ $available_org_types = wicket_get_resource_types('organizations');
             return;
           }
 
-          let newOrgType = '';
-          if (this.newOrgTypeOverride.length > 0) {
-            newOrgType = this.newOrgTypeOverride;
-          } else {
-            newOrgType = this.newOrgTypeSelect;
-          }
+          let newOrgType = this.newOrgTypeSelect;
 
           if (!newOrgType) {
             alert('<?php _e('Please select an organization type.', 'wicket') ?>');
@@ -891,11 +897,12 @@ $available_org_types = wicket_get_resource_types('organizations');
         }
 
         let orgType = this.searchOrgType;
+        const orgTypes = orgType.split(',').map(type => type.trim());
         let data = {};
-        if (orgType.length > 0) {
+        if (orgTypes.length > 0) {
           data = {
             "searchTerm": searchTerm,
-            "orgType": orgType,
+            "orgType": orgTypes,
           };
         } else {
           data = {
