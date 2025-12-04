@@ -13,68 +13,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Hook into WooCommerce order updates to write membership deferral dates
- * As we need to check order creation and order status changes, this is the most reliable hook, although eager. This will result in some repeat runs.
- *
- * @param int $order_id The ID of the updated order
- */
-function wicket_finance_update_order( $order_id ) {
-
-	// Most of the following lines are just trying to reduce repeat runs, and waiting till we have enough data to proceed.
-
+function wicket_finance_new_order_created ($order, $subscription, $type) {
 	// Skip if finance system is not enabled
 	if ( ! function_exists( 'wicket_is_finance_system_enabled' ) || ! wicket_is_finance_system_enabled() ) {
-		return;
+		return $order;
 	}
 
-	// Confirm order actually exists
-	$order = wc_get_order( $order_id );
-	if ( ! $order ) {
-		return;
-	}
-
-	// Only process normal shop orders
-	if ( $order->get_type() !== 'shop_order' ) {
-		return;
-	}
-
-	// Ensure the order has line items
-	$items = $order->get_items( 'line_item' );
-	if ( empty( $items ) ) {
-		return;
-	}
-
-	// Ensure items are populated with products
-	$has_valid_products = false;
-	foreach ( $items as $item ) {
-		$product = $item->get_product();
-		if ( $product && $item->get_quantity() > 0 ) {
-			$has_valid_products = true;
-			break;
-		}
-	}
-
-	if ( ! $has_valid_products ) {
-		return;
-	}
-
-	// Ensure totals are calculated (helps avoid early runs during construction)
-	if ( floatval( $order->get_total() ) <= 0 && floatval( $order->get_subtotal() ) <= 0 ) {
-		return;
-	}
-
-	// We now have enough data to actually try to write membership dates
-
-	// We can now assume the order is valid and has items, so we can proceed to write membership dates if needed
 	// Get configured trigger statuses from admin settings
 	$trigger_statuses = wicket_finance_get_trigger_statuses();
+
+	// Get order status
 	$order_status = $order->get_status();
-	if ( $order_status === 'processing' || in_array( $order_status, $trigger_statuses ) ) {
-		wicket_finance_write_membership_dates( $order );
+
+	// Always trigger on processing status (regardless of config)
+	if ($order_status === 'processing' || in_array($order_status, $trigger_statuses)) {
+		wicket_finance_write_membership_dates($order);
+	}
+
+	// Since this a filter, return the order object
+  return $order;
+}
+add_filter('wcs_new_order_created', 'wicket_finance_new_order_created', 10, 4);
+
+/**
+ * Hook into WooCommerce order status changes to trigger membership deferral date writing
+ */
+function wicket_finance_order_status_changed($order_id, $old_status, $new_status, $order)
+{
+	// Skip if finance system is not enabled
+	if (! function_exists('wicket_is_finance_system_enabled') || ! wicket_is_finance_system_enabled()) {
+		return;
+	}
+
+	// Get configured trigger statuses from admin settings
+	$trigger_statuses = wicket_finance_get_trigger_statuses();
+
+	// Always trigger on processing status (regardless of config)
+	if ($new_status === 'processing' || in_array($new_status, $trigger_statuses)) {
+		wicket_finance_write_membership_dates($order);
 	}
 }
-add_action('woocommerce_update_order', 'wicket_finance_update_order', 10, 1);
+add_action('woocommerce_order_status_changed', 'wicket_finance_order_status_changed', 10, 4);
 
 /**
  * Get configured order status triggers from admin settings
