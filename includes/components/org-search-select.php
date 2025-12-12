@@ -791,7 +791,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       matchesFilter(connection) {
         const rm = this.relationshipMode;
         const sType = (this.searchOrgType || '').toLowerCase();
-        const sTypes = sType.split(',').map(type => type.trim());
+        const sTypes = sType.split(',').map(type => type.trim()).filter(type => type !== '');
         const filt = (this.relationshipTypeFilter || '').toLowerCase();
 
         if (connection.connection_type != rm) return false;
