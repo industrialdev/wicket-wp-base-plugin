@@ -340,7 +340,7 @@ function wicket_finance_display_order_item_meta($formatted_meta, $item)
 		$formatted_meta[] = (object) array(
 			'key' => '_wicket_finance_start_date',
 			'value' => $start_date,
-			'display_key' => __('Finance Start Date', 'wicket'),
+			'display_key' => __('Term Start Date', 'wicket'),
 			'display_value' => date_i18n(get_option('date_format'), strtotime($start_date)),
 		);
 	}
@@ -349,7 +349,7 @@ function wicket_finance_display_order_item_meta($formatted_meta, $item)
 		$formatted_meta[] = (object) array(
 			'key' => '_wicket_finance_end_date',
 			'value' => $end_date,
-			'display_key' => __('Finance End Date', 'wicket'),
+			'display_key' => __('Term End Date', 'wicket'),
 			'display_value' => date_i18n(get_option('date_format'), strtotime($end_date)),
 		);
 	}
@@ -358,7 +358,7 @@ function wicket_finance_display_order_item_meta($formatted_meta, $item)
 		$formatted_meta[] = (object) array(
 			'key' => '_wicket_finance_gl_code',
 			'value' => $gl_code,
-			'display_key' => __('Finance GL Code', 'wicket'),
+			'display_key' => __('Term GL Code', 'wicket'),
 			'display_value' => $gl_code,
 		);
 	}
@@ -387,8 +387,8 @@ add_filter('woocommerce_hidden_order_itemmeta', 'wicket_finance_hide_raw_order_i
  */
 function wicket_finance_csv_export_headers($headers)
 {
-	$headers['finance_start_date'] = __('Finance Start Date', 'wicket');
-	$headers['finance_end_date'] = __('Finance End Date', 'wicket');
+	$headers['finance_start_date'] = __('Term Start Date', 'wicket');
+	$headers['finance_end_date'] = __('Term End Date', 'wicket');
 	$headers['finance_gl_code'] = __('Finance GL Code', 'wicket');
 
 	return $headers;
