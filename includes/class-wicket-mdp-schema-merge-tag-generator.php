@@ -1,15 +1,13 @@
 <?php
 
 /**
- * Class Wicket_Mdp_Schema_Merge_Tag_Generator
- * 
+ * Class Wicket_Mdp_Schema_Merge_Tag_Generator.
+ *
  * Maps and transforms JSON Schema fields and their UI definitions
  * into a merge tag friendly and localized format.
- * 
+ *
  * BE CAREFUL, THIS CLASS IS CONSIDERED AS EXPERIMENTAL AND MAY CHANGE IN FUTURE RELEASES.
- * 
  */
-
 class Wicket_Mdp_Schema_Merge_Tag_Generator
 {
     private array $schema;
@@ -54,12 +52,13 @@ class Wicket_Mdp_Schema_Merge_Tag_Generator
      * @param string $fieldPath   Dot-notated field path (e.g. 'maiden', 'schoolSection.vetSchool', 'repeater[0].field').
      * @param array $dataFields   Array of schema-based data entries we usually get from a person or organization.
      * @param string $schemaSlug  Slug used to match schema entry.
-     * 
+     *
      * @return mixed|null The field value or null if not found.
      */
     public function getFieldValue(string $fieldPath, array $dataFields, string $schemaSlug): mixed
     {
         $values = $this->getFieldValuesForRecord($dataFields, $schemaSlug);
+
         return $values['{' . $fieldPath . '}'] ?? null;
     }
 
@@ -70,17 +69,17 @@ class Wicket_Mdp_Schema_Merge_Tag_Generator
      * @param array $dataFields    Array of schema-based data entries.
      * @param string $schemaSlug   Slug used to match schema entry.
      * @param bool $return_string  If true, returns a comma-separated string of values.
-     * 
+     *
      * @return array|string
      *   Array of matching values or a string if $return_string is true.
      */
-    public function getValuesByWildcardPath(string $wildcardPath, array $dataFields, string $schemaSlug, bool $return_string = false) 
+    public function getValuesByWildcardPath(string $wildcardPath, array $dataFields, string $schemaSlug, bool $return_string = false)
     {
         $allValues = $this->getFieldValuesForRecord($dataFields, $schemaSlug);
 
         $pattern = preg_quote($wildcardPath, '/');
         $pattern = str_replace('\\[\\*\\]', '\\[(\\d+)\\]', $pattern);
-        $pattern = "/^" . $pattern . "$/";
+        $pattern = '/^' . $pattern . '$/';
 
         $results = [];
 
@@ -205,6 +204,7 @@ class Wicket_Mdp_Schema_Merge_Tag_Generator
 
             $labels = array_map(function ($val) use ($enum, $enumNames) {
                 $index = array_search($val, $enum);
+
                 return $enumNames[$index] ?? $val;
             }, $values);
 
@@ -221,10 +221,10 @@ class Wicket_Mdp_Schema_Merge_Tag_Generator
         }
 
         if (
-            isset($parentUiNode['ui:options']['enumField']) &&
-            $parentUiNode['ui:options']['enumField'] === $lastPart &&
-            isset($parentUiNode['ui:options']['enumFieldOptions']) &&
-            isset($parentUiNode['ui:i18n']['enumFieldOptionsNames'][$this->lang])
+            isset($parentUiNode['ui:options']['enumField'])
+            && $parentUiNode['ui:options']['enumField'] === $lastPart
+            && isset($parentUiNode['ui:options']['enumFieldOptions'])
+            && isset($parentUiNode['ui:i18n']['enumFieldOptionsNames'][$this->lang])
         ) {
             $enum = $parentUiNode['ui:options']['enumFieldOptions'];
             $enumNames = $parentUiNode['ui:i18n']['enumFieldOptionsNames'][$this->lang];
@@ -253,10 +253,13 @@ class Wicket_Mdp_Schema_Merge_Tag_Generator
             foreach ($schemaNode['oneOf'] as $variant) {
                 $fields = array_merge($fields, $this->extractFields($variant, $uiNode, $prefix));
             }
+
             return $fields;
         }
 
-        if (!isset($schemaNode['properties'])) return $fields;
+        if (!isset($schemaNode['properties'])) {
+            return $fields;
+        }
 
         foreach ($schemaNode['properties'] as $fieldName => $fieldSchema) {
             $fullName = $prefix ? "$prefix.$fieldName" : $fieldName;

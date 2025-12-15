@@ -2,7 +2,7 @@
 
 /**
  * Warp Dump
- * A nicer way to dump data on screen, for those who have not yet been introduced to Xdebug
+ * A nicer way to dump data on screen, for those who have not yet been introduced to Xdebug.
  *
  * @author Esteban Cuevas
  * @version 1.0.0
@@ -11,7 +11,7 @@
  */
 
 /**
- * Dumps variables to the screen
+ * Dumps variables to the screen.
  *
  * @param mixed ...$vars The variables to dump
  *
@@ -440,7 +440,7 @@ function warp_dump(...$vars)
         $dump_id = 'warp-dump-' . $dump_counter;
 
         // Try to get the variable name, fallback to "Dump #N"
-        $title = isset($var_names[$index]) ? $var_names[$index] : 'Dump #' . $dump_counter;
+        $title = $var_names[$index] ?? 'Dump #' . $dump_counter;
         $title = trim($title, '$'); // Remove $ if present
 
         echo '<div id="' . $dump_id . '-container" class="warp-dump-container">';

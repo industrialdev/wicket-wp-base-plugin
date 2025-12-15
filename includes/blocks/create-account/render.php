@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Wicket Create Account block
+ * Wicket Create Account block.
  *
  **/
 

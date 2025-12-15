@@ -1,5 +1,5 @@
 <?php
-$defaults           = array(
+$defaults = [
     'classes'            => [],
     'variant'            => 'primary',
     'size'               => '',
@@ -15,36 +15,35 @@ $defaults           = array(
     'disabled'           => false,
     'screen_reader_text' => '',
     'atts'               => [],
-);
-$args               = wp_parse_args($args, $defaults);
-$classes            = $args['classes'];
-$variant            = $args['variant']; // primary, secondary, ghost
-$size               = $args['size']; // sm, lg
-$label              = $args['label'];
-$prefix             = $args['prefix_icon'];
-$suffix             = $args['suffix_icon'];
-$reversed           = $args['reversed'];
-$rounded            = $args['rounded'];
-$a_tag              = $args['a_tag'];
-$link               = $args['link'];
-$link_target        = $args['link_target'];
-$type               = $args['type'];
-$disabled           = $args['disabled'];
+];
+$args = wp_parse_args($args, $defaults);
+$classes = $args['classes'];
+$variant = $args['variant']; // primary, secondary, ghost
+$size = $args['size']; // sm, lg
+$label = $args['label'];
+$prefix = $args['prefix_icon'];
+$suffix = $args['suffix_icon'];
+$reversed = $args['reversed'];
+$rounded = $args['rounded'];
+$a_tag = $args['a_tag'];
+$link = $args['link'];
+$link_target = $args['link_target'];
+$type = $args['type'];
+$disabled = $args['disabled'];
 $screen_reader_text = $args['screen_reader_text'];
-$classes[]          = 'component-button';
-$classes[]          = 'inline-flex';
-$classes[]          = 'items-center';
-$atts               = $args['atts'];
+$classes[] = 'component-button';
+$classes[] = 'inline-flex';
+$classes[] = 'items-center';
+$atts = $args['atts'];
 
-
-$is_wicket_theme    = defined('WICKET_THEME');
+$is_wicket_theme = defined('WICKET_THEME');
 
 /////////////////// VARIANTS ///////////////////
 $classes[] = 'button';
 $classes[] = "button--{$variant}";
 
 if ($reversed) {
-    $classes[] = "button--reversed";
+    $classes[] = 'button--reversed';
 }
 /////////////////// END VARIANTS ///////////////////
 
@@ -55,24 +54,24 @@ if ($size) {
 /////////////////// END SIZE ///////////////////
 
 // Rounded option
-if (! defined('WICKET_WP_THEME_V2')) {
+if (!defined('WICKET_WP_THEME_V2')) {
     if ($rounded) {
         $classes[] = 'button--rounded';
     }
 }
 
-$tag_type    = 'button';
+$tag_type = 'button';
 $href_markup = '';
 if ($a_tag) {
-    $tag_type    = 'a';
-    $href_markup = "href='$link' target='$link_target'" . ($link_target === '_blank' ? " aria-label='". esc_attr($label) ." (opens in new tab)'" : '');
+    $tag_type = 'a';
+    $href_markup = "href='$link' target='$link_target'" . ($link_target === '_blank' ? " aria-label='" . esc_attr($label) . " (opens in new tab)'" : '');
 }
 
 /////////////////// DISABLED MODE ///////////////////
 if ($disabled) {
     $classes[] = 'button--disabled';
     $classes[] = 'pointer-events-none';
-    $atts[]    = 'disabled';
+    $atts[] = 'disabled';
 }
 /////////////////// END DISABLED MODE ///////////////////
 $formatted_atts = [];
@@ -95,15 +94,15 @@ foreach ($atts as $key => $value) {
     class="
     <?php echo implode(' ', $classes) ?>"
 
-    <?php if (! $a_tag) {
+    <?php if (!$a_tag) {
         echo "type='" . $type . "'";
     } ?>
     >
     <?php
     if ($prefix) {
-        $icon_classes = [ 'custom-icon-class' ];
+        $icon_classes = ['custom-icon-class'];
 
-        if (defined('WICKET_WP_THEME_V2') && ! empty($label)) {
+        if (defined('WICKET_WP_THEME_V2') && !empty($label)) {
             $icon_classes[] = 'me-2';
         }
 
@@ -117,9 +116,9 @@ foreach ($atts as $key => $value) {
 echo $label;
 
 if ($suffix) {
-    $icon_classes = [ 'custom-icon-class' ];
+    $icon_classes = ['custom-icon-class'];
 
-    if (defined('WICKET_WP_THEME_V2') && ! empty($label)) {
+    if (defined('WICKET_WP_THEME_V2') && !empty($label)) {
         $icon_classes[] = 'ms-2';
     }
 

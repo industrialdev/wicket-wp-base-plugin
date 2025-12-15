@@ -6,117 +6,119 @@
  *
  */
 
-add_filter( 'register_post_type_args', 'show_post_types_in_rest', 10, 2 );
+add_filter('register_post_type_args', 'show_post_types_in_rest', 10, 2);
 add_action('rest_api_init', 'show_meta_fields_in_rest');
 
-function show_post_types_in_rest( $args, $post_type ) {
- 
-  if ( 'wc_memberships_team' === $post_type ) {
+function show_post_types_in_rest($args, $post_type)
+{
+
+    if ('wc_memberships_team' === $post_type) {
         $args['public'] = true;
         $args['show_in_rest'] = true;
-        $args['supports'] = array( 'title', 'custom-fields' );
+        $args['supports'] = ['title', 'custom-fields'];
         $args['hierarchical'] = true;
     }
 
     return $args;
 }
 
-function show_meta_fields_in_rest() {
+function show_meta_fields_in_rest()
+{
 
-    register_meta( 'post', 'wicket_organization', array(
+    register_meta('post', 'wicket_organization', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => true,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
-    register_meta( 'post', '_seat_count', array(
+        },
+    ]);
+    register_meta('post', '_seat_count', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => true,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
-    register_meta( 'post', '_member_id', array(
+        },
+    ]);
+    register_meta('post', '_member_id', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => false,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
-    register_meta( 'post', '_edit_last', array(
+        },
+    ]);
+    register_meta('post', '_edit_last', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => true,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
-    register_meta( 'post', '_start_date', array(
+        },
+    ]);
+    register_meta('post', '_start_date', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => true,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
-    register_meta( 'post', '_end_date', array(
+        },
+    ]);
+    register_meta('post', '_end_date', [
         'type' => 'string',
         'subtype' => 'wc_memberships_team',
         'single' => true,
         'show_in_rest' => true,
-        'auth_callback' => function() {
+        'auth_callback' => function () {
             return true;
-        }
-    ));
+        },
+    ]);
 }
 
 /** Keeps track of webhook sent to avoid duplicates */
 $sent_webhooks = [];
 
 // add webhook resources and events
-add_filter( 'woocommerce_valid_webhook_resources', 'add_resources' );
-add_filter( 'woocommerce_valid_webhook_events', 'add_events' );
+add_filter('woocommerce_valid_webhook_resources', 'add_resources');
+add_filter('woocommerce_valid_webhook_events', 'add_events');
 
 // add webhook topics and their hooks
-add_filter( 'woocommerce_webhook_topics', 'add_topics' );
-add_filter( 'woocommerce_webhook_topic_hooks', 'add_topic_hooks', 10, 2 );
+add_filter('woocommerce_webhook_topics', 'add_topics');
+add_filter('woocommerce_webhook_topic_hooks', 'add_topic_hooks', 10, 2);
 
 // create webhook payloads
-add_filter( 'woocommerce_webhook_payload', 'create_payload', 1, 4 );
+add_filter('woocommerce_webhook_payload', 'create_payload', 1, 4);
 
 // check whether webhook should be delivered
-add_filter( 'woocommerce_webhook_should_deliver', 'handle_webhook_delivery', 100, 3 );
+add_filter('woocommerce_webhook_should_deliver', 'handle_webhook_delivery', 100, 3);
 
 // whitelist custom fields
-add_filter( 'wc_memberships_for_teams_allowed_meta_box_ids', 'allow_custom_field_metaboxes' );
+add_filter('wc_memberships_for_teams_allowed_meta_box_ids', 'allow_custom_field_metaboxes');
 
 // when creating a membership team from admin, look for posts going from auto draft to publish status
-add_action( 'transition_post_status', 'handle_new_object_published', 10, 3 );
+add_action('transition_post_status', 'handle_new_object_published', 10, 3);
 
 // add actions for membership team webhooks consumption
-add_action( 'wp_insert_post', 'add_membership_team_created_webhook_action', 999, 3 );
-add_action( 'wp_insert_post', 'add_membership_team_updated_webhook_action', 999, 3 );
-add_action( 'post_updated',   'add_membership_team_updated_webhook_action', 999, 2 );
-add_action( 'trashed_post',   'add_membership_team_deleted_webhook_action', 999 );
-add_action( 'untrashed_post', 'add_membership_team_restored_webhook_action', 999 );
+add_action('wp_insert_post', 'add_membership_team_created_webhook_action', 999, 3);
+add_action('wp_insert_post', 'add_membership_team_updated_webhook_action', 999, 3);
+add_action('post_updated', 'add_membership_team_updated_webhook_action', 999, 2);
+add_action('trashed_post', 'add_membership_team_deleted_webhook_action', 999);
+add_action('untrashed_post', 'add_membership_team_restored_webhook_action', 999);
 
 // when adding a member, add wicket_organization as metadata
-add_action( 'wc_memberships_for_teams_add_team_member', 'add_wicket_organization_metadata', 10 , 3 );
+add_action('wc_memberships_for_teams_add_team_member', 'add_wicket_organization_metadata', 10, 3);
 
 // when saving a user membership, add username as metadata
-add_action( 'wc_memberships_user_membership_saved', 'add_username_metadata', 10 , 2 );
+add_action('wc_memberships_user_membership_saved', 'add_username_metadata', 10, 2);
 
 // when transferring a user membership, update username metadata
-add_action( 'wc_memberships_user_membership_transferred', 'update_username_when_transfer', 10 , 2 );
+add_action('wc_memberships_user_membership_transferred', 'update_username_when_transfer', 10, 2);
 
 /**
  * Adds team objects to webhook resources.
@@ -126,13 +128,13 @@ add_action( 'wc_memberships_user_membership_transferred', 'update_username_when_
  * @param string[] $resources array of resources
  * @return string[]
  */
-function add_resources( array $resources ) {
+function add_resources(array $resources)
+{
 
     $resources[] = 'membership_team';
 
-    return array_unique( $resources );
+    return array_unique($resources);
 }
-
 
 /**
  * Adds teams events to webhook events.
@@ -142,7 +144,8 @@ function add_resources( array $resources ) {
  * @param string[] $events array of events
  * @return string[]
  */
-function add_events( array $events ) {
+function add_events(array $events)
+{
 
     $teams_events = [
         'created',
@@ -151,13 +154,12 @@ function add_events( array $events ) {
         'restored',
     ];
 
-    foreach ( $teams_events as $teams_event ) {
+    foreach ($teams_events as $teams_event) {
         $events[] = $teams_event;
     }
 
-    return array_unique( $events );
+    return array_unique($events);
 }
-
 
 /**
  * Adds topics to the webhooks topic selection dropdown.
@@ -169,18 +171,18 @@ function add_events( array $events ) {
  * @param array $topics associative array
  * @return array
  */
-function add_topics( array $topics ) {
+function add_topics(array $topics)
+{
 
     $membership_team_topics = [
-        'membership_team.created' => __( 'Membership Team Created', 'woocommerce-memberships-teams' ),
-        'membership_team.updated' => __( 'Membership Team Updated', 'woocommerce-memberships-teams' ),
-        'membership_team.deleted' => __( 'Membership Team Deleted', 'woocommerce-memberships-teams' ),
-        'membership_team.restored' => __( 'Membership Team Restored', 'woocommerce-memberships-teams' ),
+        'membership_team.created' => __('Membership Team Created', 'woocommerce-memberships-teams'),
+        'membership_team.updated' => __('Membership Team Updated', 'woocommerce-memberships-teams'),
+        'membership_team.deleted' => __('Membership Team Deleted', 'woocommerce-memberships-teams'),
+        'membership_team.restored' => __('Membership Team Restored', 'woocommerce-memberships-teams'),
     ];
 
-    return array_merge( $topics, $membership_team_topics );
+    return array_merge($topics, $membership_team_topics);
 }
-
 
 /**
  * Adds hooks to webhook topics.
@@ -188,22 +190,23 @@ function add_topics( array $topics ) {
  * @internal
  *
  * @param array $topic_hooks topic hooks associative array
- * @param \WC_Webhook $webhook webhook object
+ * @param WC_Webhook $webhook webhook object
  * @return array
  */
-function add_topic_hooks( $topic_hooks, $webhook ) {
+function add_topic_hooks($topic_hooks, $webhook)
+{
 
     $resource = $webhook->get_resource();
 
-    if ( 'membership_team' === $resource ) {
+    if ('membership_team' === $resource) {
 
         /**
          * Filters the membership teams webhook topics.
          *
          * @param array $topic_hooks associative array of topics
-         * @param \WC_Webhook $webhook webhook object
+         * @param WC_Webhook $webhook webhook object
          */
-        $topic_hooks = (array) apply_filters( 'wc_memberships_membership_team_webhook_topic_hooks', [
+        $topic_hooks = (array) apply_filters('wc_memberships_membership_team_webhook_topic_hooks', [
             'membership_team.created'  => [
                 'wc_memberships_webhook_membership_team_created',
             ],
@@ -216,69 +219,69 @@ function add_topic_hooks( $topic_hooks, $webhook ) {
             'membership_team.restored' => [
                 'wc_memberships_webhook_membership_team_restored',
             ],
-        ], $webhook );
+        ], $webhook);
     }
 
     return $topic_hooks;
 }
-
 
 /**
  * Creates a payload for membership teams webhook deliveries.
  *
  * @internal
  *
- * @param array|\WP_REST_Response $payload payload data
+ * @param array|WP_REST_Response $payload payload data
  * @param string $resource resource to be handled
  * @param int $resource_id resource ID
  * @param int $webhook_id webhook ID
- * @return array|\WP_REST_Response
+ * @return array|WP_REST_Response
  */
-function create_payload( $payload, $resource, $resource_id, $webhook_id ) {
+function create_payload($payload, $resource, $resource_id, $webhook_id)
+{
 
-    if ( empty( $payload ) ) {
+    if (empty($payload)) {
 
-            if ( 'membership_team' === $resource ) {
-                $payload = get_payload( $resource_id, $webhook_id );
-            }
+        if ('membership_team' === $resource) {
+            $payload = get_payload($resource_id, $webhook_id);
+        }
     }
 
     return $payload;
 }
-
 
 /**
  * Gets a webhook payload for a membership team object.
  *
  * @param int $resource_id membership team object ID
  * @param int $webhook_id WooCommerce webhook ID
- * @return array|\WP_REST_Response
+ * @return array|WP_REST_Response
  */
-function get_payload( $resource_id, $webhook_id ) {
+function get_payload($resource_id, $webhook_id)
+{
 
     $payload = [];
 
     try {
 
-        $webhook  = new \WC_Webhook( $webhook_id );
+        $webhook = new WC_Webhook($webhook_id);
         $old_user = get_current_user_id();
 
-        wp_set_current_user( $webhook->get_user_id() );
+        wp_set_current_user($webhook->get_user_id());
 
-        if ( 'deleted' === $webhook->get_event() || ! get_post( $resource_id ) ) {
-            $payload = [ 'id' => (int) $resource_id ];
+        if ('deleted' === $webhook->get_event() || !get_post($resource_id)) {
+            $payload = ['id' => (int) $resource_id];
         } else {
-            $team = wc_memberships_for_teams_get_team( $resource_id );
-            $payload = get_formatted_item_data( $team );
+            $team = wc_memberships_for_teams_get_team($resource_id);
+            $payload = get_formatted_item_data($team);
         }
 
-        wp_set_current_user( $old_user );
+        wp_set_current_user($old_user);
 
-    } catch( \Exception $e ) {}
+    } catch (Exception $e) {
+    }
 
     return $payload;
 }
-
 
 /**
  * Validates whether a webhook should deliver its payload.
@@ -288,30 +291,30 @@ function get_payload( $resource_id, $webhook_id ) {
  * @internal
  *
  * @param bool $deliver_payload whether webhook should delivery payload
- * @param \WC_Webhook $webhook webhook object
+ * @param WC_Webhook $webhook webhook object
  * @param int $resource_id membership team object ID
  * @return bool
  */
-function handle_webhook_delivery( $deliver_payload, $webhook, $resource_id ) {
+function handle_webhook_delivery($deliver_payload, $webhook, $resource_id)
+{
 
     $resource = $webhook->get_resource();
 
-    if ( 'membership_team' == $resource ) {
+    if ('membership_team' == $resource) {
 
-        if ( 'deleted' === $webhook->get_event() ) {
+        if ('deleted' === $webhook->get_event()) {
 
             $deliver_payload = true;
 
-        } elseif ( $deliver_payload ) {
+        } elseif ($deliver_payload) {
 
-            $deliver_payload = wc_memberships_for_teams_get_team( $resource_id );
+            $deliver_payload = wc_memberships_for_teams_get_team($resource_id);
 
         }
     }
 
     return $deliver_payload;
 }
-
 
 /**
  * Handles membership team creation from admin, where the post may have an auto draft status initially.
@@ -320,16 +323,17 @@ function handle_webhook_delivery( $deliver_payload, $webhook, $resource_id ) {
  *
  * @param string  $new_status new status assigned to the post
  * @param string $old_status old status the post is moving away from
- * @param \WP_Post $post_object a WordPress post that could be of a membership team
+ * @param WP_Post $post_object a WordPress post that could be of a membership team
  */
-function handle_new_object_published( $new_status, $old_status, $post_object ) {
+function handle_new_object_published($new_status, $old_status, $post_object)
+{
 
-    if ( in_array( $old_status, [ 'auto-draft', 'new' ], true ) ) {
+    if (in_array($old_status, ['auto-draft', 'new'], true)) {
 
-        $post_type = get_post_type( $post_object );
+        $post_type = get_post_type($post_object);
 
-        if ( 'wc_memberships_team' === $post_type && 'publish' === $new_status ) {
-            add_membership_team_created_webhook_action( $post_object->ID, $post_object, false );
+        if ('wc_memberships_team' === $post_type && 'publish' === $new_status) {
+            add_membership_team_created_webhook_action($post_object->ID, $post_object, false);
         }
     }
 }
@@ -341,19 +345,20 @@ function handle_new_object_published( $new_status, $old_status, $post_object ) {
  *
  * @param Team_Member $member the team member instance
  * @param Team $team the team instance
- * @param \WC_Memberships_User_Membership $user_membership the related user membership instance
+ * @param WC_Memberships_User_Membership $user_membership the related user membership instance
  */
-function add_wicket_organization_metadata($member, $team, $user_membership) {
-    update_post_meta( $user_membership->get_id(), 'wicket_organization', get_field( "wicket_organization", $team->get_id() ) );
-    
+function add_wicket_organization_metadata($member, $team, $user_membership)
+{
+    update_post_meta($user_membership->get_id(), 'wicket_organization', get_field('wicket_organization', $team->get_id()));
+
     // Ensure webhooks get triggered on the user_membership after updating the meta
-    // this is required for both _team_id changes made by the teams plugin and 
+    // this is required for both _team_id changes made by the teams plugin and
     // the wicket_organization meta field above.
-    do_action( 'wc_memberships_user_membership_saved', $user_membership->get_plan(), array(
+    do_action('wc_memberships_user_membership_saved', $user_membership->get_plan(), [
         'user_id'            => $user_membership->get_user_id(),
         'user_membership_id' => $user_membership->get_id(),
         'is_update'          => true,
-    ) );
+    ]);
 }
 
 /**
@@ -361,18 +366,19 @@ function add_wicket_organization_metadata($member, $team, $user_membership) {
  *
  * @internal
  *
- * @param \WC_Memberships_Membership_Plan $membership_plan the Membership Plan
+ * @param WC_Memberships_Membership_Plan $membership_plan the Membership Plan
  * @param array $args optional arguments
  */
-function add_username_metadata($membership_plan, $args = []) {
-    $user_membership_id = isset( $args['user_membership_id'] ) ? absint( $args['user_membership_id'] ) : null;
+function add_username_metadata($membership_plan, $args = [])
+{
+    $user_membership_id = isset($args['user_membership_id']) ? absint($args['user_membership_id']) : null;
 
-    if ( ! ( $user_membership = wc_memberships_get_user_membership( $user_membership_id ) ) ) {
+    if (!($user_membership = wc_memberships_get_user_membership($user_membership_id))) {
         return;
     }
     $username = $user_membership->get_user()->data->user_login;
 
-    update_post_meta( $user_membership_id, 'username', $username );
+    update_post_meta($user_membership_id, 'username', $username);
 }
 
 /**
@@ -380,11 +386,12 @@ function add_username_metadata($membership_plan, $args = []) {
  *
  * @internal
  *
- * @param \WC_Memberships_User_Membership $user_membership The membership that was transferred from a user to another
- * @param \WP_User $new_owner The membership new owner
+ * @param WC_Memberships_User_Membership $user_membership The membership that was transferred from a user to another
+ * @param WP_User $new_owner The membership new owner
  */
-function update_username_when_transfer($membership, $new_user) {
-    update_post_meta( $user_membership_id->get_id(), 'username', $new_user->data->user_login );
+function update_username_when_transfer($membership, $new_user)
+{
+    update_post_meta($user_membership_id->get_id(), 'username', $new_user->data->user_login);
 }
 
 /**
@@ -393,49 +400,50 @@ function update_username_when_transfer($membership, $new_user) {
  * @internal
  *
  * @param int $post_id post ID
- * @param \WP_Post $post post object
+ * @param WP_Post $post post object
  * @param bool $updated whether this is an update and not a new post creation
  */
-function add_membership_team_created_webhook_action( $post_id, $post, $updated ) {
+function add_membership_team_created_webhook_action($post_id, $post, $updated)
+{
 
-    if ( 'wc_memberships_team' === get_post_type( $post ) && ! in_array( $post->post_status, [ 'new', 'auto-draft' ], true ) ) {
+    if ('wc_memberships_team' === get_post_type($post) && !in_array($post->post_status, ['new', 'auto-draft'], true)) {
 
-        if ( ! $updated ) {
+        if (!$updated) {
 
             $membership_team_id = (int) $post_id;
             $webhook_key = 'wc_memberships_webhook_membership_team_created';
 
-            if ( ! isset( $sent_webhooks[ $webhook_key ] ) ) {
-                $sent_webhooks[ $webhook_key ] = [];
+            if (!isset($sent_webhooks[$webhook_key])) {
+                $sent_webhooks[$webhook_key] = [];
             }
 
-            if ( ! in_array( $membership_team_id, $sent_webhooks[ $webhook_key ], true ) ) {
+            if (!in_array($membership_team_id, $sent_webhooks[$webhook_key], true)) {
 
-                /**
+                /*
                  * Fires when a membership team is created, for webhook use.
                  *
                  * @param int $membership_team_id ID of the membership team created
                  */
-                do_action( 'wc_memberships_webhook_membership_team_created', $membership_team_id );
+                do_action('wc_memberships_webhook_membership_team_created', $membership_team_id);
 
-                $sent_webhooks[ $webhook_key ][] = $membership_team_id;
+                $sent_webhooks[$webhook_key][] = $membership_team_id;
             }
 
         } else {
 
-            add_membership_team_updated_webhook_action( $post_id, $post );
+            add_membership_team_updated_webhook_action($post_id, $post);
         }
     }
 }
 
-
 /**
-* Adds custom field metaboxes to the array of allowed metaboxes
-*
-* @param array $allowed required The array of allowed metabox ids
-* @return array $allowed The array with custom field metaboxes added in
-*/
-function allow_custom_field_metaboxes( $allowed ){
+ * Adds custom field metaboxes to the array of allowed metaboxes.
+ *
+ * @param array $allowed required The array of allowed metabox ids
+ * @return array $allowed The array with custom field metaboxes added in
+ */
+function allow_custom_field_metaboxes($allowed)
+{
     $groups = acf_get_field_groups();
 
     foreach ($groups as $group) {
@@ -445,41 +453,40 @@ function allow_custom_field_metaboxes( $allowed ){
     return $allowed;
 }
 
-
 /**
  * Adds a webhook action when a membership team is updated.
  *
  * @internal
  *
  * @param int $post_id post ID
- * @param \WP_Post $post post object
+ * @param WP_Post $post post object
  */
-function add_membership_team_updated_webhook_action( $post_id, $post ) {
+function add_membership_team_updated_webhook_action($post_id, $post)
+{
 
-    if ( 'wc_memberships_team' === get_post_type( $post ) && ! in_array( $post->post_status, [ 'new', 'auto-draft', 'trash' ], true ) ) {
+    if ('wc_memberships_team' === get_post_type($post) && !in_array($post->post_status, ['new', 'auto-draft', 'trash'], true)) {
 
         $membership_team_id = (int) $post_id;
 
         $webhook_key = 'wc_memberships_webhook_membership_team_updated';
 
-        if ( ! isset( $sent_webhooks[ $webhook_key ] ) ) {
-            $sent_webhooks[ $webhook_key ] = [];
+        if (!isset($sent_webhooks[$webhook_key])) {
+            $sent_webhooks[$webhook_key] = [];
         }
 
-        if ( ! in_array( $membership_team_id, $sent_webhooks[ $webhook_key ], true ) ) {
+        if (!in_array($membership_team_id, $sent_webhooks[$webhook_key], true)) {
 
-            /**
+            /*
              * Fires when a membership team is updated, for webhook use.
              *
              * @param int $membership_team_id ID of the membership team updated
              */
-            do_action( 'wc_memberships_webhook_membership_team_updated', $membership_team_id );
+            do_action('wc_memberships_webhook_membership_team_updated', $membership_team_id);
 
-            $sent_webhooks[ $webhook_key ][] = $membership_team_id;
+            $sent_webhooks[$webhook_key][] = $membership_team_id;
         }
     }
 }
-
 
 /**
  * Adds a webhook action when a membership team is sent to trash.
@@ -488,31 +495,31 @@ function add_membership_team_updated_webhook_action( $post_id, $post ) {
  *
  * @param int $post_id post ID
  */
-function add_membership_team_deleted_webhook_action( $post_id ) {
+function add_membership_team_deleted_webhook_action($post_id)
+{
 
-    if ( 'wc_memberships_team' === get_post_type( $post_id ) ) {
+    if ('wc_memberships_team' === get_post_type($post_id)) {
 
         $membership_team_id = (int) $post_id;
         $webhook_key = 'wc_memberships_webhook_membership_team_deleted';
 
-        if ( ! isset( $sent_webhooks[ $webhook_key ] ) ) {
-            $sent_webhooks[ $webhook_key ] = [];
+        if (!isset($sent_webhooks[$webhook_key])) {
+            $sent_webhooks[$webhook_key] = [];
         }
 
-        if ( ! in_array( $membership_team_id, $sent_webhooks[ $webhook_key ], true ) ) {
+        if (!in_array($membership_team_id, $sent_webhooks[$webhook_key], true)) {
 
-            /**
+            /*
              * Fires when a membership team is deleted (trashed), for webhook use.
              *
              * @param int $membership_team_id ID of the membership team sent to trash
              */
-            do_action( 'wc_memberships_webhook_membership_team_deleted', $membership_team_id );
+            do_action('wc_memberships_webhook_membership_team_deleted', $membership_team_id);
 
-            $sent_webhooks[ $webhook_key ][] = $membership_team_id;
+            $sent_webhooks[$webhook_key][] = $membership_team_id;
         }
     }
 }
-
 
 /**
  * Adds a webhook action when a membership team is restored from trash.
@@ -521,49 +528,50 @@ function add_membership_team_deleted_webhook_action( $post_id ) {
  *
  * @param int $post_id post ID
  */
-function add_membership_team_restored_webhook_action( $post_id ) {
+function add_membership_team_restored_webhook_action($post_id)
+{
 
-    if ( 'wc_memberships_team' === get_post_type( $post_id ) ) {
+    if ('wc_memberships_team' === get_post_type($post_id)) {
 
         $membership_team_id = (int) $post_id;
         $webhook_key = 'wc_memberships_webhook_membership_team_restored';
 
-        if ( ! isset( $sent_webhooks[ $webhook_key ] ) ) {
-            $sent_webhooks[ $webhook_key ] = [];
+        if (!isset($sent_webhooks[$webhook_key])) {
+            $sent_webhooks[$webhook_key] = [];
         }
 
-        if ( ! in_array( $membership_team_id, $sent_webhooks[ $webhook_key ], true ) ) {
+        if (!in_array($membership_team_id, $sent_webhooks[$webhook_key], true)) {
 
-            /**
+            /*
              * Fires when a membership team is restored from the trash, for webhook use.
              *
              * @param int $membership_team_id ID of the membership team restored
              */
-            do_action( 'wc_memberships_webhook_membership_team_restored', $membership_team_id );
+            do_action('wc_memberships_webhook_membership_team_restored', $membership_team_id);
 
-            $sent_webhooks[ $webhook_key ][] = $membership_team_id;
+            $sent_webhooks[$webhook_key][] = $membership_team_id;
         }
     }
 }
 
-
-function get_formatted_item_data( $team ) {
-    $wicket_organization = get_field( "wicket_organization", $team->get_id() );
+function get_formatted_item_data($team)
+{
+    $wicket_organization = get_field('wicket_organization', $team->get_id());
     $start_date = $team->get_date();
     $end_date = $team->get_membership_end_date();
-    
-    // Check to see if this team has an attached subscription. 
+
+    // Check to see if this team has an attached subscription.
     // If it does, pass the subscription start and end dates to Wicket
     // Else fall back to using the team post "created" and "team memberships begin to expire" dates
-    $team_subscription_id = get_post_meta($team->get_id(),'_subscription_id')[0] ?? '';
-    if ($team_subscription_id) { 
+    $team_subscription_id = get_post_meta($team->get_id(), '_subscription_id')[0] ?? '';
+    if ($team_subscription_id) {
         // $start_date = get_post_meta($team_subscription_id, '_schedule_start');
-        // $end_date = get_post_meta($team_subscription_id, '_schedule_end');    
+        // $end_date = get_post_meta($team_subscription_id, '_schedule_end');
 
         $team_subscription = wcs_get_subscription($team_subscription_id);
         $sub_instance = wc_memberships()->get_integrations_instance()->get_subscriptions_instance();
         // $start_date = $sub_instance->get_subscription_event_date( $team_subscription, 'start' );
-        $end_date = $sub_instance->get_subscription_event_date( $team_subscription, 'end' );
+        $end_date = $sub_instance->get_subscription_event_date($team_subscription, 'end');
     }
 
     $payload = [
@@ -579,26 +587,27 @@ function get_formatted_item_data( $team ) {
     return $payload;
 }
 
-/**
+/*
  * Trigger an update on the corresponding team post whenever there's a change to the subscription post (this is something that is lacking currently)
  */
-add_action( 'woocommerce_subscription_status_updated', 'update_team_post', 1, 3);
-function update_team_post( $subscription, $new_status, $old_status ) {
+add_action('woocommerce_subscription_status_updated', 'update_team_post', 1, 3);
+function update_team_post($subscription, $new_status, $old_status)
+{
     $team_subscription = wcs_get_subscription($subscription->ID);
 
     // find subscriptions with the team_name meta based on the initial import using the importer plugin
-    $team_args = array(
+    $team_args = [
         'numberposts' => -1,
         'post_type'   => 'wc_memberships_team',
         'meta_key'    => '_subscription_id', // when using the subscription importer, set this as custom post meta
-        'meta_value'  => $team_subscription->ID
-    );
+        'meta_value'  => $team_subscription->ID,
+    ];
 
     $team_posts = get_posts($team_args);
 
     foreach ($team_posts as $team_post) {
         wp_update_post([
-            'ID' => $team_post->ID
+            'ID' => $team_post->ID,
         ]);
     }
 }

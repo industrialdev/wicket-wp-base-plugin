@@ -4,19 +4,16 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.1.53
+ * Version: 2.1.54
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
  * Domain Path: /languages
  * Requires at least: 6.6
  * Requires PHP: 8.1
- * Requires Plugins: advanced-custom-fields-pro
- *
- * @package Wicket
+ * Requires Plugins: advanced-custom-fields-pro.
  */
-
-if (! defined('ABSPATH')) {
+if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
@@ -36,9 +33,9 @@ define('WICKET_BASENAME', plugin_basename(__FILE__));
 define('WICKET_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
- * The main WicketWP class
+ * The main WicketWP class.
  */
-class WicketWP
+class wicket
 {
     /**
      * Plugin instance.
@@ -46,7 +43,7 @@ class WicketWP
      * @see get_instance()
      * @type object
      */
-    protected static $instance = NULL;
+    protected static $instance = null;
 
     /**
      * Main class instance.
@@ -77,14 +74,14 @@ class WicketWP
     public $plugin_path = '';
 
     /**
-     * Access this plugin’s working instance
+     * Access this plugin’s working instance.
      *
      * @wp-hook plugins_loaded
      * @return  object of this class
      */
     public static function get_instance()
     {
-        NULL === self::$instance and self::$instance = new self;
+        null === self::$instance and self::$instance = new self();
 
         return self::$instance;
     }
@@ -110,11 +107,10 @@ class WicketWP
         $this->main->init($this);
 
         // Set plugin path and url properties
-        $this->plugin_url    = WICKET_URL;
-        $this->plugin_path   = WICKET_PLUGIN_DIR;
+        $this->plugin_url = WICKET_URL;
+        $this->plugin_path = WICKET_PLUGIN_DIR;
 
     }
-
 } // end Class WicketWP.
 
 add_action(

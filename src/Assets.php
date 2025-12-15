@@ -8,23 +8,21 @@ namespace WicketWP;
 defined('ABSPATH') || exit;
 
 /**
- * Class Assets
+ * Class Assets.
  *
  * Centralized asset loading for the Wicket plugin
- *
- * @package WicketWP
  */
 class Assets
 {
     /**
-     * Instance of the main plugin class
+     * Instance of the main plugin class.
      *
      * @var WicketWP
      */
     protected $plugin;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param WicketWP $plugin Instance of the main plugin class
      */
@@ -57,16 +55,16 @@ class Assets
         // Check if it's a Wicket theme
         $is_wicket_theme = is_wicket_theme_active();
 
-        $base_styles_url      = WICKET_URL . 'assets/css/min/wicket.min.css';
-        $base_styles_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
+        $base_styles_url = WICKET_URL . 'assets/css/min/wicket.min.css';
+        $base_styles_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
 
-        $base_styles_wrapped_url      = WICKET_URL . 'assets/css/min/wicket-wrapped.min.css';
-        $base_styles_wrapped_path     = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-wrapped.min.css';
+        $base_styles_wrapped_url = WICKET_URL . 'assets/css/min/wicket-wrapped.min.css';
+        $base_styles_wrapped_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-wrapped.min.css';
 
-        $tailwind_styles_url  = WICKET_URL . 'assets/css/min/wicket-tailwind.min.css';
+        $tailwind_styles_url = WICKET_URL . 'assets/css/min/wicket-tailwind.min.css';
         $tailwind_styles_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind.min.css';
 
-        $tailwind_styles_wrapped_url  = WICKET_URL . 'assets/css/min/wicket-tailwind-wrapped.min.css';
+        $tailwind_styles_wrapped_url = WICKET_URL . 'assets/css/min/wicket-tailwind-wrapped.min.css';
         $tailwind_styles_wrapped_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket-tailwind-wrapped.min.css';
 
         // Only on Wicket's theme v1
@@ -88,14 +86,13 @@ class Assets
             // Wicket theme not in use, so enqueue the compiled component styles unless disabled
             $disable_default_styling = wicket_get_option('wicket_admin_settings_disable_default_styling', false) === '1';
 
-
             // Example (add to theme's functions.php) to disable wrapping:
             // add_filter('wicket_base_plugin_should_wrap_component', function ($wrap) {
             // 	return false;
             // });
             $should_we_wrap = apply_filters(
                 'wicket_base_plugin_should_wrap_component',
-                ! $disable_default_styling
+                !$disable_default_styling
             );
 
             if (!$disable_default_styling) {
@@ -138,10 +135,10 @@ class Assets
         // Check if it's a Wicket theme
         $is_wicket_theme = is_wicket_theme_active();
 
-        $alpine_scripts_url   = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
-        $alpine_scripts_path  = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
+        $alpine_scripts_url = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
+        $alpine_scripts_path = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
 
-        $base_always_script_url  = WICKET_URL . 'assets/js/wicket_base.js';
+        $base_always_script_url = WICKET_URL . 'assets/js/wicket_base.js';
         $base_always_script_path = WICKET_PLUGIN_DIR . 'assets/js/wicket_base.js';
 
         // Always enqueue the base script
@@ -161,14 +158,14 @@ class Assets
                 [],
                 filemtime($alpine_scripts_path),
                 [
-                    'strategy' => 'defer'
+                    'strategy' => 'defer',
                 ]
             );
         }
     }
 
     /**
-     * Enqueue admin assets
+     * Enqueue admin assets.
      *
      * @param string $hook The current admin page
      * @return void
@@ -180,7 +177,7 @@ class Assets
     }
 
     /**
-     * Enqueue block editor assets
+     * Enqueue block editor assets.
      *
      * @return void
      */

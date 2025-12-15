@@ -38,6 +38,7 @@ function wicket_internal_endpoint_search_orgs($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::search_orgs');
     $rest = new Rest();
+
     return $rest->search_orgs($request);
 }
 
@@ -53,6 +54,7 @@ function wicket_internal_endpoint_search_groups($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::search_groups');
     $rest = new Rest();
+
     return $rest->search_groups($request);
 }
 
@@ -67,6 +69,7 @@ function wicket_internal_endpoint_terminate_relationship($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::terminate_relationship');
     $rest = new Rest();
+
     return $rest->terminate_relationship($request);
 }
 
@@ -81,6 +84,7 @@ function wicket_internal_endpoint_create_or_update_relationship($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::create_or_update_relationship');
     $rest = new Rest();
+
     return $rest->create_or_update_relationship($request);
 }
 
@@ -95,6 +99,7 @@ function wicket_internal_endpoint_create_org($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::create_org');
     $rest = new Rest();
+
     return $rest->create_org($request);
 }
 
@@ -109,6 +114,7 @@ function wicket_internal_endpoint_flag_for_rm_access($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::flag_for_rm_access');
     $rest = new Rest();
+
     return $rest->flag_for_rm_access($request);
 }
 
@@ -123,6 +129,7 @@ function wicket_internal_endpoint_flag_for_org_editor_access($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::flag_for_org_editor_access');
     $rest = new Rest();
+
     return $rest->flag_for_org_editor_access($request);
 }
 
@@ -133,6 +140,7 @@ function wicket_internal_endpoint_grant_org_editor($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::grant_org_editor');
     $rest = new Rest();
+
     return $rest->grant_org_editor($request);
 }
 
@@ -147,6 +155,7 @@ function wicket_internal_endpoint_organization_parent($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::organization_parent');
     $rest = new Rest();
+
     return $rest->organization_parent($request);
 }
 
@@ -157,5 +166,6 @@ function wicket_internal_endpoint_component_do_action($request)
 {
     _deprecated_function(__FUNCTION__, '1.0.0', 'Rest::component_do_action');
     $rest = new Rest();
+
     return $rest->component_do_action($request);
 }

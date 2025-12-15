@@ -14,12 +14,12 @@ defined('ABSPATH') || exit;
  */
 function wicket_current_person_uuid()
 {
-  // Get the SDK client from the wicket module.
-  if (function_exists('wicket_api_client')) {
-    $person_id = wp_get_current_user()->user_login;
+    // Get the SDK client from the wicket module.
+    if (function_exists('wicket_api_client')) {
+        $person_id = wp_get_current_user()->user_login;
 
-    return $person_id;
-  }
+        return $person_id;
+    }
 }
 
 /**
@@ -48,7 +48,7 @@ function wicket_current_person()
 }
 
 /**
- * Check if the current user has a valid UUID
+ * Check if the current user has a valid UUID.
  *
  * @return bool True if the current user has a valid UUID as their user_login, false otherwise.
  */
@@ -88,7 +88,7 @@ function wicket_get_person_by_uuid($uuid)
 }
 
 /**
- * Alias for wicket_get_person_by_uuid
+ * Alias for wicket_get_person_by_uuid.
  *
  * @param  string $uuid The ID of the person to fetch.
  * @return object|false The person's details object on success, or false if not found.
@@ -142,7 +142,7 @@ function wicket_get_person_profile(?string $person_uuid = null): ?array
 
         // Fallback: basic cast if legacy helper unavailable (keys may be less clean)
         return (array) $profile;
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         // Optionally log the exception message for debugging purposes
         // error_log("Error fetching Wicket person profile for UUID {$person_uuid}: " . $e->getMessage());
         return null;
@@ -159,11 +159,13 @@ function wicket_get_person_profile(?string $person_uuid = null): ?array
  *
  * @return object|false The response from the Wicket API on success, or false on failure.
  */
-function wicket_person_add_tag($person_uuid, $tags) {
+function wicket_person_add_tag($person_uuid, $tags)
+{
     try {
         $client = wicket_api_client();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         error_log($e->getMessage());
+
         return false;
     }
 
@@ -183,15 +185,16 @@ function wicket_person_add_tag($person_uuid, $tags) {
             'type' => 'people',
             'id' => $person_uuid,
             'attributes' => [
-                'tags' => $tags
-            ]
-        ]
+                'tags' => $tags,
+            ],
+        ],
     ];
 
     try {
         return $client->patch("people/$person_uuid", ['json' => $payload]);
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         error_log($e->getMessage());
+
         return false;
     }
 }

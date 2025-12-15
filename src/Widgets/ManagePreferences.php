@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace WicketWP\Widgets;
 
-/**
+/*
  * Wicket Manage Preference
  * Description: Providies a widget containing basic fields from preferences on person in Wicket
  *
  */
 
-use Wicket\Client;
-
 // The widget class
 // http://www.wpexplorer.com/create-widget-plugin-wordpress
-class ManagePreferences extends \WP_Widget {
-
+class ManagePreferences extends \WP_Widget
+{
     public $errors;
 
     // Main constructor
@@ -24,17 +22,19 @@ class ManagePreferences extends \WP_Widget {
         parent::__construct(
             'wicket_preferences',
             __('Wicket Manage Preferences', 'wicket'),
-            array(
+            [
                 'customize_selective_refresh' => true,
-            )
+            ]
         );
     }
 
-    public function form($instance) {
+    public function form($instance)
+    {
         return $instance;
     }
 
-    public function update($new_instance, $old_instance) {
+    public function update($new_instance, $old_instance)
+    {
         return $old_instance;
     }
 
@@ -43,14 +43,15 @@ class ManagePreferences extends \WP_Widget {
     {
         $client = wicket_api_client_current_user();
         $result = '';
-            if ( !$client ) {
-                // if the API isn't up, just stop here
-                return;
-            }
-            $this->build_form();
+        if (!$client) {
+            // if the API isn't up, just stop here
+            return;
+        }
+        $this->build_form();
     }
 
-    public static function init() {
+    public static function init()
+    {
         add_action('init', function () {
             if (isset($_POST['wicket_preferences'])) {
                 // Get the widget instance that's registered
@@ -67,9 +68,12 @@ class ManagePreferences extends \WP_Widget {
         });
     }
 
-    private function process_form() {
-        if (isset($_POST['wicket_preferences'])){
-            if(!session_id()) session_start();
+    private function process_form()
+    {
+        if (isset($_POST['wicket_preferences'])) {
+            if (!session_id()) {
+                session_start();
+            }
 
             $client = wicket_api_client_current_user();
 
@@ -98,7 +102,7 @@ class ManagePreferences extends \WP_Widget {
             // redirect here if there was updates made to reload person info and prevent form re-submission
             if (empty($_SESSION['wicket_preferences_form_errors'])) {
                 unset($_SESSION['wicket_preferences_form_errors']);
-                header('Location: '.strtok($_SERVER["REQUEST_URI"],'?').'?success');
+                header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?success');
                 die;
             }
         } else {
@@ -117,9 +121,9 @@ class ManagePreferences extends \WP_Widget {
         }
         $person = wicket_current_person();
         ?>
-        <?php if(isset($_GET['success'])): ?>
+        <?php if (isset($_GET['success'])): ?>
             <div class='alert alert--success'>
-                <p><?php _e("Successfully Updated"); ?></p>
+                <p><?php _e('Successfully Updated'); ?></p>
             </div>
         <?php endif; ?>
 
@@ -160,14 +164,13 @@ class ManagePreferences extends \WP_Widget {
             <input type="hidden" name="wicket_preferences" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 
             <?php
-                get_component( 'button', [
+                get_component('button', [
                     'label'    => __('Update Preferences'),
                     'type'    => 'submit',
-                    'variant' => 'primary'
-                ] );
-            ?>
+                    'variant' => 'primary',
+                ]);
+        ?>
         </form>
         <?php
     }
-
 }

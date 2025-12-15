@@ -1,118 +1,118 @@
 <?php
-$defaults  = [
-  'classes'                                       => [],
-  'search_mode'                                   => 'org', // Options: org, groups, ...
-  'search_org_type'                               => '',
-  'relationship_type_upon_org_creation'           => 'employee',
-  'relationship_mode'                             => 'person_to_organization',
-  'relationship_type_filter'                      => '',
-  'enable_relationship_filtering'                 => false,
-  'new_org_type_override'                         => '',
-  'selected_uuid_hidden_field_name'               => 'orgss-selected-uuid',
-  'checkbox_id_new_org'                           => '',
-  'key'                                           => rand(1, PHP_INT_MAX),
-  'org_term_singular'                             => '',
-  'org_term_plural'                               => '',
-  'no_results_found_message'                      => '',
-  'disable_create_org_ui'                         => false,
-  'disable_selecting_orgs_with_active_membership' => false,
-  'active_membership_alert_title'                 => '',
-  'active_membership_alert_body'                  => '',
-  'active_membership_alert_button_1_text'         => __('Proceed', 'wicket'),
-  'active_membership_alert_button_1_url'          => 'PROCEED', // non URLs can be PROCEED, and BUTTON for a dummy press devs will do something with
-  'active_membership_alert_button_1_style'        => 'primary',
-  'active_membership_alert_button_1_new_tab'      => false,
-  'active_membership_alert_button_2_text'         => '',
-  'active_membership_alert_button_2_url'          => '',
-  'active_membership_alert_button_2_style'        => 'secondary',
-  'active_membership_alert_button_2_new_tab'      => false,
-  'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
-  'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
-  'grant_org_editor_on_purchase'                  => false, // Grants org_editor role for selected org on next payment_complete hook
-  'hide_remove_buttons'                           => false,
-  'hide_select_buttons'                           => false,
-  'display_removal_alert_message'                 => false,
-  'title'                                         => '',
-  'response_message'                              => '', // class name of the container where the response message will be displayed
-  'description'                                   => '', // Description to be set on the connection
-  'job_title'                                     => '',
-  'display_org_fields'                            => 'name', // Options: name, name_location, name_address
-  'form_id'                                       => 0,
+$defaults = [
+    'classes'                                       => [],
+    'search_mode'                                   => 'org', // Options: org, groups, ...
+    'search_org_type'                               => '',
+    'relationship_type_upon_org_creation'           => 'employee',
+    'relationship_mode'                             => 'person_to_organization',
+    'relationship_type_filter'                      => '',
+    'enable_relationship_filtering'                 => false,
+    'new_org_type_override'                         => '',
+    'selected_uuid_hidden_field_name'               => 'orgss-selected-uuid',
+    'checkbox_id_new_org'                           => '',
+    'key'                                           => rand(1, PHP_INT_MAX),
+    'org_term_singular'                             => '',
+    'org_term_plural'                               => '',
+    'no_results_found_message'                      => '',
+    'disable_create_org_ui'                         => false,
+    'disable_selecting_orgs_with_active_membership' => false,
+    'active_membership_alert_title'                 => '',
+    'active_membership_alert_body'                  => '',
+    'active_membership_alert_button_1_text'         => __('Proceed', 'wicket'),
+    'active_membership_alert_button_1_url'          => 'PROCEED', // non URLs can be PROCEED, and BUTTON for a dummy press devs will do something with
+    'active_membership_alert_button_1_style'        => 'primary',
+    'active_membership_alert_button_1_new_tab'      => false,
+    'active_membership_alert_button_2_text'         => '',
+    'active_membership_alert_button_2_url'          => '',
+    'active_membership_alert_button_2_style'        => 'secondary',
+    'active_membership_alert_button_2_new_tab'      => false,
+    'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
+    'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
+    'grant_org_editor_on_purchase'                  => false, // Grants org_editor role for selected org on next payment_complete hook
+    'hide_remove_buttons'                           => false,
+    'hide_select_buttons'                           => false,
+    'display_removal_alert_message'                 => false,
+    'title'                                         => '',
+    'response_message'                              => '', // class name of the container where the response message will be displayed
+    'description'                                   => '', // Description to be set on the connection
+    'job_title'                                     => '',
+    'display_org_fields'                            => 'name', // Options: name, name_location, name_address
+    'form_id'                                       => 0,
 ];
-$args                                          = wp_parse_args($args, $defaults);
-$classes                                       = $args['classes'];
-$searchMode                                    = $args['search_mode'];
-$searchOrgType                                 = $args['search_org_type'];
-$relationshipTypeUponOrgCreation               = $args['relationship_type_upon_org_creation'];
-$relationshipMode                              = $args['relationship_mode'];
-$relationshipTypeFilter                        = $args['relationship_type_filter'];
-$enable_relationship_filtering                 = $args['enable_relationship_filtering'];
-$newOrgTypeOverride                            = $args['new_org_type_override'];
-$selectedUuidHiddenFieldName                   = $args['selected_uuid_hidden_field_name'];
-$checkboxIdNewOrg                              = $args['checkbox_id_new_org'];
-$key                                           = $args['key'];
-$orgTermSingular                               = $args['org_term_singular'];
-$orgTermPlural                                 = $args['org_term_plural'];
-$noResultsFoundMessage                         = $args['no_results_found_message'];
-$disable_create_org_ui                         = $args['disable_create_org_ui'];
+$args = wp_parse_args($args, $defaults);
+$classes = $args['classes'];
+$searchMode = $args['search_mode'];
+$searchOrgType = $args['search_org_type'];
+$relationshipTypeUponOrgCreation = $args['relationship_type_upon_org_creation'];
+$relationshipMode = $args['relationship_mode'];
+$relationshipTypeFilter = $args['relationship_type_filter'];
+$enable_relationship_filtering = $args['enable_relationship_filtering'];
+$newOrgTypeOverride = $args['new_org_type_override'];
+$selectedUuidHiddenFieldName = $args['selected_uuid_hidden_field_name'];
+$checkboxIdNewOrg = $args['checkbox_id_new_org'];
+$key = $args['key'];
+$orgTermSingular = $args['org_term_singular'];
+$orgTermPlural = $args['org_term_plural'];
+$noResultsFoundMessage = $args['no_results_found_message'];
+$disable_create_org_ui = $args['disable_create_org_ui'];
 $disable_selecting_orgs_with_active_membership = $args['disable_selecting_orgs_with_active_membership'];
-$active_membership_alert_title                 = $args['active_membership_alert_title'];
-$active_membership_alert_body                  = $args['active_membership_alert_body'];
-$active_membership_alert_button_1_text         = $args['active_membership_alert_button_1_text'];
-$active_membership_alert_button_1_url          = $args['active_membership_alert_button_1_url']; // Can be a URL, or "PROCEED" to continue
-$active_membership_alert_button_1_style        = $args['active_membership_alert_button_1_style'];
-$active_membership_alert_button_1_new_tab      = $args['active_membership_alert_button_1_new_tab'];
-$active_membership_alert_button_2_text         = $args['active_membership_alert_button_2_text'];
-$active_membership_alert_button_2_url          = $args['active_membership_alert_button_2_url'];
-$active_membership_alert_button_2_style        = $args['active_membership_alert_button_2_style'];
-$active_membership_alert_button_2_new_tab      = $args['active_membership_alert_button_2_new_tab'];
-$grant_roster_man_on_purchase                  = $args['grant_roster_man_on_purchase'];
-$grant_org_editor_on_select                    = $args['grant_org_editor_on_select'];
-$grant_org_editor_on_purchase                  = $args['grant_org_editor_on_purchase'];
-$hide_remove_buttons                           = $args['hide_remove_buttons'];
-$hide_select_buttons                           = $args['hide_select_buttons'];
-$display_removal_alert_message                 = $args['display_removal_alert_message'];
-$title                                         = $args['title'];
-$responseMessage                               = $args['response_message'];
-$description                                   = $args['description'];
-$job_title                                     = $args['job_title'];
-$display_org_fields                            = $args['display_org_fields'];
-$display_org_type                              = $args['display_org_type'] ?? false;
-$formId                                        = $args['form_id'];
-$lang                                          = wicket_get_current_language();
-$is_wicket_theme                               = defined('WICKET_THEME');
+$active_membership_alert_title = $args['active_membership_alert_title'];
+$active_membership_alert_body = $args['active_membership_alert_body'];
+$active_membership_alert_button_1_text = $args['active_membership_alert_button_1_text'];
+$active_membership_alert_button_1_url = $args['active_membership_alert_button_1_url']; // Can be a URL, or "PROCEED" to continue
+$active_membership_alert_button_1_style = $args['active_membership_alert_button_1_style'];
+$active_membership_alert_button_1_new_tab = $args['active_membership_alert_button_1_new_tab'];
+$active_membership_alert_button_2_text = $args['active_membership_alert_button_2_text'];
+$active_membership_alert_button_2_url = $args['active_membership_alert_button_2_url'];
+$active_membership_alert_button_2_style = $args['active_membership_alert_button_2_style'];
+$active_membership_alert_button_2_new_tab = $args['active_membership_alert_button_2_new_tab'];
+$grant_roster_man_on_purchase = $args['grant_roster_man_on_purchase'];
+$grant_org_editor_on_select = $args['grant_org_editor_on_select'];
+$grant_org_editor_on_purchase = $args['grant_org_editor_on_purchase'];
+$hide_remove_buttons = $args['hide_remove_buttons'];
+$hide_select_buttons = $args['hide_select_buttons'];
+$display_removal_alert_message = $args['display_removal_alert_message'];
+$title = $args['title'];
+$responseMessage = $args['response_message'];
+$description = $args['description'];
+$job_title = $args['job_title'];
+$display_org_fields = $args['display_org_fields'];
+$display_org_type = $args['display_org_type'] ?? false;
+$formId = $args['form_id'];
+$lang = wicket_get_current_language();
+$is_wicket_theme = defined('WICKET_THEME');
 
 if (!empty($orgTermSingular)) {
-  $orgTermSingular = __($orgTermSingular, 'wicket');
+    $orgTermSingular = __($orgTermSingular, 'wicket');
 } else {
-  if ($searchMode == 'org') {
-    $orgTermSingular = __('Organization', 'wicket');
-  }
-  if ($searchMode == 'groups') {
-    $orgTermSingular = __('Group', 'wicket');
-  }
+    if ($searchMode == 'org') {
+        $orgTermSingular = __('Organization', 'wicket');
+    }
+    if ($searchMode == 'groups') {
+        $orgTermSingular = __('Group', 'wicket');
+    }
 }
 
-$orgTermSingularCap              = ucfirst(strtolower($orgTermSingular));
-$orgTermSingularLower            = strtolower($orgTermSingular);
+$orgTermSingularCap = ucfirst(strtolower($orgTermSingular));
+$orgTermSingularLower = strtolower($orgTermSingular);
 
 if (!empty($orgTermPlural)) {
-  $orgTermPlural = __($orgTermPlural, 'wicket');
+    $orgTermPlural = __($orgTermPlural, 'wicket');
 } else {
-  if ($searchMode == 'org') {
-    $orgTermPlural  = __('Organizations', 'wicket');
-  }
-  if ($searchMode == 'groups') {
-    $orgTermPlural  = __('Groups', 'wicket');
-  }
+    if ($searchMode == 'org') {
+        $orgTermPlural = __('Organizations', 'wicket');
+    }
+    if ($searchMode == 'groups') {
+        $orgTermPlural = __('Groups', 'wicket');
+    }
 }
 
-$orgTermPluralCap              = ucfirst(strtolower($orgTermPlural));
-$orgTermPluralLower            = strtolower($orgTermPlural);
+$orgTermPluralCap = ucfirst(strtolower($orgTermPlural));
+$orgTermPluralLower = strtolower($orgTermPlural);
 if (empty($noResultsFoundMessage)) {
-  $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.', 'wicket'), $orgTermPluralLower);
+    $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.', 'wicket'), $orgTermPluralLower);
 } else {
-  $noResultsFoundMessage = __($noResultsFoundMessage, 'wicket');
+    $noResultsFoundMessage = __($noResultsFoundMessage, 'wicket');
 }
 
 $current_person_uuid = wicket_current_person_uuid();
@@ -120,89 +120,89 @@ $current_person_uuid = wicket_current_person_uuid();
 // Get users current org/group relationships
 $person_to_org_connections = [];
 if ($searchMode == 'org') {
-  $current_connections = wicket_get_person_connections();
+    $current_connections = wicket_get_person_connections();
 
-  foreach ($current_connections['data'] as $connection) {
-    $connection_id = $connection['id'];
-    if (isset($connection['attributes']['connection_type'])) {
-      $org_id = $connection['relationships']['organization']['data']['id'];
+    foreach ($current_connections['data'] as $connection) {
+        $connection_id = $connection['id'];
+        if (isset($connection['attributes']['connection_type'])) {
+            $org_id = $connection['relationships']['organization']['data']['id'];
 
-      $org_info = wicket_get_organization_basic_info($org_id);
+            $org_info = wicket_get_organization_basic_info($org_id);
 
-      $org_memberships = wicket_get_org_memberships($org_id);
+            $org_memberships = wicket_get_org_memberships($org_id);
 
-      $has_active_membership = false;
-      if (!empty($org_memberships)) {
-        foreach ($org_memberships as $membership) {
-          if (isset($membership['membership'])) {
-            if (isset($membership['membership']['attributes'])) {
-              if (isset($membership['membership']['attributes']['active'])) {
-                if ($membership['membership']['attributes']['active']) {
-                  $has_active_membership = true;
+            $has_active_membership = false;
+            if (!empty($org_memberships)) {
+                foreach ($org_memberships as $membership) {
+                    if (isset($membership['membership'])) {
+                        if (isset($membership['membership']['attributes'])) {
+                            if (isset($membership['membership']['attributes']['active'])) {
+                                if ($membership['membership']['attributes']['active']) {
+                                    $has_active_membership = true;
+                                }
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
+
+            /**------------------------------------------------------------------
+             * Get Primary Address
+            ------------------------------------------------------------------*/
+            $org_addresses = wicket_get_organization_addresses($org_id);
+
+            $address1 = '';
+            $city = '';
+            $zip_code = '';
+            $state_name = '';
+            $country_code = '';
+
+            if (!empty($org_addresses['data']) && is_array($org_addresses['data'])) {
+                foreach ($org_addresses['data'] as $address) {
+                    if (
+                        isset($address['attributes']['primary'])
+                        && $address['attributes']['primary'] === true
+                    ) {
+                        $address1 = $address['attributes']['address1'] ?? '';
+                        $city = $address['attributes']['city'] ?? '';
+                        $zip_code = $address['attributes']['zip_code'] ?? '';
+                        $state_name = $address['attributes']['state_name'] ?? '';
+                        $country_code = $address['attributes']['country_code'] ?? '';
+                        break; // stop after finding primary address
+                    }
+                }
+            }
+
+            $person_to_org_connections[] = [
+                'connection_id'     => $connection['id'],
+                'connection_type'   => $connection['attributes']['connection_type'],
+                'relationship_type' => $connection['attributes']['type'] ?? '',
+                'starts_at'         => $connection['attributes']['starts_at'],
+                'ends_at'           => $connection['attributes']['ends_at'],
+                'tags'              => $connection['attributes']['tags'],
+                'active_membership' => $has_active_membership,
+                'active_connection' => $connection['attributes']['active'],
+                'org_id'            => $org_id,
+                'org_name'          => $org_info['org_name'],
+                'org_description'   => $org_info['org_description'],
+                'org_type_pretty'   => __($org_info['org_type_pretty'], 'wicket'),
+                'org_type'          => $org_info['org_type'],
+                'org_type_slug'     => $org_info['org_type_slug'],
+                'org_type_name'     => __($org_info['org_type_name'], 'wicket'),
+                'org_status'        => $org_info['org_status'],
+                'org_parent_id'     => $org_info['org_parent_id'],
+                'org_parent_name'   => $org_info['org_parent_name'],
+                'person_id'         => $connection['relationships']['person']['data']['id'],
+                'address1'          => $address1,
+                'city'              => $city,
+                'zip_code'          => $zip_code,
+                'state_name'        => $state_name,
+                'country_code'      => $country_code,
+            ];
         }
-      }
-
-      /**------------------------------------------------------------------
-       * Get Primary Address
-      ------------------------------------------------------------------*/
-      $org_addresses = wicket_get_organization_addresses($org_id);
-
-      $address1 = '';
-      $city = '';
-      $zip_code = '';
-      $state_name = '';
-      $country_code = '';
-
-      if (!empty($org_addresses['data']) && is_array($org_addresses['data'])) {
-        foreach ($org_addresses['data'] as $address) {
-          if (
-            isset($address['attributes']['primary']) &&
-            $address['attributes']['primary'] === true
-          ) {
-            $address1     = $address['attributes']['address1'] ?? '';
-            $city         = $address['attributes']['city'] ?? '';
-            $zip_code     = $address['attributes']['zip_code'] ?? '';
-            $state_name   = $address['attributes']['state_name'] ?? '';
-            $country_code = $address['attributes']['country_code'] ?? '';
-            break; // stop after finding primary address
-          }
-        }
-      }
-
-      $person_to_org_connections[] = [
-        'connection_id'     => $connection['id'],
-        'connection_type'   => $connection['attributes']['connection_type'],
-        'relationship_type' => $connection['attributes']['type'] ?? '',
-        'starts_at'         => $connection['attributes']['starts_at'],
-        'ends_at'           => $connection['attributes']['ends_at'],
-        'tags'              => $connection['attributes']['tags'],
-        'active_membership' => $has_active_membership,
-        'active_connection' => $connection['attributes']['active'],
-        'org_id'            => $org_id,
-        'org_name'          => $org_info['org_name'],
-        'org_description'   => $org_info['org_description'],
-        'org_type_pretty'   => __($org_info['org_type_pretty'], 'wicket'),
-        'org_type'          => $org_info['org_type'],
-        'org_type_slug'     => $org_info['org_type_slug'],
-        'org_type_name'     => __($org_info['org_type_name'], 'wicket'),
-        'org_status'        => $org_info['org_status'],
-        'org_parent_id'     => $org_info['org_parent_id'],
-        'org_parent_name'   => $org_info['org_parent_name'],
-        'person_id'         => $connection['relationships']['person']['data']['id'],
-        'address1'          => $address1,
-        'city'              => $city,
-        'zip_code'          => $zip_code,
-        'state_name'        => $state_name,
-        'country_code'      => $country_code,
-      ];
     }
-  }
 } elseif ($searchMode == 'groups') {
-  // TODO: Get current MDP org memberships and save to $person_to_org_connections
+    // TODO: Get current MDP org memberships and save to $person_to_org_connections
 }
 
 // Get list of org types to make available to the user if an admin override is not provided
@@ -261,34 +261,34 @@ $available_org_types = wicket_get_resource_types('organizations');
       </div>
       <div class="component-org-search-select__confirmation-popup-actions flex w-full justify-evenly">
         <?php get_component('button', [
-          'variant'  => 'secondary',
-          'reversed' => false,
-          'label'    => __('Cancel', 'wicket'),
-          'type'     => 'button',
-          'atts'  => [
-            'x-on:click.prevent="showingRemoveConfirmation = false"',
-          ],
-          'classes' => [
-            'component-org-search-select__confirmation-popup-cancel-button',
-            'items-center',
-            'justify-center',
-            'w-5/12'
-          ]
+            'variant'  => 'secondary',
+            'reversed' => false,
+            'label'    => __('Cancel', 'wicket'),
+            'type'     => 'button',
+            'atts'  => [
+                'x-on:click.prevent="showingRemoveConfirmation = false"',
+            ],
+            'classes' => [
+                'component-org-search-select__confirmation-popup-cancel-button',
+                'items-center',
+                'justify-center',
+                'w-5/12',
+            ],
         ]); ?>
         <?php get_component('button', [
-          'variant'  => 'primary',
-          'label'    => '',
-          'type'     => 'button',
-          'atts'  => [
-            'x-on:click.prevent="terminateRelationship()"',
-            'x-text' => 'removeButtonLabel'
-          ],
-          'classes' => [
-            'component-org-search-select__confirmation-popup-remove-button',
-            'items-center',
-            'justify-center',
-            'w-5/12'
-          ],
+            'variant'  => 'primary',
+            'label'    => '',
+            'type'     => 'button',
+            'atts'  => [
+                'x-on:click.prevent="terminateRelationship()"',
+                'x-text' => 'removeButtonLabel',
+            ],
+            'classes' => [
+                'component-org-search-select__confirmation-popup-remove-button',
+                'items-center',
+                'justify-center',
+                'w-5/12',
+            ],
         ]); ?>
       </div>
     </div>
@@ -315,136 +315,136 @@ $available_org_types = wicket_get_resource_types('organizations');
       <div class="component-org-search-select__active-membership-alert-actions flex w-full justify-evenly">
         <?php
         if (
-          !empty($active_membership_alert_button_1_text)
-          && !empty($active_membership_alert_button_1_url)
-          && !empty($active_membership_alert_button_1_style)
+            !empty($active_membership_alert_button_1_text)
+            && !empty($active_membership_alert_button_1_url)
+            && !empty($active_membership_alert_button_1_style)
         ) {
-          if ($active_membership_alert_button_1_url == 'PROCEED') {
-            get_component('button', [
-              'variant'  => 'primary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_1_text,
-              'type'     => 'button',
-              'atts'  => [
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"'
-              ],
-              'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          } elseif ($active_membership_alert_button_1_url == 'BUTTON') {
-            // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
-            get_component('button', [
-              'variant'  => 'primary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_1_text,
-              'type'     => 'button',
-              'atts'  => [
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"'
-              ],
-              'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          } else {
-            // Treat it as a link
-            get_component('button', [
-              'variant'  => 'primary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_1_text,
-              'type'     => 'button',
-              'a_tag'    => true,
-              'link'     => $active_membership_alert_button_1_url,
-              'link_target' => $active_membership_alert_button_1_new_tab ? '_blank' : '_self',
-              'atts'  => [
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');"'
-              ],
-              'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          }
+            if ($active_membership_alert_button_1_url == 'PROCEED') {
+                get_component('button', [
+                    'variant'  => 'primary',
+                    'size'     => 'md',
+                    'reversed' => false,
+                    'label'    => $active_membership_alert_button_1_text,
+                    'type'     => 'button',
+                    'atts'  => [
+                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"',
+                    ],
+                    'classes' => [
+                        'component-org-search-select__active-membership-alert-button',
+                        'items-center',
+                        'justify-center',
+                        'w-5/12',
+                    ],
+                ]);
+            } elseif ($active_membership_alert_button_1_url == 'BUTTON') {
+                // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
+                get_component('button', [
+                    'variant'  => 'primary',
+                    'size'     => 'md',
+                    'reversed' => false,
+                    'label'    => $active_membership_alert_button_1_text,
+                    'type'     => 'button',
+                    'atts'  => [
+                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"',
+                    ],
+                    'classes' => [
+                        'component-org-search-select__active-membership-alert-button',
+                        'items-center',
+                        'justify-center',
+                        'w-5/12',
+                    ],
+                ]);
+            } else {
+                // Treat it as a link
+                get_component('button', [
+                    'variant'  => 'primary',
+                    'size'     => 'md',
+                    'reversed' => false,
+                    'label'    => $active_membership_alert_button_1_text,
+                    'type'     => 'button',
+                    'a_tag'    => true,
+                    'link'     => $active_membership_alert_button_1_url,
+                    'link_target' => $active_membership_alert_button_1_new_tab ? '_blank' : '_self',
+                    'atts'  => [
+                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');"',
+                    ],
+                    'classes' => [
+                        'component-org-search-select__active-membership-alert-button',
+                        'items-center',
+                        'justify-center',
+                        'w-5/12',
+                    ],
+                ]);
+            }
         }
 
-        if (
-          !empty($active_membership_alert_button_2_text)
-          && !empty($active_membership_alert_button_2_url)
-          && !empty($active_membership_alert_button_2_style)
-        ) {
-          if ($active_membership_alert_button_2_url == 'PROCEED') {
-            get_component('button', [
-              'variant'  => 'secondary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_2_text,
-              'type'     => 'button',
-              'atts'  => [
+if (
+    !empty($active_membership_alert_button_2_text)
+    && !empty($active_membership_alert_button_2_url)
+    && !empty($active_membership_alert_button_2_style)
+) {
+    if ($active_membership_alert_button_2_url == 'PROCEED') {
+        get_component('button', [
+            'variant'  => 'secondary',
+            'size'     => 'md',
+            'reversed' => false,
+            'label'    => $active_membership_alert_button_2_text,
+            'type'     => 'button',
+            'atts'  => [
                 'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"'
-              ],
-              'classes' => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"',
+            ],
+            'classes' => [
                 'component-org-search-select__active-membership-alert-button',
                 'items-center',
                 'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          } elseif ($active_membership_alert_button_2_url == 'BUTTON') {
-            // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
-            get_component('button', [
-              'variant'  => 'secondary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_2_text,
-              'type'     => 'button',
-              'atts'  => [
+                'w-5/12',
+            ],
+        ]);
+    } elseif ($active_membership_alert_button_2_url == 'BUTTON') {
+        // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
+        get_component('button', [
+            'variant'  => 'secondary',
+            'size'     => 'md',
+            'reversed' => false,
+            'label'    => $active_membership_alert_button_2_text,
+            'type'     => 'button',
+            'atts'  => [
                 'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"'
-              ],
-              'classes' => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"',
+            ],
+            'classes' => [
                 'component-org-search-select__active-membership-alert-button',
                 'items-center',
                 'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          } else {
-            // Treat it as a link
-            get_component('button', [
-              'variant'  => 'secondary',
-              'size'     => 'md',
-              'reversed' => false,
-              'label'    => $active_membership_alert_button_2_text,
-              'type'     => 'button',
-              'a_tag'    => true,
-              'link'     => $active_membership_alert_button_2_url,
-              'link_target' => $active_membership_alert_button_2_new_tab ? '_blank' : '_self',
-              'atts'  => [
+                'w-5/12',
+            ],
+        ]);
+    } else {
+        // Treat it as a link
+        get_component('button', [
+            'variant'  => 'secondary',
+            'size'     => 'md',
+            'reversed' => false,
+            'label'    => $active_membership_alert_button_2_text,
+            'type'     => 'button',
+            'a_tag'    => true,
+            'link'     => $active_membership_alert_button_2_url,
+            'link_target' => $active_membership_alert_button_2_new_tab ? '_blank' : '_self',
+            'atts'  => [
                 'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');"'
-              ],
-              'classes' => [
+                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');"',
+            ],
+            'classes' => [
                 'component-org-search-select__active-membership-alert-button',
                 'items-center',
                 'justify-center',
-                'w-5/12'
-              ]
-            ]);
-          }
-        }
-        ?>
+                'w-5/12',
+            ],
+        ]);
+    }
+}
+?>
       </div>
     </div>
   </div> <!-- / .component-org-search-select__active-membership-alert -->
@@ -462,25 +462,27 @@ $available_org_types = wicket_get_resource_types('organizations');
       </div>
       <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
         <?php
-        $buttonClasses = ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'];
+$buttonClasses = ['component-org-search-select__search-button', 'w-full', 'sm:w-auto'];
 
-        if (!$is_wicket_theme) { $buttonClasses[] = 'button--reversed'; } ?>
+if (!$is_wicket_theme) {
+    $buttonClasses[] = 'button--reversed';
+} ?>
         <?php get_component('button', [
-          'variant'  => 'primary',
-          'label'    => __('Search', 'wicket'),
-          'type'     => 'button',
-          'classes'  => $buttonClasses,
-          'atts'  => ['x-on:click.prevent="handleSearch()"'],
-        ]); ?>
+    'variant'  => 'primary',
+    'label'    => __('Search', 'wicket'),
+    'type'     => 'button',
+    'classes'  => $buttonClasses,
+    'atts'  => ['x-on:click.prevent="handleSearch()"'],
+]); ?>
       </div>
       <div class="sm:flex-shrink-0" x-show="firstSearchSubmitted" x-cloak>
         <?php get_component('button', [
-          'variant'  => 'primary',
-          'label'    => __('Clear', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
-          'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
-        ]); ?>
+    'variant'  => 'primary',
+    'label'    => __('Clear', 'wicket'),
+    'type'     => 'button',
+    'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
+    'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
+]); ?>
       </div>
     </div>
     <div id="orgss_search_message" class="orgss_error component-org-search-select__search-message" x-cloak
@@ -518,19 +520,19 @@ $available_org_types = wicket_get_resource_types('organizations');
             <?php endif; ?>
             <div class="component-org-search-select__matching-org-action" >
               <?php get_component('button', [
-                'variant'  => 'secondary',
-                'reversed' => false,
-                'label'    => __('Select', 'wicket'),
-                'type'     => 'button',
-                'classes'  => ['component-org-search-select__select-result-button'],
-                'atts'     => [
-                  'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
-                  'x-bind:class="{
+          'variant'  => 'secondary',
+          'reversed' => false,
+          'label'    => __('Select', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__select-result-button'],
+          'atts'     => [
+              'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
+              'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
                     \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
-                  }"'
-                ]
-              ]); ?>
+                  }"',
+          ],
+      ]); ?>
             </div>
           </div>
         </template>
@@ -540,7 +542,7 @@ $available_org_types = wicket_get_resource_types('organizations');
     <div class="component-org-search-select__current-orgs" x-show="currentConnections.length > 0 && !firstSearchSubmitted" x-cloak>
       <div class="component-org-search-select__header-section flex justify-between items-center">
         <?php
-        if (empty($title)) : ?>
+if (empty($title)) : ?>
           <h2
             class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"
             x-text="selectedOrgUuid ? '<?php _e('Selected Organization:', 'wicket') ?>' : '<?php _e('Your current Organization(s)', 'wicket') ?>'">
@@ -554,14 +556,14 @@ $available_org_types = wicket_get_resource_types('organizations');
 
         <div x-show="selectedOrgUuid" x-cloak>
           <?php get_component('button', [
-            'variant'  => 'secondary',
-            'label'    => __('Clear Selection', 'wicket'),
-            'type'     => 'button',
-            'classes'  => ['component-org-search-select__clear-selection-button'],
-            'atts'     => [
-              'x-on:click.prevent="selectedOrgUuid = \'\'; $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"'
-            ]
-          ]); ?>
+      'variant'  => 'secondary',
+      'label'    => __('Clear Selection', 'wicket'),
+      'type'     => 'button',
+      'classes'  => ['component-org-search-select__clear-selection-button'],
+      'atts'     => [
+          'x-on:click.prevent="selectedOrgUuid = \'\'; $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
+      ],
+  ]); ?>
         </div>
       </div>
 
@@ -648,55 +650,55 @@ $available_org_types = wicket_get_resource_types('organizations');
             class="current-org-listing-right component-org-search-select__card-right <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-4 md:mt-0' ?>">
             <template x-if="justCreatedNewOrg && connection.org_id === justCreatedOrgUuid">
               <?php get_component('button', [
-                'variant'  => 'secondary',
-                'reversed' => false,
-                'label'    => '✓ ' . __('Selected', 'wicket'),
-                'type'     => 'button',
-                'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
-                'atts'     => [
-                  'x-show="!hideSelectButtons"',
-                ]
-              ]); ?>
+          'variant'  => 'secondary',
+          'reversed' => false,
+          'label'    => '✓ ' . __('Selected', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
+          'atts'     => [
+              'x-show="!hideSelectButtons"',
+          ],
+      ]); ?>
             </template>
             <template x-if="!(justCreatedNewOrg && connection.org_id === justCreatedOrgUuid)">
               <?php get_component('button', [
-                'variant'  => 'secondary',
-                'reversed' => false,
-                'label'    => __('Select', 'wicket') . ' ' . $orgTermSingularCap,
-                'type'     => 'button',
-                'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
-                'atts'     => [
-                  'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true)"',
-                  'x-bind:class="{
+          'variant'  => 'secondary',
+          'reversed' => false,
+          'label'    => __('Select', 'wicket') . ' ' . $orgTermSingularCap,
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
+          'atts'     => [
+              'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true)"',
+              'x-bind:class="{
                     \'orgss_disabled_button\': connection.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
                   }"',
-                  'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
-                ]
-              ]); ?>
+              'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
+          ],
+      ]); ?>
             </template>
             <template x-if="connection.org_id === selectedOrgUuid">
               <?php get_component('button', [
-                'variant'  => 'secondary',
-                'reversed' => false,
-                'label'    => '✓ ' . __('Selected', 'wicket'),
-                'type'     => 'button',
-                'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
-                'atts'     => [
-                  'x-show="!hideSelectButtons"',
-                ]
-              ]); ?>
+          'variant'  => 'secondary',
+          'reversed' => false,
+          'label'    => '✓ ' . __('Selected', 'wicket'),
+          'type'     => 'button',
+          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
+          'atts'     => [
+              'x-show="!hideSelectButtons"',
+          ],
+      ]); ?>
             </template>
             <?php get_component('button', [
-              'variant'  => 'ghost',
-              'label'    => __('Remove', 'wicket'),
-              'suffix_icon' => 'fa-regular fa-trash',
-              'type'     => 'button',
-              'classes'  => ['component-org-search-select__remove-button', 'whitespace-nowrap'],
-              'atts'     => [
-                'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',
-                'x-show="!hideRemoveButtons"'
-              ]
-            ]); ?>
+        'variant'  => 'ghost',
+        'label'    => __('Remove', 'wicket'),
+        'suffix_icon' => 'fa-regular fa-trash',
+        'type'     => 'button',
+        'classes'  => ['component-org-search-select__remove-button', 'whitespace-nowrap'],
+        'atts'     => [
+            'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',
+            'x-show="!hideRemoveButtons"',
+        ],
+    ]); ?>
           </div>
         </div>
       </template>
@@ -743,12 +745,12 @@ $available_org_types = wicket_get_resource_types('organizations');
       <div
         class="component-org-search-select__create-org-button-wrapper flex flex-col w-2/12 items-center justify-end">
         <?php get_component('button', [
-          'variant'  => 'primary',
-          'label'    => __('Add', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
-          'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
-        ]); ?>
+    'variant'  => 'primary',
+    'label'    => __('Add', 'wicket'),
+    'type'     => 'button',
+    'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
+    'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
+]); ?>
       </div>
     </div>
     <div x-show="displayDuplicateOrgWarning"
@@ -756,17 +758,17 @@ $available_org_types = wicket_get_resource_types('organizations');
       <div
         class="icon-col component-org-search-select__duplicate-warning-icon-col flex flex-col justify-center px-2">
         <?php
-        if (defined('WICKET_WP_THEME_V2')) {
-          get_component('icon', [
-            'classes' => ['text-heading-xl', 'text-[--state-error]'],
-            'icon'  => 'fa-regular fa-triangle-exclamation',
-          ]);
-        } else {
-          get_component('icon', [
-            'classes' => ['text-heading-xl', 'text-[#dc3545]'],
-            'icon'  => 'fa-regular fa-triangle-exclamation',
-          ]);
-        } ?>
+if (defined('WICKET_WP_THEME_V2')) {
+    get_component('icon', [
+        'classes' => ['text-heading-xl', 'text-[--state-error]'],
+        'icon'  => 'fa-regular fa-triangle-exclamation',
+    ]);
+} else {
+    get_component('icon', [
+        'classes' => ['text-heading-xl', 'text-[#dc3545]'],
+        'icon'  => 'fa-regular fa-triangle-exclamation',
+    ]);
+} ?>
       </div>
       <div class="text-col component-org-search-select__duplicate-warning-text-col">
         <div class="component-org-search-select__duplicate-warning-title font-bold text-body-lg">
@@ -780,8 +782,8 @@ $available_org_types = wicket_get_resource_types('organizations');
   </div> <!-- / .component-org-search-select__create-org-form -->
 
   <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
-                                                                                    echo $_POST[$selectedUuidHiddenFieldName];
-                                                                                  } ?>" />
+      echo $_POST[$selectedUuidHiddenFieldName];
+  } ?>" />
 </div>
 
 <script>

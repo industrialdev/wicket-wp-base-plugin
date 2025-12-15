@@ -8,62 +8,61 @@ namespace WicketWP;
 defined('ABSPATH') || exit;
 
 /**
- * Class Main
+ * Class Main.
  *
  * Entry point for all other classes in the src/ folder
- *
- * @package WicketWP
  */
-class Main {
-
+class Main
+{
     /**
-     * Instance of the Main class
+     * Instance of the Main class.
      *
      * @var Main
      */
     private static $instance;
 
     /**
-     * Instance of the Assets class
+     * Instance of the Assets class.
      *
      * @var Assets
      */
     public $assets;
 
     /**
-     * Instance of the Blocks class
+     * Instance of the Blocks class.
      *
      * @var Blocks|null
      */
     public $blocks;
 
     /**
-     * Instance of the Widgets class
+     * Instance of the Widgets class.
      *
      * @var Widgets|null
      */
     public $widgets;
 
     /**
-     * Instance of the Includes class
+     * Instance of the Includes class.
      *
      * @var Includes
      */
     public $includes;
 
     /**
-     * Instance of the Rest class
+     * Instance of the Rest class.
      *
      * @var Rest|null
      */
     public $rest;
 
     /**
-     * Get the instance of the Main class
+     * Get the instance of the Main class.
      *
      * @return Main
      */
-    public static function get_instance(): Main {
+    public static function get_instance(): self
+    {
         if (null === self::$instance) {
             self::$instance = new self();
         }
@@ -72,19 +71,21 @@ class Main {
     }
 
     /**
-     * Constructor
+     * Constructor.
      */
-    private function __construct() {
+    private function __construct()
+    {
         // Initialize classes here
     }
 
     /**
-     * Initialize the plugin components
+     * Initialize the plugin components.
      *
      * @param object $plugin The main plugin instance
      * @return void
      */
-    public function init($plugin) {
+    public function init($plugin)
+    {
         // Initialize Assets class
         $this->assets = new Assets($this);
 

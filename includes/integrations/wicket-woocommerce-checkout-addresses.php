@@ -6,8 +6,6 @@
  *
  */
 
-use Wicket\Client;
-
 // ----------------------------------------------------------------------------------------
 // ADD FIELDS ABOVE CHECKOUT FORM TO ALLOW USER TO CHOOSE FROM EXISTING ADDRESSES IN WICKET
 // https://www.businessbloomer.com/woocommerce-visual-hook-guide-checkout-page/
@@ -40,7 +38,7 @@ function wicket_prepopulate_addresses()
                     $type = array_filter($resource_types['data'], function ($val) use ($included) {
                         return $val['attributes']['slug'] == $included['attributes']['type'] ? true : false;
                     });
-                    $included['attributes']['type_label'] = reset($type)['attributes']['name_'.$locale];
+                    $included['attributes']['type_label'] = reset($type)['attributes']['name_' . $locale];
                     $addresses[] = $included;
                 }
             }
@@ -50,41 +48,39 @@ function wicket_prepopulate_addresses()
     if ($addresses) {
         echo '<div class="wicket__pre-populate-address" >';
         do_action('wicket_before_prepopulate_address');
-        echo "<h3>".__('Pre-populate Addresses', 'woocommerce')."</h3>";
+        echo '<h3>' . __('Pre-populate Addresses', 'woocommerce') . '</h3>';
         do_action('wicket_after_prepopulate_address_title');
         echo "<div class='row'>";
         echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
-        echo "<label class='form__label'>".__('Billing Address', 'woocommerce').":</label>";
+        echo "<label class='form__label'>" . __('Billing Address', 'woocommerce') . ':</label>';
         echo "<select class='form__select' name='prepopulate_billing_address'>";
-        echo "<option value=''>".__('-- Choose Address --', 'woocommerce')."</option>";
+        echo "<option value=''>" . __('-- Choose Address --', 'woocommerce') . '</option>';
         foreach ($addresses as $address) {
-            echo "<option value='".$address['id']."'>".$address['attributes']['formatted_address_label']."</option>";
+            echo "<option value='" . $address['id'] . "'>" . $address['attributes']['formatted_address_label'] . '</option>';
         }
-        echo "</select>";
-        echo "<p><input type='submit' class='button alt' value='".__('Select', 'woocommerce')."'></p>";
-        echo "</form>";
-
+        echo '</select>';
+        echo "<p><input type='submit' class='button alt' value='" . __('Select', 'woocommerce') . "'></p>";
+        echo '</form>';
 
         // only show shipping field if the cart has shipping fields displayed
         if (WC()->cart->needs_shipping()) {
             echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
 
-            echo "<label class='form__label'>".__('Shipping Address', 'woocommerce').":</label>";
+            echo "<label class='form__label'>" . __('Shipping Address', 'woocommerce') . ':</label>';
             echo "<select class='form__select' name='prepopulate_shipping_address'>";
-            echo "<option value=''>".__('-- Choose Address --', 'woocommerce')."</option>";
+            echo "<option value=''>" . __('-- Choose Address --', 'woocommerce') . '</option>';
             foreach ($addresses as $address) {
-                echo "<option value='".$address['id']."'>".$address['attributes']['formatted_address_label']."</option>";
+                echo "<option value='" . $address['id'] . "'>" . $address['attributes']['formatted_address_label'] . '</option>';
             }
-            echo "</select>";
-            echo "<p><input type='submit' class='button alt' value='".__('Select', 'woocommerce')."'></p>";
-            echo "</form>";
+            echo '</select>';
+            echo "<p><input type='submit' class='button alt' value='" . __('Select', 'woocommerce') . "'></p>";
+            echo '</form>';
         }
-        echo "</div>";
+        echo '</div>';
         do_action('wicket_after_prepopulate_address');
-        echo "</div>";
+        echo '</div>';
     }
 }
-
 
 // --------------------------------------------------------------------------------------------------------------
 // PRE-POPULATE WOOCOMMERCE CHECKOUT FIELDS
@@ -228,7 +224,6 @@ add_filter('woocommerce_checkout_get_value', function ($input, $key) {
 
 }, 10, 2);
 
-
 // --------------------------------------------------------------------------------------------------------------
 // MAKE THE BILLING PHONE FIELD OPTIONAL, OTHERWISE WE WOULD PROBABLY HAVE TO PREPOPULATE IT AS WELL
 // https://www.tychesoftwares.com/how-to-make-fields-mandatory-or-optional-on-the-woocommerce-checkout-page/
@@ -237,9 +232,9 @@ add_filter('woocommerce_billing_fields', 'make_billing_phone_not_required');
 function make_billing_phone_not_required($fields)
 {
     $fields['billing_phone']['required'] = false;
+
     return $fields;
 }
-
 
 // --------------------------------------------------------------------------------------------------------------
 // ADD NEW FIELDS TO BILLING AND SHIPPING SECTIONS TO ALLOW THE USER TO SAVE EITHER OF THOSE ADDRESSES BACK TO WICKET
@@ -265,48 +260,47 @@ function add_checkout_fields($fields)
     $address_type_options = ['' => __('Choose an Option', 'woocommerce')];
     $locale = defined('ICL_LANGUAGE_CODE') && ICL_LANGUAGE_CODE == 'fr' ? 'fr' : 'en';
     foreach ($address_types as $address_type) {
-        $address_type_options[$address_type['attributes']['slug']] = $address_type['attributes']['name_'.$locale];
+        $address_type_options[$address_type['attributes']['slug']] = $address_type['attributes']['name_' . $locale];
     }
 
     // add address type so we can store in wicket
-    $fields['billing']['billing_address_address_type'] = array(
-      'label'     => __('Address Type', 'woocommerce'),
-      'required'  => false,
-      'type' => 'select',
-      'class'     => array('form-row-wide'),
-      'clear'     => true,
-      'options' => $address_type_options
-    );
+    $fields['billing']['billing_address_address_type'] = [
+        'label'     => __('Address Type', 'woocommerce'),
+        'required'  => false,
+        'type' => 'select',
+        'class'     => ['form-row-wide'],
+        'clear'     => true,
+        'options' => $address_type_options,
+    ];
     // add field to billing address asking to save this to wicket
-    $fields['billing']['billing_save_address_to_wicket'] = array(
-      'label'     => __('Save New Address', 'woocommerce'),
-      'required'  => false,
-      'type' => 'checkbox',
-      'class'     => array('form-row-wide'),
-      'clear'     => true
-    );
+    $fields['billing']['billing_save_address_to_wicket'] = [
+        'label'     => __('Save New Address', 'woocommerce'),
+        'required'  => false,
+        'type' => 'checkbox',
+        'class'     => ['form-row-wide'],
+        'clear'     => true,
+    ];
 
     // add address type so we can store in wicket
-    $fields['shipping']['shipping_address_address_type'] = array(
-      'label'     => __('Address Type', 'woocommerce'),
-      'required'  => false,
-      'type' => 'select',
-      'class'     => array('form-row-wide'),
-      'clear'     => true,
-      'options' => $address_type_options
-    );
+    $fields['shipping']['shipping_address_address_type'] = [
+        'label'     => __('Address Type', 'woocommerce'),
+        'required'  => false,
+        'type' => 'select',
+        'class'     => ['form-row-wide'],
+        'clear'     => true,
+        'options' => $address_type_options,
+    ];
     // add field to shipping address asking to save this to wicket
-    $fields['shipping']['shipping_save_address_to_wicket'] = array(
-      'label'     => __('Save New Address', 'woocommerce'),
-      'required'  => false,
-      'type' => 'checkbox',
-      'class'     => array('form-row-wide'),
-      'clear'     => true
-    );
+    $fields['shipping']['shipping_save_address_to_wicket'] = [
+        'label'     => __('Save New Address', 'woocommerce'),
+        'required'  => false,
+        'type' => 'checkbox',
+        'class'     => ['form-row-wide'],
+        'clear'     => true,
+    ];
 
     return $fields;
 }
-
 
 // --------------------------------------------------------------------------------------------------------------
 // ON CHECKOUT, AFTER VALIDATION, BEFORE ORDER IS CREATED, SAVE ADDRESSES TO WICKET IF THE USER CHECKED THAT OFF
@@ -331,38 +325,38 @@ function woocommerce_payment_complete_store_addresses()
 
     if ($save_billing_address) {
         $billing_payload = [
-          'data' => [
-            'type' => 'addresses',
-            'attributes' => [
-              'type' => $billing_address_type ?? 'work',
-              'company_name' => $_POST['billing_company'],
-              'address1' => $_POST['billing_address_1'],
-              'address2' => $_POST['billing_address_2'],
-              'city' => $_POST['billing_city'],
-              'country_code' => $_POST['billing_country'],
-              'state_name' => $_POST['billing_state'],
-              'zip_code' => $_POST['billing_postcode']
-            ]
-          ]
+            'data' => [
+                'type' => 'addresses',
+                'attributes' => [
+                    'type' => $billing_address_type ?? 'work',
+                    'company_name' => $_POST['billing_company'],
+                    'address1' => $_POST['billing_address_1'],
+                    'address2' => $_POST['billing_address_2'],
+                    'city' => $_POST['billing_city'],
+                    'country_code' => $_POST['billing_country'],
+                    'state_name' => $_POST['billing_state'],
+                    'zip_code' => $_POST['billing_postcode'],
+                ],
+            ],
         ];
         wicket_create_person_address(wicket_current_person_uuid(), $billing_payload);
     }
 
     if ($save_shipping_address) {
         $shipping_payload = [
-          'data' => [
-            'type' => 'addresses',
-            'attributes' => [
-              'type' => $shipping_address_type ?? 'work',
-              'company_name' => $_POST['shipping_company'],
-              'address1' => $_POST['shipping_address_1'],
-              'address2' => $_POST['shipping_address_2'],
-              'city' => $_POST['shipping_city'],
-              'country_code' => $_POST['shipping_country'],
-              'state_name' => $_POST['shipping_state'],
-              'zip_code' => $_POST['shipping_postcode']
-            ]
-          ]
+            'data' => [
+                'type' => 'addresses',
+                'attributes' => [
+                    'type' => $shipping_address_type ?? 'work',
+                    'company_name' => $_POST['shipping_company'],
+                    'address1' => $_POST['shipping_address_1'],
+                    'address2' => $_POST['shipping_address_2'],
+                    'city' => $_POST['shipping_city'],
+                    'country_code' => $_POST['shipping_country'],
+                    'state_name' => $_POST['shipping_state'],
+                    'zip_code' => $_POST['shipping_postcode'],
+                ],
+            ],
         ];
         wicket_create_person_address(wicket_current_person_uuid(), $shipping_payload);
     }

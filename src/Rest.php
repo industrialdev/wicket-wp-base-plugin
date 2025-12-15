@@ -98,15 +98,15 @@ class Rest
         }
 
         $search_term = $params['searchTerm'];
-        $lang        = $params['lang'];
+        $lang = $params['lang'];
 
         $args = [
-          'sort' => 'name',
-          'page_size' => 100,
-          'page_number' => 1,
+            'sort' => 'name',
+            'page_size' => 100,
+            'page_number' => 1,
         ];
 
-        $args['filter']["name_" . $lang . "_cont"] = $search_term;
+        $args['filter']['name_' . $lang . '_cont'] = $search_term;
 
         $args = preg_replace('/\%5B\d+\%5D/', '%5B%5D', http_build_query($args));
 
@@ -124,7 +124,7 @@ class Rest
                 if (isset($result['attributes']["name_$lang"])) {
                     $results[$result['id']]['name'] = $result['attributes']["name_$lang"];
                 } else {
-                    $results[$result['id']]['name'] = $result['attributes']["name"];
+                    $results[$result['id']]['name'] = $result['attributes']['name'];
                 }
             }
         }
@@ -192,11 +192,11 @@ class Rest
             wp_send_json_error('userRoleInRelationship not provided');
         }
 
-        $fromUuid                    = $params['fromUuid'];
-        $toUuid                      = $params['toUuid'];
-        $relationshipType            = $params['relationshipType'];
-        $userRoleInRelationship      = $params['userRoleInRelationship'];
-        $description                 = isset($params['description']) ? $params['description'] : null;
+        $fromUuid = $params['fromUuid'];
+        $toUuid = $params['toUuid'];
+        $relationshipType = $params['relationshipType'];
+        $userRoleInRelationship = $params['userRoleInRelationship'];
+        $description = $params['description'] ?? null;
         $userRoleInRelationshipArray = explode(',', $userRoleInRelationship);
 
         $personProfile = wicket_current_person();
@@ -236,35 +236,35 @@ class Rest
             $existing_match = wicket_find_person_org_connection($fromUuid, $toUuid, $relationshipType, $roleSlug, true);
 
             $payload = [
-              'data' => [
-                'type' => 'connections',
-                'attributes' => [
-                  'connection_type'   => $relationshipType,
-                  'type'              => $roleSlug,
-                  'starts_at'         => date('Y-m-d'),
-                  'ends_at'           => null,
-                  'description'       => $description,
-                  'tags'              => [],
-                ],
-                'relationships' => [
-                  'from' => [
-                    'data' => [
-                      'type' => 'people',
-                      'id'   => $fromUuid,
-                      'meta' => [
-                        'can_manage' => false,
-                        'can_update' => false,
-                      ],
+                'data' => [
+                    'type' => 'connections',
+                    'attributes' => [
+                        'connection_type'   => $relationshipType,
+                        'type'              => $roleSlug,
+                        'starts_at'         => date('Y-m-d'),
+                        'ends_at'           => null,
+                        'description'       => $description,
+                        'tags'              => [],
                     ],
-                  ],
-                  'to' => [
-                    'data' => [
-                      'type' => 'organizations',
-                      'id'   => $toUuid,
+                    'relationships' => [
+                        'from' => [
+                            'data' => [
+                                'type' => 'people',
+                                'id'   => $fromUuid,
+                                'meta' => [
+                                    'can_manage' => false,
+                                    'can_update' => false,
+                                ],
+                            ],
+                        ],
+                        'to' => [
+                            'data' => [
+                                'type' => 'organizations',
+                                'id'   => $toUuid,
+                            ],
+                        ],
                     ],
-                  ],
                 ],
-              ]
             ];
 
             if ($existing_match) {
@@ -274,8 +274,8 @@ class Rest
                 }
 
                 $updated = wicket_update_connection_attributes($connection_id, [
-                  'description' => $description,
-                  'ends_at' => null,
+                    'description' => $description,
+                    'ends_at' => null,
                 ]);
 
                 if ($updated === false) {
@@ -316,23 +316,23 @@ class Rest
                 }
             }
 
-            $return[] =  [
-              'connection_id'     => $new_connection['data']['id'] ?? '',
-              'connection_type'   => $relationshipType,
-              'relationship_type' => $roleSlug,
-              'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
-              'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
-              'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
-              'active_membership' => $has_active_membership,
-              'active_connection' => $new_connection['data']['attributes']['active'],
-              'org_id'            => $toUuid,
-              'org_name'          => $org_info['org_name'],
-              'org_description'   => $org_info['org_description'],
-              'org_type'          => $org_info['org_type'],
-              'org_status'        => $org_info['org_status'],
-              'org_parent_id'     => $org_info['org_parent_id'],
-              'org_parent_name'   => $org_info['org_parent_name'],
-              'person_id'         => $fromUuid,
+            $return[] = [
+                'connection_id'     => $new_connection['data']['id'] ?? '',
+                'connection_type'   => $relationshipType,
+                'relationship_type' => $roleSlug,
+                'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+                'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+                'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+                'active_membership' => $has_active_membership,
+                'active_connection' => $new_connection['data']['attributes']['active'],
+                'org_id'            => $toUuid,
+                'org_name'          => $org_info['org_name'],
+                'org_description'   => $org_info['org_description'],
+                'org_type'          => $org_info['org_type'],
+                'org_status'        => $org_info['org_status'],
+                'org_parent_id'     => $org_info['org_parent_id'],
+                'org_parent_name'   => $org_info['org_parent_name'],
+                'person_id'         => $fromUuid,
             ];
         }
 
@@ -453,7 +453,7 @@ class Rest
         }
 
         $fromUuid = $params['fromUuid'];
-        $toUuid   = $params['toUuid'];
+        $toUuid = $params['toUuid'];
 
         try {
             $client = wicket_api_client();
@@ -462,23 +462,23 @@ class Rest
         }
 
         $payload = [
-          'data' => [
-            'type' => 'organizations',
-            'id'   => $toUuid,
-            'relationships' => [
-              'parent_organization' => [
-                'data' => [
-                  'type' => 'organizations',
-                  'id'   => $fromUuid,
+            'data' => [
+                'type' => 'organizations',
+                'id'   => $toUuid,
+                'relationships' => [
+                    'parent_organization' => [
+                        'data' => [
+                            'type' => 'organizations',
+                            'id'   => $fromUuid,
+                        ],
+                    ],
                 ],
-              ],
             ],
-          ]
         ];
 
         try {
             $response = $client->patch('organizations/' . $toUuid, [
-              'json' => $payload
+                'json' => $payload,
             ]);
         } catch (\Exception $e) {
             wp_send_json_error($e->getMessage());

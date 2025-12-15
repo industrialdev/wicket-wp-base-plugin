@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Wicket Create Account block
+ * Wicket Create Account block.
  *
  **/
 
 namespace Wicket\Blocks\Wicket_Create_Account;
 
 /**
- * Create Account
+ * Create Account.
  */
 function site($block = [])
 {

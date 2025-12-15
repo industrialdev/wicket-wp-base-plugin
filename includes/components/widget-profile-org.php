@@ -1,18 +1,18 @@
 <?php
-$defaults        = [
-  'classes'                    => [],
-  'org_id'                     => '',
-  'org_info_data_field_name'   => 'profile-org-info',
-  'validation_data_field_name' => 'profile-org-validation',
+$defaults = [
+    'classes'                    => [],
+    'org_id'                     => '',
+    'org_info_data_field_name'   => 'profile-org-info',
+    'validation_data_field_name' => 'profile-org-validation',
 ];
 
-$args                       = wp_parse_args($args, $defaults);
-$classes                    = $args['classes'];
-$org_id                     = $args['org_id'];
-$org_required_resources     = $args['org_required_resources'] === '' ? '{}' : $args['org_required_resources'];
-$org_info_data_field_name   = $args['org_info_data_field_name'];
+$args = wp_parse_args($args, $defaults);
+$classes = $args['classes'];
+$org_id = $args['org_id'];
+$org_required_resources = $args['org_required_resources'] === '' ? '{}' : $args['org_required_resources'];
+$org_info_data_field_name = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
-$unique_widget_id           = rand(1, PHP_INT_MAX);
+$unique_widget_id = rand(1, PHP_INT_MAX);
 
 if (empty($org_id)) {
     return; // Returning nothing in case this needs to be dynamically reloaded, so the user doesn't see the error
@@ -59,7 +59,7 @@ $wicket_settings = get_wicket_settings();
 
 <?php
   $widget_profile_org_extra_fields = apply_filters('widget_profile_org_extra_fields', ['type']);
-  $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields);
+$widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields);
 ?>
 
 <script type="text/javascript">

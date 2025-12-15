@@ -6,12 +6,12 @@ namespace WicketWP;
 
 /**
  * Widgets class
- * Handles registration and initialization of all Wicket widgets
+ * Handles registration and initialization of all Wicket widgets.
  */
 class Widgets
 {
     /**
-     * Reference to Main
+     * Reference to Main.
      *
      * @var Main
      */
@@ -23,7 +23,7 @@ class Widgets
     }
 
     /**
-     * Initialize widgets (register hooks)
+     * Initialize widgets (register hooks).
      */
     public function init()
     {
@@ -38,7 +38,7 @@ class Widgets
     }
 
     /**
-     * Register widgets
+     * Register widgets.
      */
     public function register_widgets()
     {
@@ -53,33 +53,33 @@ class Widgets
     }
 
     /**
-     * Initialize widget form processors
+     * Initialize widget form processors.
      */
     public function initialize_widgets()
     {
         // Check if widget classes exist, if not try to load them
-        if (! class_exists('WicketWP\\Widgets\\CreateAccount')) {
+        if (!class_exists('WicketWP\\Widgets\\CreateAccount')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/CreateAccount.php';
             if (file_exists($file)) {
                 require_once $file;
             }
         }
 
-        if (! class_exists('WicketWP\\Widgets\\CreateAccountNoPassword')) {
+        if (!class_exists('WicketWP\\Widgets\\CreateAccountNoPassword')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/CreateAccountNoPassword.php';
             if (file_exists($file)) {
                 require_once $file;
             }
         }
 
-        if (! class_exists('WicketWP\\Widgets\\UpdatePassword')) {
+        if (!class_exists('WicketWP\\Widgets\\UpdatePassword')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/UpdatePassword.php';
             if (file_exists($file)) {
                 require_once $file;
             }
         }
 
-        if (! class_exists('WicketWP\\Widgets\\ManagePreferences')) {
+        if (!class_exists('WicketWP\\Widgets\\ManagePreferences')) {
             $file = WICKET_PLUGIN_DIR . 'src/Widgets/ManagePreferences.php';
             if (file_exists($file)) {
                 require_once $file;
@@ -87,9 +87,9 @@ class Widgets
         }
 
         // Initialize widget form processors
-        \WicketWP\Widgets\CreateAccount::init();
-        \WicketWP\Widgets\CreateAccountNoPassword::init();
-        \WicketWP\Widgets\UpdatePassword::init();
-        \WicketWP\Widgets\ManagePreferences::init();
+        Widgets\CreateAccount::init();
+        Widgets\CreateAccountNoPassword::init();
+        Widgets\UpdatePassword::init();
+        Widgets\ManagePreferences::init();
     }
 }

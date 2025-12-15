@@ -6,7 +6,7 @@ declare(strict_types=1);
 defined('ABSPATH') || exit;
 
 /**
- * Update connection attributes including start/end dates and other fields
+ * Update connection attributes including start/end dates and other fields.
  *
  * @param string $connection_id The connection ID to update.
  * @param array $attributes Associative array of attributes to update.
@@ -16,103 +16,105 @@ defined('ABSPATH') || exit;
  */
 function wicket_update_connection_attributes(string $connection_id, array $attributes = []): mixed
 {
-  if (empty($connection_id)) {
-    return false;
-  }
-
-  if (empty($attributes)) {
-    return false;
-  }
-
-  try {
-    $client = wicket_api_client();
-    if (!$client) {
-      return false;
-    }
-  } catch (\Exception $e) {
-    return false;
-  }
-
-  try {
-    // Get current connection info
-    $current_connection_info = wicket_get_connection_by_id($connection_id);
-
-    if (empty($current_connection_info)) {
-      return false;
+    if (empty($connection_id)) {
+        return false;
     }
 
-    // Merge current attributes with new ones
-    $merged_attributes = $current_connection_info['data']['attributes'];
+    if (empty($attributes)) {
+        return false;
+    }
 
-    // Process each attribute
-    foreach ($attributes as $key => $value) {
-      switch ($key) {
-        case 'starts_at':
-        case 'ends_at':
-          // Handle date formatting
-          if (!empty($value)) {
-            // If date is in YYYY-MM-DD format, convert to ISO 8601
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-              $merged_attributes[$key] = $value . 'T00:00:00Z';
-            } else {
-              $merged_attributes[$key] = strval($value);
+    try {
+        $client = wicket_api_client();
+        if (!$client) {
+            return false;
+        }
+    } catch (Exception $e) {
+        return false;
+    }
+
+    try {
+        // Get current connection info
+        $current_connection_info = wicket_get_connection_by_id($connection_id);
+
+        if (empty($current_connection_info)) {
+            return false;
+        }
+
+        // Merge current attributes with new ones
+        $merged_attributes = $current_connection_info['data']['attributes'];
+
+        // Process each attribute
+        foreach ($attributes as $key => $value) {
+            switch ($key) {
+                case 'starts_at':
+                case 'ends_at':
+                    // Handle date formatting
+                    if (!empty($value)) {
+                        // If date is in YYYY-MM-DD format, convert to ISO 8601
+                        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                            $merged_attributes[$key] = $value . 'T00:00:00Z';
+                        } else {
+                            $merged_attributes[$key] = strval($value);
+                        }
+                    } else {
+                        $merged_attributes[$key] = null;
+                    }
+                    break;
+
+                case 'description':
+                case 'custom_data_field':
+                    // Ensure empty fields stay null
+                    $merged_attributes[$key] = !empty($value) ? strval($value) : null;
+                    break;
+
+                case 'tags':
+                    // Ensure tags is an array or null
+                    $merged_attributes[$key] = !empty($value) && is_array($value) ? $value : null;
+                    break;
+
+                default:
+                    // For any other attributes, just set the value
+                    $merged_attributes[$key] = $value;
+                    break;
             }
-          } else {
-            $merged_attributes[$key] = null;
-          }
-          break;
+        }
 
-        case 'description':
-        case 'custom_data_field':
-          // Ensure empty fields stay null
-          $merged_attributes[$key] = !empty($value) ? strval($value) : null;
-          break;
+        // Build the payload
+        $payload = [
+            'data' => [
+                'attributes' => $merged_attributes,
+                'id' => $connection_id,
+                'relationships' => [
+                    'from' => $current_connection_info['data']['relationships']['from'],
+                    'to' => $current_connection_info['data']['relationships']['to'],
+                ],
+                'type' => $current_connection_info['data']['type'],
+            ],
+        ];
 
-        case 'tags':
-          // Ensure tags is an array or null
-          $merged_attributes[$key] = !empty($value) && is_array($value) ? $value : null;
-          break;
+        // Update the connection
+        $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
 
-        default:
-          // For any other attributes, just set the value
-          $merged_attributes[$key] = $value;
-          break;
-      }
+        return $updated_connection;
+    } catch (Exception $e) {
+        $error_message = $e->getMessage();
+        if (strpos($error_message, 'must be before') !== false) {
+            // This is a special case where the end date is being set to the same day as the start date
+            // So we need to simply remove the connection and return true
+            wicket_remove_connection($connection_id);
+
+            return true;
+        }
+
+        return false;
     }
 
-    // Build the payload
-    $payload = [
-      'data' => [
-        'attributes' => $merged_attributes,
-        'id' => $connection_id,
-        'relationships' => [
-          'from' => $current_connection_info['data']['relationships']['from'],
-          'to' => $current_connection_info['data']['relationships']['to'],
-        ],
-        'type' => $current_connection_info['data']['type'],
-      ]
-    ];
-
-    // Update the connection
-    $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
-
-    return $updated_connection;
-  } catch (\Exception $e) {
-    $error_message = $e->getMessage();
-    if (strpos($error_message, 'must be before') !== false) {
-      // This is a special case where the end date is being set to the same day as the start date
-      // So we need to simply remove the connection and return true
-      wicket_remove_connection($connection_id);
-      return true;
-    }
     return false;
-  }
-
-  return false;
 }
 
 /**
- * Set the description of a connection
+ * Set the description of a connection.
  *
  * @param string $connection_id The connection ID to update.
  * @param string $description The description to set.
@@ -121,7 +123,7 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
  */
 function wicket_set_connection_description(string $connection_id, string $description = ''): mixed
 {
-  return wicket_update_connection_attributes($connection_id, ['description' => $description]);
+    return wicket_update_connection_attributes($connection_id, ['description' => $description]);
 }
 
 /**
@@ -136,35 +138,36 @@ function wicket_set_connection_description(string $connection_id, string $descri
  */
 function wicket_patch_connection_description(string $connection_id, ?string $description = null): mixed
 {
-  if ($connection_id === '') {
-    return false;
-  }
+    if ($connection_id === '') {
+        return false;
+    }
 
-  try {
-    $client = wicket_api_client();
-  } catch (\Exception $e) {
-    return false;
-  }
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        return false;
+    }
 
-  // Normalize empty string to null as per API conventions
-  $desc = (isset($description) && $description !== '') ? strval($description) : null;
+    // Normalize empty string to null as per API conventions
+    $desc = (isset($description) && $description !== '') ? strval($description) : null;
 
-  $payload = [
-    'data' => [
-      'type' => 'connections',
-      'id' => $connection_id,
-      'attributes' => [
-        'description' => $desc,
-      ],
-    ],
-  ];
+    $payload = [
+        'data' => [
+            'type' => 'connections',
+            'id' => $connection_id,
+            'attributes' => [
+                'description' => $desc,
+            ],
+        ],
+    ];
 
-  try {
-    $res = $client->patch('connections/' . $connection_id, ['json' => $payload]);
-    return $res;
-  } catch (\Exception $e) {
-    return false;
-  }
+    try {
+        $res = $client->patch('connections/' . $connection_id, ['json' => $payload]);
+
+        return $res;
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
 /**
@@ -183,53 +186,53 @@ function wicket_patch_connection_description(string $connection_id, ?string $des
  * @return array|null The matching connection resource array, or null if none found
  */
 function wicket_find_person_org_connection(
-  string $person_uuid,
-  string $org_uuid,
-  string $connection_type,
-  string $role_slug,
-  bool $includeEnded = false
+    string $person_uuid,
+    string $org_uuid,
+    string $connection_type,
+    string $role_slug,
+    bool $includeEnded = false
 ): ?array {
-  if ($person_uuid === '' || $org_uuid === '' || $connection_type === '' || $role_slug === '') {
-    return null;
-  }
-
-  try {
-    $client = wicket_api_client();
-  } catch (\Exception $e) {
-    return null;
-  }
-
-  try {
-    // Query all connections for the person, newest first
-    $connections = $client->get('people/' . $person_uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
-  } catch (\Exception $e) {
-    return null;
-  }
-
-  if (!is_array($connections) || !isset($connections['data']) || !is_array($connections['data'])) {
-    return null;
-  }
-
-  $ended_match = null;
-  foreach ($connections['data'] as $conn) {
-    $to_id = $conn['relationships']['to']['data']['id'] ?? '';
-    $to_type = $conn['relationships']['to']['data']['type'] ?? '';
-    $conn_type = $conn['attributes']['connection_type'] ?? '';
-    $role_type = isset($conn['attributes']['type']) ? trim(strval($conn['attributes']['type'])) : '';
-
-    if ($to_id === $org_uuid && $to_type === 'organizations' && $conn_type === $connection_type && $role_type === trim($role_slug)) {
-      $is_active = (bool)($conn['attributes']['active'] ?? false);
-      $is_ended = !empty($conn['attributes']['ends_at']);
-      if ($is_active && !$is_ended) {
-        return $conn;
-      }
-      if ($includeEnded && $ended_match === null) {
-        $ended_match = $conn;
-      }
+    if ($person_uuid === '' || $org_uuid === '' || $connection_type === '' || $role_slug === '') {
+        return null;
     }
-  }
 
-  return $ended_match;
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        return null;
+    }
+
+    try {
+        // Query all connections for the person, newest first
+        $connections = $client->get('people/' . $person_uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    } catch (Exception $e) {
+        return null;
+    }
+
+    if (!is_array($connections) || !isset($connections['data']) || !is_array($connections['data'])) {
+        return null;
+    }
+
+    $ended_match = null;
+    foreach ($connections['data'] as $conn) {
+        $to_id = $conn['relationships']['to']['data']['id'] ?? '';
+        $to_type = $conn['relationships']['to']['data']['type'] ?? '';
+        $conn_type = $conn['attributes']['connection_type'] ?? '';
+        $role_type = isset($conn['attributes']['type']) ? trim(strval($conn['attributes']['type'])) : '';
+
+        if ($to_id === $org_uuid && $to_type === 'organizations' && $conn_type === $connection_type && $role_type === trim($role_slug)) {
+            $is_active = (bool) ($conn['attributes']['active'] ?? false);
+            $is_ended = !empty($conn['attributes']['ends_at']);
+            if ($is_active && !$is_ended) {
+                return $conn;
+            }
+            if ($includeEnded && $ended_match === null) {
+                $ended_match = $conn;
+            }
+        }
+    }
+
+    return $ended_match;
 }
 
 /**
@@ -244,11 +247,11 @@ function wicket_find_person_org_connection(
  * @return bool True if a matching connection exists, false otherwise
  */
 function wicket_person_has_org_connection(
-  string $person_uuid,
-  string $org_uuid,
-  string $connection_type,
-  string $role_slug,
-  bool $includeEnded = false
+    string $person_uuid,
+    string $org_uuid,
+    string $connection_type,
+    string $role_slug,
+    bool $includeEnded = false
 ): bool {
-  return wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role_slug, $includeEnded) !== null;
+    return wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role_slug, $includeEnded) !== null;
 }

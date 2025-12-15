@@ -17,7 +17,8 @@ const WICKET_SWITCH_ERROR_PREFIX = 'wicket_switch_error_';
  * @param string $new_token    New session token (unused here).
  * @param string $old_token    Old session token (unused here).
  */
-function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '', $old_token = '') {
+function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '', $old_token = '')
+{
     $user_info = get_userdata($new_user_id);
     if (!($user_info instanceof WP_User)) {
         return;
@@ -45,7 +46,9 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
         // Store an error message (short TTL – just for the immediate next page load).
         set_transient(WICKET_SWITCH_ERROR_PREFIX . (int) $old_user_id, __('Unable to switch: The Wicket account no longer exists or the UUIDs do not match.', 'wicket'), 60);
         // Force transient flush to ensure it's available immediately.
-        if (function_exists('wp_cache_flush')) { wp_cache_flush(); }
+        if (function_exists('wp_cache_flush')) {
+            wp_cache_flush();
+        }
 
         // Revert the switch – restore original user session.
         if (function_exists('switch_to_user') && $old_user_id) {
@@ -79,7 +82,8 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
 /**
  * Display an admin notice if a previous switch attempt failed due to a missing Wicket account.
  */
-function wicket_switch_error_notice() {
+function wicket_switch_error_notice()
+{
     $current_id = get_current_user_id();
     if (!$current_id) {
         return;

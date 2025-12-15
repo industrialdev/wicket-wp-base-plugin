@@ -6,12 +6,12 @@ namespace WicketWP;
 
 /**
  * Blocks class
- * Handles initialization and registration of all Wicket blocks
+ * Handles initialization and registration of all Wicket blocks.
  */
 class Blocks
 {
     /**
-     * Reference to Main
+     * Reference to Main.
      *
      * @var Main
      */
@@ -23,7 +23,7 @@ class Blocks
     }
 
     /**
-     * Initialize the Blocks instance
+     * Initialize the Blocks instance.
      */
     public function init()
     {

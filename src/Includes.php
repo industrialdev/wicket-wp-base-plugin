@@ -8,27 +8,26 @@ namespace WicketWP;
 defined('ABSPATH') || exit;
 
 /**
- * Class Includes
+ * Class Includes.
  *
  * Centralized file inclusion for the Wicket plugin
- *
- * @package WicketWP
  */
-class Includes {
-
+class Includes
+{
     /**
-     * Instance of the main plugin class
+     * Instance of the main plugin class.
      *
      * @var WicketWP
      */
     protected $plugin;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param WicketWP $plugin Instance of the main plugin class
      */
-    public function __construct($plugin) {
+    public function __construct($plugin)
+    {
         $this->plugin = $plugin;
 
         // Hook into WordPress
@@ -52,7 +51,7 @@ class Includes {
         }
 
         // Include to allow other functions to check if plugins are active on front end
-        include_once(ABSPATH . 'wp-admin/includes/plugin.php');
+        include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
         // Include MDP Helpers
         include_once WICKET_PLUGIN_DIR . 'includes/helpers/helper-init.php';
@@ -69,9 +68,8 @@ class Includes {
         // Mailtrap settings for stage
         include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-mailtrap.php';
 
-
-// Deprecated REST endpoints
-include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
+        // Deprecated REST endpoints
+        include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
 
         // Include Wicket MDP Schema Merge Tag Generator
         include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
@@ -89,9 +87,9 @@ include_once WICKET_PLUGIN_DIR . 'includes/deprecated.php';
         // Include event tickets attendee field hooks to provide last name field by default, rename 'name' field to first name and re-sort fields
         // Not sure if this applies to rsvp fields as well or just attendee registration, but will include it if any of the above options are enabled
         if (
-            wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1' ||
-            wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1' ||
-            wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_rsvp') === '1'
+            wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees') === '1'
+            || wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1'
+            || wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_rsvp') === '1'
         ) {
             include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_field_hooks.php';
         }

@@ -42,5 +42,5 @@ function is_wicket_theme_active(): bool
  */
 function is_non_wicket_theme_active(): bool
 {
-    return ! is_wicket_theme_active();
+    return !is_wicket_theme_active();
 }

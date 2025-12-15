@@ -11,10 +11,10 @@ if (!function_exists('mailtrap')) {
         if (empty($wicket_settings)) {
             return;
         }
-        if (!isset($wicket_settings['wicket_admin_settings_mailtrap_host']) ||
-            !isset($wicket_settings['wicket_admin_settings_mailtrap_port']) ||
-            !isset($wicket_settings['wicket_admin_settings_mailtrap_username']) ||
-            !isset($wicket_settings['wicket_admin_settings_mailtrap_password'])
+        if (!isset($wicket_settings['wicket_admin_settings_mailtrap_host'])
+            || !isset($wicket_settings['wicket_admin_settings_mailtrap_port'])
+            || !isset($wicket_settings['wicket_admin_settings_mailtrap_username'])
+            || !isset($wicket_settings['wicket_admin_settings_mailtrap_password'])
         ) {
             return;
         }

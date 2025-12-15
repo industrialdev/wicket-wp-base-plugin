@@ -1,31 +1,31 @@
 <?php
-$defaults                     = array(
-	'classes'               => [],
-	'taxonomies'            => [],
-	'post_types'            => [],
-	'hide_date_filter'      => false,
-	'pre_filter_categories' => [],
-);
-$args                         = wp_parse_args( $args, $defaults );
-$classes                      = $args['classes'];
-$taxonomies                   = $args['taxonomies'];
-$post_types                   = $args['post_types'];
-$hide_date_filter             = $args['hide_date_filter'];
-$pre_filter_categories        = $args['pre_filter_categories'];
+$defaults = [
+    'classes'               => [],
+    'taxonomies'            => [],
+    'post_types'            => [],
+    'hide_date_filter'      => false,
+    'pre_filter_categories' => [],
+];
+$args = wp_parse_args($args, $defaults);
+$classes = $args['classes'];
+$taxonomies = $args['taxonomies'];
+$post_types = $args['post_types'];
+$hide_date_filter = $args['hide_date_filter'];
+$pre_filter_categories = $args['pre_filter_categories'];
 $pre_filter_category_taxonomy = '';
-$classes[]                    = 'component-filter-form';
+$classes[] = 'component-filter-form';
 
-if ( ! defined( 'WICKET_WP_THEME_V2' ) ) {
-	$classes = array_merge( $classes, [ 'py-4', 'px-4', 'lg:py-8', 'lg:px-0', 'lg:pr-3' ] );
+if (!defined('WICKET_WP_THEME_V2')) {
+    $classes = array_merge($classes, ['py-4', 'px-4', 'lg:py-8', 'lg:px-0', 'lg:pr-3']);
 }
 
-if ( ! empty( $pre_filter_categories ) ) {
-	$pre_filter_category_taxonomy = $pre_filter_categories[0]->taxonomy;
+if (!empty($pre_filter_categories)) {
+    $pre_filter_category_taxonomy = $pre_filter_categories[0]->taxonomy;
 }
 ?>
 
 <div x-data="{showFilters: <?php echo wp_is_mobile() ? 'false' : 'true' ?>}"
-	class="<?php echo implode( ' ', $classes ) ?>">
+	class="<?php echo implode(' ', $classes) ?>">
 	<div class="flex items-center justify-between gap-3 component-filter-form__top" @click="showFilters = !showFilters"
 		:class="showFilters ? 'open' : 'closed'">
 		<span class="flex items-center gap-3">
@@ -36,45 +36,45 @@ if ( ! empty( $pre_filter_categories ) ) {
 			</svg>
 
 			<span
-				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__heading' : 'text-heading-xs font-bold' ?>">
-				<?php echo __( 'Refine Results', 'wicket' ); ?>
+				class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__heading' : 'text-heading-xs font-bold' ?>">
+				<?php echo __('Refine Results', 'wicket'); ?>
 			</span>
 		</span>
 
 		<template x-if="!showFilters">
-			<?php get_component( 'icon', [ 
-				'icon'    => 'fa-solid fa-plus',
-				'text'    => __( 'Toggle filters' ),
-				'classes' => [ 'lg:hidden text-[20px]' ],
-			] ); ?>
+			<?php get_component('icon', [
+			    'icon'    => 'fa-solid fa-plus',
+			    'text'    => __('Toggle filters'),
+			    'classes' => ['lg:hidden text-[20px]'],
+			]); ?>
 		</template>
 
 		<template x-if="showFilters">
-			<?php get_component( 'icon', [ 
-				'icon'    => 'fa-solid fa-minus',
-				'text'    => __( 'Toggle filters' ),
-				'classes' => [ 'lg:hidden text-[20px]' ],
-			] ); ?>
+			<?php get_component('icon', [
+			    'icon'    => 'fa-solid fa-minus',
+			    'text'    => __('Toggle filters'),
+			    'classes' => ['lg:hidden text-[20px]'],
+			]); ?>
 		</template>
 
 	</div>
 
-	<div <?php if ( wp_is_mobile() ) : ?>x-show="showFilters" <?php endif; ?>
-		class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__group' : 'mt-8' ?>">
-		<?php if ( ! empty( $post_types ) ) : ?>
+	<div <?php if (wp_is_mobile()) : ?>x-show="showFilters" <?php endif; ?>
+		class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__group' : 'mt-8' ?>">
+		<?php if (!empty($post_types)) : ?>
 			<?php $post_type_filter_key = 'post_type' ?>
 			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}"
-				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
+				class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="<?php echo $post_type_filter_key; ?>-dropdown-toggle" type="button"
 					class="flex w-full gap-3 items-center">
 					<span
-						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-						<?php _e( 'Content Types', 'wicket' ); ?>
+						class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
+						<?php _e('Content Types', 'wicket'); ?>
 					</span>
 					<span class="ml-auto">
 						<template x-if="selectedItemsCount">
 							<span x-text="`(${selectedItemsCount})`"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
 						</template>
 						<template x-if="open">
 							<i class="fas fa-caret-up component-filter-form__collapse-icon"></i>
@@ -86,28 +86,28 @@ if ( ! empty( $pre_filter_categories ) ) {
 				</button>
 				<div id="<?php echo $post_type_filter_key; ?>-dropdown" x-show="open">
 					<?php
-					$post_type_query = isset( $_GET[ $post_type_filter_key ] ) ? $_GET[ $post_type_filter_key ] : '';
-					?>
+                    $post_type_query = $_GET[$post_type_filter_key] ?? '';
+		    ?>
 					<ul class="mt-3">
 						<?php
-						$index = 0;
-						foreach ( $post_types as $post_type ) :
-							$post_type_obj = get_post_type_object( $post_type['key'] );
-							$index++; ?>
-							<li class="mb-3" <?php if ( $index > 5 ) : ?>:class="showAll || 'hidden'" <?php endif; ?>>
+		        $index = 0;
+		    foreach ($post_types as $post_type) :
+		        $post_type_obj = get_post_type_object($post_type['key']);
+		        $index++; ?>
+							<li class="mb-3" <?php if ($index > 5) : ?>:class="showAll || 'hidden'" <?php endif; ?>>
 								<?php
-								$checkedState = false;
-								if ( is_array( $post_type_query ) ) {
-									if ( in_array( $post_type['key'], $post_type_query ) ) {
-										$checkedState = true;
-									}
-								}
-								?>
+		            $checkedState = false;
+		        if (is_array($post_type_query)) {
+		            if (in_array($post_type['key'], $post_type_query)) {
+		                $checkedState = true;
+		            }
+		        }
+		        ?>
 								<div class="flex gap-2 items-center">
 									<input id="<?php echo $post_type_filter_key . '_' . $post_type['key']; ?>" class="!m-0 w-4 h-4"
 										type="checkbox" x-init="selectedItemsCount = selectedItemsCount + <?php echo $checkedState ? 1 : 0; ?>"
 										x-on:change="selectedItemsCount = $event.target.checked ? selectedItemsCount + 1 : selectedItemsCount - 1"
-										name="<?php echo $post_type_filter_key; ?>[]" value="<?php echo $post_type['key']; ?>" <?php if ( $checkedState ) : ?>checked<?php endif; ?>>
+										name="<?php echo $post_type_filter_key; ?>[]" value="<?php echo $post_type['key']; ?>" <?php if ($checkedState) : ?>checked<?php endif; ?>>
 									<label for="<?php echo $post_type_filter_key . '_' . $post_type['key']; ?>"
 										class="font-normal mb-0 leading-none">
 										<?php echo $post_type_obj->labels->name; ?>
@@ -115,19 +115,19 @@ if ( ! empty( $pre_filter_categories ) ) {
 								</div>
 							</li>
 							<?php
-						endforeach; ?>
+		    endforeach; ?>
 					</ul>
-					<?php if ( count( $post_types ) > 5 ) : ?>
-						<button class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__see-more' : 'underline' ?>"
+					<?php if (count($post_types) > 5) : ?>
+						<button class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__see-more' : 'underline' ?>"
 							type="button" @click="showAll = !showAll">
 							<template x-if="showAll">
 								<span>
-									<?php echo __( 'See Less', 'wicket' ) ?>
+									<?php echo __('See Less', 'wicket') ?>
 								</span>
 							</template>
 							<template x-if="!showAll">
 								<span>
-									<?php echo __( 'See More', 'wicket' ) ?>
+									<?php echo __('See More', 'wicket') ?>
 								</span>
 							</template>
 						</button>
@@ -137,65 +137,65 @@ if ( ! empty( $pre_filter_categories ) ) {
 		<?php endif; ?>
 
 		<?php
-		foreach ( $taxonomies as $taxonomy ) : ?>
+        foreach ($taxonomies as $taxonomy) : ?>
 			<?php
-			$taxonomy_obj = get_taxonomy( $taxonomy['slug'] );
-			$terms        = [];
+            $taxonomy_obj = get_taxonomy($taxonomy['slug']);
+            $terms = [];
 
-			// If categories are passed, use them to get parent terms
-			if ( ! empty( $pre_filter_categories && $pre_filter_category_taxonomy == $taxonomy['slug'] ) ) {
-				$parent_categories = [];
-				foreach ( $pre_filter_categories as $category ) {
-					if ( $category->parent == 0 ) {
-						$parent_categories[] = $category;
-					}
-				}
-				$terms = $parent_categories;
-			} else {
-				$terms = get_terms( [ 
-					'taxonomy'   => $taxonomy['slug'],
-					'parent'     => 0,
-					'hide_empty' => false,
-				] );
-			}
+            // If categories are passed, use them to get parent terms
+            if (!empty($pre_filter_categories && $pre_filter_category_taxonomy == $taxonomy['slug'])) {
+                $parent_categories = [];
+                foreach ($pre_filter_categories as $category) {
+                    if ($category->parent == 0) {
+                        $parent_categories[] = $category;
+                    }
+                }
+                $terms = $parent_categories;
+            } else {
+                $terms = get_terms([
+                    'taxonomy'   => $taxonomy['slug'],
+                    'parent'     => 0,
+                    'hide_empty' => false,
+                ]);
+            }
 
-			if ( is_wp_error( $terms ) ) {
-				$terms = [];
-			}
+            if (is_wp_error($terms)) {
+                $terms = [];
+            }
 
-			// Modify Terms 
-			$terms = apply_filters( 'wicket_listing_filter_modify_terms', $terms, $taxonomy['slug'] ); 
-			
-			?>
+            // Modify Terms
+            $terms = apply_filters('wicket_listing_filter_modify_terms', $terms, $taxonomy['slug']);
+
+            ?>
 			<div x-data="{open: true, selectedItemsCount: 0, showAll: false}"
-				class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
+				class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="<?php echo $taxonomy['slug']; ?>-dropdown-toggle" type="button"
 					class="flex w-full gap-3 items-center">
 					<span
-						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
+						class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
 						<?php
-							$tax_name = $taxonomy_obj->labels->singular_name;
-							
-							if(defined('ICL_LANGUAGE_CODE')) {
-								$lang = ICL_LANGUAGE_CODE;
-								if ($lang != 'en') {
-									$tax_name = apply_filters( 'wpml_translate_single_string', $tax_name, 'WordPress', "taxonomy singular name: $tax_name", $lang);
-								}
-							}
+                            $tax_name = $taxonomy_obj->labels->singular_name;
 
-							echo $tax_name; 
-						?>
+            if (defined('ICL_LANGUAGE_CODE')) {
+                $lang = ICL_LANGUAGE_CODE;
+                if ($lang != 'en') {
+                    $tax_name = apply_filters('wpml_translate_single_string', $tax_name, 'WordPress', "taxonomy singular name: $tax_name", $lang);
+                }
+            }
+
+            echo $tax_name;
+            ?>
 					</span>
-					<?php if ( $taxonomy['tooltip'] ) {
-						get_component( 'tooltip', [ 
-							'content'  => $taxonomy['tooltip'],
-							'position' => 'right',
-						] );
+					<?php if ($taxonomy['tooltip']) {
+					    get_component('tooltip', [
+					        'content'  => $taxonomy['tooltip'],
+					        'position' => 'right',
+					    ]);
 					} ?>
 					<span class="ml-auto">
 						<template x-if="selectedItemsCount">
 							<span x-text="`(${selectedItemsCount})`"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__selected-items-indicator' : 'font-bold text-dark-070 mr-3' ?>"></span>
 						</template>
 						<template x-if="open">
 							<i class="fas fa-caret-up component-filter-form__collapse-icon"></i>
@@ -208,69 +208,68 @@ if ( ! empty( $pre_filter_categories ) ) {
 				</button>
 				<div id="<?php echo $taxonomy['slug']; ?>-dropdown" x-show="open">
 					<?php
-					$term_query = isset( $_GET[ $taxonomy['slug'] ] ) ? $_GET[ $taxonomy['slug'] ] : '';
-					?>
+					$term_query = $_GET[$taxonomy['slug']] ?? '';
+            ?>
 					<ul class="mt-3">
 						<?php
-						$index = 0;
-						foreach ( $terms as $term ) :
-							$index++; ?>
-							<li class="mb-3" <?php if ( $index > 5 ) : ?>:class="showAll || 'hidden'" <?php endif; ?>>
+                $index = 0;
+            foreach ($terms as $term) :
+                $index++; ?>
+							<li class="mb-3" <?php if ($index > 5) : ?>:class="showAll || 'hidden'" <?php endif; ?>>
 								<?php
-								$checkedState = false;
-								if ( is_array( $term_query ) ) {
-									if ( in_array( $term->slug, $term_query ) ) {
-										$checkedState = true;
-									}
-								} elseif ( $term_query == $term->slug ) {
-									$checkedState = true;
-								}
-								?>
+                    $checkedState = false;
+                if (is_array($term_query)) {
+                    if (in_array($term->slug, $term_query)) {
+                        $checkedState = true;
+                    }
+                } elseif ($term_query == $term->slug) {
+                    $checkedState = true;
+                }
+                ?>
 								<div class="flex gap-2 items-center">
 									<input id="<?php echo $taxonomy['slug'] . '_' . $term->slug; ?>" class="!m-0 w-4 h-4" type="checkbox"
 										x-init="selectedItemsCount = selectedItemsCount + <?php echo $checkedState ? 1 : 0; ?>"
 										x-on:change="selectedItemsCount = $event.target.checked ? selectedItemsCount + 1 : selectedItemsCount - 1"
-										name="<?php echo $taxonomy['slug']; ?>[]" value="<?php echo $term->slug; ?>" <?php if ( $checkedState ) : ?>checked<?php endif; ?>>
+										name="<?php echo $taxonomy['slug']; ?>[]" value="<?php echo $term->slug; ?>" <?php if ($checkedState) : ?>checked<?php endif; ?>>
 									<label for="<?php echo $taxonomy['slug'] . '_' . $term->slug; ?>" class="font-normal mb-0 leading-none">
 										<?php echo $term->name; ?>
 									</label>
 								</div>
 								<?php
-								// Get child terms
-								$child_terms = get_terms( $taxonomy['slug'], array( 'parent' => $term->term_id ) );
+                // Get child terms
+                $child_terms = get_terms($taxonomy['slug'], ['parent' => $term->term_id]);
 
-								// If categories are passed, use them to get child terms
-								$child_categories = [];
-								if ( $taxonomy['slug'] === $pre_filter_category_taxonomy && ! empty( $pre_filter_categories ) ) {
-									foreach ( $pre_filter_categories as $category ) {
-										if ( $category->parent == $term->term_id ) {
-											$child_categories[] = $category;
-										}
-									}
-									$child_terms = $child_categories;
-								}
+                // If categories are passed, use them to get child terms
+                $child_categories = [];
+                if ($taxonomy['slug'] === $pre_filter_category_taxonomy && !empty($pre_filter_categories)) {
+                    foreach ($pre_filter_categories as $category) {
+                        if ($category->parent == $term->term_id) {
+                            $child_categories[] = $category;
+                        }
+                    }
+                    $child_terms = $child_categories;
+                }
 
-
-								if ( ! is_wp_error( $child_terms ) && ! empty( $child_terms ) ) : ?>
+                if (!is_wp_error($child_terms) && !empty($child_terms)) : ?>
 									<ul class="ml-4 mt-3">
-										<?php foreach ( $child_terms as $child_term ) : ?>
+										<?php foreach ($child_terms as $child_term) : ?>
 											<li class="mb-3">
 												<?php
-												$child_checkedState = false;
-												if ( is_array( $term_query ) ) {
-													if ( in_array( $child_term->slug, $term_query ) ) {
-														$child_checkedState = true;
-													}
-												} elseif ( $term_query == $child_term->slug ) {
-													$child_checkedState = true;
-												}
-												?>
+                                $child_checkedState = false;
+										    if (is_array($term_query)) {
+										        if (in_array($child_term->slug, $term_query)) {
+										            $child_checkedState = true;
+										        }
+										    } elseif ($term_query == $child_term->slug) {
+										        $child_checkedState = true;
+										    }
+										    ?>
 												<div class="flex gap-2 items-center">
 													<input id="<?php echo $taxonomy['slug'] . '_' . $child_term->slug; ?>" class="!m-0 w-4 h-4"
 														type="checkbox"
 														x-init="selectedItemsCount = selectedItemsCount + <?php echo $child_checkedState ? 1 : 0; ?>"
 														x-on:change="selectedItemsCount = $event.target.checked ? selectedItemsCount + 1 : selectedItemsCount - 1"
-														name="<?php echo $taxonomy['slug']; ?>[]" value="<?php echo $child_term->slug; ?>" <?php if ( $child_checkedState ) : ?>checked<?php endif; ?>>
+														name="<?php echo $taxonomy['slug']; ?>[]" value="<?php echo $child_term->slug; ?>" <?php if ($child_checkedState) : ?>checked<?php endif; ?>>
 													<label for="<?php echo $taxonomy['slug'] . '_' . $child_term->slug; ?>"
 														class="font-normal mb-0 leading-none">
 														<?php echo $child_term->name; ?>
@@ -282,19 +281,19 @@ if ( ! empty( $pre_filter_categories ) ) {
 								<?php endif; ?>
 							</li>
 							<?php
-						endforeach; ?>
+            endforeach; ?>
 					</ul>
-					<?php if ( count( $terms ) > 5 ) : ?>
-						<button class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__see-more' : 'underline' ?>"
+					<?php if (count($terms) > 5) : ?>
+						<button class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__see-more' : 'underline' ?>"
 							type="button" @click="showAll = !showAll">
 							<template x-if="showAll">
 								<span>
-									<?php echo __( 'See Less', 'wicket' ) ?>
+									<?php echo __('See Less', 'wicket') ?>
 								</span>
 							</template>
 							<template x-if="!showAll">
 								<span>
-									<?php echo __( 'See More', 'wicket' ) ?>
+									<?php echo __('See More', 'wicket') ?>
 								</span>
 							</template>
 						</button>
@@ -302,17 +301,17 @@ if ( ! empty( $pre_filter_categories ) ) {
 				</div>
 			</div>
 			<?php
-		endforeach; ?>
+        endforeach; ?>
 
-		<?php do_action( 'wicket_filter_form_before_date_range', $args ); ?>
+		<?php do_action('wicket_filter_form_before_date_range', $args); ?>
 
-		<?php if ( ! $hide_date_filter ) : ?>
+		<?php if (!$hide_date_filter) : ?>
 			<div x-data="{open: true}"
-				class="date-range-controls <?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
+				class="date-range-controls <?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section' : 'pb-3 mb-3 border-b border-light-020' ?>">
 				<button @click="open = ! open" id="date-dropdown-toggle" type="button" class="flex w-full gap-3 items-center">
 					<span
-						class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-						<?php echo __( 'Date Range', 'wicket' ); ?>
+						class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
+						<?php echo __('Date Range', 'wicket'); ?>
 					</span>
 					<span class="ml-auto">
 						<template x-if="open">
@@ -326,25 +325,25 @@ if ( ! empty( $pre_filter_categories ) ) {
 				<div id="date-dropdown" x-show="open">
 					<div class="mt-3">
 						<?php
-						$start_date = isset( $_GET['start_date'] ) ? $_GET['start_date'] : '';
-						$end_date   = isset( $_GET['end_date'] ) ? $_GET['end_date'] : '';
-						?>
+                        $start_date = $_GET['start_date'] ?? '';
+		    $end_date = $_GET['end_date'] ?? '';
+		    ?>
 						<div class="group relative mb-3">
 							<label for="start_date"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
-								<?php echo __( 'From:', 'wicket' ); ?>
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
+								<?php echo __('From:', 'wicket'); ?>
 							</label>
 							<input id="start_date"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
 								type="date" name="start_date" value="<?php echo $start_date; ?>">
 						</div>
 						<div class="group relative">
 							<label for="end_date"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
-								<?php echo __( 'To:', 'wicket' ); ?>
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
+								<?php echo __('To:', 'wicket'); ?>
 							</label>
 							<input id="end_date"
-								class="<?php echo defined( 'WICKET_WP_THEME_V2' ) ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
+								class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
 								type="date" name="end_date" value="<?php echo $end_date; ?>">
 						</div>
 					</div>
@@ -353,33 +352,33 @@ if ( ! empty( $pre_filter_categories ) ) {
 		<?php endif; ?>
 
 		<?php
-		get_component( 'button', [ 
-			'variant'  => 'primary',
-			'label'    => __( 'Apply Filters', 'wicket' ),
-			'reversed' => $reversed,
-			'type'     => 'submit',
-			'classes'  => defined( 'WICKET_WP_THEME_V2' ) ? [ 'component-filter-form__submit' ] : [ 'mt-4' ],
-		] );
-		?>
+        get_component('button', [
+            'variant'  => 'primary',
+            'label'    => __('Apply Filters', 'wicket'),
+            'reversed' => $reversed,
+            'type'     => 'submit',
+            'classes'  => defined('WICKET_WP_THEME_V2') ? ['component-filter-form__submit'] : ['mt-4'],
+        ]);
+?>
 
 		<div>
 			<?php
-			$clear_all_url = strtok( $_SERVER['REQUEST_URI'], '?' ); // Grabs everything in the URI before a ? character
-			if ( isset( $_GET['s'] ) ) {
-				$clear_all_url .= '?s=';
-			}
-			?>
+    $clear_all_url = strtok($_SERVER['REQUEST_URI'], '?'); // Grabs everything in the URI before a ? character
+if (isset($_GET['s'])) {
+    $clear_all_url .= '?s=';
+}
+?>
 
 			<?php
-			get_component( 'button', [ 
-				'variant'     => 'ghost',
-				'label'       => __( 'Clear All', 'wicket' ),
-				'a_tag'       => true,
-				'prefix_icon' => 'fa-solid fa-xmark',
-				'link'        => $clear_all_url,
-				'classes'     => defined( 'WICKET_WP_THEME_V2' ) ? [ 'component-filter-form__clear-btn' ] : [ 'mt-3' ],
-			] );
-			?>
+get_component('button', [
+    'variant'     => 'ghost',
+    'label'       => __('Clear All', 'wicket'),
+    'a_tag'       => true,
+    'prefix_icon' => 'fa-solid fa-xmark',
+    'link'        => $clear_all_url,
+    'classes'     => defined('WICKET_WP_THEME_V2') ? ['component-filter-form__clear-btn'] : ['mt-3'],
+]);
+?>
 		</div>
 
 	</div>

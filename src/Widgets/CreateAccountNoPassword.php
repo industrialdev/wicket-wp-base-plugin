@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WicketWP\Widgets;
 
-/**
+/*
  * Wicket Create Account (No Password)
  * Description: Providies a widget to sign up to Wicket as a person without password entry
  *
@@ -14,15 +14,12 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-use Wicket\Client;
-
 /*
  * The widget class
  * http://www.wpexplorer.com/create-widget-plugin-wordpress
  */
 class CreateAccountNoPassword extends \WP_Widget
 {
-
     public $errors;
 
     // Main constructor
@@ -31,13 +28,14 @@ class CreateAccountNoPassword extends \WP_Widget
         parent::__construct(
             'wicket_create_account_no_password',
             __('Wicket Create Account (No Password)', 'wicket'),
-            array(
+            [
                 'customize_selective_refresh' => true,
-            )
+            ]
         );
     }
 
-    public static function init() {
+    public static function init()
+    {
         add_action('init', function () {
             if (isset($_POST['wicket_create_account_no_password'])) {
                 // Get the widget instance that's registered
@@ -71,10 +69,10 @@ class CreateAccountNoPassword extends \WP_Widget
         if (!$client) {
             // If the API isn't up, display an error to admins.
 
-                echo '<div class="alert alert-danger" role="alert">';
-                echo '<strong>' . __('Wicket Block Error:', 'wicket') . '</strong> ';
-                echo __('Wicket API credentials are not configured. Please define them in your configuration to enable this block.', 'wicket');
-                echo '</div>';
+            echo '<div class="alert alert-danger" role="alert">';
+            echo '<strong>' . __('Wicket Block Error:', 'wicket') . '</strong> ';
+            echo __('Wicket API credentials are not configured. Please define them in your configuration to enable this block.', 'wicket');
+            echo '</div>';
 
             return;
         }
@@ -95,7 +93,7 @@ class CreateAccountNoPassword extends \WP_Widget
         $response = $_POST['g-recaptcha-response'];
         $remoteip = $_SERVER['REMOTE_ADDR'];
 
-        curl_setopt($ch, CURLOPT_URL, "https://www.google.com/recaptcha/api/siteverify");
+        curl_setopt($ch, CURLOPT_URL, 'https://www.google.com/recaptcha/api/siteverify');
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt(
             $ch,
@@ -108,6 +106,7 @@ class CreateAccountNoPassword extends \WP_Widget
         $google_response = curl_exec($ch);
         curl_close($ch);
         $google_response = json_decode($google_response)->success;
+
         return $google_response;
     }
 
@@ -119,8 +118,10 @@ class CreateAccountNoPassword extends \WP_Widget
     {
         $errors = [];
 
-        if(!headers_sent()){
-            if (!session_id()) session_start();
+        if (!headers_sent()) {
+            if (!session_id()) {
+                session_start();
+            }
         }
 
         if (isset($_POST['wicket_create_account_no_password'])) {
@@ -128,32 +129,32 @@ class CreateAccountNoPassword extends \WP_Widget
             /**------------------------------------------------------------------
              * Create Account
             ------------------------------------------------------------------*/
-            $first_name = isset($_POST['given_name']) ? $_POST['given_name'] : '';
-            $last_name = isset($_POST['family_name']) ? $_POST['family_name'] : '';
-            $email = isset($_POST['address']) ? $_POST['address'] : '';
+            $first_name = $_POST['given_name'] ?? '';
+            $last_name = $_POST['family_name'] ?? '';
+            $email = $_POST['address'] ?? '';
 
             if ($first_name == '') {
-                $first_name_blank = new \stdClass;
-                $first_name_blank->meta = (object)['field' => 'user.given_name'];
+                $first_name_blank = new \stdClass();
+                $first_name_blank->meta = (object) ['field' => 'user.given_name'];
                 $first_name_blank->title = __("can't be blank", 'wicket');
                 $errors[] = $first_name_blank;
             }
             if ($last_name == '') {
-                $last_name_blank = new \stdClass;
-                $last_name_blank->meta = (object)['field' => 'user.family_name'];
+                $last_name_blank = new \stdClass();
+                $last_name_blank->meta = (object) ['field' => 'user.family_name'];
                 $last_name_blank->title = __("can't be blank", 'wicket');
                 $errors[] = $last_name_blank;
             }
             if ($email == '') {
-                $email_blank = new \stdClass;
-                $email_blank->meta = (object)['field' => 'emails.address'];
+                $email_blank = new \stdClass();
+                $email_blank->meta = (object) ['field' => 'emails.address'];
                 $email_blank->title = __("can't be blank", 'wicket');
                 $errors[] = $email_blank;
             }
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $email_invalid = new \stdClass;
-                $email_invalid->meta = (object)['field' => 'emails.address'];
-                $email_invalid->title = __("must be a valid email address", 'wicket');
+                $email_invalid = new \stdClass();
+                $email_invalid->meta = (object) ['field' => 'emails.address'];
+                $email_invalid->title = __('must be a valid email address', 'wicket');
                 $errors[] = $email_invalid;
             }
 
@@ -161,11 +162,11 @@ class CreateAccountNoPassword extends \WP_Widget
             if ($enable_google_captcha === '1') {
                 $passes_google_check = $this->wicket_check_google_captcha();
                 if (!$passes_google_check) {
-                    $errors[] = (object)[
+                    $errors[] = (object) [
                         'title' => __(' - Please validate using the captcha below'),
-                        'meta' => (object)[
-                            'field' => 'google'
-                        ]
+                        'meta' => (object) [
+                            'field' => 'google',
+                        ],
                     ];
                 }
             }
@@ -175,7 +176,7 @@ class CreateAccountNoPassword extends \WP_Widget
             if (empty($errors)) {
                 $new_person = wicket_create_person($first_name, $last_name, $email);
 
-                if(isset($new_person['errors'])) {
+                if (isset($new_person['errors'])) {
                     foreach ($new_person['errors'] as $error) {
                         if ($error->meta->error == 'taken' && $error->meta->field == 'emails.address' && $error->meta->claimable == 1) {
                             // build person payload
@@ -183,10 +184,10 @@ class CreateAccountNoPassword extends \WP_Widget
                                 'data' => [
                                     'type' => 'people',
                                     'attributes' => [
-                                    'given_name' => $first_name,
-                                    'family_name' => $last_name
-                                    ]
-                                ]
+                                        'given_name' => $first_name,
+                                        'family_name' => $last_name,
+                                    ],
+                                ],
                             ];
 
                             try {
@@ -195,12 +196,12 @@ class CreateAccountNoPassword extends \WP_Widget
                             } catch (\Throwable $th) {
                                 $_SESSION['wicket_create_account_no_password_form_errors'] = $new_person['errors'];
                             }
-                        }else{
+                        } else {
                             $_SESSION['wicket_create_account_no_password_form_errors'] = $new_person['errors'];
                         }
                     }
                 }
-                /**------------------------------------------------------------------ 
+                /**------------------------------------------------------------------
                  * Redirect to a verify page if person was created
                 ------------------------------------------------------------------*/
                 if (empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
@@ -210,7 +211,7 @@ class CreateAccountNoPassword extends \WP_Widget
                     do_action('after_person_create_account', $new_person);
 
                     // Try to get the configured redirect page
-                    $creation_redirect_id   = wicket_get_option('wicket_admin_settings_person_creation_redirect');
+                    $creation_redirect_id = wicket_get_option('wicket_admin_settings_person_creation_redirect');
                     $creation_redirect_path = $creation_redirect_id ? get_permalink($creation_redirect_id) : false;
 
                     // Fallback if missing
@@ -240,40 +241,40 @@ class CreateAccountNoPassword extends \WP_Widget
                 unset($_SESSION['wicket_create_account_no_password_form_errors']);
             }
         }
-?>
+        ?>
     <div class="wicket-base-plugin-form">
         <script src='https://www.google.com/recaptcha/api.js?hl=en'></script>
         <?php if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) : ?>
             <div class='alert alert-danger' role="alert">
                 <p><?php printf(_n('The form could not be submitted because 1 error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_create_account_no_password_form_errors']), 'wicket'), number_format_i18n(count($_SESSION['wicket_create_account_no_password_form_errors']))); ?></p>
                 <?php
-                $counter = 1;
-                echo "<ul>";
-                foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
-                    if ($error->meta->field == 'user.given_name') {
-                        $prefix = __("First Name", 'wicket') . ' ';
-                        printf(__("<li><a href='#given_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    if ($error->meta->field == 'user.family_name') {
-                        $prefix = __("Last Name", 'wicket') . ' ';
-                        printf(__("<li><a href='#family_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    if ($error->meta->field == 'emails.address') {
-                        $prefix = __("Email", 'wicket') . ' - ';
-                        printf(__("<li><a href='#address'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    if ($error->meta->field == 'google') {
-                        $prefix = __("Captcha", 'wicket') . ' ';
-                        printf(__("<li><a href='#google'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                    }
-                    $counter++;
+                        $counter = 1;
+            echo '<ul>';
+            foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
+                if ($error->meta->field == 'user.given_name') {
+                    $prefix = __('First Name', 'wicket') . ' ';
+                    printf(__("<li><a href='#given_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
                 }
-                echo "</ul>";
-                ?>
+                if ($error->meta->field == 'user.family_name') {
+                    $prefix = __('Last Name', 'wicket') . ' ';
+                    printf(__("<li><a href='#family_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
+                }
+                if ($error->meta->field == 'emails.address') {
+                    $prefix = __('Email', 'wicket') . ' - ';
+                    printf(__("<li><a href='#address'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
+                }
+                if ($error->meta->field == 'google') {
+                    $prefix = __('Captcha', 'wicket') . ' ';
+                    printf(__("<li><a href='#google'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
+                }
+                $counter++;
+            }
+            echo '</ul>';
+            ?>
             </div>
         <?php elseif (isset($_GET['success'])) : ?>
             <div class='alert alert--success'>
-                <p><?php _e("Successfully Created", 'wicket'); ?></p>
+                <p><?php _e('Successfully Created', 'wicket'); ?></p>
             </div>
         <?php endif; ?>
 
@@ -282,67 +283,67 @@ class CreateAccountNoPassword extends \WP_Widget
                 <label class="form__label" for="given_name"><?php _e('First Name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
-                            if (isset($error->meta->field) && $error->meta->field == 'user.given_name') {
-                                $given_name_err = true;
-                            }
+                if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+                    foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
+                        if (isset($error->meta->field) && $error->meta->field == 'user.given_name') {
+                            $given_name_err = true;
                         }
                     }
-                    ?>
+                }
+        ?>
                 </label>
-                <input class="form__input <?php echo isset($given_name_err) ? 'error_input' : '' ?>" required type="text" id="given_name" name="given_name" value="<?php echo isset($_POST['given_name']) ? $_POST['given_name'] : '' ?>">
+                <input class="form__input <?php echo isset($given_name_err) ? 'error_input' : '' ?>" required type="text" id="given_name" name="given_name" value="<?php echo $_POST['given_name'] ?? '' ?>">
             </div>
 
             <div class="form__group">
                 <label class="form__label" for="family_name"><?php _e('Last Name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
-                            if (isset($error->meta->field) && $error->meta->field == 'user.family_name') {
-                                $last_name_err = true;
-                            }
-                        }
-                    }
-                    ?>
+        if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+            foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
+                if (isset($error->meta->field) && $error->meta->field == 'user.family_name') {
+                    $last_name_err = true;
+                }
+            }
+        }
+        ?>
                 </label>
-                <input class="form__input <?php echo isset($last_name_err) ? 'error_input' : '' ?>" required type="text" id="family_name" name="family_name" value="<?php echo isset($_POST['family_name']) ? $_POST['family_name'] : '' ?>">
+                <input class="form__input <?php echo isset($last_name_err) ? 'error_input' : '' ?>" required type="text" id="family_name" name="family_name" value="<?php echo $_POST['family_name'] ?? '' ?>">
             </div>
 
             <div class="form__group">
                 <label class="form__label" for="address"><?php _e('Email', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
-                    if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
-                        foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
-                            if (isset($error->meta->field) && $error->meta->field == 'emails.address') {
-                                $address_err = true;
-                            }
-                        }
-                    }
-                    ?>
+        if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
+            foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
+                if (isset($error->meta->field) && $error->meta->field == 'emails.address') {
+                    $address_err = true;
+                }
+            }
+        }
+        ?>
                 </label>
-                <input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo isset($_POST['address']) ? $_POST['address'] : '' ?>">
+                <input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo $_POST['address'] ?? '' ?>">
             </div>
 
             <a name="google"></a>
             <?php
             $enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
-            $recaptcha_key = wicket_get_option('wicket_admin_settings_google_captcha_key');
-            if (($enable_google_captcha === '1') && $recaptcha_key) :
+        $recaptcha_key = wicket_get_option('wicket_admin_settings_google_captcha_key');
+        if (($enable_google_captcha === '1') && $recaptcha_key) :
             ?>
                 <div class="g-recaptcha" data-sitekey="<?php echo $recaptcha_key ?>"></div>
             <?php endif; ?>
             <input type="hidden" name="wicket_create_account_no_password" value="<?php echo $this->id_base . '-' . $this->number; ?>" />
 
             <?php
-                get_component( 'button', [
+                get_component('button', [
                     'label'    => __('Submit', 'wicket'),
                     'type'    => 'submit',
-                    'variant' => 'primary'
-                ] );
-            ?>
+                    'variant' => 'primary',
+                ]);
+        ?>
         </form>
     </div>
 <?php

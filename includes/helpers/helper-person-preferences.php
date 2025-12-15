@@ -37,12 +37,14 @@ function wicket_person_update_communication_preferences($preferences, $options =
 
         if (empty($person_uuid)) {
             error_log('wicket_person_update_communication_preferences: Unable to determine person UUID');
+
             return false;
         }
     }
 
     if (!is_array($preferences) || empty($preferences)) {
         error_log('wicket_person_update_communication_preferences: Invalid preferences array');
+
         return false;
     }
 
@@ -50,6 +52,7 @@ function wicket_person_update_communication_preferences($preferences, $options =
         $client = wicket_api_client();
         if (!$client) {
             error_log('wicket_person_update_communication_preferences: Failed to get Wicket API client');
+
             return false;
         }
 
@@ -69,6 +72,7 @@ function wicket_person_update_communication_preferences($preferences, $options =
         // If no valid preferences were provided, return false
         if (empty($communications_data)) {
             error_log('wicket_person_update_communication_preferences: No valid preferences provided');
+
             return false;
         }
 
@@ -79,10 +83,10 @@ function wicket_person_update_communication_preferences($preferences, $options =
                 'id' => $person_uuid,
                 'attributes' => [
                     'data' => [
-                        'communications' => $communications_data
-                    ]
-                ]
-            ]
+                        'communications' => $communications_data,
+                    ],
+                ],
+            ],
         ];
 
         // Make the PATCH request to the MDP API
@@ -102,6 +106,7 @@ function wicket_person_update_communication_preferences($preferences, $options =
             $person_uuid,
             $e->getMessage()
         ));
+
         return false;
     }
 }
@@ -134,6 +139,7 @@ function wicket_person_update_sublist_preferences($sublists, $options = [])
 {
     if (!is_array($sublists) || empty($sublists)) {
         error_log('wicket_person_update_sublist_preferences: Invalid sublists array provided');
+
         return false;
     }
 
@@ -156,7 +162,7 @@ function wicket_person_enable_all_communications($available_sublists = ['one', '
 
     return wicket_person_update_communication_preferences([
         'email' => true,
-        'sublists' => $sublists
+        'sublists' => $sublists,
     ], $options);
 }
 
@@ -176,7 +182,7 @@ function wicket_person_disable_all_communications($available_sublists = ['one', 
 
     return wicket_person_update_communication_preferences([
         'email' => false,
-        'sublists' => $sublists
+        'sublists' => $sublists,
     ], $options);
 }
 
@@ -206,6 +212,7 @@ function wicket_person_get_communication_preferences($options = [])
 
         if (empty($person_uuid)) {
             error_log('wicket_person_get_communication_preferences: Unable to determine person UUID');
+
             return null;
         }
     }
@@ -214,6 +221,7 @@ function wicket_person_get_communication_preferences($options = [])
         $client = wicket_api_client();
         if (!$client) {
             error_log('wicket_person_get_communication_preferences: Failed to get Wicket API client');
+
             return null;
         }
 
@@ -230,7 +238,7 @@ function wicket_person_get_communication_preferences($options = [])
 
         return [
             'email' => $communications['email'] ?? null,
-            'sublists' => $communications['sublists'] ?? []
+            'sublists' => $communications['sublists'] ?? [],
         ];
     } catch (Exception $e) {
         error_log(sprintf(
@@ -238,6 +246,7 @@ function wicket_person_get_communication_preferences($options = [])
             $person_uuid,
             $e->getMessage()
         ));
+
         return null;
     }
 }

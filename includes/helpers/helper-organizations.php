@@ -15,6 +15,7 @@ function wicket_get_organization_addresses($org_id)
 
     try {
         $org = $client->get("organizations/$org_id/addresses");
+
         return $org;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;

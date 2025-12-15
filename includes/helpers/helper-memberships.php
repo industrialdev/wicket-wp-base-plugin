@@ -7,7 +7,7 @@ defined('ABSPATH') || exit;
  * WPML-aware helper to detect if a product belongs to the 'membership' product category.
  * Accepts product ID or WC_Product instance. Falls back to checking translations when WPML is present.
  *
- * @param int|\WC_Product $product
+ * @param int|WC_Product $product
  * @return bool
  */
 function wicket_is_membership_product($product)
@@ -49,7 +49,7 @@ function wicket_is_membership_product($product)
         $translated_term_id = apply_filters('wpml_object_id', $term_id, 'product_cat', false, $current_lang);
 
         if ($translated_term_id) {
-            $terms = wp_get_post_terms($product_id, 'product_cat', array('fields' => 'ids'));
+            $terms = wp_get_post_terms($product_id, 'product_cat', ['fields' => 'ids']);
             if (!empty($terms) && in_array($translated_term_id, $terms, true)) {
                 return true;
             }

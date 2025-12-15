@@ -13,19 +13,19 @@ defined('ABSPATH') || exit;
  */
 function wicket_get_current_user_touchpoints($service_id)
 {
-  $client    = wicket_api_client();
-  $person_id = wicket_current_person_uuid();
+    $client = wicket_api_client();
+    $person_id = wicket_current_person_uuid();
 
-  try {
-    $touchpoints = $client->get("people/$person_id/touchpoints?page[size]=100&filter[service_id]=$service_id", ['json']);
+    try {
+        $touchpoints = $client->get("people/$person_id/touchpoints?page[size]=100&filter[service_id]=$service_id", ['json']);
 
-    return $touchpoints;
-  } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
-  }
-  return false;
+        return $touchpoints;
+    } catch (Exception $e) {
+        $errors = json_decode($e->getResponse()->getBody())->errors;
+    }
+
+    return false;
 }
-
 
 /**
  * Write a Touchpoint.
@@ -55,19 +55,19 @@ function wicket_get_current_user_touchpoints($service_id)
  */
 function write_touchpoint($params, $wicket_service_id)
 {
-  $client  = wicket_api_client();
-  $payload = build_touchpoint_payload($params, $wicket_service_id);
+    $client = wicket_api_client();
+    $payload = build_touchpoint_payload($params, $wicket_service_id);
 
-  if ($payload) {
-    try {
-      $res = $client->post('touchpoints', ['json' => $payload]);
-    } catch (\Exception $e) {
-      error_log($e->getMessage());
+    if ($payload) {
+        try {
+            $res = $client->post('touchpoints', ['json' => $payload]);
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
+        if (isset($res)) {
+            return true;
+        }
     }
-    if (isset($res)) {
-      return true;
-    }
-  }
 }
 
 /**
@@ -86,40 +86,40 @@ function write_touchpoint($params, $wicket_service_id)
  */
 function build_touchpoint_payload($params, $wicket_service_id)
 {
-  $payload = [
-    'data' => [
-      'type' => 'touchpoints',
-      'attributes' => [
-        'action' => $params['action'],
-        'details' => html_entity_decode($params['details']),
-        'code' => str_replace(' ', '_', strtolower($params['action'])),
-      ],
-      'relationships' => [
-        'person' => [
-          'data' => [
-            'id' => $params['person_id'],
-            'type' => 'people'
-          ]
+    $payload = [
+        'data' => [
+            'type' => 'touchpoints',
+            'attributes' => [
+                'action' => $params['action'],
+                'details' => html_entity_decode($params['details']),
+                'code' => str_replace(' ', '_', strtolower($params['action'])),
+            ],
+            'relationships' => [
+                'person' => [
+                    'data' => [
+                        'id' => $params['person_id'],
+                        'type' => 'people',
+                    ],
+                ],
+                'service' => [
+                    'data' => [
+                        'id' => $wicket_service_id, //service id in wicket
+                        'type' => 'services',
+                    ],
+                ],
+            ],
         ],
-        'service' => [
-          'data' => [
-            'id' => $wicket_service_id, //service id in wicket
-            'type' => 'services'
-          ]
-        ]
-      ],
-    ]
-  ];
+    ];
 
-  if (isset($params['data'])) {
-    $payload['data']['attributes']['data'] = $params['data'];
-  }
+    if (isset($params['data'])) {
+        $payload['data']['attributes']['data'] = $params['data'];
+    }
 
-  if (isset($params['external_event_id'])) {
-    $payload['data']['attributes']['external_event_id'] = $params['external_event_id'];
-  }
+    if (isset($params['external_event_id'])) {
+        $payload['data']['attributes']['external_event_id'] = $params['external_event_id'];
+    }
 
-  return $payload;
+    return $payload;
 }
 
 /**
@@ -141,34 +141,34 @@ function build_touchpoint_payload($params, $wicket_service_id)
  */
 function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP', $integration_type = 'custom')
 {
-  $client = wicket_api_client();
+    $client = wicket_api_client();
 
-  // check for existing service, return service ID
-  $existing_services = $client->get("services?filter[name_eq]=$service_name");
-  $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
+    // check for existing service, return service ID
+    $existing_services = $client->get("services?filter[name_eq]=$service_name");
+    $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
 
-  if ($existing_service) {
-    return $existing_service;
-  }
+    if ($existing_service) {
+        return $existing_service;
+    }
 
-  // if no existing service, create one and return service ID
-  $payload['data']['attributes'] = [
-    'name' => $service_name,
-    'description' => $service_description,
-    'status' => 'active',
-    'integration_type' => $integration_type,
-    'integration_settings' => [
-      'base_url' => get_home_url()
-    ],
-  ];
+    // if no existing service, create one and return service ID
+    $payload['data']['attributes'] = [
+        'name' => $service_name,
+        'description' => $service_description,
+        'status' => 'active',
+        'integration_type' => $integration_type,
+        'integration_settings' => [
+            'base_url' => get_home_url(),
+        ],
+    ];
 
-  try {
-    $service = $client->post("/services", ['json' => $payload]);
+    try {
+        $service = $client->post('/services', ['json' => $payload]);
 
-    return $service['data']['id'];
-  } catch (Exception $e) {
-    $errors = json_decode($e->getResponse()->getBody())->errors;
-  }
+        return $service['data']['id'];
+    } catch (Exception $e) {
+        $errors = json_decode($e->getResponse()->getBody())->errors;
+    }
 
-  return false;
+    return false;
 }
