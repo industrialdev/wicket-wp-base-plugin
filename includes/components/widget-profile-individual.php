@@ -1,17 +1,19 @@
 <?php
-$defaults        = [
-  'classes'                    => [],
-  'user_info_data_field_name'  => 'profile-user-info',
-  'validation_data_field_name' => 'profile-validation',
-  'org_id'                     => '',
+$defaults = [
+    'classes'                    => [],
+    'user_info_data_field_name'  => 'profile-user-info',
+    'validation_data_field_name' => 'profile-validation',
+    'org_id'                     => '',
+    'hidden_fields'              => [],
 ];
 
-$args                       = wp_parse_args($args, $defaults);
-$classes                    = $args['classes'];
-$user_info_data_field_name  = $args['user_info_data_field_name'];
+$args = wp_parse_args($args, $defaults);
+$classes = $args['classes'];
+$user_info_data_field_name = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
-$org_id                     = $args['org_id'];
-$unique_widget_id           = rand(1, PHP_INT_MAX);
+$org_id = $args['org_id'];
+$hidden_fields = $args['hidden_fields'];
+$unique_widget_id = rand(1, PHP_INT_MAX);
 
 $wicket_settings = get_wicket_settings();
 ?>
@@ -60,6 +62,9 @@ $wicket_settings = get_wicket_settings();
          accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
          personId: '<?php echo wicket_current_person_uuid(); ?>',
          orgId: '<?php echo $org_id; ?>',
+         <?php if (!empty($hidden_fields)) : ?>
+         hiddenFields: <?php echo json_encode($hidden_fields); ?>,
+         <?php endif; ?>
          lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: {
            addresses: "work",
