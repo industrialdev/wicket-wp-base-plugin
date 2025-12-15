@@ -50,6 +50,17 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
             wp_cache_flush();
         }
 
+        // --- BREEZE FIX START: Disable Breeze Hooks ---
+        // https://wicket.zendesk.com/agent/tickets/6911
+        // We unhook Breeze so it doesn't try to set/clear cookies during this sensitive revert.
+        if ( function_exists( 'breeze_auth_cookie_set' ) ) {
+            remove_action( 'set_auth_cookie', 'breeze_auth_cookie_set', 15 );
+        }
+        if ( function_exists( 'breeze_auth_cookie_clear' ) ) {
+            remove_action( 'clear_auth_cookie', 'breeze_auth_cookie_clear' );
+        }
+        // --- BREEZE FIX END ---
+
         // Revert the switch – restore original user session.
         if (function_exists('switch_to_user') && $old_user_id) {
             // Use plugin's helper so cookies & session are correctly reset. Third param false triggers switch_back logic.
