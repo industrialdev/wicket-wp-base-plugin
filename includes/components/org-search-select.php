@@ -77,6 +77,7 @@ $responseMessage                               = $args['response_message'];
 $description                                   = $args['description'];
 $job_title                                     = $args['job_title'];
 $display_org_fields                            = $args['display_org_fields'];
+$display_org_type                              = $args['display_org_type'] ?? false;
 $formId                                        = $args['form_id'];
 $lang                                          = wicket_get_current_language();
 $is_wicket_theme                               = defined('WICKET_THEME');
@@ -144,6 +145,34 @@ if ($searchMode == 'org') {
           }
         }
       }
+
+      /**------------------------------------------------------------------
+       * Get Primary Address
+      ------------------------------------------------------------------*/
+      $org_addresses = wicket_get_organization_addresses($org_id);
+
+      $address1 = '';
+      $city = '';
+      $zip_code = '';
+      $state_name = '';
+      $country_code = '';
+
+      if (!empty($org_addresses['data']) && is_array($org_addresses['data'])) {
+        foreach ($org_addresses['data'] as $address) {
+          if (
+            isset($address['attributes']['primary']) &&
+            $address['attributes']['primary'] === true
+          ) {
+            $address1     = $address['attributes']['address1'] ?? '';
+            $city         = $address['attributes']['city'] ?? '';
+            $zip_code     = $address['attributes']['zip_code'] ?? '';
+            $state_name   = $address['attributes']['state_name'] ?? '';
+            $country_code = $address['attributes']['country_code'] ?? '';
+            break; // stop after finding primary address
+          }
+        }
+      }
+
       $person_to_org_connections[] = [
         'connection_id'     => $connection['id'],
         'connection_type'   => $connection['attributes']['connection_type'],
@@ -164,6 +193,11 @@ if ($searchMode == 'org') {
         'org_parent_id'     => $org_info['org_parent_id'],
         'org_parent_name'   => $org_info['org_parent_name'],
         'person_id'         => $connection['relationships']['person']['data']['id'],
+        'address1'          => $address1,
+        'city'              => $city,
+        'zip_code'          => $zip_code,
+        'state_name'        => $state_name,
+        'country_code'      => $country_code,
       ];
     }
   }
@@ -479,20 +513,25 @@ $available_org_types = wicket_get_resource_types('organizations');
                 <?php endif; ?>
                 ></div>
             </div>
-            <?php get_component('button', [
-              'variant'  => 'secondary',
-              'reversed' => false,
-              'label'    => __('Select', 'wicket'),
-              'type'     => 'button',
-              'classes'  => ['component-org-search-select__select-result-button'],
-              'atts'     => [
-                'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
-                'x-bind:class="{
-                  \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
-                  \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
-                }"'
-              ]
-            ]); ?>
+            <?php if ($display_org_type === true) : ?>
+              <div class="component-org-search-select__matching-org-type" x-text="result.type_name"></div>
+            <?php endif; ?>
+            <div class="component-org-search-select__matching-org-action" >
+              <?php get_component('button', [
+                'variant'  => 'secondary',
+                'reversed' => false,
+                'label'    => __('Select', 'wicket'),
+                'type'     => 'button',
+                'classes'  => ['component-org-search-select__select-result-button'],
+                'atts'     => [
+                  'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
+                  'x-bind:class="{
+                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
+                    \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
+                  }"'
+                ]
+              ]); ?>
+            </div>
           </div>
         </template>
 
@@ -589,6 +628,15 @@ $available_org_types = wicket_get_resource_types('organizations');
                 </template>
               </div>
             </div>
+            <div class="component-org-search-select__org-subtitle"
+              <?php if ($display_org_fields === 'name_location') : ?>
+                x-text="`${connection.city ? connection.city + (connection.state_name ? ', ' : '') : ''}${connection.state_name ? connection.state_name : ''}${connection.country_code ? (connection.city || connection.state_name ? ', ' : '') + connection.country_code : ''}`"
+              <?php elseif ($display_org_fields === 'name_address') : ?>
+                x-text="`${connection.address1 ? connection.address1 + (connection.city ? ', ' : '') : ''}${connection.city ? connection.city + (connection.state_name ? ', ' : '') : ''}${connection.state_name ? connection.state_name + (connection.zip_code ? ' ' : '') : ''}${connection.zip_code ? connection.zip_code : ''}${connection.country_code ? (connection.address1 || connection.city || connection.state_name || connection.zip_code ? ', ' : '') + connection.country_code : ''}`"
+              <?php endif; ?>
+              >
+            </div>
+
             <div x-show="showOrgParentName"
               class="component-org-search-select__org-parent-name <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mb-3' ?>"
               x-text="orgParentName"></div>

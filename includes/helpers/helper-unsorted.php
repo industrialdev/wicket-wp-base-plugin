@@ -478,6 +478,24 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             return false;
         }
 
+        // Map Org types with labels nicely.
+        $org_types = wicket_get_resource_types('organizations');
+        $org_types_mapped = [];
+
+        if ($org_types !== false) {
+            foreach ($org_types['data'] as $item) {
+                $slug = $item['attributes']['slug'] ?? null;
+                if (!$slug) continue;
+
+                $org_types_mapped[$slug] = [
+                    'name'    => $item['attributes']['name']    ?? null,
+                    'name_en' => $item['attributes']['name_en'] ?? null,
+                    'name_fr' => $item['attributes']['name_fr'] ?? null,
+                    'name_es' => $item['attributes']['name_es'] ?? null,
+                ];
+            }
+        }
+
         $results = [];
 
         if ($search_organizations['meta']['page']['total_items'] > 0) {
@@ -545,6 +563,7 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
                 $results[$result['id']]['id'] = $result['id'];
                 $results[$result['id']]['name'] = $result['attributes']['organization']['legal_name'];
                 $results[$result['id']]['type'] = $result['attributes']['organization']['type'];
+                $results[$result['id']]['type_name'] = $org_types_mapped[$result['attributes']['organization']['type']]['name'] ?? '';
                 $results[$result['id']]['address1'] = $address1;
                 $results[$result['id']]['city'] = $city;
                 $results[$result['id']]['zip_code'] = $zip_code;
