@@ -37,6 +37,7 @@ $defaults = [
     'description'                                   => '', // Description to be set on the connection
     'job_title'                                     => '',
     'display_org_fields'                            => 'name', // Options: name, name_location, name_address
+    'display_org_type'                              => false,
     'form_id'                                       => 0,
 ];
 $args = wp_parse_args($args, $defaults);
