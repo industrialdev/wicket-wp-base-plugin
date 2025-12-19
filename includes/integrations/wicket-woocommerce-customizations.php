@@ -66,3 +66,63 @@ function wicket_disable_cart_links()
 if (wicket_get_option('wicket_admin_settings_woo_remove_added_to_cart_message') === '1') {
     add_filter('wc_add_to_cart_message_html', '__return_false');
 }
+
+
+/**
+ * Prevent WooCommerce from deleting draft orders
+ * 
+ * This prevents WooCommerce (v10+) from scheduling the automatic cleanup of draft orders
+ * via Action Scheduler. By default, this prevents ALL draft order deletion.
+ * 
+ * Developers can disable this prevention by using the filter:
+ * 
+ * Example to allow draft order cleanup:
+ * add_filter( 'wicket_prevent_draft_order_cleanup', '__return_false' );
+ * 
+ * Example to conditionally allow cleanup (e.g., only for specific draft orders):
+ * add_filter( 'wicket_prevent_draft_order_cleanup', function( $prevent, $hook, $args ) {
+ *     // Your custom logic here
+ *     return $prevent;
+ * }, 10, 3 );
+ * 
+ * @since 2.1.50
+ */
+add_filter( 'pre_as_schedule_recurring_action', function( $return, $timestamp, $interval, $hook, $args ) {
+    if ( 'woocommerce_cleanup_draft_orders' === $hook ) {
+        $prevent = apply_filters( 'wicket_prevent_draft_order_cleanup', true, $hook, $args );
+        if ( $prevent ) {
+            return false;
+        }
+    }
+    return $return;
+}, 10, 5 );
+
+add_filter( 'pre_as_schedule_cron_action', function( $return, $timestamp, $hook, $args ) {
+    if ( 'woocommerce_cleanup_draft_orders' === $hook ) {
+        $prevent = apply_filters( 'wicket_prevent_draft_order_cleanup', true, $hook, $args );
+        if ( $prevent ) {
+            return false;
+        }
+    }
+    return $return;
+}, 10, 4 );
+
+add_filter( 'pre_as_schedule_single_action', function( $return, $timestamp, $hook, $args ) {
+    if ( 'woocommerce_cleanup_draft_orders' === $hook ) {
+        $prevent = apply_filters( 'wicket_prevent_draft_order_cleanup', true, $hook, $args );
+        if ( $prevent ) {
+            return false;
+        }
+    }
+    return $return;
+}, 10, 4 );
+
+add_filter( 'pre_as_enqueue_async_action', function( $return, $hook, $args ) {
+    if ( 'woocommerce_cleanup_draft_orders' === $hook ) {
+        $prevent = apply_filters( 'wicket_prevent_draft_order_cleanup', true, $hook, $args );
+        if ( $prevent ) {
+            return false;
+        }
+    }
+    return $return;
+}, 10, 3 );
