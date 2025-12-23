@@ -243,6 +243,19 @@ $available_org_types = wicket_get_resource_types('organizations');
     <i class="fa-solid fa-arrows-rotate fa-spin"></i>
   </div> <!-- / .component-org-search-select__loading-overlay -->
 
+  <div class="component-org-search-select__removal-error-wrapper mb-4" x-cloak x-show="removalErrorVisible" x-transition>
+    <div class="component-org-search-select__removal-error border border-[var(--state-error,#B42318)] rounded-100 bg-[var(--state-error-light,#FEF3F2)] p-4 text-sm text-dark-100">
+      <div class="font-semibold text-dark-100" x-text="removalErrorMessage"></div>
+      <div class="mt-1" x-text="removalErrorHint"></div>
+      <template x-if="removalErrorDetail">
+        <pre class="mt-3 whitespace-pre-wrap break-words bg-white/80 rounded-50 p-3 text-[13px]" x-text="removalErrorDetail"></pre>
+      </template>
+      <button type="button" class="mt-3 text-[var(--interactive,#0044C1)] underline" x-on:click="clearRemovalError()">
+        <?php _e('Dismiss message', 'wicket'); ?>
+      </button>
+    </div>
+  </div>
+
   <?php // Confirmation Popup
   ?>
   <div x-transition x-cloak
@@ -837,6 +850,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       description: '<?php echo esc_js($description); ?>',
       jobTitle: '<?php echo esc_js($job_title); ?>',
       relationshipTypeFilter: '<?php echo $relationshipTypeFilter; ?>',
+      removalErrorVisible: false,
+      removalErrorMessage: '',
+      removalErrorHint: '',
+      removalErrorDetail: '',
 
       // Encapsulate filtering logic to avoid complex inline expressions
       matchesFilter(connection) {
@@ -859,6 +876,8 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
 
       init() {
+        this.clearRemovalError();
+
         // Normalize optional filter for backward compatibility
         if (typeof this.relationshipTypeFilter !== 'string') {
           this.relationshipTypeFilter = '';
@@ -1271,6 +1290,8 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
 
       async terminateRelationship(connectionId = null) {
+        this.clearRemovalError();
+
         // If we're using the remove confirmation feature
         if (this.removeConfirmationIsEnabled) {
           // If we're already showing the remove confirmation,
@@ -1326,20 +1347,11 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.isLoading = false;
             if (!data.success) {
               // Handle error
-              let errorMessage = data.data.toLowerCase();
-              if (errorMessage.indexOf('relationships do not match') !== -1) {
-                // The user tried to remove a relationship of a different type than was specified
-                // for this ORGSS component. If this is a common occurrence, should display an error.
-              }
-              if (errorMessage.indexOf(
-                  'wrong setting the end date of the connection') !== -1) {
-                // Display an error; they were likely trying to set the end date to the same day it was created
-                this.setSearchMessage(
-                  "<?php _e('There was an error removing that relationship. Note that you can\'t remove relationships on the same day you create them.', 'wicket'); ?>"
-                );
-              }
+              const serverMessage = typeof data.data === 'string' ? data.data : '';
+              this.showRemovalError(connectionId, serverMessage);
             } else {
               if (data.success) {
+                this.clearRemovalError();
                 this.removeConnection(connectionId);
               }
 
@@ -1471,6 +1483,56 @@ if (defined('WICKET_WP_THEME_V2')) {
           }
         });
         return found;
+      },
+      getConnectionById(connectionId) {
+        let foundConnection = null;
+        this.currentConnections.forEach((connection) => {
+          if (connection.connection_id == connectionId) {
+            foundConnection = connection;
+          }
+        });
+        return foundConnection;
+      },
+      showRemovalError(connectionId = '', serverMessage = '') {
+        const connection = this.getConnectionById(connectionId) || {};
+        const orgName = connection.org_name || '<?php echo esc_js(__('this organization', 'wicket')); ?>';
+        const connectionType = connection.relationship_type || '<?php echo esc_js(__('Unknown relationship', 'wicket')); ?>';
+        const configuredType = this.relationshipTypeUponOrgCreation || '<?php echo esc_js(__('Not specified', 'wicket')); ?>';
+
+        let friendlyMessage = '<?php echo esc_js(__('We could not remove %s.', 'wicket')); ?>'.replace('%s', orgName);
+        let friendlyHint = '<?php echo esc_js(__('Review the details below or contact support if this continues.', 'wicket')); ?>';
+        const normalized = (serverMessage || '').toLowerCase();
+
+        if (normalized.indexOf('relationships do not match') !== -1) {
+          friendlyHint = '<?php echo esc_js(__('This tool is limited to removing "%1$s" links, but this record is "%2$s".', 'wicket')); ?>'
+            .replace('%1$s', configuredType)
+            .replace('%2$s', connectionType);
+        } else if (normalized.indexOf('wrong setting the end date of the connection') !== -1) {
+          friendlyHint = "<?php echo esc_js(__('The MDP blocked ending this connection on the same day it was created. Try again tomorrow or contact support.', 'wicket')); ?>";
+        } else if (serverMessage) {
+          friendlyHint = serverMessage;
+        }
+
+        const detailLines = [];
+        if (connectionId) {
+          detailLines.push('Connection ID: ' + connectionId);
+        }
+        detailLines.push('Configured relationship type: ' + configuredType);
+        detailLines.push('Connection relationship type: ' + connectionType);
+        if (serverMessage) {
+          detailLines.push('Server message: ' + serverMessage);
+        }
+
+        this.removalErrorMessage = friendlyMessage;
+        this.removalErrorHint = friendlyHint;
+        this.removalErrorDetail = detailLines.join('\n');
+        this.removalErrorVisible = true;
+      },
+      clearRemovalError() {
+        this.removalErrorVisible = false;
+        this.removalErrorMessage = '';
+        this.removalErrorHint = '';
+        this.removalErrorDetail = '';
       },
       async doWpAction(actionType) {
         let data = {
