@@ -2015,7 +2015,10 @@ function wicket_assign_organization_membership(
     }
 
     if (!empty($previous_membership_uuid)) {
-        $payload['data']['attributes']['copy_previous_assignments'] = true;
+        $skip_copy_previous_assignments = apply_filters('wicket_org_create_membership_skip_copy_previous_assignments', false);
+        if (!$skip_copy_previous_assignments) {
+            $payload['data']['attributes']['copy_previous_assignments'] = true;
+        }
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
             'type' => 'organization_memberships',
             'id' => $previous_membership_uuid,
