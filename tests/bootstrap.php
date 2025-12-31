@@ -36,4 +36,24 @@ if (!defined('YEAR_IN_SECONDS')) {
     define('YEAR_IN_SECONDS', 31536000);
 }
 
+// Define Wicket plugin constants
+if (!defined('WICKET_URL')) {
+    define('WICKET_URL', 'http://example.com/wp-content/plugins/wicket-wp-base-plugin/');
+}
+
+if (!defined('WICKET_BASENAME')) {
+    define('WICKET_BASENAME', 'wicket-wp-base-plugin/wicket.php');
+}
+
+if (!defined('WICKET_PLUGIN_DIR')) {
+    define('WICKET_PLUGIN_DIR', dirname(__DIR__) . '/');
+}
+
+// Mock WordPress classes
+if (!class_exists('WP_Widget')) {
+    class WP_Widget {
+        public function __construct($id_base = '', $name = '', $widget_options = [], $control_options = []) {}
+    }
+}
+
 require_once dirname(__DIR__) . '/vendor/autoload.php';
