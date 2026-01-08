@@ -2,3 +2,5 @@
 node_modules
 wicket-child
 Finance Mapping and Deferral Dates Feature.md
+.php-cs-fixer.cache
+/.phpunit.cache
