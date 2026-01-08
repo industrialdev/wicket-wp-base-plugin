@@ -66,7 +66,7 @@ if (!class_exists('Wicket_Admin')) {
                 'manage_options', /* Capability */
                 'wicket-settings', /* Unique Menu slug */
                 '', /* Callback */
-                WICKET_URL . '/assets/images/wicket-icon.png', /* Icon */
+                WICKET_URL . '/assets/images/wicket-logo-20-white.svg', /* Icon */
                 80 /* Position */
             );
         }
