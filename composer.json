@@ -34,10 +34,11 @@
     }
   },
   "scripts": {
+    "production": "composer dump-autoload --optimize --no-dev",
+    "dump-autoload-prod": "@production",
     "version-bump": [
       "@php ./.ci/version-bump.php"
     ],
-    "dump-autoload-prod": "@php composer dump-autoload --optimize --no-dev",
     "test": "pest",
     "test:unit": "pest --testsuite unit",
     "test:coverage": "pest --coverage-html coverage",
