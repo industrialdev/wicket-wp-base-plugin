@@ -17,9 +17,11 @@
     "jeffreyvanrossum/wp-settings": "^1"
   },
   "require-dev": {
-    "brain/monkey": "^2.6",
-    "friendsofphp/php-cs-fixer": "^3.64",
-    "phpunit/phpunit": "^11.0"
+    "brain/monkey": "^2",
+    "friendsofphp/php-cs-fixer": "^3",
+    "pestphp/pest": "^4",
+    "pestphp/pest-plugin-browser": "^4",
+    "phpunit/phpunit": "^12"
   },
   "autoload": {
     "psr-4": {
@@ -36,11 +38,22 @@
       "@php ./.ci/version-bump.php"
     ],
     "dump-autoload-prod": "@php composer dump-autoload --optimize --no-dev",
-    "test": "phpunit",
-    "test:unit": "phpunit --testsuite unit",
-    "test:coverage": "phpunit --coverage-html coverage",
+    "test": "pest",
+    "test:unit": "pest --testsuite unit",
+    "test:coverage": "pest --coverage-html coverage",
+    "test:browser": "WICKET_BROWSER_BASE_URL=https://localhost ./vendor/bin/pest tests/Browser",
     "lint": "php-cs-fixer fix --dry-run --diff",
-    "format": "php-cs-fixer fix"
+    "format": "php-cs-fixer fix",
+    "check": [
+        "@lint",
+        "@test"
+    ],
+    "cs:fix": "php-cs-fixer fix"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
   },
   "repositories": [
   {
