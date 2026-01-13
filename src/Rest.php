@@ -39,6 +39,8 @@ class Rest
             ['flag-for-org-editor-access', 'flag_for_org_editor_access'],
             ['grant-org-editor', 'grant_org_editor'],
             ['wicket-component-do-action', 'component_do_action'],
+            ['orgss-notify-owner', 'orgss_notify_owner'],
+            ['orgss-notify-owner-roster-added', 'orgss_notify_owner_roster_added'],
         ];
 
         foreach ($map as [$route, $handler]) {
@@ -65,14 +67,14 @@ class Rest
         $lang = $params['lang'] ?? 'en';
 
         if (isset($params['autocomplete']) && $params['autocomplete']) {
-            $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], true, $lang);
+            $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], true, $lang);
             if (gettype($return) == 'boolean' && !$return) {
                 wp_send_json_error('There was a problem searching orgs.');
             }
             wp_send_json_success($return);
         }
 
-        $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], false, $lang);
+        $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], false, $lang);
         if (gettype($return) == 'boolean' && !$return) {
             wp_send_json_error('There was a problem searching orgs.');
         }
@@ -496,5 +498,221 @@ class Rest
         do_action('wicket_component_' . $action_name, $action_data);
 
         wp_send_json_success();
+    }
+
+    public function orgss_notify_owner(\WP_REST_Request $request)
+    {
+        $logger = wc_get_logger();
+        $params = $request->get_json_params();
+        $org_uuid = isset($params['orgUuid']) ? sanitize_text_field($params['orgUuid']) : '';
+        $email_subject = isset($params['emailSubject']) ? sanitize_text_field($params['emailSubject']) : '';
+        $email_body = isset($params['emailBody']) ? wp_kses_post($params['emailBody']) : '';
+
+        if (empty($org_uuid)) {
+            $logger->error('ORGSS notify owner missing org UUID.', ['source' => 'wicket-orgss']);
+            wp_send_json_error(['message' => __('Organization not provided.', 'wicket')]);
+        }
+
+        $current_person_uuid = function_exists('wicket_current_person_uuid') ? wicket_current_person_uuid() : '';
+        $current_person_profile = function_exists('wicket_get_person_profile')
+            ? wicket_get_person_profile($current_person_uuid ?: null)
+            : null;
+        $current_person_name = '';
+        if (is_array($current_person_profile)) {
+            $attributes = $current_person_profile['attributes'] ?? ($current_person_profile['data']['attributes'] ?? []);
+            $given = $attributes['given_name'] ?? '';
+            $family = $attributes['family_name'] ?? '';
+            $current_person_name = trim($given . ' ' . $family);
+        }
+
+        if ($current_person_name === '') {
+            $current_person_name = __('A member', 'wicket');
+        }
+
+        $org_memberships = function_exists('wicket_get_org_memberships')
+            ? wicket_get_org_memberships($org_uuid)
+            : [];
+        if (empty($org_memberships)) {
+            $logger->error('ORGSS notify owner memberships not found.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid]);
+            wp_send_json_error(['message' => __('Organization membership not found.', 'wicket')]);
+        }
+
+        $owner_uuid = '';
+        foreach ($org_memberships as $membership) {
+            $org_membership = $membership['membership'] ?? [];
+            $org_attributes = $org_membership['attributes'] ?? [];
+            $active = $org_attributes['active'] ?? false;
+            if (!$active) {
+                continue;
+            }
+            if (!empty($org_attributes['owner_uuid'])) {
+                $owner_uuid = $org_attributes['owner_uuid'];
+                break;
+            }
+            $relationships = $org_membership['relationships'] ?? [];
+            if (isset($relationships['owner']['data']['id'])) {
+                $owner_uuid = $relationships['owner']['data']['id'];
+                break;
+            }
+        }
+
+        if (empty($owner_uuid)) {
+            $logger->error('ORGSS notify owner org owner not found.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid]);
+            wp_send_json_error(['message' => __('Organization owner not found.', 'wicket')]);
+        }
+
+        $transient_key = 'orgss_notify_owner_' . md5($org_uuid);
+        if (get_transient($transient_key)) {
+            $logger->info('ORGSS notify owner throttled.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid]);
+            wp_send_json_error([
+                'message' => __('The organization owner was already notified recently. Please wait before trying again.', 'wicket'),
+            ]);
+        }
+
+        $owner_profile = function_exists('wicket_get_person_profile')
+            ? wicket_get_person_profile($owner_uuid)
+            : null;
+        $owner_email = '';
+        if (is_array($owner_profile)) {
+            $attributes = $owner_profile['attributes'] ?? ($owner_profile['data']['attributes'] ?? []);
+            $owner_email = $attributes['primary_email_address'] ?? ($owner_profile['primary_email_address'] ?? '');
+        }
+
+        if (empty($owner_email) && function_exists('wicket_get_person_by_id')) {
+            $owner_person = wicket_get_person_by_id($owner_uuid);
+            if (is_object($owner_person) && isset($owner_person->primary_email_address)) {
+                $owner_email = $owner_person->primary_email_address;
+            }
+        }
+
+        $owner_email = sanitize_email($owner_email);
+        if (empty($owner_email) || !is_email($owner_email)) {
+            $logger->error('ORGSS notify owner email invalid.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_uuid' => $owner_uuid, 'owner_email' => $owner_email]);
+            wp_send_json_error(['message' => __('Organization owner email not found.', 'wicket')]);
+        }
+
+        $subject = $email_subject !== '' ? $email_subject : __('Roster update requested', 'wicket');
+        $body = $email_body !== ''
+            ? $email_body
+            : __('%s would like to be added to the organization roster. Please update the roster to make room or contact support for more seats.', 'wicket');
+
+        $body = wpautop(sprintf($body, esc_html($current_person_name)));
+        $headers = ['Content-Type: text/html; charset=UTF-8'];
+
+        $sent = wp_mail($owner_email, $subject, $body, $headers);
+        if (!$sent) {
+            $logger->error('ORGSS notify owner email failed to send.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_email' => $owner_email]);
+            wp_send_json_error(['message' => __('Email delivery is not configured on this environment. Please try again later.', 'wicket')]);
+        }
+
+        set_transient($transient_key, time(), HOUR_IN_SECONDS);
+        $logger->info('ORGSS notify owner email sent.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_email' => $owner_email]);
+
+        wp_send_json_success([
+            'message' => __('Thanks, the organization owner has been notified.', 'wicket'),
+        ]);
+    }
+
+    public function orgss_notify_owner_roster_added(\WP_REST_Request $request)
+    {
+        $logger = wc_get_logger();
+        $params = $request->get_json_params();
+        $org_uuid = isset($params['orgUuid']) ? sanitize_text_field($params['orgUuid']) : '';
+        $email_subject = isset($params['emailSubject']) ? sanitize_text_field($params['emailSubject']) : '';
+        $email_body = isset($params['emailBody']) ? wp_kses_post($params['emailBody']) : '';
+
+        if (empty($org_uuid)) {
+            $logger->error('ORGSS roster added missing org UUID.', ['source' => 'wicket-orgss']);
+            wp_send_json_error(['message' => __('Organization not provided.', 'wicket')]);
+        }
+
+        $current_person_uuid = function_exists('wicket_current_person_uuid') ? wicket_current_person_uuid() : '';
+        $current_person_profile = function_exists('wicket_get_person_profile')
+            ? wicket_get_person_profile($current_person_uuid ?: null)
+            : null;
+        $current_person_name = '';
+        if (is_array($current_person_profile)) {
+            $attributes = $current_person_profile['attributes'] ?? ($current_person_profile['data']['attributes'] ?? []);
+            $given = $attributes['given_name'] ?? '';
+            $family = $attributes['family_name'] ?? '';
+            $current_person_name = trim($given . ' ' . $family);
+        }
+
+        if ($current_person_name === '') {
+            $current_person_name = __('A member', 'wicket');
+        }
+
+        $org_memberships = function_exists('wicket_get_org_memberships')
+            ? wicket_get_org_memberships($org_uuid)
+            : [];
+        if (empty($org_memberships)) {
+            $logger->error('ORGSS roster added memberships not found.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid]);
+            wp_send_json_error(['message' => __('Organization membership not found.', 'wicket')]);
+        }
+
+        $owner_uuid = '';
+        foreach ($org_memberships as $membership) {
+            $org_membership = $membership['membership'] ?? [];
+            $org_attributes = $org_membership['attributes'] ?? [];
+            $active = $org_attributes['active'] ?? false;
+            if (!$active) {
+                continue;
+            }
+            if (!empty($org_attributes['owner_uuid'])) {
+                $owner_uuid = $org_attributes['owner_uuid'];
+                break;
+            }
+            $relationships = $org_membership['relationships'] ?? [];
+            if (isset($relationships['owner']['data']['id'])) {
+                $owner_uuid = $relationships['owner']['data']['id'];
+                break;
+            }
+        }
+
+        if (empty($owner_uuid)) {
+            $logger->error('ORGSS roster added org owner not found.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid]);
+            wp_send_json_error(['message' => __('Organization owner not found.', 'wicket')]);
+        }
+
+        $owner_profile = function_exists('wicket_get_person_profile')
+            ? wicket_get_person_profile($owner_uuid)
+            : null;
+        $owner_email = '';
+        if (is_array($owner_profile)) {
+            $attributes = $owner_profile['attributes'] ?? ($owner_profile['data']['attributes'] ?? []);
+            $owner_email = $attributes['primary_email_address'] ?? ($owner_profile['primary_email_address'] ?? '');
+        }
+
+        if (empty($owner_email) && function_exists('wicket_get_person_by_id')) {
+            $owner_person = wicket_get_person_by_id($owner_uuid);
+            if (is_object($owner_person) && isset($owner_person->primary_email_address)) {
+                $owner_email = $owner_person->primary_email_address;
+            }
+        }
+
+        $owner_email = sanitize_email($owner_email);
+        if (empty($owner_email) || !is_email($owner_email)) {
+            $logger->error('ORGSS roster added email invalid.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_uuid' => $owner_uuid, 'owner_email' => $owner_email]);
+            wp_send_json_error(['message' => __('Organization owner email not found.', 'wicket')]);
+        }
+
+        $subject = $email_subject !== '' ? $email_subject : __('Roster update notification', 'wicket');
+        $body = $email_body !== ''
+            ? $email_body
+            : __('%1$s has been added to your organization roster. No action is needed unless %1$s is not an employee. In that case, you can access the roster management tool and remove them. If %1$s is an employee, they can now access member benefits.', 'wicket');
+
+        $body = wpautop(sprintf($body, esc_html($current_person_name)));
+        $headers = ['Content-Type: text/html; charset=UTF-8'];
+
+        $sent = wp_mail($owner_email, $subject, $body, $headers);
+        if (!$sent) {
+            $logger->error('ORGSS roster added email failed to send.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_email' => $owner_email]);
+            wp_send_json_error(['message' => __('Email delivery is not configured on this environment. Please try again later.', 'wicket')]);
+        }
+
+        $logger->info('ORGSS roster added email sent.', ['source' => 'wicket-orgss', 'org_uuid' => $org_uuid, 'owner_email' => $owner_email]);
+        wp_send_json_success([
+            'message' => __('Thanks, the organization owner has been notified.', 'wicket'),
+        ]);
     }
 }

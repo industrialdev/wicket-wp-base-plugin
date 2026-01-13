@@ -26,6 +26,33 @@ $defaults = [
     'active_membership_alert_button_2_url'          => '',
     'active_membership_alert_button_2_style'        => 'secondary',
     'active_membership_alert_button_2_new_tab'      => false,
+    'active_membership_seat_messaging_enabled'      => false,
+    'active_membership_seat_available_alert_title'  => __('Seats available for this organization', 'wicket'),
+    'active_membership_seat_available_alert_body'   => __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket'),
+    'active_membership_seat_available_alert_button_1_text' => '',
+    'active_membership_seat_available_alert_button_1_url'  => '',
+    'active_membership_seat_available_alert_button_1_style' => 'primary',
+    'active_membership_seat_available_alert_button_1_new_tab' => false,
+    'active_membership_seat_available_alert_button_2_text' => '',
+    'active_membership_seat_available_alert_button_2_url'  => '',
+    'active_membership_seat_available_alert_button_2_style' => 'secondary',
+    'active_membership_seat_available_alert_button_2_new_tab' => false,
+    'active_membership_seat_unavailable_alert_title'  => __('No seats remaining for this organization', 'wicket'),
+    'active_membership_seat_unavailable_alert_body'   => __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket'),
+    'active_membership_seat_unavailable_alert_button_1_text' => '',
+    'active_membership_seat_unavailable_alert_button_1_url'  => '',
+    'active_membership_seat_unavailable_alert_button_1_style' => 'primary',
+    'active_membership_seat_unavailable_alert_button_1_new_tab' => false,
+    'active_membership_seat_unavailable_alert_button_2_text' => '',
+    'active_membership_seat_unavailable_alert_button_2_url'  => '',
+    'active_membership_seat_unavailable_alert_button_2_style' => 'secondary',
+    'active_membership_seat_unavailable_alert_button_2_new_tab' => false,
+    'active_membership_notify_enabled' => false,
+    'active_membership_notify_email_subject' => '',
+    'active_membership_notify_email_body' => '',
+    'active_membership_seat_unavailable_notify_enabled' => false,
+    'active_membership_seat_unavailable_notify_email_subject' => '',
+    'active_membership_seat_unavailable_notify_email_body' => '',
     'grant_roster_man_on_purchase'                  => false, // Grants membership_manager role for selected org on next payment_complete hook
     'grant_org_editor_on_select'                    => false, // Grants org_editor role for selected role instantly on select
     'grant_org_editor_on_purchase'                  => false, // Grants org_editor role for selected org on next payment_complete hook
@@ -67,6 +94,33 @@ $active_membership_alert_button_2_text = $args['active_membership_alert_button_2
 $active_membership_alert_button_2_url = $args['active_membership_alert_button_2_url'];
 $active_membership_alert_button_2_style = $args['active_membership_alert_button_2_style'];
 $active_membership_alert_button_2_new_tab = $args['active_membership_alert_button_2_new_tab'];
+$active_membership_seat_messaging_enabled = (bool) $args['active_membership_seat_messaging_enabled'];
+$active_membership_seat_available_alert_title = $args['active_membership_seat_available_alert_title'];
+$active_membership_seat_available_alert_body = $args['active_membership_seat_available_alert_body'];
+$active_membership_seat_available_alert_button_1_text = $args['active_membership_seat_available_alert_button_1_text'];
+$active_membership_seat_available_alert_button_1_url = $args['active_membership_seat_available_alert_button_1_url'];
+$active_membership_seat_available_alert_button_1_style = $args['active_membership_seat_available_alert_button_1_style'];
+$active_membership_seat_available_alert_button_1_new_tab = (bool) $args['active_membership_seat_available_alert_button_1_new_tab'];
+$active_membership_seat_available_alert_button_2_text = $args['active_membership_seat_available_alert_button_2_text'];
+$active_membership_seat_available_alert_button_2_url = $args['active_membership_seat_available_alert_button_2_url'];
+$active_membership_seat_available_alert_button_2_style = $args['active_membership_seat_available_alert_button_2_style'];
+$active_membership_seat_available_alert_button_2_new_tab = (bool) $args['active_membership_seat_available_alert_button_2_new_tab'];
+$active_membership_seat_unavailable_alert_title = $args['active_membership_seat_unavailable_alert_title'];
+$active_membership_seat_unavailable_alert_body = $args['active_membership_seat_unavailable_alert_body'];
+$active_membership_seat_unavailable_alert_button_1_text = $args['active_membership_seat_unavailable_alert_button_1_text'];
+$active_membership_seat_unavailable_alert_button_1_url = $args['active_membership_seat_unavailable_alert_button_1_url'];
+$active_membership_seat_unavailable_alert_button_1_style = $args['active_membership_seat_unavailable_alert_button_1_style'];
+$active_membership_seat_unavailable_alert_button_1_new_tab = (bool) $args['active_membership_seat_unavailable_alert_button_1_new_tab'];
+$active_membership_seat_unavailable_alert_button_2_text = $args['active_membership_seat_unavailable_alert_button_2_text'];
+$active_membership_seat_unavailable_alert_button_2_url = $args['active_membership_seat_unavailable_alert_button_2_url'];
+$active_membership_seat_unavailable_alert_button_2_style = $args['active_membership_seat_unavailable_alert_button_2_style'];
+$active_membership_seat_unavailable_alert_button_2_new_tab = (bool) $args['active_membership_seat_unavailable_alert_button_2_new_tab'];
+$active_membership_seat_unavailable_notify_enabled = (bool) $args['active_membership_seat_unavailable_notify_enabled'];
+$active_membership_seat_unavailable_notify_email_subject = $args['active_membership_seat_unavailable_notify_email_subject'];
+$active_membership_seat_unavailable_notify_email_body = $args['active_membership_seat_unavailable_notify_email_body'];
+$active_membership_notify_enabled = (bool) $args['active_membership_notify_enabled'];
+$active_membership_notify_email_subject = $args['active_membership_notify_email_subject'];
+$active_membership_notify_email_body = $args['active_membership_notify_email_body'];
 $grant_roster_man_on_purchase = $args['grant_roster_man_on_purchase'];
 $grant_org_editor_on_select = $args['grant_org_editor_on_select'];
 $grant_org_editor_on_purchase = $args['grant_org_editor_on_purchase'];
@@ -82,6 +136,53 @@ $display_org_type = $args['display_org_type'] ?? false;
 $formId = $args['form_id'];
 $lang = wicket_get_current_language();
 $is_wicket_theme = defined('WICKET_THEME');
+
+if (trim((string) $active_membership_seat_available_alert_title) === '') {
+    $active_membership_seat_available_alert_title = __('Seats available for this organization', 'wicket');
+}
+if (trim((string) $active_membership_seat_available_alert_body) === '') {
+    $active_membership_seat_available_alert_body = __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket');
+}
+if (trim((string) $active_membership_seat_unavailable_alert_title) === '') {
+    $active_membership_seat_unavailable_alert_title = __('No seats remaining for this organization', 'wicket');
+}
+if (trim((string) $active_membership_seat_unavailable_alert_body) === '') {
+    $active_membership_seat_unavailable_alert_body = __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket');
+}
+
+if (trim((string) $active_membership_seat_available_alert_button_1_text) !== '') {
+    if (trim((string) $active_membership_seat_available_alert_button_1_url) === '') {
+        $active_membership_seat_available_alert_button_1_url = 'PROCEED';
+    }
+    if (trim((string) $active_membership_seat_available_alert_button_1_style) === '') {
+        $active_membership_seat_available_alert_button_1_style = 'primary';
+    }
+}
+
+$seat_available_message_configured = (bool) array_filter([
+    $active_membership_seat_available_alert_title,
+    $active_membership_seat_available_alert_body,
+], function ($value) {
+    return trim((string) $value) !== '';
+});
+
+$seat_unavailable_message_configured = (bool) array_filter([
+    $active_membership_seat_unavailable_alert_title,
+    $active_membership_seat_unavailable_alert_body,
+], function ($value) {
+    return trim((string) $value) !== '';
+});
+
+if ($active_membership_seat_unavailable_notify_enabled) {
+    if (trim((string) $active_membership_seat_unavailable_alert_button_2_text) === '') {
+        $active_membership_seat_unavailable_alert_button_2_text = __('Notify your account manager', 'wicket');
+    }
+    if (trim((string) $active_membership_seat_unavailable_alert_button_2_style) === '') {
+        $active_membership_seat_unavailable_alert_button_2_style = 'secondary';
+    }
+    $active_membership_seat_unavailable_alert_button_2_url = 'NOTIFY_OWNER';
+    $active_membership_seat_unavailable_alert_button_2_new_tab = false;
+}
 
 if (!empty($orgTermSingular)) {
     $orgTermSingular = __($orgTermSingular, 'wicket');
@@ -131,21 +232,17 @@ if ($searchMode == 'org') {
             $org_info = wicket_get_organization_basic_info($org_id);
 
             $org_memberships = wicket_get_org_memberships($org_id);
+            $seat_summary = function_exists('wicket_get_active_membership_seat_summary')
+                ? wicket_get_active_membership_seat_summary($org_memberships)
+                : [
+                    'has_active_membership' => false,
+                    'assigned'              => null,
+                    'max'                   => null,
+                    'unlimited'             => false,
+                    'has_available_seats'   => null,
+                ];
 
-            $has_active_membership = false;
-            if (!empty($org_memberships)) {
-                foreach ($org_memberships as $membership) {
-                    if (isset($membership['membership'])) {
-                        if (isset($membership['membership']['attributes'])) {
-                            if (isset($membership['membership']['attributes']['active'])) {
-                                if ($membership['membership']['attributes']['active']) {
-                                    $has_active_membership = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            $has_active_membership = $seat_summary['has_active_membership'] ?? false;
 
             /**------------------------------------------------------------------
              * Get Primary Address
@@ -182,6 +279,7 @@ if ($searchMode == 'org') {
                 'ends_at'           => $connection['attributes']['ends_at'],
                 'tags'              => $connection['attributes']['tags'],
                 'active_membership' => $has_active_membership,
+                'active_membership_seat_summary' => $seat_summary,
                 'active_connection' => $connection['attributes']['active'],
                 'org_id'            => $org_id,
                 'org_name'          => $org_info['org_name'],
@@ -320,145 +418,238 @@ $available_org_types = wicket_get_resource_types('organizations');
           class="component-org-search-select__active-membership-alert-close-button"
           style="color: var(--interactive); background: none; border: none; cursor: pointer;"><?php _e('Close X', 'wicket') ?></button>
       </div>
-      <div x-text="activeMembershipAlertTitle"
+      <div x-html="activeMembershipAlertTitle"
         class="component-org-search-select__active-membership-alert-title"
         style="font-size: var(--heading-md-font-size); margin-bottom: var(--space-400);"></div>
-      <div x-text="activeMembershipAlertBody"
+      <div x-html="activeMembershipAlertBody"
         class="component-org-search-select__active-membership-alert-body"
         style="font-size: var(--body-md-font-size); margin-bottom: var(--space-400); line-height: 1.6;"></div>
+      <div x-show="notifyOwnerMessage" x-cloak
+        class="component-org-search-select__active-membership-alert-note"
+        x-text="notifyOwnerMessage"
+        style="margin-bottom: var(--space-400);"></div>
+      <div x-show="notifyOwnerIsLoading" x-cloak
+        class="component-org-search-select__active-membership-alert-note"
+        style="margin-bottom: var(--space-400); display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+        <span><?php _e('Sending...', 'wicket'); ?></span>
+      </div>
       <div class="component-org-search-select__active-membership-alert-actions flex w-full justify-evenly">
         <?php
-        if (
-            !empty($active_membership_alert_button_1_text)
-            && !empty($active_membership_alert_button_1_url)
-            && !empty($active_membership_alert_button_1_style)
+        // Helper function to render a button pair for the active membership alert
+        // This reduces code duplication across the 3 message states (base, available, unavailable)
+        $render_alert_buttons = function(
+            $button_1_text, $button_1_url, $button_1_style, $button_1_new_tab,
+            $button_2_text, $button_2_url, $button_2_style, $button_2_new_tab,
+            $action_suffix = ''
         ) {
-            if ($active_membership_alert_button_1_url == 'PROCEED') {
-                get_component('button', [
-                    'variant'  => 'primary',
-                    'size'     => 'md',
-                    'reversed' => false,
-                    'label'    => $active_membership_alert_button_1_text,
-                    'type'     => 'button',
-                    'atts'  => [
-                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"',
-                    ],
-                    'classes' => [
-                        'component-org-search-select__active-membership-alert-button',
-                        'items-center',
-                        'justify-center',
-                        'w-5/12',
-                    ],
-                ]);
-            } elseif ($active_membership_alert_button_1_url == 'BUTTON') {
-                // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
-                get_component('button', [
-                    'variant'  => 'primary',
-                    'size'     => 'md',
-                    'reversed' => false,
-                    'label'    => $active_membership_alert_button_1_text,
-                    'type'     => 'button',
-                    'atts'  => [
-                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"',
-                    ],
-                    'classes' => [
-                        'component-org-search-select__active-membership-alert-button',
-                        'items-center',
-                        'justify-center',
-                        'w-5/12',
-                    ],
-                ]);
-            } else {
-                // Treat it as a link
-                get_component('button', [
-                    'variant'  => 'primary',
-                    'size'     => 'md',
-                    'reversed' => false,
-                    'label'    => $active_membership_alert_button_1_text,
-                    'type'     => 'button',
-                    'a_tag'    => true,
-                    'link'     => $active_membership_alert_button_1_url,
-                    'link_target' => $active_membership_alert_button_1_new_tab ? '_blank' : '_self',
-                    'atts'  => [
-                        'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked\');"',
-                    ],
-                    'classes' => [
-                        'component-org-search-select__active-membership-alert-button',
-                        'items-center',
-                        'justify-center',
-                        'w-5/12',
-                    ],
-                ]);
-            }
-        }
+            $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI']);
 
-if (
-    !empty($active_membership_alert_button_2_text)
-    && !empty($active_membership_alert_button_2_url)
-    && !empty($active_membership_alert_button_2_style)
-) {
-    if ($active_membership_alert_button_2_url == 'PROCEED') {
-        get_component('button', [
-            'variant'  => 'secondary',
-            'size'     => 'md',
-            'reversed' => false,
-            'label'    => $active_membership_alert_button_2_text,
-            'type'     => 'button',
-            'atts'  => [
-                'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent);"',
-            ],
-            'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12',
-            ],
-        ]);
-    } elseif ($active_membership_alert_button_2_url == 'BUTTON') {
-        // If this is set to be a developer button, fire the action, dismiss the modal, and do nothing else (no org selection)
-        get_component('button', [
-            'variant'  => 'secondary',
-            'size'     => 'md',
-            'reversed' => false,
-            'label'    => $active_membership_alert_button_2_text,
-            'type'     => 'button',
-            'atts'  => [
-                'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . str_replace('/', '', $_SERVER['REQUEST_URI']) . '\', {});showingActiveMembershipAlert = false;"',
-            ],
-            'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12',
-            ],
-        ]);
-    } else {
-        // Treat it as a link
-        get_component('button', [
-            'variant'  => 'secondary',
-            'size'     => 'md',
-            'reversed' => false,
-            'label'    => $active_membership_alert_button_2_text,
-            'type'     => 'button',
-            'a_tag'    => true,
-            'link'     => $active_membership_alert_button_2_url,
-            'link_target' => $active_membership_alert_button_2_new_tab ? '_blank' : '_self',
-            'atts'  => [
-                'style="margin-left:20px;"',
-                'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked\');"',
-            ],
-            'classes' => [
-                'component-org-search-select__active-membership-alert-button',
-                'items-center',
-                'justify-center',
-                'w-5/12',
-            ],
-        ]);
-    }
-}
-?>
+            // Button 1
+            if (
+                !empty($button_1_text)
+                && !empty($button_1_url)
+                && !empty($button_1_style)
+            ) {
+                if ($button_1_url == 'PROCEED') {
+                    get_component('button', [
+                        'variant'  => $button_1_style ?? 'primary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_1_text,
+                        'type'     => 'button',
+                        'atts'  => [
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');maybeNotifyBaseProceed();activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent, true, false, activeMembershipAlertSeatSummary);"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                } elseif ($button_1_url == 'BUTTON') {
+                    $button_1_is_close_only = ($action_suffix === '_seats_unavailable');
+                    get_component('button', [
+                        'variant'  => $button_1_style ?? 'primary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_1_text,
+                        'type'     => 'button',
+                        'atts'  => [
+                            $button_1_is_close_only
+                                ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');showingActiveMembershipAlert = false;"'
+                                : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                } else {
+                    get_component('button', [
+                        'variant'  => $button_1_style ?? 'primary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_1_text,
+                        'type'     => 'button',
+                        'a_tag'    => true,
+                        'link'     => $button_1_url,
+                        'link_target' => $button_1_new_tab ? '_blank' : '_self',
+                        'atts'  => [
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                }
+            }
+
+            // Button 2
+            if (
+                !empty($button_2_text)
+                && !empty($button_2_url)
+                && !empty($button_2_style)
+            ) {
+                if ($button_2_url == 'PROCEED') {
+                    get_component('button', [
+                        'variant'  => $button_2_style ?? 'secondary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_2_text,
+                        'type'     => 'button',
+                        'atts'  => [
+                            'style="margin-left:20px;"',
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent, true, false, activeMembershipAlertSeatSummary);"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                } elseif ($button_2_url == 'BUTTON') {
+                    get_component('button', [
+                        'variant'  => $button_2_style ?? 'secondary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_2_text,
+                        'type'     => 'button',
+                        'atts'  => [
+                            'style="margin-left:20px;"',
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                } elseif ($button_2_url == 'NOTIFY_OWNER') {
+                    get_component('button', [
+                        'variant'  => $button_2_style ?? 'secondary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_2_text,
+                        'type'     => 'button',
+                        'atts'  => [
+                            'style="margin-left:20px;"',
+                            'x-on:click.prevent="notifyOrgOwner()"',
+                            'x-bind:disabled="notifyOwnerIsLoading"',
+                            'x-bind:class="{ \'orgss_disabled_button\': notifyOwnerIsLoading }"',
+                            'x-bind:aria-busy="notifyOwnerIsLoading ? \'true\' : \'false\'"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                } else {
+                    get_component('button', [
+                        'variant'  => $button_2_style ?? 'secondary',
+                        'size'     => 'md',
+                        'reversed' => false,
+                        'label'    => $button_2_text,
+                        'type'     => 'button',
+                        'a_tag'    => true,
+                        'link'     => $button_2_url,
+                        'link_target' => $button_2_new_tab ? '_blank' : '_self',
+                        'atts'  => [
+                            'style="margin-left:20px;"',
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');"',
+                        ],
+                        'classes' => [
+                            'component-org-search-select__active-membership-alert-button',
+                            'items-center',
+                            'justify-center',
+                            'w-5/12',
+                        ],
+                    ]);
+                }
+            }
+        };
+        ?>
+
+        <!-- Base/Default Buttons (shown when no seat-specific message is configured or as fallback) -->
+        <div x-show="activeMembershipSeatMessageState === 'base'" x-cloak class="flex w-full justify-evenly">
+          <?php
+          $render_alert_buttons(
+              $active_membership_alert_button_1_text,
+              $active_membership_alert_button_1_url,
+              $active_membership_alert_button_1_style,
+              $active_membership_alert_button_1_new_tab,
+              $active_membership_alert_button_2_text,
+              $active_membership_alert_button_2_url,
+              $active_membership_alert_button_2_style,
+              $active_membership_alert_button_2_new_tab,
+              ''
+          );
+          ?>
+        </div>
+
+        <!-- Seats Available Buttons -->
+        <div x-show="activeMembershipSeatMessageState === 'available'" x-cloak class="flex w-full justify-evenly">
+          <?php
+          $render_alert_buttons(
+              $active_membership_seat_available_alert_button_1_text,
+              $active_membership_seat_available_alert_button_1_url,
+              $active_membership_seat_available_alert_button_1_style,
+              $active_membership_seat_available_alert_button_1_new_tab,
+              $active_membership_seat_available_alert_button_2_text,
+              $active_membership_seat_available_alert_button_2_url,
+              $active_membership_seat_available_alert_button_2_style,
+              $active_membership_seat_available_alert_button_2_new_tab,
+              '_seats_available'
+          );
+          ?>
+        </div>
+
+        <!-- No Seats Available Buttons -->
+        <div x-show="activeMembershipSeatMessageState === 'unavailable'" x-cloak class="flex w-full justify-evenly">
+          <?php
+          $render_alert_buttons(
+              $active_membership_seat_unavailable_alert_button_1_text,
+              $active_membership_seat_unavailable_alert_button_1_url,
+              $active_membership_seat_unavailable_alert_button_1_style,
+              $active_membership_seat_unavailable_alert_button_1_new_tab,
+              $active_membership_seat_unavailable_alert_button_2_text,
+              $active_membership_seat_unavailable_alert_button_2_url,
+              $active_membership_seat_unavailable_alert_button_2_style,
+              $active_membership_seat_unavailable_alert_button_2_new_tab,
+              '_seats_unavailable'
+          );
+          ?>
+        </div>
       </div>
     </div>
   </div> <!-- / .component-org-search-select__active-membership-alert -->
@@ -540,7 +731,7 @@ if (!$is_wicket_theme) {
           'type'     => 'button',
           'classes'  => ['component-org-search-select__select-result-button'],
           'atts'     => [
-              'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership )"',
+              'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership, false, result.active_membership_seat_summary )"',
               'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
                     \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
@@ -611,10 +802,10 @@ if (empty($title)) : ?>
             if(connection.org_parent_name) {
               if(connection.org_parent_name !== null) {
                 this.showOrgParentName = connection.org_parent_name.length > 0;
-                orgParentName = connection.org_parent_name;
+                this.orgParentName = connection.org_parent_name;
               }
             }
-          },
+          }
         }">
             <div class="component-org-search-select__org-type <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-xs' ?>"
               x-text="connection.org_type_name"></div>
@@ -682,7 +873,7 @@ if (empty($title)) : ?>
           'type'     => 'button',
           'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
           'atts'     => [
-              'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true)"',
+              'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true, connection.active_membership_seat_summary)"',
               'x-bind:class="{
                     \'orgss_disabled_button\': connection.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
                   }"',
@@ -826,8 +1017,31 @@ if (defined('WICKET_WP_THEME_V2')) {
       activeMembershipAlertProceedChosen: false,
       activeMembershipAlertOrgUuid: '',
       activeMembershipAlertEvent: null,
-      activeMembershipAlertTitle: '<?php echo $active_membership_alert_title; ?>',
-      activeMembershipAlertBody: '<?php echo $active_membership_alert_body; ?>',
+      activeMembershipAlertSeatSummary: null,
+      defaultActiveMembershipAlertTitle: <?php echo json_encode($active_membership_alert_title); ?>,
+      defaultActiveMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
+      activeMembershipAlertTitle: <?php echo json_encode($active_membership_alert_title); ?>,
+      activeMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
+      activeMembershipSeatMessagingEnabled: <?php echo ($active_membership_seat_messaging_enabled || $seat_available_message_configured || $seat_unavailable_message_configured) ? 'true' : 'false'; ?>,
+      seatMessageHasAvailableSeats: <?php echo $seat_available_message_configured ? 'true' : 'false'; ?>,
+      seatMessageHasNoSeats: <?php echo $seat_unavailable_message_configured ? 'true' : 'false'; ?>,
+      seatAvailableMessageTitle: <?php echo json_encode($active_membership_seat_available_alert_title); ?>,
+      seatAvailableMessageBody: <?php echo json_encode($active_membership_seat_available_alert_body); ?>,
+      seatUnavailableMessageTitle: <?php echo json_encode($active_membership_seat_unavailable_alert_title); ?>,
+      seatUnavailableMessageBody: <?php echo json_encode($active_membership_seat_unavailable_alert_body); ?>,
+      activeMembershipNotifyEnabled: <?php echo $active_membership_notify_enabled ? 'true' : 'false'; ?>,
+      activeMembershipNotifyEmailSubject: <?php echo json_encode($active_membership_notify_email_subject); ?>,
+      activeMembershipNotifyEmailBody: <?php echo json_encode($active_membership_notify_email_body); ?>,
+      notifyOwnerEnabled: <?php echo $active_membership_seat_unavailable_notify_enabled ? 'true' : 'false'; ?>,
+      notifyOwnerEmailSubject: <?php echo json_encode($active_membership_seat_unavailable_notify_email_subject); ?>,
+      notifyOwnerEmailBody: <?php echo json_encode($active_membership_seat_unavailable_notify_email_body); ?>,
+      notifyOwnerMessage: '',
+      notifyOwnerStatus: '',
+      notifyOwnerIsLoading: false,
+      notifyOwnerSuccessMessage: <?php echo json_encode(__('Thanks, the organization owner has been notified.', 'wicket')); ?>,
+      notifyOwnerThrottleMessage: <?php echo json_encode(__('The organization owner was already notified recently. Please wait before trying again.', 'wicket')); ?>,
+      notifyOwnerErrorMessage: <?php echo json_encode(__('We could not notify the organization owner. Please try again later.', 'wicket')); ?>,
+      activeMembershipSeatMessageState: 'base',
       selectedOrgUuid: '',
       searchBox: '',
       newOrgNameBox: '',
@@ -885,8 +1099,10 @@ if (defined('WICKET_WP_THEME_V2')) {
         this.relationshipTypeFilter = this.relationshipTypeFilter.trim();
 
         // Determine if the active membership modal has enough data to use
-        if (this.disableSelectingOrgsWithActiveMembership && (this.activeMembershipAlertTitle
-            .length > 0 || this.activeMembershipAlertBody.length > 0)) {
+        // Modal is available if either base message OR seat-specific messages are configured
+        const hasBaseMessage = this.activeMembershipAlertTitle.length > 0 || this.activeMembershipAlertBody.length > 0;
+        const hasSeatMessages = this.activeMembershipSeatMessagingEnabled && (this.seatMessageHasAvailableSeats || this.seatMessageHasNoSeats);
+        if (this.disableSelectingOrgsWithActiveMembership && (hasBaseMessage || hasSeatMessages)) {
           this.activeMembershipAlertAvailable = true;
         }
 
@@ -906,6 +1122,60 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.firstSearchSubmitted = false;
             this.showSearchMessage = false;
           }
+        });
+      },
+      prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
+        // Reset to base state initially
+        this.activeMembershipSeatMessageState = 'base';
+        this.activeMembershipAlertTitle = this.defaultActiveMembershipAlertTitle;
+        this.activeMembershipAlertBody = this.defaultActiveMembershipAlertBody;
+
+        // If seat messaging not enabled, use base message
+        if (!this.activeMembershipSeatMessagingEnabled) {
+          return;
+        }
+
+        // If no seat data provided, use base message
+        if (!seatSummary || typeof seatSummary !== 'object') {
+          console.warn('ORGSS: Seat summary data is missing or invalid', seatSummary);
+          return;
+        }
+
+        const hasAvailableSeats = seatSummary.has_available_seats;
+        const isUnlimited = seatSummary.unlimited;
+        const hasActiveMembership = seatSummary.has_active_membership;
+
+        // Only apply seat logic if org has an active membership
+        if (!hasActiveMembership) {
+          return;
+        }
+
+        // Check for seats available (true or unlimited)
+        if (hasAvailableSeats === true || isUnlimited === true) {
+          if (this.seatMessageHasAvailableSeats) {
+            this.activeMembershipAlertTitle = <?php echo json_encode($active_membership_seat_available_alert_title); ?>;
+            this.activeMembershipAlertBody = <?php echo json_encode($active_membership_seat_available_alert_body); ?>;
+            this.activeMembershipSeatMessageState = 'available';
+            console.log('ORGSS: Showing seats AVAILABLE message');
+            return;
+          }
+        }
+
+        // Check for no seats available (explicitly false)
+        if (hasAvailableSeats === false) {
+          if (this.seatMessageHasNoSeats) {
+            this.activeMembershipAlertTitle = <?php echo json_encode($active_membership_seat_unavailable_alert_title); ?>;
+            this.activeMembershipAlertBody = <?php echo json_encode($active_membership_seat_unavailable_alert_body); ?>;
+            this.activeMembershipSeatMessageState = 'unavailable';
+            console.log('ORGSS: Showing NO SEATS message');
+            return;
+          }
+        }
+
+        // Fallback to base message if seat data is null/undefined or messages not configured
+        console.warn('ORGSS: Falling back to base message. hasAvailableSeats:', hasAvailableSeats, 'seatMessageFlags:', {
+          hasAvailableSeats: this.seatMessageHasAvailableSeats,
+          hasNoSeats: this.seatMessageHasNoSeats
         });
       },
       handleSearch(e = null) {
@@ -1074,8 +1344,14 @@ if (defined('WICKET_WP_THEME_V2')) {
         window.dispatchEvent(newEvent);
       },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
-        skipCreateRelationship = false) {
+        skipCreateRelationship = false, seatSummary = null) {
         // TODO: Handle when a Group is selected instead of an org
+
+        // Reset proceed flag when switching orgs so each selection is evaluated independently.
+        if (this.activeMembershipAlertProceedChosen && this.activeMembershipAlertOrgUuid && this.activeMembershipAlertOrgUuid !== orgUuid) {
+          this.activeMembershipAlertProceedChosen = false;
+          this.activeMembershipAlertSeatSummary = null;
+        }
 
         // ------------------
         // Active Membership modal alert
@@ -1085,11 +1361,52 @@ if (defined('WICKET_WP_THEME_V2')) {
         // was populated, and the user hasn't already chosen to proceed with the usual actions
         if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership && this
           .activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
+          if (seatSummary && typeof seatSummary === 'object') {
+            if (typeof seatSummary.has_active_membership !== 'boolean') {
+              seatSummary.has_active_membership = existingActiveMembership;
+            }
+
+            const assigned = Number(seatSummary.assigned);
+            const max = Number(seatSummary.max);
+            const hasCounts = Number.isFinite(assigned) && Number.isFinite(max) && max > 0;
+            if (hasCounts) {
+              seatSummary.has_available_seats = assigned < max;
+              seatSummary.unlimited = false;
+            } else if (seatSummary.has_available_seats === null || typeof seatSummary.has_available_seats === 'undefined') {
+              if (Number.isFinite(assigned) && Number.isFinite(max)) {
+                seatSummary.has_available_seats = assigned < max;
+              }
+            }
+
+            if (seatSummary.unlimited === true && Number.isFinite(assigned)) {
+              seatSummary.has_available_seats = true;
+            }
+          }
+          console.log('ORGSS: Seat summary values', {
+            assigned: seatSummary?.assigned,
+            max: seatSummary?.max,
+            hasAvailableSeats: seatSummary?.has_available_seats,
+            unlimited: seatSummary?.unlimited,
+            hasActiveMembership: seatSummary?.has_active_membership,
+          });
+          console.log('ORGSS: Triggering modal for org with active membership', {
+            orgUuid,
+            seatSummary,
+            seatMessagingEnabled: this.activeMembershipSeatMessagingEnabled,
+            seatMessageFlags: {
+              hasAvailableSeats: this.seatMessageHasAvailableSeats,
+              hasNoSeats: this.seatMessageHasNoSeats
+            }
+          });
+          this.notifyOwnerMessage = '';
+          this.notifyOwnerStatus = '';
+          this.prepareSeatBasedActiveMembershipMessage(seatSummary);
           // Display the modal
           this.showingActiveMembershipAlert = true;
 
           // Stash data away so we can resume this operation later
           this.activeMembershipAlertOrgUuid = orgUuid;
+          this.activeMembershipAlertSeatSummary = seatSummary;
           if (event) {
             this.activeMembershipAlertEvent = event;
           }
@@ -1106,6 +1423,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           // Clear temp data
           this.activeMembershipAlertOrgUuid = '';
           this.activeMembershipAlertEvent = null;
+          this.activeMembershipAlertSeatSummary = null;
 
           // Close modal
           this.showingActiveMembershipAlert = false;
@@ -1421,7 +1739,12 @@ if (defined('WICKET_WP_THEME_V2')) {
 
       },
       addConnection(payload) {
-        this.currentConnections.push(payload);
+        const isDuplicate = this.currentConnections.some(
+          conn => conn.org_id === payload.org_id || conn.connection_id === payload.connection_id
+        );
+        if (!isDuplicate) {
+          this.currentConnections.push(payload);
+        }
       },
       removeConnection(connectionId) {
         let connections = this.currentConnections;
@@ -1445,6 +1768,9 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Clear selection state if removing the currently selected org
         if (removedOrgId === this.selectedOrgUuid) {
           this.selectedOrgUuid = '';
+          this.activeMembershipAlertProceedChosen = false;
+          this.activeMembershipAlertOrgUuid = '';
+          this.activeMembershipAlertSeatSummary = null;
 
           // Clear both hidden field values
           const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
@@ -1565,6 +1891,100 @@ if (defined('WICKET_WP_THEME_V2')) {
           });
 
         return;
+      },
+      maybeNotifyBaseProceed() {
+        if (!this.activeMembershipNotifyEnabled) {
+          return;
+        }
+        if (this.activeMembershipSeatMessageState !== 'base') {
+          return;
+        }
+
+        this.notifyOwnerRosterAdded();
+      },
+      async notifyOwnerRosterAdded() {
+        const orgUuid = this.activeMembershipAlertOrgUuid || this.selectedOrgUuid;
+        if (!orgUuid) {
+          return;
+        }
+
+        let data = {
+          "orgUuid": orgUuid,
+          "emailSubject": this.activeMembershipNotifyEmailSubject || '',
+          "emailBody": this.activeMembershipNotifyEmailBody || '',
+        };
+
+        let results = await fetch(this.apiUrl + 'orgss-notify-owner-roster-added', {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data),
+          }).then(response => response.json())
+          .then(() => {})
+          .catch(() => {});
+
+        return results;
+      },
+      async notifyOrgOwner() {
+        if (this.notifyOwnerIsLoading) {
+          return;
+        }
+
+        const orgUuid = this.activeMembershipAlertOrgUuid || this.selectedOrgUuid;
+        if (!orgUuid || !this.notifyOwnerEnabled) {
+          this.notifyOwnerMessage = this.notifyOwnerErrorMessage;
+          this.notifyOwnerStatus = 'error';
+          return;
+        }
+
+        this.notifyOwnerIsLoading = true;
+        this.notifyOwnerMessage = '';
+        this.notifyOwnerStatus = '';
+
+        let data = {
+          "orgUuid": orgUuid,
+          "emailSubject": this.notifyOwnerEmailSubject || '',
+          "emailBody": this.notifyOwnerEmailBody || '',
+        };
+
+        let results = await fetch(this.apiUrl + 'orgss-notify-owner', {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify(data),
+          }).then(response => response.json())
+          .then(data => {
+            if (!data.success) {
+              const message = (data.data && data.data.message) ? data.data.message : this.notifyOwnerErrorMessage;
+              this.notifyOwnerMessage = message;
+              this.notifyOwnerStatus = 'error';
+            } else {
+              const message = (data.data && data.data.message) ? data.data.message : this.notifyOwnerSuccessMessage;
+              this.notifyOwnerMessage = message;
+              this.notifyOwnerStatus = 'success';
+            }
+          }).catch(() => {
+            this.notifyOwnerMessage = this.notifyOwnerErrorMessage;
+            this.notifyOwnerStatus = 'error';
+          });
+
+        this.notifyOwnerIsLoading = false;
+
+        return results;
       },
       async flagForOrgEditorAccess(orgUuid) {
         let data = {

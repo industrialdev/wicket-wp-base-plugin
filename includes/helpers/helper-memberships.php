@@ -70,3 +70,125 @@ function wicket_is_membership_product($product)
 
     return false;
 }
+
+/**
+ * Build a normalized summary of the active membership seat allocation for an org.
+ *
+ * @param array $org_memberships Result of wicket_get_org_memberships().
+ * @return array{
+ *     has_active_membership:bool,
+ *     assigned:?int,
+ *     max:?int,
+ *     unlimited:bool,
+ *     has_available_seats:?bool
+ * }
+ */
+function wicket_get_active_membership_seat_summary(array $org_memberships)
+{
+    $summary = [
+        'has_active_membership' => false,
+        'assigned'              => null,
+        'max'                   => null,
+        'unlimited'             => false,
+        'has_available_seats'   => null,
+    ];
+
+    $fallback_active_summary = null;
+
+    foreach ($org_memberships as $membership) {
+        $org_membership = $membership['membership'] ?? [];
+        $org_attributes = $org_membership['attributes'] ?? [];
+        $included = $membership['included'] ?? [];
+        $included_attributes = $included['attributes'] ?? [];
+
+        $active = $org_attributes['active'] ?? ($included_attributes['active'] ?? false);
+        if (empty($active)) {
+            continue;
+        }
+
+        $summary['has_active_membership'] = true;
+
+        $meta = [];
+        if (isset($included_attributes['meta']) && is_array($included_attributes['meta'])) {
+            $meta = $included_attributes['meta'];
+        } elseif (isset($org_attributes['meta']) && is_array($org_attributes['meta'])) {
+            $meta = $org_attributes['meta'];
+        } elseif (isset($included['meta']) && is_array($included['meta'])) {
+            $meta = $included['meta'];
+        } elseif (isset($org_membership['meta']) && is_array($org_membership['meta'])) {
+            $meta = $org_membership['meta'];
+        }
+
+        $meta_unlimited = false;
+        if (isset($meta['unlimited_assignments'])) {
+            $meta_unlimited = (bool) $meta['unlimited_assignments'];
+        } elseif (isset($meta['unlimited_seats'])) {
+            $meta_unlimited = (bool) $meta['unlimited_seats'];
+        }
+
+        $assigned = null;
+        if (isset($included_attributes['active_assignments_count'])) {
+            $assigned = (int) $included_attributes['active_assignments_count'];
+        } elseif (isset($org_attributes['active_assignments_count'])) {
+            $assigned = (int) $org_attributes['active_assignments_count'];
+        } elseif (isset($included_attributes['assignments_count'])) {
+            $assigned = (int) $included_attributes['assignments_count'];
+        } elseif (isset($org_attributes['assignments_count'])) {
+            $assigned = (int) $org_attributes['assignments_count'];
+        } elseif (isset($meta['active_assignments_count'])) {
+            $assigned = (int) $meta['active_assignments_count'];
+        } elseif (isset($meta['assignments_count'])) {
+            $assigned = (int) $meta['assignments_count'];
+        }
+
+        $meta_org_seats = null;
+        if (isset($meta['org_seats'])) {
+            $meta_org_seats = (int) $meta['org_seats'];
+        } elseif (isset($meta['membership_seats'])) {
+            $meta_org_seats = (int) $meta['membership_seats'];
+        }
+
+        $max = null;
+        if (isset($included_attributes['max_assignments'])) {
+            $max = (int) $included_attributes['max_assignments'];
+        } elseif (isset($org_attributes['max_assignments'])) {
+            $max = (int) $org_attributes['max_assignments'];
+        }
+
+        $unlimited = !empty($included_attributes['unlimited_assignments']) || !empty($org_attributes['unlimited_assignments']) || $meta_unlimited;
+        if ($meta_org_seats !== null && $meta_org_seats > 0) {
+            $max = $meta_org_seats;
+            $unlimited = false;
+        }
+
+        if ($max !== null && $max > 0) {
+            $unlimited = false;
+        }
+
+        $candidate = [
+            'has_active_membership' => true,
+            'assigned'              => $assigned,
+            'unlimited'             => $unlimited,
+            'max'                   => $max,
+            'has_available_seats'   => null,
+        ];
+
+        if ($unlimited) {
+            $candidate['has_available_seats'] = true;
+        } elseif (is_null($assigned) || is_null($max)) {
+            $candidate['has_available_seats'] = null;
+        } else {
+            $candidate['has_available_seats'] = $assigned < $max;
+        }
+
+        if ($fallback_active_summary === null) {
+            $fallback_active_summary = $candidate;
+        }
+
+        if ($candidate['max'] !== null || $meta_org_seats !== null) {
+            return $candidate;
+        }
+    }
+
+    return $fallback_active_summary ?? $summary;
+}
