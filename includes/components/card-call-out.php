@@ -38,7 +38,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 	<?php endif; ?>
 
 	<?php if ($description) : ?>
-		<div class="mb-3">
+		<div class="mb-3 mce-content-body">
 			<?php echo wp_kses_post($description); ?>
 		</div>
 	<?php endif; ?>
