@@ -102,12 +102,128 @@ if (!class_exists('Wicket_Settings')) {
             $settings->set_menu_parent_slug('wicket-settings');
 
             /*
-             * Start General tab
+             * Priority-based tab registration.
+             * External plugins can filter 'wicket_settings_tabs' to insert tabs at specific positions.
              *
+             * Default priorities:
+             *   10 = General
+             *   20 = Environments
+             *   30 = Memberships
+             *   40 = Touchpoints
+             *   50 = Integrations
+             *
+             * Example: To insert a tab between Touchpoints and Integrations, use priority 45.
              */
-            $tab_gen = $settings->add_tab(__('General', 'wicket'));
+            $tabs_config = apply_filters('wicket_settings_tabs', [
+                10 => [
+                    'key' => 'general',
+                    'label' => __('General', 'wicket'),
+                    'callback' => [$this, 'register_general_tab'],
+                ],
+                20 => [
+                    'key' => 'environments',
+                    'label' => __('Environments', 'wicket'),
+                    'callback' => [$this, 'register_environments_tab'],
+                ],
+                30 => [
+                    'key' => 'memberships',
+                    'label' => __('Memberships', 'wicket'),
+                    'callback' => [$this, 'register_memberships_tab'],
+                ],
+                40 => [
+                    'key' => 'touchpoints',
+                    'label' => __('Touchpoints', 'wicket'),
+                    'callback' => [$this, 'register_touchpoints_tab'],
+                ],
+                50 => [
+                    'key' => 'integrations',
+                    'label' => __('Integrations', 'wicket'),
+                    'callback' => [$this, 'register_integrations_tab'],
+                ],
+            ]);
 
-            $section = $tab_gen->add_section(__('Create Account', 'wicket'));
+            // Sort by priority
+            ksort($tabs_config);
+
+            // Track tabs for backward-compatible filters
+            $tabs = [];
+
+            // Register tabs in priority order
+            foreach ($tabs_config as $priority => $config) {
+                $tab = $settings->add_tab($config['label']);
+
+                // Call the registration callback if provided
+                if (!empty($config['callback']) && is_callable($config['callback'])) {
+                    call_user_func($config['callback'], $tab);
+                }
+
+                $tabs[$config['key']] = $tab;
+            }
+
+            /*
+             * Deprecated filters for backward compatibility.
+             *
+             * @deprecated 1.1.0 Use 'wicket_settings_tabs' filter with priority-based registration.
+             */
+            if (isset($tabs['general'])) {
+                $tabs['general'] = apply_filters_deprecated(
+                    'wicket_settings_tab_gen',
+                    [$tabs['general']],
+                    '1.1.0',
+                    'wicket_settings_tabs'
+                );
+            }
+            if (isset($tabs['environments'])) {
+                $tabs['environments'] = apply_filters_deprecated(
+                    'wicket_settings_tab_env',
+                    [$tabs['environments']],
+                    '1.1.0',
+                    'wicket_settings_tabs'
+                );
+            }
+            if (isset($tabs['memberships'])) {
+                $tabs['memberships'] = apply_filters_deprecated(
+                    'wicket_settings_tab_memb',
+                    [$tabs['memberships']],
+                    '1.1.0',
+                    'wicket_settings_tabs'
+                );
+            }
+            if (isset($tabs['touchpoints'])) {
+                $tabs['touchpoints'] = apply_filters_deprecated(
+                    'wicket_settings_tab_tp',
+                    [$tabs['touchpoints']],
+                    '1.1.0',
+                    'wicket_settings_tabs'
+                );
+            }
+            if (isset($tabs['integrations'])) {
+                $tabs['integrations'] = apply_filters_deprecated(
+                    'wicket_settings_tab_int',
+                    [$tabs['integrations']],
+                    '1.1.0',
+                    'wicket_settings_tabs'
+                );
+            }
+
+            $settings = apply_filters_deprecated(
+                'wicket_settings_extend',
+                [$settings],
+                '1.1.0',
+                'wicket_settings_tabs'
+            );
+
+            $settings->make();
+        }
+
+        /**
+         * Register General tab sections and options.
+         *
+         * @param mixed $tab WPSettings tab instance.
+         */
+        public function register_general_tab($tab)
+        {
+            $section = $tab->add_section(__('Create Account', 'wicket'));
 
             $section->add_option('select', [
                 'name' => 'wicket_admin_settings_create_account_page',
@@ -151,20 +267,22 @@ if (!class_exists('Wicket_Settings')) {
             ]);
 
             // Styles section
-            $section = $tab_gen->add_section(__('Styles', 'wicket'));
+            $section = $tab->add_section(__('Styles', 'wicket'));
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_disable_default_styling',
                 'label' => __('Disable Default Styling', 'wicket'),
                 'description' => __('Disable Wicket default styling. Only for advanced users. If you enable this, no styling from this plugin will be loaded. Will be on you to add the necessary styles for all components and blocks.', 'wicket'),
             ]);
+        }
 
-            /*
-             * Start Environments tab
-             *
-             */
-            $tab_env = $settings->add_tab(__('Environments', 'wicket'));
-
-            $section = $tab_env->add_section(__('Connect to Wicket Environments', 'wicket'), [
+        /**
+         * Register Environments tab sections and options.
+         *
+         * @param mixed $tab WPSettings tab instance.
+         */
+        public function register_environments_tab($tab)
+        {
+            $section = $tab->add_section(__('Connect to Wicket Environments', 'wicket'), [
                 'description' => __('Choose which environment to activate.', 'wicket'),
             ]);
 
@@ -180,7 +298,7 @@ if (!class_exists('Wicket_Settings')) {
             $section->add_option('wicket-api-check');
 
             // Production Section
-            $section = $tab_env->add_section(__('Wicket Production', 'wicket'), [
+            $section = $tab->add_section(__('Wicket Production', 'wicket'), [
                 'description' => __('Configure Wicket API setting, etc. for production', 'wicket'),
             ]);
 
@@ -210,7 +328,7 @@ if (!class_exists('Wicket_Settings')) {
                 'description' => __('The address of the admin interface. Ex: https://[client]-admin.wicketcloud.com', 'wicket'),
             ]);
             // Staging Section
-            $section = $tab_env->add_section(__('Wicket Staging', 'wicket'), [
+            $section = $tab->add_section(__('Wicket Staging', 'wicket'), [
                 'description' => __('Configure Wicket API setting, etc. for staging', 'wicket'),
             ]);
 
@@ -239,21 +357,23 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('Wicket Admin', 'wicket'),
                 'description' => __('The address of the admin interface. Ex: https://[client]-admin.wicketcloud.com', 'wicket'),
             ]);
+        }
 
-            /*
-             * Start Memberships tab
-             *
-             */
-            $tab_memb = $settings->add_tab(__('Memberships', 'wicket'));
-
-            $section = $tab_memb->add_section(__('Membership Configuration Overview', 'wicket'), [
+        /**
+         * Register Memberships tab sections and options.
+         *
+         * @param mixed $tab WPSettings tab instance.
+         */
+        public function register_memberships_tab($tab)
+        {
+            $section = $tab->add_section(__('Membership Configuration Overview', 'wicket'), [
                 'description' => __('The table below shows all Wicket Account Memberships Tiers and corresponding WooCommerce Membership Plans. If you just applied  changes to the Wicket Membership Tiers or changed Wicket Environments, please use the following button to renew the cached list below.', 'wicket'),
             ]);
 
             $section->add_option('wicket-plugin-check');
             $section->add_option('wicket-membership-overview');
 
-            $section = $tab_memb->add_section(__('Membership Settings', 'wicket'), [
+            $section = $tab->add_section(__('Membership Settings', 'wicket'), [
                 'description' => __('Configure settings related to Memberships', 'wicket'),
             ]);
 
@@ -266,15 +386,17 @@ if (!class_exists('Wicket_Settings')) {
                     'input_class' => 'wicket-membership-categories wicket-admin-select2',
                 ],
             ]);
+        }
 
-            /*
-             * Start Touchpoints tab
-             *
-             */
-            $tab_tp = $settings->add_tab(__('Touchpoints', 'wicket'));
-
+        /**
+         * Register Touchpoints tab sections and options.
+         *
+         * @param mixed $tab WPSettings tab instance.
+         */
+        public function register_touchpoints_tab($tab)
+        {
             // Default Touchpoints Section
-            $section = $tab_tp->add_section('Default', [
+            $section = $tab->add_section('Default', [
                 'as_link' => true,
                 'description' => __('Touchpoints write data back from WordPress user actions back to Wicket person profiles. Configure which default touchpoint should be used.', 'wicket'),
             ]);
@@ -301,16 +423,18 @@ if (!class_exists('Wicket_Settings')) {
             ]);
 
             //Custom Touchpoints Section
-            $section = $tab_tp->add_section('Custom', ['as_link' => true]);
+            $section = $tab->add_section('Custom', ['as_link' => true]);
+        }
 
-            /*
-             * Start Integrations tab
-             *
-             */
-            $tab_int = $settings->add_tab(__('Integrations', 'wicket'));
-
+        /**
+         * Register Integrations tab sections and options.
+         *
+         * @param mixed $tab WPSettings tab instance.
+         */
+        public function register_integrations_tab($tab)
+        {
             // WooCommerce Integration Section
-            $section = $tab_int->add_section(__('WooCommerce', 'wicket'), [
+            $section = $tab->add_section(__('WooCommerce', 'wicket'), [
                 'as_link' => true,
                 'description' => __('Configure settings for common customizations with default WooCommerce behaviour.', 'wicket'),
             ]);
@@ -373,7 +497,7 @@ if (!class_exists('Wicket_Settings')) {
             ]);
 
             // WP Cassify Integration Tab
-            $section = $tab_int->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);
+            $section = $tab->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_wpcassify_sync_roles',
                 'label' => __('Sync Security Roles', 'wicket'),
@@ -396,7 +520,7 @@ if (!class_exists('Wicket_Settings')) {
             ]);
 
             // Mailtrap Integration Tab
-            $section = $tab_int->add_section(__('Mailtrap', 'wicket'), [
+            $section = $tab->add_section(__('Mailtrap', 'wicket'), [
                 'as_link' => true,
                 'description' => __('Used to send all Wordpress mail to mailtrap. Typically used on staging/local for testing and will only take effect when the Wicket environment is toggled to "Staging". <br> NOTE! Remember to disable any SMTP plugin(s) while using the stage environment. Otherwise these settings won\'t take effect.', 'wicket'),
             ]);
@@ -421,29 +545,6 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('Password', 'wicket'),
                 'description' => __('Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP', 'wicket'),
             ]);
-
-            /*
-             * Filters to extend the settings above
-             */
-            // Extend Settings - add new tab with sections and options
-            $settings = apply_filters('wicket_settings_extend', $settings);
-
-            // Extend General - add new sections and options
-            $tab_gen = apply_filters('wicket_settings_tab_gen', $tab_gen);
-
-            // Extend Membership - add new sections and options
-            $tab_memb = apply_filters('wicket_settings_tab_memb', $tab_memb);
-
-            // Extend Environments - add new sections and options
-            $tab_env = apply_filters('wicket_settings_tab_env', $tab_env);
-
-            // Extend Touchpoints - add new sections and options
-            $tab_tp = apply_filters('wicket_settings_tab_tp', $tab_tp);
-
-            // Extend Integrations - add new sections and options
-            $tab_int = apply_filters('wicket_settings_tab_int', $tab_int);
-
-            $settings->make();
         }
     }
     new Wicket_Settings();
