@@ -192,7 +192,10 @@ function wicket_find_person_org_connection(
     string $role_slug,
     bool $includeEnded = false
 ): ?array {
-    if ($person_uuid === '' || $org_uuid === '' || $connection_type === '' || $role_slug === '') {
+    $normalized_connection_type = strtolower(trim($connection_type));
+    $normalized_role_slug = strtolower(trim($role_slug));
+
+    if ($person_uuid === '' || $org_uuid === '' || $normalized_connection_type === '' || $normalized_role_slug === '') {
         return null;
     }
 
@@ -217,10 +220,15 @@ function wicket_find_person_org_connection(
     foreach ($connections['data'] as $conn) {
         $to_id = $conn['relationships']['to']['data']['id'] ?? '';
         $to_type = $conn['relationships']['to']['data']['type'] ?? '';
-        $conn_type = $conn['attributes']['connection_type'] ?? '';
-        $role_type = isset($conn['attributes']['type']) ? trim(strval($conn['attributes']['type'])) : '';
+        $conn_type = strtolower(trim((string) ($conn['attributes']['connection_type'] ?? '')));
+        $role_type = strtolower(trim((string) ($conn['attributes']['type'] ?? '')));
 
-        if ($to_id === $org_uuid && $to_type === 'organizations' && $conn_type === $connection_type && $role_type === trim($role_slug)) {
+        if (
+            $to_id === $org_uuid
+            && $to_type === 'organizations'
+            && $conn_type === $normalized_connection_type
+            && $role_type === $normalized_role_slug
+        ) {
             $is_active = (bool) ($conn['attributes']['active'] ?? false);
             $is_ended = !empty($conn['attributes']['ends_at']);
             if ($is_active && !$is_ended) {
