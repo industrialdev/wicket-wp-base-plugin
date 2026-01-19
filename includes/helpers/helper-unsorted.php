@@ -394,12 +394,13 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
  *                            filter post-search and full will filter pre-search, as it has that option available.
  * @param bool $autocomplete  Whether or not to use the autocomplete API or the search API.
  * @param string $lang        Language code to utilize, defaults to 'en'. Not fully implemented, especially in full search.
+ * @param bool   $include_memberships Whether to include membership data and active membership status in results.
  *
  * @return bool | array       False if there was a problem, or an array of the results. The fewer terms suppplied by the autocomplete
  *                            endpoint should also be available in the response from the full search, for consistency in usage of the
  *                            function (e.g. both have id, name, and type parameters returned).
  */
-function wicket_search_organizations($search_term, $search_by = 'org_name', $org_type = null, $autocomplete = false, $lang = 'en')
+function wicket_search_organizations($search_term, $search_by = 'org_name', $org_type = null, $autocomplete = false, $lang = 'en', $include_memberships = true)
 {
     try {
         $client = wicket_api_client();
@@ -550,19 +551,22 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
                     }
                 }
 
-                /**------------------------------------------------------------------
-                 * Get org memberships
-                        ------------------------------------------------------------------*/
-                $org_memberships = wicket_get_org_memberships($result['id']);
-
+                $org_memberships = '';
                 $has_active_membership = false;
-                if (!empty($org_memberships)) {
-                    foreach ($org_memberships as $membership) {
-                        if (isset($membership['membership'])) {
-                            if (isset($membership['membership']['attributes'])) {
-                                if (isset($membership['membership']['attributes']['active'])) {
-                                    if ($membership['membership']['attributes']['active']) {
-                                        $has_active_membership = true;
+                if ($include_memberships) {
+                    /**------------------------------------------------------------------
+                     * Get org memberships
+                            ------------------------------------------------------------------*/
+                    $org_memberships = wicket_get_org_memberships($result['id']);
+
+                    if (!empty($org_memberships)) {
+                        foreach ($org_memberships as $membership) {
+                            if (isset($membership['membership'])) {
+                                if (isset($membership['membership']['attributes'])) {
+                                    if (isset($membership['membership']['attributes']['active'])) {
+                                        if ($membership['membership']['attributes']['active']) {
+                                            $has_active_membership = true;
+                                        }
                                     }
                                 }
                             }
@@ -580,9 +584,11 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
                 $results[$result['id']]['state_name'] = $state_name;
                 $results[$result['id']]['country_code'] = $country_code;
                 $results[$result['id']]['web_address'] = $web_address;
-                $results[$result['id']]['org_memberships'] = $org_memberships;
                 $results[$result['id']]['phone'] = $tel;
-                $results[$result['id']]['active_membership'] = $has_active_membership;
+                if ($include_memberships) {
+                    $results[$result['id']]['org_memberships'] = $org_memberships;
+                    $results[$result['id']]['active_membership'] = $has_active_membership;
+                }
             }
         }
 
@@ -2015,10 +2021,7 @@ function wicket_assign_organization_membership(
     }
 
     if (!empty($previous_membership_uuid)) {
-        $skip_copy_previous_assignments = apply_filters('wicket_org_create_membership_skip_copy_previous_assignments', false);
-        if (!$skip_copy_previous_assignments) {
-            $payload['data']['attributes']['copy_previous_assignments'] = true;
-        }
+        $payload['data']['attributes']['copy_previous_assignments'] = true;
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
             'type' => 'organization_memberships',
             'id' => $previous_membership_uuid,

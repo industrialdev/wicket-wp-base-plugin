@@ -245,28 +245,31 @@ if ($searchMode == 'org') {
             $has_active_membership = $seat_summary['has_active_membership'] ?? false;
 
             /**------------------------------------------------------------------
-             * Get Primary Address
+             * Get Primary Address (only when address/location is displayed)
             ------------------------------------------------------------------*/
-            $org_addresses = wicket_get_organization_addresses($org_id);
-
             $address1 = '';
             $city = '';
             $zip_code = '';
             $state_name = '';
             $country_code = '';
 
-            if (!empty($org_addresses['data']) && is_array($org_addresses['data'])) {
-                foreach ($org_addresses['data'] as $address) {
-                    if (
-                        isset($address['attributes']['primary'])
-                        && $address['attributes']['primary'] === true
-                    ) {
-                        $address1 = $address['attributes']['address1'] ?? '';
-                        $city = $address['attributes']['city'] ?? '';
-                        $zip_code = $address['attributes']['zip_code'] ?? '';
-                        $state_name = $address['attributes']['state_name'] ?? '';
-                        $country_code = $address['attributes']['country_code'] ?? '';
-                        break; // stop after finding primary address
+            $address_fields_needed = in_array($display_org_fields, ['name_location', 'name_address'], true);
+            if ($address_fields_needed) {
+                $org_addresses = wicket_get_organization_addresses($org_id);
+
+                if (!empty($org_addresses['data']) && is_array($org_addresses['data'])) {
+                    foreach ($org_addresses['data'] as $address) {
+                        if (
+                            isset($address['attributes']['primary'])
+                            && $address['attributes']['primary'] === true
+                        ) {
+                            $address1 = $address['attributes']['address1'] ?? '';
+                            $city = $address['attributes']['city'] ?? '';
+                            $zip_code = $address['attributes']['zip_code'] ?? '';
+                            $state_name = $address['attributes']['state_name'] ?? '';
+                            $country_code = $address['attributes']['country_code'] ?? '';
+                            break; // stop after finding primary address
+                        }
                     }
                 }
             }
@@ -731,7 +734,7 @@ if (!$is_wicket_theme) {
           'type'     => 'button',
           'classes'  => ['component-org-search-select__select-result-button'],
           'atts'     => [
-              'x-on:click.prevent="selectOrgAndCreateRelationship($data.result.id, $event, result.active_membership, false, result.active_membership_seat_summary )"',
+              'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
               'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
                     \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
@@ -1063,6 +1066,7 @@ if (defined('WICKET_WP_THEME_V2')) {
       justCreatedOrgUuid: '',
       description: '<?php echo esc_js($description); ?>',
       jobTitle: '<?php echo esc_js($job_title); ?>',
+      displayOrgFields: '<?php echo esc_js($display_org_fields); ?>',
       relationshipTypeFilter: '<?php echo $relationshipTypeFilter; ?>',
       removalErrorVisible: false,
       removalErrorMessage: '',
@@ -1079,7 +1083,14 @@ if (defined('WICKET_WP_THEME_V2')) {
         if (connection.connection_type != rm) return false;
         const connOrgType = (connection.org_type || '').toLowerCase();
         if (!(sTypes.includes(connOrgType) || sTypes.length === 0)) return false;
-        if (!connection.active_connection) return false;
+        if (!connection.active_connection) {
+          if (this.selectedOrgUuid && connection.org_id === this.selectedOrgUuid) {
+            if (!this.enableRelationshipFiltering || filt === '') return true;
+            const relType = ((connection.relationship_type || '') + '').toLowerCase();
+            return relType === filt;
+          }
+          return false;
+        }
 
         // If filtering disabled or empty filter, pass through
         if (!this.enableRelationshipFiltering || filt === '') return true;
@@ -1236,16 +1247,21 @@ if (defined('WICKET_WP_THEME_V2')) {
           this.isLoading = true;
         }
 
+        const includeLocation = this.displayOrgFields === 'name_location' || this.displayOrgFields === 'name_address';
         const orgTypes = this.searchOrgType.split(',').map(type => type.trim());
         let data = {};
         if (this.searchOrgType.length > 0) {
           data = {
             "searchTerm": searchTerm,
             "orgType": orgTypes,
+            "includeMembershipSummary": false,
+            "includeLocation": includeLocation,
           };
         } else {
           data = {
-            "searchTerm": searchTerm
+            "searchTerm": searchTerm,
+            "includeMembershipSummary": false,
+            "includeLocation": includeLocation,
           };
         }
 
@@ -1282,6 +1298,109 @@ if (defined('WICKET_WP_THEME_V2')) {
             }
           });
 
+      },
+      async fetchSeatSummary(orgUuid) {
+        this.isLoading = true;
+        let seatSummary = null;
+        let hasActiveMembership = false;
+
+        try {
+          let results = await fetch(this.apiUrl + 'orgss-seat-summary', {
+              method: "POST",
+              mode: "cors",
+              cache: "no-cache",
+              credentials: "same-origin",
+              headers: {
+                "Content-Type": "application/json",
+                "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+              },
+              redirect: "follow",
+              referrerPolicy: "no-referrer",
+              body: JSON.stringify({
+                "orgUuid": orgUuid
+              }),
+            }).then(response => response.json())
+            .then(data => data);
+
+          if (results && results.success && results.data) {
+            seatSummary = results.data.seat_summary || null;
+            hasActiveMembership = !!results.data.active_membership;
+          }
+        } catch (error) {
+          seatSummary = null;
+          hasActiveMembership = false;
+        } finally {
+          this.isLoading = false;
+        }
+
+        return {
+          seatSummary,
+          hasActiveMembership,
+        };
+      },
+      async selectOrgFromSearchResult(result, event = null) {
+        const orgUuid = result.id;
+
+        if (!orgUuid) {
+          return;
+        }
+
+        if (this.disableSelectingOrgsWithActiveMembership) {
+          const seatData = await this.fetchSeatSummary(orgUuid);
+          if (seatData.hasActiveMembership && !this.activeMembershipAlertAvailable) {
+            return;
+          }
+          if (seatData.hasActiveMembership && this.activeMembershipAlertAvailable) {
+            this.selectOrgAndCreateRelationship(orgUuid, event, seatData.hasActiveMembership, false, seatData.seatSummary);
+            return;
+          }
+        }
+
+        const created = await this.createOrUpdateRelationship(
+          this.currentPersonUuid,
+          orgUuid,
+          this.relationshipMode,
+          this.relationshipTypeUponOrgCreation
+        );
+
+        if (created && created.success) {
+          this.selectOrg(orgUuid, event);
+          this.searchBox = '';
+          const existingConnection = this.getOrgFromConnectionsByUuid(orgUuid);
+          if (!existingConnection || !existingConnection.org_id) {
+            const fallbackPayload = {
+              connection_id: '',
+              connection_type: this.relationshipMode,
+              relationship_type: this.relationshipTypeUponOrgCreation,
+              starts_at: '',
+              ends_at: '',
+              tags: [],
+              active_membership: false,
+              active_membership_seat_summary: null,
+              active_connection: true,
+              org_id: orgUuid,
+              org_name: result.name || '',
+              org_description: '',
+              org_type_pretty: '',
+              org_type: result.type || '',
+              org_type_slug: result.type || '',
+              org_type_name: result.type_name || '',
+              org_status: '',
+              org_parent_id: '',
+              org_parent_name: '',
+              person_id: this.currentPersonUuid,
+              address1: result.address1 || '',
+              city: result.city || '',
+              zip_code: result.zip_code || '',
+              state_name: result.state_name || '',
+              country_code: result.country_code || '',
+            };
+            this.addConnection(fallbackPayload);
+          }
+          return;
+        }
+
+        this.setSearchMessage('<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>');
       },
       selectOrg(orgUuid, incomingEvent = null, dispatchEvent = true) {
         // Update state
@@ -1603,8 +1722,10 @@ if (defined('WICKET_WP_THEME_V2')) {
                 }
               }
             }
+            return data;
           });
 
+        return results;
       },
 
       async terminateRelationship(connectionId = null) {
@@ -1739,11 +1860,24 @@ if (defined('WICKET_WP_THEME_V2')) {
 
       },
       addConnection(payload) {
+        const normalized = {
+          ...payload,
+          active_connection: payload.active_connection ?? true,
+        };
+        if (normalized.active_connection === false && !normalized.ends_at) {
+          normalized.active_connection = true;
+        }
+        if (normalized.active_connection === false && normalized.ends_at) {
+          const endsAtTime = Date.parse(normalized.ends_at);
+          if (Number.isFinite(endsAtTime) && endsAtTime > Date.now()) {
+            normalized.active_connection = true;
+          }
+        }
         const isDuplicate = this.currentConnections.some(
-          conn => conn.org_id === payload.org_id || conn.connection_id === payload.connection_id
+          conn => conn.org_id === normalized.org_id || conn.connection_id === normalized.connection_id
         );
         if (!isDuplicate) {
-          this.currentConnections.push(payload);
+          this.currentConnections.push(normalized);
         }
       },
       removeConnection(connectionId) {

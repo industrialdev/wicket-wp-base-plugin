@@ -41,6 +41,7 @@ class Rest
             ['wicket-component-do-action', 'component_do_action'],
             ['orgss-notify-owner', 'orgss_notify_owner'],
             ['orgss-notify-owner-roster-added', 'orgss_notify_owner_roster_added'],
+            ['orgss-seat-summary', 'orgss_seat_summary'],
         ];
 
         foreach ($map as [$route, $handler]) {
@@ -65,16 +66,43 @@ class Rest
         }
 
         $lang = $params['lang'] ?? 'en';
+        $include_membership_summary = !isset($params['includeMembershipSummary']) || (bool) $params['includeMembershipSummary'];
+        $include_location = !isset($params['includeLocation']) || (bool) $params['includeLocation'];
 
         if (isset($params['autocomplete']) && $params['autocomplete']) {
-            $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], true, $lang);
+            if ($include_membership_summary) {
+                $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], true, $lang);
+            } else {
+                $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], true, $lang, false);
+            }
             if (gettype($return) == 'boolean' && !$return) {
                 wp_send_json_error('There was a problem searching orgs.');
             }
             wp_send_json_success($return);
         }
 
-        $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], false, $lang);
+        if ($include_membership_summary) {
+            $return = wicket_search_organizations_with_membership_details($params['searchTerm'], 'org_name', $params['orgType'], false, $lang);
+        } else {
+            $return = wicket_search_organizations($params['searchTerm'], 'org_name', $params['orgType'], false, $lang, false);
+            $minimal = [];
+            foreach ($return as $id => $result) {
+                $minimal[$id] = [
+                    'id' => $result['id'] ?? $id,
+                    'name' => $result['name'] ?? '',
+                    'type' => $result['type'] ?? '',
+                    'type_name' => $result['type_name'] ?? '',
+                ];
+                if ($include_location) {
+                    $minimal[$id]['address1'] = $result['address1'] ?? '';
+                    $minimal[$id]['city'] = $result['city'] ?? '';
+                    $minimal[$id]['zip_code'] = $result['zip_code'] ?? '';
+                    $minimal[$id]['state_name'] = $result['state_name'] ?? '';
+                    $minimal[$id]['country_code'] = $result['country_code'] ?? '';
+                }
+            }
+            $return = $minimal;
+        }
         if (gettype($return) == 'boolean' && !$return) {
             wp_send_json_error('There was a problem searching orgs.');
         }
@@ -498,6 +526,35 @@ class Rest
         do_action('wicket_component_' . $action_name, $action_data);
 
         wp_send_json_success();
+    }
+
+    public function orgss_seat_summary(\WP_REST_Request $request)
+    {
+        $params = $request->get_json_params();
+
+        if (!isset($params['orgUuid'])) {
+            wp_send_json_error('Organization uuid not provided');
+        }
+
+        $org_uuid = sanitize_text_field($params['orgUuid']);
+
+        $org_memberships = wicket_get_org_memberships($org_uuid);
+        $seat_summary = function_exists('wicket_get_active_membership_seat_summary')
+            ? wicket_get_active_membership_seat_summary($org_memberships)
+            : [
+                'has_active_membership' => false,
+                'assigned'              => null,
+                'max'                   => null,
+                'unlimited'             => false,
+                'has_available_seats'   => null,
+            ];
+
+        $active_membership = $seat_summary['has_active_membership'] ?? false;
+
+        wp_send_json_success([
+            'seat_summary' => $seat_summary,
+            'active_membership' => $active_membership,
+        ]);
     }
 
     public function orgss_notify_owner(\WP_REST_Request $request)

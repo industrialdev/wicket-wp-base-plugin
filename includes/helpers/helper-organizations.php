@@ -55,7 +55,10 @@ function wicket_search_organizations_with_membership_details($search_term, $sear
             continue;
         }
 
-        $org_memberships = wicket_get_org_memberships($org_id);
+        $org_memberships = $result['org_memberships'] ?? null;
+        if (!is_array($org_memberships)) {
+            $org_memberships = wicket_get_org_memberships($org_id);
+        }
         $seat_summary = wicket_get_active_membership_seat_summary($org_memberships);
 
         $base_results[$index]['active_membership_seat_summary'] = $seat_summary;
