@@ -6,13 +6,12 @@ declare(strict_types=1);
 defined('ABSPATH') || exit;
 
 /**
- * Update connection attributes including start/end dates and other fields.
+ * Update a connection's attributes (start/end, description, tags, etc.).
  *
- * @param string $connection_id The connection ID to update.
- * @param array $attributes Associative array of attributes to update.
- *                          Supported keys: starts_at, ends_at, description, tags, custom_data_field
- *                          Dates should be formatted as YYYY-MM-DD or ISO 8601 format.
- * @return mixed Response from the API call on success, false otherwise.
+ * @param string $connection_id Connection ID.
+ * @param array  $attributes    Keys: starts_at, ends_at, description, tags, custom_data_field. Dates may be ISO 8601 or YYYY-MM-DD.
+ *
+ * @return mixed Updated connection on success, false on failure.
  */
 function wicket_update_connection_attributes(string $connection_id, array $attributes = []): mixed
 {
@@ -114,12 +113,320 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
 }
 
 /**
- * End a connection by setting its end date/time using the site timezone.
+ * Create a connection via API.
  *
- * @param string                  $connection_id The connection ID to end.
- * @param \DateTimeInterface|null $end_time Optional. Exact end time. Defaults to now in site timezone.
+ * @param array $payload JSON:API payload for the connection.
  *
- * @return mixed Response from the API call on success, false otherwise.
+ * @return array|false API response on success, false on failure.
+ */
+function wicket_create_connection($payload)
+{
+    $client = wicket_api_client();
+
+    try {
+        $apiCall = $client->post('connections', ['json' => $payload]);
+
+        return $apiCall;
+    } catch (Exception $e) {
+        // Log and return safely instead of echo/die
+        $msg = '[wicket-base-helper] wicket_create_connection exception: ' . $e->getMessage();
+        error_log($msg);
+        // Try to log API error details if available
+        try {
+            $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
+            if (!empty($responseBody)) {
+                error_log('[wicket-base-helper] wicket_create_connection response body: ' . $responseBody);
+            }
+        } catch (Throwable $t) {
+            // Swallow logging failures
+        }
+
+        return false;
+    }
+
+    return false;
+}
+
+/**
+ * Create a person→organization connection.
+ *
+ * @param string $person_uuid        Person UUID.
+ * @param string $org_uuid           Organization UUID.
+ * @param string $relationship_type  Relationship type slug.
+ * @param bool   $skip_if_exists     When true, return existing matching connection if found.
+ * @param array  $atts               Additional attributes for the connection.
+ *
+ * @return array|false Connection data or false on failure.
+ */
+function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type, $skip_if_exists = false, $atts = [])
+{
+    $existing_connection = null;
+    if ($skip_if_exists) {
+        // Get current connections/relationships
+        $current_connections = wicket_get_person_connections();
+        if (isset($current_connections['data'])) {
+            foreach ($current_connections['data'] as $connection) {
+                if (
+                    $connection['attributes']['type'] == $relationship_type
+                    && $connection['relationships']['organization']['data']['id'] == $org_uuid
+                ) {
+                    $existing_connection = $connection;
+                }
+            }
+        }
+
+        if (!is_null($existing_connection)) {
+            // Same relationship was found to already exist, so returning that relationship data instead of making a new one
+            return $existing_connection;
+        }
+    }
+
+    // Defensive: ensure we have valid IDs
+    if (empty($person_uuid) || empty($org_uuid)) {
+        error_log('[wicket-base-helper] wicket_create_person_to_org_connection missing IDs: person_uuid=' . ($person_uuid ?: 'EMPTY') . ' org_uuid=' . ($org_uuid ?: 'EMPTY') . ' type=' . $relationship_type);
+
+        return false;
+    }
+
+    $attributes = [
+        'connection_type'   => 'person_to_organization',
+        'type'              => $relationship_type,
+        'starts_at'         => null,
+        'ends_at'           => null,
+        'description'       => null,
+        'tags'              => [],
+    ];
+
+    $attributes = array_merge($attributes, $atts);
+
+    $payload = [
+        'data' => [
+            'type' => 'connections',
+            'attributes' => $attributes,
+            'relationships' => [
+                // Explicit relationships for API validation
+                'organization' => [
+                    'data' => [
+                        'type' => 'organizations',
+                        'id'   => $org_uuid,
+                    ],
+                ],
+                'person' => [
+                    'data' => [
+                        'type' => 'people',
+                        'id'   => $person_uuid,
+                    ],
+                ],
+                'from' => [
+                    'data' => [
+                        'type' => 'people',
+                        'id'   => $person_uuid,
+                        'meta' => [
+                            'can_manage' => false,
+                            'can_update' => false,
+                        ],
+                    ],
+                ],
+                'to' => [
+                    'data' => [
+                        'type' => 'organizations',
+                        'id'   => $org_uuid,
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    // Brief debug log for diagnostics (IDs only)
+    error_log('[wicket-base-helper] Creating person->org connection: person_uuid=' . $person_uuid . ' org_uuid=' . $org_uuid . ' type=' . $relationship_type);
+
+    try {
+        $new_connection = wicket_create_connection($payload);
+    } catch (Exception $e) {
+
+    }
+
+    $new_connection_id = '';
+    if (isset($new_connection['data'])) {
+        if (isset($new_connection['data']['id'])) {
+            $new_connection_id = $new_connection['data']['id'];
+        }
+    }
+
+    if (empty($new_connection_id)) {
+        return false;
+    }
+
+    return [
+        'connection_id'     => $new_connection['data']['id'] ?? '',
+        'connection_type'   => $relationship_type,
+        'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+        'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+        'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+        'active_connection' => $new_connection['data']['attributes']['active'],
+        'org_id'            => $org_uuid,
+        'person_id'         => $person_uuid,
+    ];
+}
+
+/**
+ * Create an organization→organization connection.
+ *
+ * @param string $from_org_uuid      Source organization UUID.
+ * @param string $to_org_uuid        Target organization UUID.
+ * @param string $relationship_type  Relationship type slug.
+ * @param bool   $skip_if_exists     When true, return existing matching connection if found.
+ * @param array  $atts               Additional attributes for the connection.
+ *
+ * @return array|false Connection data or false on failure.
+ */
+function wicket_create_org_to_org_connection($from_org_uuid, $to_org_uuid, $relationship_type, $skip_if_exists = false, $atts = [])
+{
+    $existing_connection = null;
+    if ($skip_if_exists) {
+        // Get current connections/relationships
+        $current_connections = wicket_get_org_connections_by_id($from_org_uuid);
+        if (isset($current_connections['data'])) {
+            foreach ($current_connections['data'] as $connection) {
+                if (
+                    $connection['attributes']['type'] == $relationship_type
+                    && $connection['relationships']['to']['data']['id'] == $to_org_uuid
+                ) {
+                    $existing_connection = $connection;
+                }
+            }
+        }
+
+        if (!is_null($existing_connection)) {
+            // Same relationship was found to already exist, so returning that relationship data instead of making a new one
+            return $existing_connection;
+        }
+    }
+
+    $attributes = [
+        'connection_type'   => 'organization_to_organization',
+        'type'              => $relationship_type,
+        'starts_at'         => null,
+        'ends_at'           => null,
+        'description'       => null,
+        'tags'              => [],
+    ];
+
+    $attributes = array_merge($attributes, $atts);
+
+    $payload = [
+        'data' => [
+            'type' => 'connections',
+            'attributes' => $attributes,
+            'relationships' => [
+                'from' => [
+                    'data' => [
+                        'type' => 'organizations',
+                        'id'   => $from_org_uuid,
+                    ],
+                ],
+                'to' => [
+                    'data' => [
+                        'type' => 'organizations',
+                        'id'   => $to_org_uuid,
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    try {
+        $new_connection = wicket_create_connection($payload);
+    } catch (Exception $e) {
+
+    }
+
+    $new_connection_id = '';
+    if (isset($new_connection['data'])) {
+        if (isset($new_connection['data']['id'])) {
+            $new_connection_id = $new_connection['data']['id'];
+        }
+    }
+
+    if (empty($new_connection_id)) {
+        return false;
+    }
+
+    return [
+        'connection_id'     => $new_connection['data']['id'] ?? '',
+        'connection_type'   => $relationship_type,
+        'starts_at'         => $new_connection['data']['attributes']['starts_at'] ?? '',
+        'ends_at'           => $new_connection['data']['attributes']['ends_at'] ?? '',
+        'tags'              => $new_connection['data']['attributes']['tags'] ?? '',
+        'active_connection' => $new_connection['data']['attributes']['active'],
+        'from_org_id'       => $from_org_uuid,
+        'to_org_id'         => $to_org_uuid,
+    ];
+}
+
+/**
+ * Remove a connection by ID.
+ *
+ * @param string $connection_id Connection ID.
+ *
+ * @return bool True on success, false on failure.
+ */
+function wicket_remove_connection($connection_id)
+{
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        return false;
+    }
+
+    try {
+        $removed_connection = $client->delete('connections/' . $connection_id);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Fetch a connection by ID.
+ *
+ * @param string $connection_id Connection ID.
+ *
+ * @return array|false Connection data on success, false on failure.
+ */
+function wicket_get_connection_by_id($connection_id)
+{
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        return false;
+    }
+
+    try {
+        $connection = $client->get('connections/' . $connection_id);
+
+        return $connection;
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        return false;
+    }
+}
+
+/**
+ * End a connection by setting its end timestamp using the site timezone.
+ *
+ * @param string                  $connection_id Connection ID.
+ * @param \DateTimeInterface|null $end_time      Optional explicit end time; defaults to now in site TZ.
+ *
+ * @return mixed Updated connection on success, false on failure.
  */
 function wicket_end_connection(string $connection_id, ?\DateTimeInterface $end_time = null): mixed
 {
@@ -136,10 +443,10 @@ function wicket_end_connection(string $connection_id, ?\DateTimeInterface $end_t
 /**
  * Set the description of a connection.
  *
- * @param string $connection_id The connection ID to update.
- * @param string $description The description to set.
+ * @param string $connection_id Connection ID.
+ * @param string $description   Description text.
  *
- * @return mixed Response from the API call on success, false otherwise.
+ * @return mixed Updated connection on success, false on failure.
  */
 function wicket_set_connection_description(string $connection_id, string $description = ''): mixed
 {
@@ -147,14 +454,12 @@ function wicket_set_connection_description(string $connection_id, string $descri
 }
 
 /**
- * Patch ONLY the description of a connection, leaving all other attributes and relationships untouched.
+ * Patch only the description of a connection (minimal payload).
  *
- * This sends a minimal payload compliant with Wicket API expectations.
+ * @param string      $connection_id Connection ID.
+ * @param string|null $description   Description to set (null clears it).
  *
- * @param string $connection_id The connection ID to update.
- * @param string|null $description The description to set (null clears it).
- *
- * @return mixed Response from the API call on success, false otherwise.
+ * @return mixed Updated connection on success, false on failure.
  */
 function wicket_patch_connection_description(string $connection_id, ?string $description = null): mixed
 {
@@ -191,19 +496,16 @@ function wicket_patch_connection_description(string $connection_id, ?string $des
 }
 
 /**
- * Find an existing person->organization connection matching org, connection type and role.
+ * Find a person→organization connection matching org, connection type, and role.
+ * Returns active match; if none and $includeEnded, returns an ended match.
  *
- * This helper queries the person's connections from Wicket directly (no memoized helper)
- * and returns the first ACTIVE matching connection. If none active is found and
- * $includeEnded is true, it will return an ended matching connection instead.
+ * @param string $person_uuid     Person UUID (from).
+ * @param string $org_uuid        Organization UUID (to).
+ * @param string $connection_type Connection type slug.
+ * @param string $role_slug       Role/type slug.
+ * @param bool   $includeEnded    If true, allow returning ended match when no active found.
  *
- * @param string $person_uuid       Person UUID (from)
- * @param string $org_uuid          Organization UUID (to)
- * @param string $connection_type   Connection type (e.g., person_to_organization)
- * @param string $role_slug         Role/type slug (e.g., employee)
- * @param bool   $includeEnded      Whether to allow returning an ended matching connection if no active one exists
- *
- * @return array|null The matching connection resource array, or null if none found
+ * @return array|null Matching connection or null.
  */
 function wicket_find_person_org_connection(
     string $person_uuid,
@@ -264,15 +566,15 @@ function wicket_find_person_org_connection(
 }
 
 /**
- * Check if a person already has a matching person->organization connection.
+ * Check if a person already has a matching person→organization connection.
  *
- * @param string $person_uuid
- * @param string $org_uuid
- * @param string $connection_type
- * @param string $role_slug
- * @param bool   $includeEnded Whether to consider ended connections as existing
+ * @param string $person_uuid     Person UUID.
+ * @param string $org_uuid        Organization UUID.
+ * @param string $connection_type Connection type slug.
+ * @param string $role_slug       Role/type slug.
+ * @param bool   $includeEnded    Consider ended connections as existing.
  *
- * @return bool True if a matching connection exists, false otherwise
+ * @return bool True if a matching connection exists, otherwise false.
  */
 function wicket_person_has_org_connection(
     string $person_uuid,
@@ -282,4 +584,95 @@ function wicket_person_has_org_connection(
     bool $includeEnded = false
 ): bool {
     return wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role_slug, $includeEnded) !== null;
+}
+
+/**
+ * Set start/end dates on a connection (deprecated; use wicket_end_connection or wicket_update_connection_attributes).
+ *
+ * @param string $connection_id Connection ID.
+ * @param string $end_date      End date/time (YYYY-MM-DD).
+ * @param string $start_date    Optional start date/time (YYYY-MM-DD).
+ *
+ * @deprecated 2026-01-22 Use wicket_end_connection() or wicket_update_connection_attributes() with timezone-aware timestamps.
+ * @return mixed Updated connection on success, false on failure.
+ */
+function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $start_date = '')
+{
+
+    // Mark deprecated and emit a WordPress deprecation notice
+    if (function_exists('_deprecated_function')) {
+        _deprecated_function(__FUNCTION__, '2026-01-22', 'wicket_end_connection()');
+    }
+
+    if (empty($end_date)) {
+        return false;
+    }
+
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+
+        return false;
+    }
+
+    try {
+        $current_connection_info = wicket_get_connection_by_id($connection_id);
+
+        if (empty($current_connection_info)) {
+            return false;
+        }
+
+        $attributes = $current_connection_info['data']['attributes'];
+
+        $tz = wp_timezone();
+        $now = new DateTime('now', $tz);
+
+        // Only if we received a start date, set it (timezone-aware, preserve given date with current time if time missing)
+        if (!empty($start_date)) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) === 1) {
+                $dt_start = DateTime::createFromFormat('Y-m-d H:i:s', $start_date . ' ' . $now->format('H:i:s'), $tz);
+            } else {
+                $dt_start = new DateTime($start_date, $tz);
+            }
+            $attributes['starts_at'] = $dt_start ? $dt_start->format('Y-m-d\TH:i:sP') : null;
+        }
+
+        // End date always timezone-aware; if date-only, use current time of day in site TZ
+        if (!empty($end_date)) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date) === 1) {
+                $dt_end = DateTime::createFromFormat('Y-m-d H:i:s', $end_date . ' ' . $now->format('H:i:s'), $tz);
+            } else {
+                $dt_end = new DateTime($end_date, $tz);
+            }
+            $attributes['ends_at'] = $dt_end ? $dt_end->format('Y-m-d\TH:i:sP') : null;
+        } else {
+            $attributes['ends_at'] = null;
+        }
+
+        // Ensure empty fields stay null, which the MDP likes
+        $attributes['description'] = !empty($attributes['description']) ? $attributes['description'] : null;
+        $attributes['custom_data_field'] = !empty($attributes['custom_data_field']) ? $attributes['custom_data_field'] : null;
+        $attributes['tags'] = !empty($attributes['tags']) ? $attributes['tags'] : null;
+
+        $payload = [
+            'data' => [
+                'attributes'    => $attributes,
+                'id'            => $connection_id,
+                'relationships' => [
+                    'from' => $current_connection_info['data']['relationships']['from'],
+                    'to'   => $current_connection_info['data']['relationships']['to'],
+                ],
+                'type'          => $current_connection_info['data']['type'],
+            ],
+        ];
+
+        $updated_connection = $client->patch('connections/' . $connection_id, ['json' => $payload]);
+
+        return $updated_connection;
+    } catch (Exception $e) {
+        return false;
+    }
+
+    return false;
 }
