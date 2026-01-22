@@ -197,8 +197,8 @@ class Rest
             wp_send_json_error('Something went wrong removing the connection.');
         }
 
-        $set_end_date = wicket_set_connection_start_end_dates($connectionId, date('Y-m-d'));
-        if ($set_end_date) {
+        $end_connection = wicket_end_connection($connectionId);
+        if ($end_connection) {
             wp_send_json_success();
         }
 

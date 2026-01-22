@@ -2971,10 +2971,16 @@ function wicket_remove_connection($connection_id)
  * @param string $end_date The end date to set. Format: YYYY-MM-DD.
  * @param string $start_date Optional. The start date to set. Format: YYYY-MM-DD. Leave empty to keep the current start date.
  *
+ * @deprecated 2026-01-22 Use wicket_end_connection() or wicket_update_connection_attributes() with timezone-aware timestamps.
  * @return mixed Response from the API call on success, false otherwise.
  */
 function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $start_date = '')
 {
+
+    // Mark deprecated and emit a WordPress deprecation notice
+    if (function_exists('_deprecated_function')) {
+        _deprecated_function(__FUNCTION__, '2026-01-22', 'wicket_end_connection()');
+    }
 
     if (empty($end_date)) {
         return false;
@@ -2997,12 +3003,30 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
 
         $attributes = $current_connection_info['data']['attributes'];
 
-        // Only if we received a start date, set it
+        $tz = wp_timezone();
+        $now = new DateTime('now', $tz);
+
+        // Only if we received a start date, set it (timezone-aware, preserve given date with current time if time missing)
         if (!empty($start_date)) {
-            $attributes['starts_at'] = strval($start_date);
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) === 1) {
+                $dt_start = DateTime::createFromFormat('Y-m-d H:i:s', $start_date . ' ' . $now->format('H:i:s'), $tz);
+            } else {
+                $dt_start = new DateTime($start_date, $tz);
+            }
+            $attributes['starts_at'] = $dt_start ? $dt_start->format('Y-m-d\TH:i:sP') : null;
         }
 
-        $attributes['ends_at'] = !empty($end_date) ? strval($end_date) : null;
+        // End date always timezone-aware; if date-only, use current time of day in site TZ
+        if (!empty($end_date)) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date) === 1) {
+                $dt_end = DateTime::createFromFormat('Y-m-d H:i:s', $end_date . ' ' . $now->format('H:i:s'), $tz);
+            } else {
+                $dt_end = new DateTime($end_date, $tz);
+            }
+            $attributes['ends_at'] = $dt_end ? $dt_end->format('Y-m-d\TH:i:sP') : null;
+        } else {
+            $attributes['ends_at'] = null;
+        }
 
         // Ensure empty fields stay null, which the MDP likes
         $attributes['description'] = !empty($attributes['description']) ? $attributes['description'] : null;
@@ -3025,15 +3049,6 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
 
         return $updated_connection;
     } catch (Exception $e) {
-        $error_message = $e->getMessage();
-        if (strpos($error_message, 'must be before') !== false) {
-            // This is a special case where the end date is being set to the same day as the start date
-            // So we need to simply remove the connection and return true
-            wicket_remove_connection($connection_id);
-
-            return true;
-        }
-
         return false;
     }
 

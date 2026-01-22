@@ -114,6 +114,26 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
 }
 
 /**
+ * End a connection by setting its end date/time using the site timezone.
+ *
+ * @param string                  $connection_id The connection ID to end.
+ * @param \DateTimeInterface|null $end_time Optional. Exact end time. Defaults to now in site timezone.
+ *
+ * @return mixed Response from the API call on success, false otherwise.
+ */
+function wicket_end_connection(string $connection_id, ?\DateTimeInterface $end_time = null): mixed
+{
+    if ($connection_id === '') {
+        return false;
+    }
+
+    $timestamp = $end_time ?? new \DateTime('now', wp_timezone());
+    $formatted_end = $timestamp->format('Y-m-d\TH:i:sP');
+
+    return wicket_update_connection_attributes($connection_id, ['ends_at' => $formatted_end]);
+}
+
+/**
  * Set the description of a connection.
  *
  * @param string $connection_id The connection ID to update.
