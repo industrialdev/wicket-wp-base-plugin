@@ -125,8 +125,15 @@ class UpdatePassword extends \WP_Widget
 
                 try {
                     $client->people->update($update_user);
-                } catch (Exception $e) {
-                    $_SESSION['wicket_password_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+                } catch (\GuzzleHttp\Exception\RequestException $e) {
+                    $response = $e->getResponse();
+                    if ($response !== null) {
+                        $_SESSION['wicket_password_form_errors'] = json_decode($response->getBody()->getContents())->errors ?? [];
+                    } else {
+                        $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => __('Request failed', 'wicket')]];
+                    }
+                } catch (\Throwable $e) {
+                    $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => __('Unexpected error', 'wicket')]];
                 }
                 // redirect here if there was updates made to reload person info and prevent form re-submission
                 if (empty($_SESSION['wicket_password_form_errors'])) {
