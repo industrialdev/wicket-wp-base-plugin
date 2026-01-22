@@ -256,7 +256,14 @@ function wicket_get_organization($uuid, $include = null)
     if (!empty($include)) {
         $query_string = '/?include=' . $include;
     }
-    $organization = $client->get('organizations/' . $uuid . $query_string);
+    try {
+        $organization = $client->get('organizations/' . $uuid . $query_string);
+    } catch (\GuzzleHttp\Exception\ClientException $e) {
+        // Gracefully handle missing organizations (e.g., stale UUIDs)
+        error_log('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage());
+        return false;
+    }
+
     if ($organization) {
         return $organization;
     }
