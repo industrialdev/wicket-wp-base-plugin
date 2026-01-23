@@ -203,4 +203,36 @@ function sync_wicket_data_for_person($person_uuid)
     $user->last_name = $person->family_name;
     wp_update_user($user);
 
+}
+
+/**------------------------------------------------------------------
+ * Additional hooks to ensure display_name is synced on profile update and user registration
+ ------------------------------------------------------------------*/
+add_action('updated_user_meta', 'wicket_sync_display_name_from_name_meta', 999, 4);
+add_action('profile_update', 'wicket_sync_display_name_from_profile', 10, 1);
+add_action('user_register', 'wicket_sync_display_name_from_profile', 10, 1);
+
+function wicket_sync_display_name_from_name_meta($meta_id, $user_id, $meta_key, $_meta_value) {
+    if (!in_array($meta_key, ['first_name', 'last_name'], true)) {
+        return;
     }
+    wicket_sync_display_name_from_profile($user_id);
+}
+
+function wicket_sync_display_name_from_profile($user_id) {
+    $first = get_user_meta($user_id, 'first_name', true);
+    $last  = get_user_meta($user_id, 'last_name', true);
+    $display = trim($first . ' ' . $last);
+    if (!$display) {
+        return;
+    }
+    $user = get_userdata($user_id);
+    if ($user && $user->display_name === $display) {
+        return;
+    }
+    update_user_meta($user_id, 'nickname', $display);
+    wp_update_user([
+        'ID'           => $user_id,
+        'display_name' => $display,
+    ]);
+}
