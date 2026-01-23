@@ -473,7 +473,7 @@ if (!class_exists('Wicket_Settings')) {
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_woo_email_blocker_allow_refund_emails',
                 'label' => __('Allow refund emails from admin', 'wicket'),
-                'description' => __('Allow refund emails to customers when refunds are created in admin.', 'wicket'),
+                'description' => __('Allow refund emails to customers when refunds are triggered by an admin.', 'wicket'),
                 'default' => '0',
             ]);
 
