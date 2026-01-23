@@ -12,6 +12,7 @@ $classes = $args['classes'];
 $user_info_data_field_name = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $org_id = $args['org_id'];
+$profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
 $hidden_fields = $args['hidden_fields'];
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
@@ -66,10 +67,7 @@ $wicket_settings = get_wicket_settings();
          hiddenFields: <?php echo json_encode($hidden_fields); ?>,
          <?php endif; ?>
          lang: "<?php echo wicket_get_current_language(); ?>",
-         requiredResources: {
-           addresses: "work",
-           phones: "work",
-         }
+         requiredResources: <?php echo $profile_required_resources; ?>,
        }).then(function(widget) {
         <?php
                 // Dispatch custom events to the page on each available widget listener,
