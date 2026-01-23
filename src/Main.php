@@ -57,6 +57,13 @@ class Main
     public $rest;
 
     /**
+     * Instance of the WooCommerce email blocker.
+     *
+     * @var WooCommerce\EmailBlocker|null
+     */
+    public $woo_email_blocker;
+
+    /**
      * Get the instance of the Main class.
      *
      * @return Main
@@ -103,5 +110,9 @@ class Main
         // Initialize widgets
         $this->widgets = new Widgets($this);
         $this->widgets->init();
+
+        // Initialize WooCommerce email blocker
+        $this->woo_email_blocker = new WooCommerce\EmailBlocker();
+        $this->woo_email_blocker->init();
     }
 }

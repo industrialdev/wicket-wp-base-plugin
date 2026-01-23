@@ -635,6 +635,7 @@ return array(
     'WicketWP\\Widgets\\CreateAccountNoPassword' => $baseDir . '/src/Widgets/CreateAccountNoPassword.php',
     'WicketWP\\Widgets\\ManagePreferences' => $baseDir . '/src/Widgets/ManagePreferences.php',
     'WicketWP\\Widgets\\UpdatePassword' => $baseDir . '/src/Widgets/UpdatePassword.php',
+    'WicketWP\\WooCommerce\\EmailBlocker' => $baseDir . '/src/WooCommerce/EmailBlocker.php',
     'Wicket\\ApiResource' => $vendorDir . '/industrialdev/wicket-sdk-php/src/ApiResource.php',
     'Wicket\\Client' => $vendorDir . '/industrialdev/wicket-sdk-php/src/Client.php',
     'Wicket\\Entities\\Addresses' => $vendorDir . '/industrialdev/wicket-sdk-php/src/Entities/Addresses.php',

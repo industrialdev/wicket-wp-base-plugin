@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit547c7332901762d49388c901d48d15fc
+class ComposerStaticInit521ec53376f76e4f6ed57576e1f3a16c
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
@@ -807,6 +807,7 @@ class ComposerStaticInit547c7332901762d49388c901d48d15fc
         'WicketWP\\Widgets\\CreateAccountNoPassword' => __DIR__ . '/../..' . '/src/Widgets/CreateAccountNoPassword.php',
         'WicketWP\\Widgets\\ManagePreferences' => __DIR__ . '/../..' . '/src/Widgets/ManagePreferences.php',
         'WicketWP\\Widgets\\UpdatePassword' => __DIR__ . '/../..' . '/src/Widgets/UpdatePassword.php',
+        'WicketWP\\WooCommerce\\EmailBlocker' => __DIR__ . '/../..' . '/src/WooCommerce/EmailBlocker.php',
         'Wicket\\ApiResource' => __DIR__ . '/..' . '/industrialdev/wicket-sdk-php/src/ApiResource.php',
         'Wicket\\Client' => __DIR__ . '/..' . '/industrialdev/wicket-sdk-php/src/Client.php',
         'Wicket\\Entities\\Addresses' => __DIR__ . '/..' . '/industrialdev/wicket-sdk-php/src/Entities/Addresses.php',
@@ -834,9 +835,9 @@ class ComposerStaticInit547c7332901762d49388c901d48d15fc
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit547c7332901762d49388c901d48d15fc::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit547c7332901762d49388c901d48d15fc::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit547c7332901762d49388c901d48d15fc::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit521ec53376f76e4f6ed57576e1f3a16c::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit521ec53376f76e4f6ed57576e1f3a16c::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit521ec53376f76e4f6ed57576e1f3a16c::$classMap;
 
         }, null, ClassLoader::class);
     }

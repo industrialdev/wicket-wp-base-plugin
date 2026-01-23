@@ -464,6 +464,18 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('Remove product added to cart message', 'wicket'),
                 'description' => __('When redirected to a checkout disable the "X added to cart, continue shopping?" message.', 'wicket'),
             ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_woo_email_blocker_enabled',
+                'label' => __('Block customer emails on admin updates', 'wicket'),
+                'description' => __('Stops customer emails when admins update orders unless the email is explicitly sent.', 'wicket'),
+                'default' => '0',
+            ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_woo_email_blocker_allow_refund_emails',
+                'label' => __('Allow refund emails from admin', 'wicket'),
+                'description' => __('Allow refund emails to customers when refunds are created in admin.', 'wicket'),
+                'default' => '0',
+            ]);
 
             // run a client check, otherwise the whole site will die if there's no connection filled out yet to an MDP
             if ($client = wicket_api_client()) {
