@@ -1,7 +1,7 @@
 {
   "name": "industrialdev/wicket-wp-base-plugin",
   "description": "Wicket Core Plugin",
-  "version": "2.1.69",
+  "version": "2.2.0",
   "keywords": ["wordpress", "plugin"],
   "homepage": "https://github.com/industrialdev/wicket-wp-base-plugin",
   "authors": [
