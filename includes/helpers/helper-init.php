@@ -20,6 +20,7 @@ $wicket_helpers = [
     'helper-connections.php',
     'helper-theme.php',
     'helper-woocommerce.php',
+    'helper-automatewoo.php',
 ];
 
 /**
