@@ -736,9 +736,13 @@ if (!$is_wicket_theme) {
           'atts'     => [
               'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
               'x-bind:class="{
-                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection( $data.result.id ),
-                    \'orgss_disabled_button_hollow\': result.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
+                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection($data.result.id)
+                      || (disableSelectingOrgsWithActiveMembership && result.active_membership)
                   }"',
+              'x-bind:disabled="isOrgAlreadyAConnection($data.result.id)
+                || (disableSelectingOrgsWithActiveMembership && result.active_membership)"',
+              'x-bind:aria-disabled="(isOrgAlreadyAConnection($data.result.id)
+                || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
           ],
       ]); ?>
             </div>
@@ -878,8 +882,10 @@ if (empty($title)) : ?>
           'atts'     => [
               'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true, connection.active_membership_seat_summary)"',
               'x-bind:class="{
-                    \'orgss_disabled_button\': connection.active_membership && ( disableSelectingOrgsWithActiveMembership && !activeMembershipAlertAvailable )
+                    \'orgss_disabled_button\': connection.active_membership && disableSelectingOrgsWithActiveMembership
                   }"',
+              'x-bind:disabled="connection.active_membership && disableSelectingOrgsWithActiveMembership"',
+              'x-bind:aria-disabled="(connection.active_membership && disableSelectingOrgsWithActiveMembership) ? \'true\' : \'false\'"',
               'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
           ],
       ]); ?>
@@ -1248,19 +1254,20 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
 
         const includeLocation = this.displayOrgFields === 'name_location' || this.displayOrgFields === 'name_address';
+        const includeMembershipSummary = this.disableSelectingOrgsWithActiveMembership;
         const orgTypes = this.searchOrgType.split(',').map(type => type.trim());
         let data = {};
         if (this.searchOrgType.length > 0) {
           data = {
             "searchTerm": searchTerm,
             "orgType": orgTypes,
-            "includeMembershipSummary": false,
+            "includeMembershipSummary": includeMembershipSummary,
             "includeLocation": includeLocation,
           };
         } else {
           data = {
             "searchTerm": searchTerm,
-            "includeMembershipSummary": false,
+            "includeMembershipSummary": includeMembershipSummary,
             "includeLocation": includeLocation,
           };
         }
@@ -1345,13 +1352,13 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
+        if (this.disableSelectingOrgsWithActiveMembership && result.active_membership) {
+          return;
+        }
+
         if (this.disableSelectingOrgsWithActiveMembership) {
           const seatData = await this.fetchSeatSummary(orgUuid);
-          if (seatData.hasActiveMembership && !this.activeMembershipAlertAvailable) {
-            return;
-          }
-          if (seatData.hasActiveMembership && this.activeMembershipAlertAvailable) {
-            this.selectOrgAndCreateRelationship(orgUuid, event, seatData.hasActiveMembership, false, seatData.seatSummary);
+          if (seatData.hasActiveMembership) {
             return;
           }
         }
@@ -1465,6 +1472,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
         // TODO: Handle when a Group is selected instead of an org
+
+        if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership) {
+          return;
+        }
 
         // Reset proceed flag when switching orgs so each selection is evaluated independently.
         if (this.activeMembershipAlertProceedChosen && this.activeMembershipAlertOrgUuid && this.activeMembershipAlertOrgUuid !== orgUuid) {
