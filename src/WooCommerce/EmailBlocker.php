@@ -114,7 +114,7 @@ class EmailBlocker
             return $enabled;
         }
 
-        if (!$this->is_admin_order_update_request()) {
+        if (!$this->is_admin_order_update_request($object)) {
             return $enabled;
         }
 
@@ -154,14 +154,18 @@ class EmailBlocker
      *
      * @return bool
      */
-    private function is_admin_order_update_request(): bool
+    private function is_admin_order_update_request($object = null): bool
     {
-        if (!is_admin()) {
-            return false;
-        }
-
         if (wp_doing_ajax()) {
             return $this->is_admin_order_ajax_action();
+        }
+
+        if ($this->is_rest_admin_order_request($object)) {
+            return true;
+        }
+
+        if (!is_admin()) {
+            return false;
         }
 
         if (empty($_POST['post_ID']) || empty($_POST['post_type']) || empty($_POST['woocommerce_meta_nonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -180,6 +184,52 @@ class EmailBlocker
         }
 
         return true;
+    }
+
+    /**
+     * Determine if the current REST request is an admin order update.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_rest_admin_order_request($object = null): bool
+    {
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            return false;
+        }
+
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id) {
+            return current_user_can('edit_post', $order_id) || current_user_can('manage_woocommerce');
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Resolve order id from the email object or request data.
+     *
+     * @param mixed $object Email object context.
+     * @return int
+     */
+    private function get_order_id_from_object_or_request($object = null): int
+    {
+        if (is_object($object) && method_exists($object, 'get_id')) {
+            return (int) $object->get_id();
+        }
+
+        $keys = ['order_id', 'id', 'post_ID'];
+        foreach ($keys as $key) {
+            if (!empty($_REQUEST[$key])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+                return absint(wp_unslash($_REQUEST[$key]));
+            }
+        }
+
+        return 0;
     }
 
     /**
