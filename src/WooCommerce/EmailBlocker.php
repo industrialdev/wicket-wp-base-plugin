@@ -156,8 +156,12 @@ class EmailBlocker
      */
     private function is_admin_order_update_request($object = null): bool
     {
+        if (!$this->is_wp_admin_context()) {
+            return false;
+        }
+
         if (wp_doing_ajax()) {
-            return $this->is_admin_order_ajax_action();
+            return $this->is_admin_order_ajax_action($object);
         }
 
         if ($this->is_rest_admin_order_request($object)) {
@@ -166,6 +170,15 @@ class EmailBlocker
 
         if (!is_admin()) {
             return false;
+        }
+
+        if ($this->is_admin_bulk_order_status_request($object)) {
+            return true;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id && $this->is_hpos_edit_order_request($order_id)) {
+            return true;
         }
 
         if (empty($_POST['post_ID']) || empty($_POST['post_type']) || empty($_POST['woocommerce_meta_nonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -180,6 +193,58 @@ class EmailBlocker
         }
 
         if (!current_user_can('edit_post', $post_id)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Ensure the request originated from wp-admin.
+     *
+     * @return bool
+     */
+    private function is_wp_admin_context(): bool
+    {
+        if (!wp_doing_ajax() && (!defined('REST_REQUEST') || !REST_REQUEST)) {
+            return is_admin();
+        }
+
+        $referer = wp_get_referer();
+        if (!$referer && !empty($_SERVER['HTTP_REFERER'])) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $referer = sanitize_text_field(wp_unslash($_SERVER['HTTP_REFERER']));
+        }
+
+        if (!$referer) {
+            return false;
+        }
+
+        return false !== strpos($referer, '/wp-admin/');
+    }
+
+    /**
+     * Determine if the current request is an HPOS order edit save.
+     *
+     * @param int $order_id Order id.
+     * @return bool
+     */
+    private function is_hpos_edit_order_request(int $order_id): bool
+    {
+        if (empty($_POST['action']) || empty($_POST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $action = sanitize_key(wp_unslash($_POST['action']));
+        if ('edit_order' !== $action) {
+            return false;
+        }
+
+        $nonce = wp_unslash($_POST['_wpnonce']);
+        if (!wp_verify_nonce($nonce, 'update-order_' . $order_id)) {
+            return false;
+        }
+
+        if (!current_user_can('edit_post', $order_id)) {
             return false;
         }
 
@@ -239,20 +304,111 @@ class EmailBlocker
      */
     private function is_admin_order_ajax_action(): bool
     {
-        if (empty($_POST['action'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+        if (empty($_REQUEST['action'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
             return false;
         }
 
-        $action = sanitize_key(wp_unslash($_POST['action']));
+        $action = sanitize_key(wp_unslash($_REQUEST['action']));
 
-        return in_array(
+        if (!in_array(
             $action,
             [
                 'woocommerce_refund_line_items',
                 'woocommerce_mark_order_status',
             ],
             true
-        );
+        )) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request();
+        if ($order_id) {
+            return current_user_can('edit_post', $order_id);
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Detect admin bulk order status changes.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_admin_bulk_order_status_request($object = null): bool
+    {
+        $action = $this->get_bulk_action();
+        if (!$action || 0 !== strpos($action, 'mark_')) {
+            return false;
+        }
+
+        $order_ids = $this->get_bulk_order_ids();
+        if (empty($order_ids)) {
+            return false;
+        }
+
+        if (!$this->verify_bulk_nonce()) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id && !current_user_can('edit_post', $order_id)) {
+            return false;
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Resolve bulk action name from request.
+     *
+     * @return string
+     */
+    private function get_bulk_action(): string
+    {
+        $action = '';
+
+        if (!empty($_REQUEST['action']) && '-1' !== $_REQUEST['action']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $action = sanitize_key(wp_unslash($_REQUEST['action']));
+        } elseif (!empty($_REQUEST['action2']) && '-1' !== $_REQUEST['action2']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $action = sanitize_key(wp_unslash($_REQUEST['action2']));
+        }
+
+        return $action;
+    }
+
+    /**
+     * Get order IDs from bulk request.
+     *
+     * @return int[]
+     */
+    private function get_bulk_order_ids(): array
+    {
+        if (!empty($_REQUEST['id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['id']))));
+        }
+
+        if (!empty($_REQUEST['post'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['post']))));
+        }
+
+        return [];
+    }
+
+    /**
+     * Verify bulk action nonce for order list tables.
+     *
+     * @return bool
+     */
+    private function verify_bulk_nonce(): bool
+    {
+        if (empty($_REQUEST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $nonce = wp_unslash($_REQUEST['_wpnonce']);
+
+        return wp_verify_nonce($nonce, 'bulk-orders') || wp_verify_nonce($nonce, 'bulk-posts');
     }
 
     /**
