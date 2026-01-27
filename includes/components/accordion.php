@@ -183,7 +183,7 @@ foreach ($items as $item) :
 	</div>
 
 	<?php if ($separate_title_body): ?>
-	<div class="py-4 px-12 <?php if ($accordion_type == 'list') {
+	<div class="py-4 px-12 <?php echo (defined('WICKET_WP_THEME_V2')) ? 'accordion-item__body' : '' ?> <?php if ($accordion_type == 'list') {
 	    echo 'border-b border-primary-060';
 	} ?>"
 		x-show="openAccordion == <?php echo $i; ?>"
