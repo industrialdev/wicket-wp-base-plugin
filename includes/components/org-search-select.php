@@ -1,4 +1,7 @@
 <?php
+//<script>window.WICKET_ORGSS_DEBUG = false;</script>
+//define('WICKET_ORGSS_DEBUG', true);
+
 $defaults = [
     'classes'                                       => [],
     'search_mode'                                   => 'org', // Options: org, groups, ...
@@ -218,11 +221,12 @@ if (empty($noResultsFoundMessage)) {
 }
 
 $current_person_uuid = wicket_current_person_uuid();
-
 // Get users current org/group relationships
 $person_to_org_connections = [];
 if ($searchMode == 'org') {
-    $current_connections = wicket_get_person_connections();
+    $current_connections = wicket_get_person_connections([
+        'dedupe' => 'org_id',
+    ]);
 
     foreach ($current_connections['data'] as $connection) {
         $connection_id = $connection['id'];
@@ -303,6 +307,7 @@ if ($searchMode == 'org') {
             ];
         }
     }
+
 } elseif ($searchMode == 'groups') {
     // TODO: Get current MDP org memberships and save to $person_to_org_connections
 }
@@ -310,7 +315,6 @@ if ($searchMode == 'org') {
 // Get list of org types to make available to the user if an admin override is not provided
 $available_org_types = wicket_get_resource_types('organizations');
 ?>
-
 <style>
   .orgss_disabled_button {
     background: #efefef !important;
@@ -335,9 +339,7 @@ $available_org_types = wicket_get_resource_types('organizations');
 
 <div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>"
   x-data="orgss_<?php echo $key; ?>" x-init="">
-
-  <?php // Loading overlay
-  ?>
+  <?php // Loading overlay ?>
   <div x-transition x-cloak
     class="component-org-search-select__loading-overlay flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' ">
@@ -773,7 +775,7 @@ if (empty($title)) : ?>
       'type'     => 'button',
       'classes'  => ['component-org-search-select__clear-selection-button'],
       'atts'     => [
-          'x-on:click.prevent="selectedOrgUuid = \'\'; $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
+          'x-on:click.prevent="selectedOrgUuid = \'\'; hideGfNextButton(); $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
       ],
   ]); ?>
         </div>
@@ -1001,6 +1003,27 @@ if (defined('WICKET_WP_THEME_V2')) {
 </div>
 
 <script>
+  function wicketOrgssDebug() {}
+  wicketOrgssDebug.enabled = !!window.WICKET_ORGSS_DEBUG;
+  wicketOrgssDebug.setEnabled = function(value) {
+    wicketOrgssDebug.enabled = !!value;
+  };
+  wicketOrgssDebug.isEnabled = function() {
+    return wicketOrgssDebug.enabled;
+  };
+  wicketOrgssDebug.log = function() {
+    if (!wicketOrgssDebug.enabled || !window.console || !window.console.log) {
+      return;
+    }
+    window.console.log.apply(window.console, arguments);
+  };
+  wicketOrgssDebug.warn = function() {
+    if (!wicketOrgssDebug.enabled || !window.console || !window.console.warn) {
+      return;
+    }
+    window.console.warn.apply(window.console, arguments);
+  };
+
   document.addEventListener('alpine:init', () => {
     Alpine.data('orgss_<?php echo $key; ?>', () => ({
       searchQuery: '',
@@ -1107,6 +1130,13 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
 
       init() {
+        wicketOrgssDebug.log('ORGSS: init', {
+          key: '<?php echo $key; ?>',
+          searchType: this.searchType,
+          currentConnections: Array.isArray(this.currentConnections) ? this.currentConnections.length : 0,
+          displayOrgFields: this.displayOrgFields,
+          searchOrgType: this.searchOrgType,
+        });
         this.clearRemovalError();
 
         // Normalize optional filter for backward compatibility
@@ -1138,6 +1168,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.results = [];
             this.firstSearchSubmitted = false;
             this.showSearchMessage = false;
+            wicketOrgssDebug.log('ORGSS: cleared search');
           }
         });
       },
@@ -1154,7 +1185,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         // If no seat data provided, use base message
         if (!seatSummary || typeof seatSummary !== 'object') {
-          console.warn('ORGSS: Seat summary data is missing or invalid', seatSummary);
+          wicketOrgssDebug.warn('ORGSS: Seat summary data is missing or invalid', seatSummary);
           return;
         }
 
@@ -1173,7 +1204,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.activeMembershipAlertTitle = <?php echo json_encode($active_membership_seat_available_alert_title); ?>;
             this.activeMembershipAlertBody = <?php echo json_encode($active_membership_seat_available_alert_body); ?>;
             this.activeMembershipSeatMessageState = 'available';
-            console.log('ORGSS: Showing seats AVAILABLE message');
+            wicketOrgssDebug.log('ORGSS: Showing seats AVAILABLE message');
             return;
           }
         }
@@ -1184,13 +1215,13 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.activeMembershipAlertTitle = <?php echo json_encode($active_membership_seat_unavailable_alert_title); ?>;
             this.activeMembershipAlertBody = <?php echo json_encode($active_membership_seat_unavailable_alert_body); ?>;
             this.activeMembershipSeatMessageState = 'unavailable';
-            console.log('ORGSS: Showing NO SEATS message');
+            wicketOrgssDebug.log('ORGSS: Showing NO SEATS message');
             return;
           }
         }
 
         // Fallback to base message if seat data is null/undefined or messages not configured
-        console.warn('ORGSS: Falling back to base message. hasAvailableSeats:', hasAvailableSeats, 'seatMessageFlags:', {
+        wicketOrgssDebug.warn('ORGSS: Falling back to base message. hasAvailableSeats:', hasAvailableSeats, 'seatMessageFlags:', {
           hasAvailableSeats: this.seatMessageHasAvailableSeats,
           hasNoSeats: this.seatMessageHasNoSeats
         });
@@ -1199,6 +1230,12 @@ if (defined('WICKET_WP_THEME_V2')) {
         if (e) {
           e.preventDefault();
         }
+
+        wicketOrgssDebug.log('ORGSS: handleSearch', {
+          searchBox: this.searchBox,
+          searchType: this.searchType,
+          firstSearchSubmitted: this.firstSearchSubmitted,
+        });
 
         if (this.searchBox.length < 1) {
           this.setSearchMessage(
@@ -1272,6 +1309,13 @@ if (defined('WICKET_WP_THEME_V2')) {
           };
         }
 
+        wicketOrgssDebug.log('ORGSS: searchOrgs request', {
+          searchTerm,
+          orgTypes,
+          includeMembershipSummary,
+          includeLocation,
+        });
+
         // Ref: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
         // Ref 2: https://stackoverflow.com/a/43263012
         let results = await fetch(this.apiUrl + 'search-orgs', {
@@ -1290,6 +1334,14 @@ if (defined('WICKET_WP_THEME_V2')) {
               data), // body data type must match "Content-Type" header
           }).then(response => response.json())
           .then(data => {
+            const resultCount = Array.isArray(data.data) ? data.data.length : 0;
+            const resultIds = Array.isArray(data.data) ? data.data.map(item => item.id) : [];
+            wicketOrgssDebug.log('ORGSS: searchOrgs response', {
+              success: !!data.success,
+              resultCount,
+              resultIds,
+              data,
+            });
             if (!data.success) {
               this.results = [];
             } else {
@@ -1334,6 +1386,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             hasActiveMembership = !!results.data.active_membership;
           }
         } catch (error) {
+          wicketOrgssDebug.warn('ORGSS: seat summary fetch failed', error);
           seatSummary = null;
           hasActiveMembership = false;
         } finally {
@@ -1469,6 +1522,90 @@ if (defined('WICKET_WP_THEME_V2')) {
         });
         window.dispatchEvent(newEvent);
       },
+      showGfNextButton() {
+        const formId = <?php echo (int) $formId; ?>;
+        const form = formId ? document.getElementById('gform_' + formId) : null;
+        if (!form) {
+          return;
+        }
+
+        const revealElement = (el) => {
+          if (!el) {
+            return;
+          }
+          el.style.setProperty('display', 'block', 'important');
+          el.style.setProperty('opacity', '1', 'important');
+          el.style.setProperty('max-height', 'none', 'important');
+          el.style.setProperty('height', 'auto', 'important');
+          el.style.setProperty('visibility', 'visible', 'important');
+          el.hidden = false;
+          el.classList.remove('gform_hidden', 'hidden', 'gf_invisible');
+          el.removeAttribute('aria-hidden');
+        };
+
+        const selectors = [
+          '.gform_page_footer',
+          '.gform-page-footer',
+        ];
+        const footer = form.querySelector(selectors.join(','));
+        revealElement(footer);
+
+        const buttonSelectors = [
+          '.gform_next_button',
+          '.gform_button',
+          '.gform_submit_button'
+        ];
+        const buttons = form.querySelectorAll(buttonSelectors.join(','));
+        buttons.forEach((button) => revealElement(button));
+
+        wicketOrgssDebug.log('ORGSS: revealed GF next/submit buttons', {
+          formId,
+          footerFound: !!footer,
+          buttonCount: buttons.length
+        });
+      },
+      hideGfNextButton() {
+        const formId = <?php echo (int) $formId; ?>;
+        const form = formId ? document.getElementById('gform_' + formId) : null;
+        if (!form) {
+          return;
+        }
+
+        const hideElement = (el) => {
+          if (!el) {
+            return;
+          }
+          el.style.setProperty('display', 'none', 'important');
+          el.style.setProperty('opacity', '0', 'important');
+          el.style.setProperty('max-height', '0px', 'important');
+          el.style.setProperty('height', '0px', 'important');
+          el.style.setProperty('visibility', 'hidden', 'important');
+          el.hidden = true;
+          el.classList.add('gform_hidden');
+          el.setAttribute('aria-hidden', 'true');
+        };
+
+        const selectors = [
+          '.gform_page_footer',
+          '.gform-page-footer',
+        ];
+        const footer = form.querySelector(selectors.join(','));
+        hideElement(footer);
+
+        const buttonSelectors = [
+          '.gform_next_button',
+          '.gform_button',
+          '.gform_submit_button'
+        ];
+        const buttons = form.querySelectorAll(buttonSelectors.join(','));
+        buttons.forEach((button) => hideElement(button));
+
+        wicketOrgssDebug.log('ORGSS: hid GF next/submit buttons', {
+          formId,
+          footerFound: !!footer,
+          buttonCount: buttons.length
+        });
+      },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
         // TODO: Handle when a Group is selected instead of an org
@@ -1512,14 +1649,14 @@ if (defined('WICKET_WP_THEME_V2')) {
               seatSummary.has_available_seats = true;
             }
           }
-          console.log('ORGSS: Seat summary values', {
+          wicketOrgssDebug.log('ORGSS: Seat summary values', {
             assigned: seatSummary?.assigned,
             max: seatSummary?.max,
             hasAvailableSeats: seatSummary?.has_available_seats,
             unlimited: seatSummary?.unlimited,
             hasActiveMembership: seatSummary?.has_active_membership,
           });
-          console.log('ORGSS: Triggering modal for org with active membership', {
+          wicketOrgssDebug.log('ORGSS: Triggering modal for org with active membership', {
             orgUuid,
             seatSummary,
             seatMessagingEnabled: this.activeMembershipSeatMessagingEnabled,
@@ -1569,6 +1706,10 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.relationshipTypeUponOrgCreation);
         }
         this.selectOrg(orgUuid, event);
+        this.showGfNextButton();
+        this.$nextTick(() => {
+          window.requestAnimationFrame(() => this.showGfNextButton());
+        });
 
         this.searchBox = '';
       },
@@ -1630,6 +1771,10 @@ if (defined('WICKET_WP_THEME_V2')) {
           this.isLoading = true;
         }
 
+        wicketOrgssDebug.log('ORGSS: searchGroups request', {
+          searchTerm,
+        });
+
         let data = {
           "searchTerm": searchTerm,
           "lang": this.lang,
@@ -1649,6 +1794,14 @@ if (defined('WICKET_WP_THEME_V2')) {
             body: JSON.stringify(data),
           }).then(response => response.json())
           .then(data => {
+            const resultCount = Array.isArray(data.data) ? data.data.length : 0;
+            const resultIds = Array.isArray(data.data) ? data.data.map(item => item.id) : [];
+            wicketOrgssDebug.log('ORGSS: searchGroups response', {
+              success: !!data.success,
+              resultCount,
+              resultIds,
+              data,
+            });
             if (!data.success) {
               // Handle error
             } else {
@@ -1889,6 +2042,11 @@ if (defined('WICKET_WP_THEME_V2')) {
         );
         if (!isDuplicate) {
           this.currentConnections.push(normalized);
+        } else {
+          wicketOrgssDebug.warn('ORGSS: duplicate connection skipped', {
+            incoming: normalized,
+            currentConnections: this.currentConnections.length
+          });
         }
       },
       removeConnection(connectionId) {

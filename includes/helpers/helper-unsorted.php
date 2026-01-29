@@ -658,9 +658,19 @@ function wicket_search_person($search_term)
 
 /**------------------------------------------------------------------
  * Get all "connections" (relationships) of a Wicket person
+ *
+ * @param array $options {
+ *     Optional. Behavior flags.
+ *
+ *     @type bool|string $dedupe Remove duplicates. true = org/connection pairs, 'org_id' = org only. Default false.
+ * }
 ------------------------------------------------------------------*/
-function wicket_get_person_connections()
+function wicket_get_person_connections(array $options = [])
 {
+    $options = array_merge([
+        'dedupe' => false,
+    ], $options);
+
     $client = wicket_api_client();
     $person_id = wicket_current_person_uuid();
     if ($person_id) {
@@ -670,9 +680,31 @@ function wicket_get_person_connections()
     static $connections = null;
     // prepare and memoize all connections from Wicket
     if (is_null($connections)) {
-        $connections = $client->get('people/' . $person->id . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+        $url = 'people/' . $person->id . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at';
+        $connections = $client->get($url);
     }
     if ($connections) {
+        $dedupe_mode = $options['dedupe'];
+        if ($dedupe_mode === true) {
+            $dedupe_mode = 'pair';
+        }
+        if ($dedupe_mode && is_array($connections) && isset($connections['data']) && is_array($connections['data'])) {
+            $seen = [];
+            $filtered = [];
+            foreach ($connections['data'] as $connection) {
+                $org_id = $connection['relationships']['organization']['data']['id'] ?? '';
+                $conn_id = $connection['id'] ?? '';
+                $key = ($dedupe_mode === 'org_id')
+                    ? $org_id
+                    : $org_id . '|' . $conn_id;
+                if (isset($seen[$key])) {
+                    continue;
+                }
+                $seen[$key] = true;
+                $filtered[] = $connection;
+            }
+            $connections['data'] = $filtered;
+        }
         return $connections;
     }
 }
