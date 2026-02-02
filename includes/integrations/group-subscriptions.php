@@ -288,6 +288,8 @@ add_action('woocommerce_subscription_status_active', 'wicket_group_membership_su
 
 function wicket_group_membership_subscription_status_active($sub)
 {
+    static $processing_subscriptions = [];
+
     if (empty(wicket_get_option('wicket_admin_settings_group_assignment_subscription_products'))) {
         return $sub;
     }
@@ -295,6 +297,15 @@ function wicket_group_membership_subscription_status_active($sub)
     $group_product_category = wicket_get_option('wicket_admin_settings_group_assignment_product_category');
     //$sub = wcs_get_subscription( $sub );
     $subscription_id = $sub->get_id();
+
+    // check if we are already running on a different hook for this subscription
+    if (isset($processing_subscriptions[$subscription_id])) {
+        wicket_wc_log_group_sync([ 'Prevented duplicate group membership creation', $subscription_id ]);
+        return $sub;
+    }
+
+    // Mark this subscription as currently processing
+    $processing_subscriptions[$subscription_id] = true;
     $group_assigned_next_payment = get_post_meta($subscription_id, '_group_assigned_next_payment', true);
     if (!empty($group_assigned_next_payment)) {
         //wicket_base_group_membership_subscription_renewal_completed($sub);
@@ -353,6 +364,8 @@ function wicket_group_membership_subscription_status_active($sub)
             }
         }
     }
+
+    unset($processing_subscriptions[$subscription_id]);
 }
 /**
  * Extract just the specific role membership id from a group memberships response.
