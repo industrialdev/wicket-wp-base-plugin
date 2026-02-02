@@ -3,6 +3,7 @@ $defaults = [
     'classes'                    => [],
     'user_info_data_field_name'  => 'profile-user-info',
     'validation_data_field_name' => 'profile-validation',
+    'profile_required_resources' => '{}',
     'org_id'                     => '',
     'hidden_fields'              => [],
 ];
