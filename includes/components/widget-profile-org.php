@@ -64,6 +64,31 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
+    const widgetProfileOrgDebug = {
+      enabled: true,
+      init() {},
+      log(message, data) {
+        if (!this.enabled || !window.console || !window.console.log) {
+          return;
+        }
+        if (typeof data === 'undefined') {
+          window.console.log(message);
+          return;
+        }
+        window.console.log(message, data);
+      },
+      warn(message, data) {
+        if (!this.enabled || !window.console || !window.console.warn) {
+          return;
+        }
+        if (typeof data === 'undefined') {
+          window.console.warn(message);
+          return;
+        }
+        window.console.warn(message, data);
+      }
+    };
+    widgetProfileOrgDebug.init();
     Wicket.ready(function() {
 
       let widgetRoot_<?php echo $unique_widget_id; ?> =
@@ -88,7 +113,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 ?>
                  widget.listen(widget.eventTypes.WIDGET_LOADED, function(payload) {
 
-           let event = new CustomEvent("wwidget-component-profile-org-loaded", {
+         let event = new CustomEvent("wwidget-component-profile-org-loaded", {
              detail: payload
            });
 
@@ -102,6 +127,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
            window.dispatchEvent(commonEventLoaded);
 
                       widgetProfileOrgUpdateHiddenFields(payload);
+                      widgetProfileOrgDebug.log('WGF-ORG-PROFILE: loaded', payload);
          });
 
          // Listen for save success
@@ -113,16 +139,19 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 
            window.dispatchEvent(event);
            widgetProfileOrgUpdateHiddenFields(payload);
+           widgetProfileOrgDebug.log('WGF-ORG-PROFILE: save success', payload);
          });
 
          // Listen for save errors and re-evaluate validation state
         widget.listen(widget.eventTypes.SAVE_ERROR, function(payload) {
           widgetProfileOrgUpdateHiddenFields(payload);
+          widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: save error', payload);
         });
 
          // Listen for validation errors and re-evaluate validation state
         widget.listen(widget.eventTypes.VALIDATION_ERROR, function(payload) {
           widgetProfileOrgUpdateHiddenFields(payload);
+          widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: validation error', payload);
         });
 
 
@@ -135,6 +164,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 
           window.dispatchEvent(event);
           widgetProfileOrgUpdateHiddenFields(payload);
+          widgetProfileOrgDebug.log('WGF-ORG-PROFILE: delete success', payload);
         });
       });
         });
@@ -146,6 +176,14 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
        let validationDataField = document.querySelector(
          'input[name="<?php echo $validation_data_field_name; ?>"]'
          );
+
+       if (!userInfoDataField || !validationDataField) {
+         widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: hidden fields missing', {
+           userInfoDataFieldFound: !!userInfoDataField,
+           validationDataFieldFound: !!validationDataField
+         });
+         return;
+       }
 
        userInfoDataField.value = JSON.stringify(payload);
 
@@ -183,10 +221,103 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
         }
       }
 
-      if (validationFailures.length > 0) {
-        console.log('DEBUG: Validation failures:', validationFailures);
-      }
+     if (validationFailures.length > 0) {
+       console.log('DEBUG: Validation failures:', validationFailures);
      }
+
+      widgetProfileOrgDebug.log('WGF-ORG-PROFILE: hidden fields updated', {
+        orgInfoField: '<?php echo $org_info_data_field_name; ?>',
+        validationField: '<?php echo $validation_data_field_name; ?>',
+        validationValue: validationDataField.value,
+        validationFailures: validationFailures
+      });
+     }
+
+    function logFormFieldState(origin) {
+      const infoField = document.querySelector('input[name="<?php echo $org_info_data_field_name; ?>"]');
+      const validationField = document.querySelector('input[name="<?php echo $validation_data_field_name; ?>"]');
+      const form = infoField ? infoField.form : (validationField ? validationField.form : null);
+      if (!form) {
+        widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: form not found', {
+          origin,
+          infoFieldFound: !!infoField,
+          validationFieldFound: !!validationField
+        });
+        return;
+      }
+
+      const infoFields = form.querySelectorAll('input[name="<?php echo $org_info_data_field_name; ?>"]');
+      const validationFields = form.querySelectorAll('input[name="<?php echo $validation_data_field_name; ?>"]');
+      let formDataInfo = [];
+      let formDataValidation = [];
+      try {
+        const formData = new FormData(form);
+        formDataInfo = formData.getAll('<?php echo $org_info_data_field_name; ?>');
+        formDataValidation = formData.getAll('<?php echo $validation_data_field_name; ?>');
+      } catch (e) {}
+
+      const infoValues = Array.from(infoFields).map((field) => field.value || '');
+      const validationValues = Array.from(validationFields).map((field) => field.value || '');
+      widgetProfileOrgDebug.log('WGF-ORG-PROFILE: form field state', {
+        origin,
+        formId: form.id || null,
+        infoFieldCount: infoFields.length,
+        validationFieldCount: validationFields.length,
+        infoFieldValues: infoValues,
+        validationFieldValues: validationValues,
+        formDataInfoCount: formDataInfo.length,
+        formDataValidationCount: formDataValidation.length,
+        formDataInfoLengths: formDataInfo.map((value) => (value || '').length),
+        formDataValidationValues: formDataValidation
+      });
+
+      widgetProfileOrgDebug.log('WGF-ORG-PROFILE: form field state (flat)', {
+        origin,
+        formId: form.id || null,
+        infoFieldLengths: infoValues.map((value) => value.length),
+        infoFieldPreview: infoValues.map((value) => value.substring(0, 200)),
+        validationFieldValues: validationValues,
+        formDataInfoPreview: formDataInfo.map((value) => (value || '').substring(0, 200)),
+        formDataValidationValues: formDataValidation
+      });
+
+      widgetProfileOrgDebug.log('WGF-ORG-PROFILE: form field state (flat json)', JSON.stringify({
+        origin,
+        formId: form.id || null,
+        infoFieldLengths: infoValues.map((value) => value.length),
+        infoFieldPreview: infoValues.map((value) => value.substring(0, 200)),
+        validationFieldValues: validationValues,
+        formDataInfoPreview: formDataInfo.map((value) => (value || '').substring(0, 200)),
+        formDataValidationValues: formDataValidation
+      }));
+    }
+
+    if (widgetProfileOrgDebug.enabled) {
+      document.addEventListener('click', function(event) {
+        const target = event.target;
+        const nextButton = target.closest('.gform_next_button, [id^="gform_next_button_"], .gform_submit_button, [id^="gform_submit_button_"]');
+        if (!nextButton) {
+          return;
+        }
+        const infoField = document.querySelector('input[name="<?php echo $org_info_data_field_name; ?>"]');
+        const validationField = document.querySelector('input[name="<?php echo $validation_data_field_name; ?>"]');
+        widgetProfileOrgDebug.log('WGF-ORG-PROFILE: GF button click', {
+          infoFieldFound: !!infoField,
+          validationFieldFound: !!validationField,
+          infoFieldLength: infoField ? (infoField.value || '').length : null,
+          validationFieldValue: validationField ? validationField.value : null
+        });
+        logFormFieldState('click');
+      }, true);
+
+      document.addEventListener('submit', function(event) {
+        const form = event.target;
+        if (!form || !form.id || !form.id.startsWith('gform_')) {
+          return;
+        }
+        logFormFieldState('submit');
+      }, true);
+    }
 
   });
 </script>

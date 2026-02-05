@@ -52,9 +52,37 @@ $wicket_settings = get_wicket_settings();
 
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
+        const widgetAdditionalInfoDebug = {
+            enabled: true,
+            log(message, data) {
+                if (!this.enabled || !window.console || !window.console.log) {
+                    return;
+                }
+                if (typeof data === 'undefined') {
+                    window.console.log(message);
+                    return;
+                }
+                window.console.log(message, data);
+            },
+            warn(message, data) {
+                if (!this.enabled || !window.console || !window.console.warn) {
+                    return;
+                }
+                if (typeof data === 'undefined') {
+                    window.console.warn(message);
+                    return;
+                }
+                window.console.warn(message, data);
+            }
+        };
         Wicket.ready(function () {
 
             let widgetRoot_<?php echo esc_js($unique_widget_id); ?> = document.getElementById('additional-info-<?php echo esc_attr($unique_widget_id); ?>');
+            widgetAdditionalInfoDebug.log('WGF-AI: init', {
+                widgetId: '<?php echo esc_js($unique_widget_id); ?>',
+                resourceType: '<?php echo esc_js($resource_type); ?>',
+                orgUuid: '<?php echo esc_js($org_uuid); ?>'
+            });
 
             const options = {
               loadIcons: true,
@@ -104,6 +132,7 @@ echo implode(",\n                ", $schema_outputs);
                 window.dispatchEvent(new CustomEvent("wwidget-component-additional-info-loaded"));
                 window.dispatchEvent(new CustomEvent("wwidget-component-common-loaded"));
                 widgetAiUpdateHiddenFields(payload);
+                widgetAdditionalInfoDebug.log('WGF-AI: loaded', payload);
               });
               widget.listen(widget.eventTypes.SAVE_SUCCESS, function (payload) {
                 let event = new CustomEvent("wwidget-component-additional-info-save-success", {
@@ -111,6 +140,15 @@ echo implode(",\n                ", $schema_outputs);
                 });
                 window.dispatchEvent(event);
                 widgetAiUpdateHiddenFields(payload);
+                widgetAdditionalInfoDebug.log('WGF-AI: save success', payload);
+              });
+              widget.listen(widget.eventTypes.VALIDATION_ERROR, function (payload) {
+                widgetAiUpdateHiddenFields(payload);
+                widgetAdditionalInfoDebug.warn('WGF-AI: validation error', payload);
+              });
+              widget.listen(widget.eventTypes.SAVE_ERROR, function (payload) {
+                widgetAiUpdateHiddenFields(payload);
+                widgetAdditionalInfoDebug.warn('WGF-AI: save error', payload);
               });
               widget.listen(widget.eventTypes.DELETE_SUCCESS, function (payload) {
                 let event = new CustomEvent("wwidget-component-additional-info-delete-success", {
@@ -122,15 +160,37 @@ echo implode(",\n                ", $schema_outputs);
         });
 
         function widgetAiUpdateHiddenFields(payload) {
-          let aiDataField = document.querySelector('input[name="<?php echo $additional_info_data_field_name; ?>"]');
-          let validationDataField = document.querySelector('input[name="<?php echo $additional_info_validation; ?>"]');
+          let aiDataFields = document.querySelectorAll('input[name="<?php echo $additional_info_data_field_name; ?>"]');
+          let validationDataFields = document.querySelectorAll('input[name="<?php echo $additional_info_validation; ?>"]');
 
-          aiDataField.value = JSON.stringify(payload);
-
-          validationDataField.value = true;
-          if (typeof jQuery !== 'undefined') {
-            jQuery(validationDataField).trigger('change');
+          if (!aiDataFields.length || !validationDataFields.length) {
+              widgetAdditionalInfoDebug.warn('WGF-AI: hidden fields missing', {
+                  dataFieldCount: aiDataFields.length,
+                  validationFieldCount: validationDataFields.length
+              });
+              return;
           }
+
+          const payloadValue = JSON.stringify(payload);
+          aiDataFields.forEach((field) => {
+              field.value = payloadValue;
+          });
+
+          validationDataFields.forEach((field) => {
+              field.value = true;
+              if (typeof jQuery !== 'undefined') {
+                jQuery(field).trigger('change');
+              }
+          });
+
+          widgetAdditionalInfoDebug.log('WGF-AI: hidden fields updated', {
+              dataField: '<?php echo $additional_info_data_field_name; ?>',
+              validationField: '<?php echo $additional_info_validation; ?>',
+              dataFieldCount: aiDataFields.length,
+              validationFieldCount: validationDataFields.length,
+              dataLength: payloadValue.length,
+              validationValues: Array.from(validationDataFields).map((field) => field.value)
+          });
         }
     });
 </script>
