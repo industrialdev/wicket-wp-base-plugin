@@ -1,5 +1,5 @@
 <?php
-//<script>window.WICKET_ORGSS_DEBUG = false;</script>
+//<script>window.WICKET_ORGSS_DEBUG = true;</script>
 //define('WICKET_ORGSS_DEBUG', true);
 
 $defaults = [
@@ -1005,6 +1005,15 @@ if (defined('WICKET_WP_THEME_V2')) {
 <script>
   function wicketOrgssDebug() {}
   wicketOrgssDebug.enabled = !!window.WICKET_ORGSS_DEBUG;
+  if (!wicketOrgssDebug.enabled) {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('orgss_debug') === '1') {
+        wicketOrgssDebug.enabled = true;
+        window.WICKET_ORGSS_DEBUG = true;
+      }
+    } catch (e) {}
+  }
   wicketOrgssDebug.setEnabled = function(value) {
     wicketOrgssDebug.enabled = !!value;
   };
@@ -1463,20 +1472,32 @@ if (defined('WICKET_WP_THEME_V2')) {
         this.setSearchMessage('<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>');
       },
       selectOrg(orgUuid, incomingEvent = null, dispatchEvent = true) {
+        wicketOrgssDebug.log('ORGSS: selectOrg called', {
+          orgUuid,
+          key: '<?php echo $key; ?>',
+          fieldName: 'input_<?php echo $key; ?>',
+          componentFieldName: '<?php echo $selectedUuidHiddenFieldName; ?>'
+        });
         // Update state
         this.selectedOrgUuid = orgUuid;
 
         // Update both hidden fields to ensure compatibility
-        const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
-        if (componentField) {
-          componentField.value = orgUuid;
-        }
+        const componentFields = document.querySelectorAll('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        componentFields.forEach((field) => {
+          field.value = orgUuid;
+        });
 
-        // Also update the standard GF hidden field if it exists
-        const gfField = document.querySelector('input[name="input_<?php echo $key; ?>"]');
-        if (gfField) {
-          gfField.value = orgUuid;
-        }
+        // Also update the standard GF hidden field(s) if they exist
+        const gfFields = document.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
+        gfFields.forEach((field) => {
+          field.value = orgUuid;
+        });
+        wicketOrgssDebug.log('ORGSS: selectOrg hidden fields updated', {
+          componentFieldCount: componentFields.length,
+          gfFieldCount: gfFields.length,
+          componentValues: Array.from(componentFields).map((field) => field.value),
+          gfValues: Array.from(gfFields).map((field) => field.value),
+        });
 
         // Scroll to the selected org card
         this.$nextTick(() => {
@@ -1558,10 +1579,13 @@ if (defined('WICKET_WP_THEME_V2')) {
         const buttons = form.querySelectorAll(buttonSelectors.join(','));
         buttons.forEach((button) => revealElement(button));
 
+        const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
         wicketOrgssDebug.log('ORGSS: revealed GF next/submit buttons', {
           formId,
           footerFound: !!footer,
-          buttonCount: buttons.length
+          buttonCount: buttons.length,
+          gfFieldCount: gfFields.length,
+          gfFieldValues: Array.from(gfFields).map((field) => field.value),
         });
       },
       hideGfNextButton() {
@@ -1600,17 +1624,29 @@ if (defined('WICKET_WP_THEME_V2')) {
         const buttons = form.querySelectorAll(buttonSelectors.join(','));
         buttons.forEach((button) => hideElement(button));
 
+        const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
         wicketOrgssDebug.log('ORGSS: hid GF next/submit buttons', {
           formId,
           footerFound: !!footer,
-          buttonCount: buttons.length
+          buttonCount: buttons.length,
+          gfFieldCount: gfFields.length,
+          gfFieldValues: Array.from(gfFields).map((field) => field.value),
         });
       },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
+        wicketOrgssDebug.log('ORGSS: selectOrgAndCreateRelationship', {
+          orgUuid,
+          existingActiveMembership,
+          skipCreateRelationship,
+          seatSummary,
+        });
         // TODO: Handle when a Group is selected instead of an org
 
         if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership) {
+          wicketOrgssDebug.warn('ORGSS: selection blocked due to active membership setting', {
+            orgUuid,
+          });
           return;
         }
 
@@ -2082,10 +2118,10 @@ if (defined('WICKET_WP_THEME_V2')) {
           }
 
           // Also clear the standard GF hidden field if it exists
-          const gfField = document.querySelector('input[name="input_<?php echo $key; ?>"]');
-          if (gfField) {
-            gfField.value = '';
-          }
+          const gfFields = document.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
+          gfFields.forEach((field) => {
+            field.value = '';
+          });
         }
       },
       isOrgAlreadyAConnection(uuid) {
