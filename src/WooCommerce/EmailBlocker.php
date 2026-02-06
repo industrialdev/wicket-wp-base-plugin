@@ -18,9 +18,6 @@ class EmailBlocker
     public const OPTION_ENABLED = 'wicket_admin_settings_woo_email_blocker_enabled';
     public const OPTION_ALLOW_REFUNDS = 'wicket_admin_settings_woo_email_blocker_allow_refund_emails';
 
-    private const LEGACY_OPTION_NAME = 'wicket_woo_tweaks';
-    private const LEGACY_OPTION_ENABLED = 'wicket_woo_email_blocker_enabled';
-    private const LEGACY_OPTION_ALLOW_REFUNDS = 'wicket_woo_email_blocker_allow_refund_emails';
 
     /**
      * Allowed email ids for this request.
@@ -161,7 +158,7 @@ class EmailBlocker
         }
 
         if (wp_doing_ajax()) {
-            return $this->is_admin_order_ajax_action($object);
+            return $this->is_admin_order_ajax_action();
         }
 
         if ($this->is_rest_admin_order_request($object)) {
@@ -482,7 +479,7 @@ class EmailBlocker
      */
     private function is_enabled(): bool
     {
-        return $this->get_setting_bool(self::OPTION_ENABLED, self::LEGACY_OPTION_ENABLED, false);
+        return $this->get_setting_bool(self::OPTION_ENABLED, false);
     }
 
     /**
@@ -492,27 +489,21 @@ class EmailBlocker
      */
     private function allow_refund_emails(): bool
     {
-        return $this->get_setting_bool(self::OPTION_ALLOW_REFUNDS, self::LEGACY_OPTION_ALLOW_REFUNDS, false);
+        return $this->get_setting_bool(self::OPTION_ALLOW_REFUNDS, false);
     }
 
     /**
-     * Get a settings value from WPSettings or legacy option storage.
+     * Get a settings value from WPSettings.
      *
      * @param string $key New option key.
-     * @param string $legacy_key Legacy option key.
      * @param bool $default Default value.
      * @return bool
      */
-    private function get_setting_bool(string $key, string $legacy_key, bool $default): bool
+    private function get_setting_bool(string $key, bool $default): bool
     {
         $settings = get_option('wicket_settings', []);
         if (is_array($settings) && array_key_exists($key, $settings)) {
             return $this->normalize_bool($settings[$key]);
-        }
-
-        $legacy = get_option(self::LEGACY_OPTION_NAME, []);
-        if (is_array($legacy) && array_key_exists($legacy_key, $legacy)) {
-            return $this->normalize_bool($legacy[$legacy_key]);
         }
 
         return $default;

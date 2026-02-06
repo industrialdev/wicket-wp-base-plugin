@@ -14,13 +14,7 @@ When enabled, this feature blocks **customer-facing WooCommerce emails** that wo
 
 ### Option Storage
 Settings are stored in the `wicket_settings` option array:
-```php
 get_option('wicket_settings')['wicket_admin_settings_woo_email_blocker_enabled']
-```
-
-**Legacy fallback:** If not found in `wicket_settings`, the blocker checks the `wicket_woo_tweaks` option array with these keys:
-- `wicket_woo_email_blocker_enabled`
-- `wicket_woo_email_blocker_allow_refund_emails`
 
 ### Class Constants
 ```php
