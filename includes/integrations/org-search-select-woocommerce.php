@@ -47,8 +47,9 @@ function wicket_org_search_select_on_order_complete($order_id)
         return;
     }
 
-    // Resolve Wicket person UUID from user login or helper
-    $current_person_uuid = wicket_current_person_uuid();
+    // Use the order user ID to get the MDP UUID for role assignment
+    $user_info = get_userdata($order_user_id);
+    $order_user_mdp_uuid = $user_info ? $user_info->user_login : '';
 
     // Only proceed if order contains a membership product.
     if ($order instanceof WC_Order) {
@@ -99,7 +100,7 @@ function wicket_org_search_select_on_order_complete($order_id)
     // Assign Roster Manager role if needed
     if (isset($org_uuid_for_roster_man_access) && !empty($org_uuid_for_roster_man_access)) {
         // Assign roles
-        wicket_assign_role($current_person_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
+        wicket_assign_role($order_user_mdp_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
 
         // Clean up after ourselves now that we've actioned the meta's value
         delete_user_meta($order_user_id, 'wicket_roster_man_org_to_grant');
@@ -108,7 +109,7 @@ function wicket_org_search_select_on_order_complete($order_id)
     // Assign Org Editor role if needed
     if (isset($org_uuid_for_org_editor_access) && !empty($org_uuid_for_org_editor_access)) {
         // Assign role
-        wicket_assign_role($current_person_uuid, 'org_editor', $org_uuid_for_org_editor_access);
+        wicket_assign_role($order_user_mdp_uuid, 'org_editor', $org_uuid_for_org_editor_access);
 
         // Clean up after ourselves now that we've actioned the meta's value
         delete_user_meta($order_user_id, 'wicket_org_editor_org_to_grant'); // Delete new meta
