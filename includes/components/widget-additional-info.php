@@ -50,6 +50,14 @@ $wicket_settings = get_wicket_settings();
     }
 </script>
 
+<?php
+  $access_token = wicket_access_token_for_person(wicket_current_person_uuid());
+
+  if ($resource_type == 'organizations') {
+    $access_token = wicket_get_access_token(wicket_current_person_uuid(), $org_uuid);
+  }
+?>
+
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
         const widgetAdditionalInfoDebug = {
@@ -88,7 +96,7 @@ $wicket_settings = get_wicket_settings();
               loadIcons: true,
               rootEl: widgetRoot_<?php echo esc_js($unique_widget_id); ?>,
               apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-              accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
+              accessToken: '<?php echo $access_token; ?>',
               resource: {
                 type: '<?php echo $resource_type; ?>',
                 id: '<?php if ($resource_type == 'people') {
