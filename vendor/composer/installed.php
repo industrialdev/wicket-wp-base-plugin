@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'industrialdev/wicket-wp-base-plugin',
-        'pretty_version' => '2.2.13',
-        'version' => '2.2.13.0',
+        'pretty_version' => '2.2.14',
+        'version' => '2.2.14.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -130,8 +130,8 @@
             'dev_requirement' => false,
         ),
         'industrialdev/wicket-wp-base-plugin' => array(
-            'pretty_version' => '2.2.13',
-            'version' => '2.2.13.0',
+            'pretty_version' => '2.2.14',
+            'version' => '2.2.14.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',

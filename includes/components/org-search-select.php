@@ -1182,7 +1182,19 @@ if (defined('WICKET_WP_THEME_V2')) {
         });
 
         // Hide footers on all other pages — this field controls only its own page navigation
-        this.$nextTick(() => this.hideOtherPageFooters());
+        wicketOrgssDebug.log('ORGSS: init footer logic', { selectedOrgUuid: this.selectedOrgUuid, elExists: !!this.$el, closestPage: this.$el?.closest('.gform_page')?.id });
+        this.$nextTick(() => {
+          wicketOrgssDebug.log('ORGSS: $nextTick -> hideOtherPageFooters');
+          this.hideOtherPageFooters();
+        });
+        // If no org is selected on init, also hide the current page's GF footer
+        if (!this.selectedOrgUuid) {
+          wicketOrgssDebug.log('ORGSS: no org selected, will hideGfNextButton on $nextTick');
+          this.$nextTick(() => {
+            wicketOrgssDebug.log('ORGSS: $nextTick -> hideGfNextButton');
+            this.hideGfNextButton();
+          });
+        }
       },
       prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
         // Reset to base state initially
@@ -1599,7 +1611,9 @@ if (defined('WICKET_WP_THEME_V2')) {
       hideGfNextButton() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
+        wicketOrgssDebug.log('ORGSS: hideGfNextButton called', { formId, formFound: !!form });
         if (!form) {
+          wicketOrgssDebug.warn('ORGSS: hideGfNextButton — form not found, bailing');
           return;
         }
 
@@ -1620,13 +1634,18 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Scope to the current page only to avoid hiding buttons on other pages
         const currentPage = this.$el.closest('.gform_page') || form;
         // Field is on an inactive page — leave GF alone
-        if (currentPage !== form && currentPage.style.display === 'none') return;
+        wicketOrgssDebug.log('ORGSS: hideGfNextButton scope', { currentPageId: currentPage?.id, currentPageDisplay: currentPage?.style?.display, isForm: currentPage === form });
+        if (currentPage !== form && currentPage.style.display === 'none') {
+          wicketOrgssDebug.log('ORGSS: hideGfNextButton — inactive page, bailing');
+          return;
+        }
 
         const selectors = [
           '.gform_page_footer',
           '.gform-page-footer',
         ];
         const footer = currentPage.querySelector(selectors.join(','));
+        wicketOrgssDebug.log('ORGSS: hideGfNextButton — footer found:', !!footer, footer);
         hideElement(footer);
 
         const buttonSelectors = [
@@ -1649,8 +1668,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       hideOtherPageFooters() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
+        wicketOrgssDebug.log('ORGSS: hideOtherPageFooters called', { formId, formFound: !!form });
         if (!form) return;
         const currentPage = this.$el.closest('.gform_page');
+        wicketOrgssDebug.log('ORGSS: hideOtherPageFooters', { currentPageId: currentPage?.id, currentPageDisplay: currentPage?.style?.display });
         if (!currentPage) return;
         // Field is on an inactive page — leave GF alone
         if (currentPage.style.display === 'none') return;
@@ -1660,6 +1681,14 @@ if (defined('WICKET_WP_THEME_V2')) {
           if (!footer) return;
           footer.style.setProperty('display', 'none', 'important');
           footer.hidden = true;
+        });
+        // Also hide rogue footers rendered outside any .gform_page (GFML bug in lang != EN)
+        form.querySelectorAll('.gform_page_footer, .gform-page-footer').forEach((footer) => {
+          if (!footer.closest('.gform_page')) {
+            wicketOrgssDebug.log('ORGSS: hiding rogue footer outside .gform_page', footer);
+            footer.style.setProperty('display', 'none', 'important');
+            footer.hidden = true;
+          }
         });
       },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
