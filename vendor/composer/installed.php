@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'industrialdev/wicket-wp-base-plugin',
-        'pretty_version' => '2.1.69',
-        'version' => '2.1.69.0',
+        'pretty_version' => '2.2.13',
+        'version' => '2.2.13.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -130,8 +130,8 @@
             'dev_requirement' => false,
         ),
         'industrialdev/wicket-wp-base-plugin' => array(
-            'pretty_version' => '2.1.69',
-            'version' => '2.1.69.0',
+            'pretty_version' => '2.2.13',
+            'version' => '2.2.13.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
@@ -271,9 +271,9 @@
             'dev_requirement' => false,
         ),
         'symfony/translation' => array(
-            'pretty_version' => 'v6.4.31',
-            'version' => '6.4.31.0',
-            'reference' => '81579408ecf7dc5aa2d8462a6d5c3a430a80e6f2',
+            'pretty_version' => 'v6.4.32',
+            'version' => '6.4.32.0',
+            'reference' => 'd6cc8e2fdd484f2f41d25938b0e8e3915de3cfbc',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/translation',
             'aliases' => array(),

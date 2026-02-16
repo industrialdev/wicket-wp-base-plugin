@@ -11,20 +11,31 @@ use WC_Email;
 use WC_Order;
 
 /**
- * WooCommerce email blocker for admin-triggered customer emails.
+ * WooCommerce email blocker for admin-triggered order emails.
+ *
+ * Blocks ALL order emails — customer-facing AND admin-facing (including custom
+ * status emails) — when an admin changes order status from wp-admin, AJAX,
+ * REST, or bulk actions. Explicit sends (resend, customer notes, manual
+ * invoice) always pass through.
  */
 class EmailBlocker
 {
     public const OPTION_ENABLED = 'wicket_admin_settings_woo_email_blocker_enabled';
     public const OPTION_ALLOW_REFUNDS = 'wicket_admin_settings_woo_email_blocker_allow_refund_emails';
 
-
     /**
-     * Allowed email ids for this request.
+     * Email IDs explicitly allowed for this request (resend, customer notes).
      *
      * @var array<string, bool>
      */
     private array $allowed_email_ids = [];
+
+    /**
+     * Track email IDs we have already hooked to avoid duplicate filters.
+     *
+     * @var array<string, bool>
+     */
+    private array $hooked_email_ids = [];
 
     /**
      * Register hooks.
@@ -33,6 +44,10 @@ class EmailBlocker
      */
     public function init(): void
     {
+        // Admin notice is registered unconditionally so it can self-check;
+        // the email-blocking hooks still require both the setting and WooCommerce.
+        add_action('admin_notices', [$this, 'render_order_edit_notice'], 1);
+
         if (!$this->is_enabled()) {
             return;
         }
@@ -41,13 +56,19 @@ class EmailBlocker
             return;
         }
 
+        // Register filters for all known emails at WooCommerce init
         add_action('woocommerce_init', [$this, 'register_email_filters']);
+
+        // Catch custom email classes registered by third-party plugins
+        add_filter('woocommerce_email_classes', [$this, 'register_filters_for_custom_emails'], PHP_INT_MAX);
+
+        // Explicit-send allowlists
         add_action('woocommerce_before_resend_order_emails', [$this, 'allow_for_resend'], 5, 2);
         add_action('woocommerce_new_customer_note', [$this, 'allow_for_customer_note'], 5, 1);
     }
 
     /**
-     * Register filters for all WooCommerce emails.
+     * Register filters for all WooCommerce emails available at init.
      *
      * @return void
      */
@@ -57,16 +78,49 @@ class EmailBlocker
         $emails = $mailer ? $mailer->get_emails() : [];
 
         foreach ($emails as $email) {
-            if (!$email instanceof WC_Email) {
-                continue;
-            }
-
-            add_filter('woocommerce_email_enabled_' . $email->id, [$this, 'maybe_block_email'], 20, 3);
+            $this->hook_email($email);
         }
     }
 
     /**
-     * Allow resend actions.
+     * Catch email classes added after the initial registration.
+     *
+     * Runs at PHP_INT_MAX so every other plugin has already added its classes.
+     *
+     * @param array $email_classes Email classes array.
+     * @return array Unchanged — we only observe.
+     */
+    public function register_filters_for_custom_emails(array $email_classes): array
+    {
+        foreach ($email_classes as $email) {
+            $this->hook_email($email);
+        }
+
+        return $email_classes;
+    }
+
+    /**
+     * Hook a single email instance if not already hooked.
+     *
+     * @param mixed $email Email instance.
+     * @return void
+     */
+    private function hook_email($email): void
+    {
+        if (!$email instanceof WC_Email) {
+            return;
+        }
+
+        if (isset($this->hooked_email_ids[$email->id])) {
+            return;
+        }
+
+        add_filter('woocommerce_email_enabled_' . $email->id, [$this, 'maybe_block_email'], 20, 3);
+        $this->hooked_email_ids[$email->id] = true;
+    }
+
+    /**
+     * Allow resend actions initiated by admin.
      *
      * @param WC_Order $order Order object.
      * @param string $email_id Email id.
@@ -78,7 +132,7 @@ class EmailBlocker
     }
 
     /**
-     * Allow customer note email.
+     * Allow customer note email when admin adds a customer-visible note.
      *
      * @param array $args Note args.
      * @return void
@@ -89,10 +143,67 @@ class EmailBlocker
     }
 
     /**
-     * Block customer emails during admin order updates unless explicit.
+     * Show a warning notice on order edit screens when the blocker is active.
+     *
+     * @return void
+     */
+    public function render_order_edit_notice(): void
+    {
+        if (!$this->is_enabled() || !$this->is_order_edit_screen()) {
+            return;
+        }
+
+        $refund_note = $this->allow_refund_emails()
+            ? ' ' . __('Refund emails are allowed.', 'wicket')
+            : '';
+
+        printf(
+            '<div class="notice notice-warning"><p><strong>%s</strong> %s%s</p></div>',
+            esc_html__('Email Blocker Active:', 'wicket'),
+            esc_html__('No order emails will be sent when changing order status. Use Order actions or add a customer note to send emails explicitly.', 'wicket'),
+            esc_html($refund_note)
+        );
+    }
+
+    /**
+     * Check if the current admin screen is a WooCommerce order edit page.
+     *
+     * Supports both HPOS (wc-orders) and legacy (post.php with shop_order).
+     * Uses $_GET params for HPOS detection since the custom admin page may
+     * have varying screen IDs depending on menu registration.
+     *
+     * @return bool
+     */
+    private function is_order_edit_screen(): bool
+    {
+        if (!is_admin()) {
+            return false;
+        }
+
+        $page = sanitize_key($_GET['page'] ?? '');   // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $action = sanitize_key($_GET['action'] ?? ''); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+        // HPOS: admin.php?page=wc-orders&action=edit (or wc-orders--{type})
+        if ($page && str_starts_with($page, 'wc-orders') && in_array($action, ['edit', 'new'], true)) {
+            return true;
+        }
+
+        // Legacy CPT: post.php?post=X&action=edit with shop_order type
+        if ('edit' === $action && !empty($_GET['post'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $post_type = get_post_type(absint($_GET['post']));
+            if ($post_type && in_array($post_type, wc_get_order_types(), true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Block all order emails during admin order updates unless explicitly sent.
      *
      * @param bool $enabled Email enabled.
-     * @param mixed $object Email object context.
+     * @param mixed $object Email object context (usually a WC_Order).
      * @param WC_Email $email Email instance.
      * @return bool
      */
@@ -102,16 +213,14 @@ class EmailBlocker
             return $enabled;
         }
 
-        if (!$email->is_customer_email()) {
-            return $enabled;
-        }
-
+        // Explicit sends always pass through
         if ($this->is_explicit_send_request($email)) {
             $this->log_decision('allow', 'explicit', $email, $object);
             return $enabled;
         }
 
-        if (!$this->is_admin_order_update_request($object)) {
+        // Only block when the trigger is an admin action
+        if (!$this->is_admin_order_context($object)) {
             return $enabled;
         }
 
@@ -120,7 +229,14 @@ class EmailBlocker
     }
 
     /**
-     * Check if a manual send was requested.
+     * Check if the email should be explicitly allowed through.
+     *
+     * Order of checks:
+     * 1. Pre-registered allow list (resend action, customer note action)
+     * 2. Manual "Email invoice / order details to customer" order action
+     * 3. Customer note added via AJAX
+     * 4. Refund emails (only when the allow-refund setting is ON)
+     * 5. Third-party opt-in via filter
      *
      * @param WC_Email $email Email instance.
      * @return bool
@@ -139,6 +255,7 @@ class EmailBlocker
             return true;
         }
 
+        // Refund emails: respect the allow-refund setting
         if ($this->is_refund_email($email->id) && $this->allow_refund_emails()) {
             return true;
         }
@@ -147,57 +264,37 @@ class EmailBlocker
     }
 
     /**
-     * Determine if the current request is an admin order update.
+     * Determine if the current request is an admin order context.
      *
+     * Simplified check: if the request originates from wp-admin (page load,
+     * AJAX, or REST with admin referer) and the user can manage orders, then
+     * any email triggered during this request is admin-initiated. This catches
+     * every admin path: HPOS edit, legacy post edit, AJAX mark-status, bulk
+     * actions, REST updates, and custom status transitions.
+     *
+     * @param mixed $object Email object context.
      * @return bool
      */
-    private function is_admin_order_update_request($object = null): bool
+    private function is_admin_order_context($object = null): bool
     {
         if (!$this->is_wp_admin_context()) {
             return false;
         }
 
-        if (wp_doing_ajax()) {
-            return $this->is_admin_order_ajax_action();
-        }
-
-        if ($this->is_rest_admin_order_request($object)) {
-            return true;
-        }
-
-        if (!is_admin()) {
-            return false;
-        }
-
-        if ($this->is_admin_bulk_order_status_request($object)) {
-            return true;
-        }
-
+        // Verify the user has order-editing capability
         $order_id = $this->get_order_id_from_object_or_request($object);
-        if ($order_id && $this->is_hpos_edit_order_request($order_id)) {
-            return true;
+        if ($order_id) {
+            return $this->current_user_can_edit_order($order_id);
         }
 
-        if (empty($_POST['post_ID']) || empty($_POST['post_type']) || empty($_POST['woocommerce_meta_nonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return false;
-        }
-
-        $post_id = absint($_POST['post_ID']);
-        $post_type = sanitize_key(wp_unslash($_POST['post_type']));
-
-        if (!$post_id || !in_array($post_type, wc_get_order_types('order-meta-boxes'), true)) {
-            return false;
-        }
-
-        if (!current_user_can('edit_post', $post_id)) {
-            return false;
-        }
-
-        return true;
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
     }
 
     /**
      * Ensure the request originated from wp-admin.
+     *
+     * For regular page loads: is_admin().
+     * For AJAX / REST: check HTTP_REFERER for /wp-admin/.
      *
      * @return bool
      */
@@ -220,60 +317,7 @@ class EmailBlocker
     }
 
     /**
-     * Determine if the current request is an HPOS order edit save.
-     *
-     * @param int $order_id Order id.
-     * @return bool
-     */
-    private function is_hpos_edit_order_request(int $order_id): bool
-    {
-        if (empty($_POST['action']) || empty($_POST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return false;
-        }
-
-        $action = sanitize_key(wp_unslash($_POST['action']));
-        if ('edit_order' !== $action) {
-            return false;
-        }
-
-        $nonce = wp_unslash($_POST['_wpnonce']);
-        if (!wp_verify_nonce($nonce, 'update-order_' . $order_id)) {
-            return false;
-        }
-
-        if (!current_user_can('edit_post', $order_id)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Determine if the current REST request is an admin order update.
-     *
-     * @param mixed $object Email object context.
-     * @return bool
-     */
-    private function is_rest_admin_order_request($object = null): bool
-    {
-        if (!defined('REST_REQUEST') || !REST_REQUEST) {
-            return false;
-        }
-
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $order_id = $this->get_order_id_from_object_or_request($object);
-        if ($order_id) {
-            return current_user_can('edit_post', $order_id) || current_user_can('manage_woocommerce');
-        }
-
-        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
-    }
-
-    /**
-     * Resolve order id from the email object or request data.
+     * Resolve order ID from the email object or request data.
      *
      * @param mixed $object Email object context.
      * @return int
@@ -295,121 +339,28 @@ class EmailBlocker
     }
 
     /**
-     * Identify relevant admin-side AJAX order actions.
+     * Check if the current user can edit a given order.
      *
+     * HPOS-compatible: order IDs may not exist in wp_posts when custom tables
+     * are used with sync off, causing edit_post to always fail.
+     *
+     * @param int $order_id Order ID.
      * @return bool
      */
-    private function is_admin_order_ajax_action(): bool
+    private function current_user_can_edit_order(int $order_id): bool
     {
-        if (empty($_REQUEST['action'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return false;
+        if ($order_id && function_exists('wc_get_order')) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                return current_user_can('edit_shop_orders');
+            }
         }
 
-        $action = sanitize_key(wp_unslash($_REQUEST['action']));
-
-        if (!in_array(
-            $action,
-            [
-                'woocommerce_refund_line_items',
-                'woocommerce_mark_order_status',
-            ],
-            true
-        )) {
-            return false;
-        }
-
-        $order_id = $this->get_order_id_from_object_or_request();
-        if ($order_id) {
-            return current_user_can('edit_post', $order_id);
-        }
-
-        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+        return current_user_can('edit_post', $order_id);
     }
 
     /**
-     * Detect admin bulk order status changes.
-     *
-     * @param mixed $object Email object context.
-     * @return bool
-     */
-    private function is_admin_bulk_order_status_request($object = null): bool
-    {
-        $action = $this->get_bulk_action();
-        if (!$action || 0 !== strpos($action, 'mark_')) {
-            return false;
-        }
-
-        $order_ids = $this->get_bulk_order_ids();
-        if (empty($order_ids)) {
-            return false;
-        }
-
-        if (!$this->verify_bulk_nonce()) {
-            return false;
-        }
-
-        $order_id = $this->get_order_id_from_object_or_request($object);
-        if ($order_id && !current_user_can('edit_post', $order_id)) {
-            return false;
-        }
-
-        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
-    }
-
-    /**
-     * Resolve bulk action name from request.
-     *
-     * @return string
-     */
-    private function get_bulk_action(): string
-    {
-        $action = '';
-
-        if (!empty($_REQUEST['action']) && '-1' !== $_REQUEST['action']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            $action = sanitize_key(wp_unslash($_REQUEST['action']));
-        } elseif (!empty($_REQUEST['action2']) && '-1' !== $_REQUEST['action2']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            $action = sanitize_key(wp_unslash($_REQUEST['action2']));
-        }
-
-        return $action;
-    }
-
-    /**
-     * Get order IDs from bulk request.
-     *
-     * @return int[]
-     */
-    private function get_bulk_order_ids(): array
-    {
-        if (!empty($_REQUEST['id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['id']))));
-        }
-
-        if (!empty($_REQUEST['post'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['post']))));
-        }
-
-        return [];
-    }
-
-    /**
-     * Verify bulk action nonce for order list tables.
-     *
-     * @return bool
-     */
-    private function verify_bulk_nonce(): bool
-    {
-        if (empty($_REQUEST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-            return false;
-        }
-
-        $nonce = wp_unslash($_REQUEST['_wpnonce']);
-
-        return wp_verify_nonce($nonce, 'bulk-orders') || wp_verify_nonce($nonce, 'bulk-posts');
-    }
-
-    /**
-     * Detect customer note requests.
+     * Detect customer note requests via AJAX.
      *
      * @return bool
      */
@@ -430,7 +381,7 @@ class EmailBlocker
     }
 
     /**
-     * Detect manual "send to customer" order action.
+     * Detect manual "Email invoice / order details to customer" order action.
      *
      * @param WC_Email $email Email instance.
      * @return bool
@@ -441,7 +392,7 @@ class EmailBlocker
     }
 
     /**
-     * Get the current order action.
+     * Get the current order action from the order edit form.
      *
      * @return string
      */
@@ -455,7 +406,7 @@ class EmailBlocker
     }
 
     /**
-     * Check if the email id is a refund email.
+     * Check if the email ID is a refund email.
      *
      * @param string $email_id Email id.
      * @return bool
@@ -483,7 +434,7 @@ class EmailBlocker
     }
 
     /**
-     * Allow refund emails when admin triggers a refund.
+     * Whether refund emails should pass through when admin triggers a refund.
      *
      * @return bool
      */
@@ -495,7 +446,7 @@ class EmailBlocker
     /**
      * Get a settings value from WPSettings.
      *
-     * @param string $key New option key.
+     * @param string $key Option key.
      * @param bool $default Default value.
      * @return bool
      */
