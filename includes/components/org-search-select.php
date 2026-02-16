@@ -1180,6 +1180,9 @@ if (defined('WICKET_WP_THEME_V2')) {
             wicketOrgssDebug.log('ORGSS: cleared search');
           }
         });
+
+        // Hide footers on all other pages — this field controls only its own page navigation
+        this.$nextTick(() => this.hideOtherPageFooters());
       },
       prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
         // Reset to base state initially
@@ -1564,11 +1567,16 @@ if (defined('WICKET_WP_THEME_V2')) {
           el.removeAttribute('aria-hidden');
         };
 
+        // Scope to the current page only to avoid revealing buttons on other pages
+        const currentPage = this.$el.closest('.gform_page') || form;
+        // Field is on an inactive page — leave GF alone
+        if (currentPage !== form && currentPage.style.display === 'none') return;
+
         const selectors = [
           '.gform_page_footer',
           '.gform-page-footer',
         ];
-        const footer = form.querySelector(selectors.join(','));
+        const footer = currentPage.querySelector(selectors.join(','));
         revealElement(footer);
 
         const buttonSelectors = [
@@ -1576,7 +1584,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           '.gform_button',
           '.gform_submit_button'
         ];
-        const buttons = form.querySelectorAll(buttonSelectors.join(','));
+        const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
         buttons.forEach((button) => revealElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
@@ -1609,11 +1617,16 @@ if (defined('WICKET_WP_THEME_V2')) {
           el.setAttribute('aria-hidden', 'true');
         };
 
+        // Scope to the current page only to avoid hiding buttons on other pages
+        const currentPage = this.$el.closest('.gform_page') || form;
+        // Field is on an inactive page — leave GF alone
+        if (currentPage !== form && currentPage.style.display === 'none') return;
+
         const selectors = [
           '.gform_page_footer',
           '.gform-page-footer',
         ];
-        const footer = form.querySelector(selectors.join(','));
+        const footer = currentPage.querySelector(selectors.join(','));
         hideElement(footer);
 
         const buttonSelectors = [
@@ -1621,7 +1634,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           '.gform_button',
           '.gform_submit_button'
         ];
-        const buttons = form.querySelectorAll(buttonSelectors.join(','));
+        const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
         buttons.forEach((button) => hideElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
@@ -1631,6 +1644,22 @@ if (defined('WICKET_WP_THEME_V2')) {
           buttonCount: buttons.length,
           gfFieldCount: gfFields.length,
           gfFieldValues: Array.from(gfFields).map((field) => field.value),
+        });
+      },
+      hideOtherPageFooters() {
+        const formId = <?php echo (int) $formId; ?>;
+        const form = formId ? document.getElementById('gform_' + formId) : null;
+        if (!form) return;
+        const currentPage = this.$el.closest('.gform_page');
+        if (!currentPage) return;
+        // Field is on an inactive page — leave GF alone
+        if (currentPage.style.display === 'none') return;
+        form.querySelectorAll('.gform_page').forEach((page) => {
+          if (page === currentPage) return;
+          const footer = page.querySelector('.gform_page_footer, .gform-page-footer');
+          if (!footer) return;
+          footer.style.setProperty('display', 'none', 'important');
+          footer.hidden = true;
         });
       },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
