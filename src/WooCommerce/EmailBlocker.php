@@ -38,6 +38,13 @@ class EmailBlocker
     private array $hooked_email_ids = [];
 
     /**
+     * Nesting counter for AutomateWoo order status actions in the current request.
+     *
+     * @var int
+     */
+    private int $automatewoo_order_status_action_depth = 0;
+
+    /**
      * Register hooks.
      *
      * @return void
@@ -65,6 +72,11 @@ class EmailBlocker
         // Explicit-send allowlists
         add_action('woocommerce_before_resend_order_emails', [$this, 'allow_for_resend'], 5, 2);
         add_action('woocommerce_new_customer_note', [$this, 'allow_for_customer_note'], 5, 1);
+
+        // Track AutomateWoo order status actions (including async queue runs).
+        add_action('automatewoo_before_action_run', [$this, 'mark_automatewoo_action_start'], 10, 2);
+        add_action('automatewoo_after_action_run', [$this, 'mark_automatewoo_action_end'], 10, 2);
+        add_action('automatewoo_after_workflow_run', [$this, 'reset_automatewoo_action_tracking'], 10, 1);
     }
 
     /**
@@ -219,6 +231,12 @@ class EmailBlocker
             return $enabled;
         }
 
+        // Block Woo emails triggered by AutomateWoo order status actions.
+        if ($this->is_automatewoo_order_status_context($object)) {
+            $this->log_decision('block', 'automatewoo_status_change', $email, $object);
+            return false;
+        }
+
         // Only block when the trigger is an admin action
         if (!$this->is_admin_order_context($object)) {
             return $enabled;
@@ -281,13 +299,39 @@ class EmailBlocker
             return false;
         }
 
-        // Verify the user has order-editing capability
-        $order_id = $this->get_order_id_from_object_or_request($object);
-        if ($order_id) {
-            return $this->current_user_can_edit_order($order_id);
+        if (wp_doing_ajax()) {
+            return $this->is_admin_order_ajax_action($object);
         }
 
-        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+        if ($this->is_rest_admin_order_request($object)) {
+            return true;
+        }
+
+        if (!is_admin()) {
+            return false;
+        }
+
+        if ($this->is_admin_bulk_order_status_request($object)) {
+            return true;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id && $this->is_hpos_edit_order_request($order_id)) {
+            return true;
+        }
+
+        if (empty($_POST['post_ID']) || empty($_POST['post_type']) || empty($_POST['woocommerce_meta_nonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $post_id = absint($_POST['post_ID']);
+        $post_type = sanitize_key(wp_unslash($_POST['post_type']));
+
+        if (!$post_id || !in_array($post_type, wc_get_order_types('order-meta-boxes'), true)) {
+            return false;
+        }
+
+        return $this->current_user_can_edit_order($post_id);
     }
 
     /**
@@ -336,6 +380,240 @@ class EmailBlocker
         }
 
         return 0;
+    }
+
+    /**
+     * Determine if the current request is an HPOS order edit save.
+     *
+     * @param int $order_id Order ID.
+     * @return bool
+     */
+    private function is_hpos_edit_order_request(int $order_id): bool
+    {
+        if (empty($_POST['action']) || empty($_POST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $action = sanitize_key(wp_unslash($_POST['action']));
+        if ('edit_order' !== $action) {
+            return false;
+        }
+
+        $nonce = wp_unslash($_POST['_wpnonce']);
+        if (!wp_verify_nonce($nonce, 'update-order_' . $order_id)) {
+            return false;
+        }
+
+        return $this->current_user_can_edit_order($order_id);
+    }
+
+    /**
+     * Determine if the current REST request is an admin order update.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_rest_admin_order_request($object = null): bool
+    {
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            return false;
+        }
+
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id) {
+            return $this->current_user_can_edit_order($order_id);
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Identify relevant admin-side AJAX order actions.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_admin_order_ajax_action($object = null): bool
+    {
+        if (empty($_REQUEST['action'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $action = sanitize_key(wp_unslash($_REQUEST['action']));
+
+        if (!in_array(
+            $action,
+            [
+                'woocommerce_refund_line_items',
+                'woocommerce_mark_order_status',
+            ],
+            true
+        )) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id) {
+            return $this->current_user_can_edit_order($order_id);
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Detect admin bulk order status changes.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_admin_bulk_order_status_request($object = null): bool
+    {
+        $action = $this->get_bulk_action();
+        if (!$action || 0 !== strpos($action, 'mark_')) {
+            return false;
+        }
+
+        $order_ids = $this->get_bulk_order_ids();
+        if (empty($order_ids)) {
+            return false;
+        }
+
+        if (!$this->verify_bulk_nonce()) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        if ($order_id && !$this->current_user_can_edit_order($order_id)) {
+            return false;
+        }
+
+        return current_user_can('edit_shop_orders') || current_user_can('manage_woocommerce');
+    }
+
+    /**
+     * Resolve bulk action name from request.
+     *
+     * @return string
+     */
+    private function get_bulk_action(): string
+    {
+        $action = '';
+
+        if (!empty($_REQUEST['action']) && '-1' !== $_REQUEST['action']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $action = sanitize_key(wp_unslash($_REQUEST['action']));
+        } elseif (!empty($_REQUEST['action2']) && '-1' !== $_REQUEST['action2']) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $action = sanitize_key(wp_unslash($_REQUEST['action2']));
+        }
+
+        return $action;
+    }
+
+    /**
+     * Get order IDs from bulk request.
+     *
+     * @return int[]
+     */
+    private function get_bulk_order_ids(): array
+    {
+        if (!empty($_REQUEST['id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['id']))));
+        }
+
+        if (!empty($_REQUEST['post'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return array_values(array_filter(array_map('absint', (array) wp_unslash($_REQUEST['post']))));
+        }
+
+        return [];
+    }
+
+    /**
+     * Verify bulk action nonce for order list tables.
+     *
+     * @return bool
+     */
+    private function verify_bulk_nonce(): bool
+    {
+        if (empty($_REQUEST['_wpnonce'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            return false;
+        }
+
+        $nonce = wp_unslash($_REQUEST['_wpnonce']);
+
+        return wp_verify_nonce($nonce, 'bulk-orders') || wp_verify_nonce($nonce, 'bulk-posts');
+    }
+
+    /**
+     * Mark the start of a relevant AutomateWoo action.
+     *
+     * @param mixed $action Action instance.
+     * @param mixed $workflow Workflow instance.
+     * @return void
+     */
+    public function mark_automatewoo_action_start($action, $workflow = null): void
+    {
+        if ($this->is_automatewoo_order_status_action($action)) {
+            $this->automatewoo_order_status_action_depth++;
+        }
+    }
+
+    /**
+     * Mark the end of a relevant AutomateWoo action.
+     *
+     * @param mixed $action Action instance.
+     * @param mixed $workflow Workflow instance.
+     * @return void
+     */
+    public function mark_automatewoo_action_end($action, $workflow = null): void
+    {
+        if ($this->is_automatewoo_order_status_action($action) && $this->automatewoo_order_status_action_depth > 0) {
+            $this->automatewoo_order_status_action_depth--;
+        }
+    }
+
+    /**
+     * Reset AutomateWoo action tracking after each workflow run.
+     *
+     * @param mixed $workflow Workflow instance.
+     * @return void
+     */
+    public function reset_automatewoo_action_tracking($workflow = null): void
+    {
+        $this->automatewoo_order_status_action_depth = 0;
+    }
+
+    /**
+     * Check if we are currently inside an AutomateWoo order status action.
+     *
+     * @param mixed $object Email object context.
+     * @return bool
+     */
+    private function is_automatewoo_order_status_context($object = null): bool
+    {
+        if ($this->automatewoo_order_status_action_depth < 1) {
+            return false;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+        return $order_id > 0;
+    }
+
+    /**
+     * Check whether the AutomateWoo action changes order status.
+     *
+     * @param mixed $action Action instance.
+     * @return bool
+     */
+    private function is_automatewoo_order_status_action($action): bool
+    {
+        if (!is_object($action)) {
+            return false;
+        }
+
+        return 'AutomateWoo\\Action_Order_Change_Status' === get_class($action);
     }
 
     /**
