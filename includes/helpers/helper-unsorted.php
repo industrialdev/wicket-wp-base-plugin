@@ -1292,16 +1292,16 @@ function wicket_update_person($person_uuid, $fields_to_update)
         // Target specific attributes as the /people/uuid patch endpoint only accepts these
         $attributes = [
             'additional_name' => $wicket_person_array['attributes']['additional_name'],
-            'family_name' => $wicket_person_array['attributes']['additional_name'],
-            'given_name' => $wicket_person_array['attributes']['additional_name'],
-            'honorific_prefix' => $wicket_person_array['attributes']['additional_name'],
-            'honorific_suffix' => $wicket_person_array['attributes']['additional_name'],
-            'job_function' => $wicket_person_array['attributes']['additional_name'],
-            'job_level' => $wicket_person_array['attributes']['additional_name'],
-            'job_title' => $wicket_person_array['attributes']['additional_name'],
-            'nickname' => $wicket_person_array['attributes']['additional_name'],
-            'status' => $wicket_person_array['attributes']['additional_name'],
-            'suffix' => $wicket_person_array['attributes']['additional_name'],
+            'family_name' => $wicket_person_array['attributes']['family_name'],
+            'given_name' => $wicket_person_array['attributes']['given_name'],
+            'honorific_prefix' => $wicket_person_array['attributes']['honorific_prefix'],
+            'honorific_suffix' => $wicket_person_array['attributes']['honorific_suffix'],
+            'job_function' => $wicket_person_array['attributes']['job_function'],
+            'job_level' => $wicket_person_array['attributes']['job_level'],
+            'job_title' => $wicket_person_array['attributes']['job_title'],
+            'nickname' => $wicket_person_array['attributes']['nickname'],
+            'status' => $wicket_person_array['attributes']['status'],
+            'suffix' => $wicket_person_array['attributes']['suffix'],
         ];
         $attributes = array_merge($attributes, $fields_to_update['attributes']); // Later array will overwrite first one
         $attributes = wicket_filter_null_and_blank($attributes); // sanitize for MDP call
