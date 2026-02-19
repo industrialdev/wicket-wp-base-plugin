@@ -38,13 +38,6 @@ class EmailBlocker
     private array $hooked_email_ids = [];
 
     /**
-     * Nesting counter for AutomateWoo order status actions in the current request.
-     *
-     * @var int
-     */
-    private int $automatewoo_order_status_action_depth = 0;
-
-    /**
      * Register hooks.
      *
      * @return void
@@ -72,11 +65,6 @@ class EmailBlocker
         // Explicit-send allowlists
         add_action('woocommerce_before_resend_order_emails', [$this, 'allow_for_resend'], 5, 2);
         add_action('woocommerce_new_customer_note', [$this, 'allow_for_customer_note'], 5, 1);
-
-        // Track AutomateWoo order status actions (including async queue runs).
-        add_action('automatewoo_before_action_run', [$this, 'mark_automatewoo_action_start'], 10, 2);
-        add_action('automatewoo_after_action_run', [$this, 'mark_automatewoo_action_end'], 10, 2);
-        add_action('automatewoo_after_workflow_run', [$this, 'reset_automatewoo_action_tracking'], 10, 1);
     }
 
     /**
@@ -229,12 +217,6 @@ class EmailBlocker
         if ($this->is_explicit_send_request($email)) {
             $this->log_decision('allow', 'explicit', $email, $object);
             return $enabled;
-        }
-
-        // Block Woo emails triggered by AutomateWoo order status actions.
-        if ($this->is_automatewoo_order_status_context($object)) {
-            $this->log_decision('block', 'automatewoo_status_change', $email, $object);
-            return false;
         }
 
         // Only block when the trigger is an admin action
@@ -544,76 +526,6 @@ class EmailBlocker
         $nonce = wp_unslash($_REQUEST['_wpnonce']);
 
         return wp_verify_nonce($nonce, 'bulk-orders') || wp_verify_nonce($nonce, 'bulk-posts');
-    }
-
-    /**
-     * Mark the start of a relevant AutomateWoo action.
-     *
-     * @param mixed $action Action instance.
-     * @param mixed $workflow Workflow instance.
-     * @return void
-     */
-    public function mark_automatewoo_action_start($action, $workflow = null): void
-    {
-        if ($this->is_automatewoo_order_status_action($action)) {
-            $this->automatewoo_order_status_action_depth++;
-        }
-    }
-
-    /**
-     * Mark the end of a relevant AutomateWoo action.
-     *
-     * @param mixed $action Action instance.
-     * @param mixed $workflow Workflow instance.
-     * @return void
-     */
-    public function mark_automatewoo_action_end($action, $workflow = null): void
-    {
-        if ($this->is_automatewoo_order_status_action($action) && $this->automatewoo_order_status_action_depth > 0) {
-            $this->automatewoo_order_status_action_depth--;
-        }
-    }
-
-    /**
-     * Reset AutomateWoo action tracking after each workflow run.
-     *
-     * @param mixed $workflow Workflow instance.
-     * @return void
-     */
-    public function reset_automatewoo_action_tracking($workflow = null): void
-    {
-        $this->automatewoo_order_status_action_depth = 0;
-    }
-
-    /**
-     * Check if we are currently inside an AutomateWoo order status action.
-     *
-     * @param mixed $object Email object context.
-     * @return bool
-     */
-    private function is_automatewoo_order_status_context($object = null): bool
-    {
-        if ($this->automatewoo_order_status_action_depth < 1) {
-            return false;
-        }
-
-        $order_id = $this->get_order_id_from_object_or_request($object);
-        return $order_id > 0;
-    }
-
-    /**
-     * Check whether the AutomateWoo action changes order status.
-     *
-     * @param mixed $action Action instance.
-     * @return bool
-     */
-    private function is_automatewoo_order_status_action($action): bool
-    {
-        if (!is_object($action)) {
-            return false;
-        }
-
-        return 'AutomateWoo\\Action_Order_Change_Status' === get_class($action);
     }
 
     /**
