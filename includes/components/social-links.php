@@ -28,6 +28,7 @@ if (have_rows('social_media_links', 'option')) : ?>
 		        $icon = 'fab fa-' . get_row_layout() . ' fa-fw';
 		    if (get_row_layout() == 'custom_other') {
 		        $icon = get_sub_field('fontawesome_icon_classes');
+						$icon .= ' fa-fw'; // add fixed width class for better alignment
 		    }
 		    ?>
 			<li>
