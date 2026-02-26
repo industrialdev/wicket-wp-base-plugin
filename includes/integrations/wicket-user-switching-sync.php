@@ -6,12 +6,6 @@
  */
 
 /**
- * Feature flag: enable the "Attempt to fix WP<>MDP UUID mismatch" link.
- * Set to true to show/enable the amend link; false disables it.
- */
-const WICKET_ALLOW_UUID_AMEND_LINK = false;
-
-/**
  * Handle a user switch attempt. If the target (Wicket) user no longer exists remotely, revert immediately
  * and surface an admin error notice. Otherwise, perform the usual sync so roles are current.
  *
@@ -77,17 +71,15 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
             $redirect_url = admin_url('users.php');
         }
 
-        // Add error payload to URL for the notice when amend link is enabled.
-        if (WICKET_ALLOW_UUID_AMEND_LINK) {
-            $redirect_url = add_query_arg(
-                [
-                    'wicket_switch_failed' => '1',
-                    'wicket_switch_msg'    => rawurlencode($error_message),
-                    'wicket_switch_target' => (int) $new_user_id,
-                ],
-                $redirect_url
-            );
-        }
+        $redirect_url = add_query_arg(
+            [
+                'wicket_switch_failed' => '1',
+                'wicket_switch_msg'    => rawurlencode($error_message),
+                'wicket_switch_target' => (int) $new_user_id,
+            ],
+            $redirect_url
+        );
+        
 
         // Use wp_redirect for reliability if safe redirect fails
         if (!wp_safe_redirect($redirect_url)) {
@@ -110,7 +102,7 @@ function wicket_switch_error_notice()
     $message = isset($_GET['wicket_switch_msg']) ? sanitize_text_field(wp_unslash($_GET['wicket_switch_msg'])) : '';
     $target_user_id = isset($_GET['wicket_switch_target']) ? (int) $_GET['wicket_switch_target'] : 0;
 
-    if ($has_error && $message && WICKET_ALLOW_UUID_AMEND_LINK) {
+    if ($has_error && $message) {
         $fix_url = '';
         $fix_alert = __('This will look up the user in MDP by email and update the WP user_login to the MDP UUID. Proceed?', 'wicket');
         if ($target_user_id) {
