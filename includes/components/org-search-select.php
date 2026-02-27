@@ -878,7 +878,7 @@ if (empty($title)) : ?>
               <?php get_component('button', [
           'variant'  => 'secondary',
           'reversed' => false,
-          'label'    => __('Select', 'wicket') . ' ' . $orgTermSingularCap,
+          'label'    => sprintf(__('Proceed with %s', 'wicket'), $orgTermSingularCap),
           'type'     => 'button',
           'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
           'atts'     => [
