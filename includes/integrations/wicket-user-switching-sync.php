@@ -79,7 +79,6 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
             ],
             $redirect_url
         );
-        
 
         // Use wp_redirect for reliability if safe redirect fails
         if (!wp_safe_redirect($redirect_url)) {

@@ -211,16 +211,17 @@ function sync_wicket_data_for_person($person_uuid)
 add_action('profile_update', 'wicket_sync_display_name_from_profile', 999, 1);
 add_action('user_register', 'wicket_sync_display_name_from_profile', 999, 1);
 
-function wicket_sync_display_name_from_profile($user_id) {
+function wicket_sync_display_name_from_profile($user_id)
+{
     static $updating = [];
-    
+
     // Prevent recursion for this user
     if (isset($updating[$user_id])) {
         return;
     }
-    
+
     $first = get_user_meta($user_id, 'first_name', true);
-    $last  = get_user_meta($user_id, 'last_name', true);
+    $last = get_user_meta($user_id, 'last_name', true);
     $display = trim($first . ' ' . $last);
     if (!$display) {
         return;
@@ -229,16 +230,16 @@ function wicket_sync_display_name_from_profile($user_id) {
     if ($user && $user->display_name === $display) {
         return;
     }
-    
+
     // Mark this user as being updated
     $updating[$user_id] = true;
-    
+
     update_user_meta($user_id, 'nickname', $display);
     wp_update_user([
         'ID'           => $user_id,
         'display_name' => $display,
     ]);
-    
+
     // Clear the flag
     unset($updating[$user_id]);
 }

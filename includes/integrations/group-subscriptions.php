@@ -300,7 +300,8 @@ function wicket_group_membership_subscription_status_active($sub)
 
     // check if we are already running on a different hook for this subscription
     if (isset($processing_subscriptions[$subscription_id])) {
-        wicket_wc_log_group_sync([ 'Prevented duplicate group membership creation', $subscription_id ]);
+        wicket_wc_log_group_sync(['Prevented duplicate group membership creation', $subscription_id]);
+
         return $sub;
     }
 

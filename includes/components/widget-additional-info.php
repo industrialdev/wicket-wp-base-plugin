@@ -53,9 +53,9 @@ $wicket_settings = get_wicket_settings();
 <?php
   $access_token = wicket_access_token_for_person(wicket_current_person_uuid());
 
-  if ($resource_type == 'organizations') {
+if ($resource_type == 'organizations') {
     $access_token = wicket_get_access_token(wicket_current_person_uuid(), $org_uuid);
-  }
+}
 ?>
 
 <script type="text/javascript">

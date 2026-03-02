@@ -51,11 +51,11 @@ if (defined('WICKET_WP_THEME_V2')) {
 			        continue;
 			    }
 
-                $link_type = $link['link_style'];
+			    $link_type = $link['link_style'];
 
-                if ( ! $link_type ) {
-                    $link_type = 'primary';
-                }
+			    if (!$link_type) {
+			        $link_type = 'primary';
+			    }
 
 			    get_component('button', [
 			        'variant'            => $link_type,

@@ -57,10 +57,10 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 						<img class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-icon-grid__item-image' : 'mr-3' ?>" src="<?php echo $icon['icon_grid_image']['url']; ?>" />
 					<?php else: ?>
 						<?php
-                            get_component('icon', [
-                                'icon' => $icon['font-awesome_icon_code'],
-                                'classes'=> defined('WICKET_WP_THEME_V2') ? ['component-icon-grid__item-icon'] : ['mr-3', 'text-heading-xl'],
-                            ]);
+						    get_component('icon', [
+						        'icon' => $icon['font-awesome_icon_code'],
+						        'classes'=> defined('WICKET_WP_THEME_V2') ? ['component-icon-grid__item-icon'] : ['mr-3', 'text-heading-xl'],
+						    ]);
 					    ?>
 					<?php endif; ?>
 					<div class="font-semibold"><?php echo $icon['icon_grid_text']; ?></div>
