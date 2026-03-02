@@ -339,7 +339,7 @@ $available_org_types = wicket_get_resource_types('organizations');
 
 <div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>"
   x-data="orgss_<?php echo $key; ?>" x-init="">
-  <?php // Loading overlay ?>
+  <?php // Loading overlay?>
   <div x-transition x-cloak
     class="component-org-search-select__loading-overlay flex justify-center items-center w-full text-dark-100 text-heading-3xl py-10 absolute h-full left-0 right-0 mx-auto bg-white bg-opacity-70"
     x-bind:class="isLoading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none' ">
@@ -443,9 +443,15 @@ $available_org_types = wicket_get_resource_types('organizations');
         <?php
         // Helper function to render a button pair for the active membership alert
         // This reduces code duplication across the 3 message states (base, available, unavailable)
-        $render_alert_buttons = function(
-            $button_1_text, $button_1_url, $button_1_style, $button_1_new_tab,
-            $button_2_text, $button_2_url, $button_2_style, $button_2_new_tab,
+        $render_alert_buttons = function (
+            $button_1_text,
+            $button_1_url,
+            $button_1_style,
+            $button_1_new_tab,
+            $button_2_text,
+            $button_2_url,
+            $button_2_style,
+            $button_2_new_tab,
             $action_suffix = ''
         ) {
             $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI']);
@@ -603,57 +609,57 @@ $available_org_types = wicket_get_resource_types('organizations');
                 }
             }
         };
-        ?>
+?>
 
         <!-- Base/Default Buttons (shown when no seat-specific message is configured or as fallback) -->
         <div x-show="activeMembershipSeatMessageState === 'base'" x-cloak class="flex w-full justify-evenly">
           <?php
-          $render_alert_buttons(
-              $active_membership_alert_button_1_text,
-              $active_membership_alert_button_1_url,
-              $active_membership_alert_button_1_style,
-              $active_membership_alert_button_1_new_tab,
-              $active_membership_alert_button_2_text,
-              $active_membership_alert_button_2_url,
-              $active_membership_alert_button_2_style,
-              $active_membership_alert_button_2_new_tab,
-              ''
-          );
-          ?>
+  $render_alert_buttons(
+      $active_membership_alert_button_1_text,
+      $active_membership_alert_button_1_url,
+      $active_membership_alert_button_1_style,
+      $active_membership_alert_button_1_new_tab,
+      $active_membership_alert_button_2_text,
+      $active_membership_alert_button_2_url,
+      $active_membership_alert_button_2_style,
+      $active_membership_alert_button_2_new_tab,
+      ''
+  );
+?>
         </div>
 
         <!-- Seats Available Buttons -->
         <div x-show="activeMembershipSeatMessageState === 'available'" x-cloak class="flex w-full justify-evenly">
           <?php
-          $render_alert_buttons(
-              $active_membership_seat_available_alert_button_1_text,
-              $active_membership_seat_available_alert_button_1_url,
-              $active_membership_seat_available_alert_button_1_style,
-              $active_membership_seat_available_alert_button_1_new_tab,
-              $active_membership_seat_available_alert_button_2_text,
-              $active_membership_seat_available_alert_button_2_url,
-              $active_membership_seat_available_alert_button_2_style,
-              $active_membership_seat_available_alert_button_2_new_tab,
-              '_seats_available'
-          );
-          ?>
+$render_alert_buttons(
+    $active_membership_seat_available_alert_button_1_text,
+    $active_membership_seat_available_alert_button_1_url,
+    $active_membership_seat_available_alert_button_1_style,
+    $active_membership_seat_available_alert_button_1_new_tab,
+    $active_membership_seat_available_alert_button_2_text,
+    $active_membership_seat_available_alert_button_2_url,
+    $active_membership_seat_available_alert_button_2_style,
+    $active_membership_seat_available_alert_button_2_new_tab,
+    '_seats_available'
+);
+?>
         </div>
 
         <!-- No Seats Available Buttons -->
         <div x-show="activeMembershipSeatMessageState === 'unavailable'" x-cloak class="flex w-full justify-evenly">
           <?php
-          $render_alert_buttons(
-              $active_membership_seat_unavailable_alert_button_1_text,
-              $active_membership_seat_unavailable_alert_button_1_url,
-              $active_membership_seat_unavailable_alert_button_1_style,
-              $active_membership_seat_unavailable_alert_button_1_new_tab,
-              $active_membership_seat_unavailable_alert_button_2_text,
-              $active_membership_seat_unavailable_alert_button_2_url,
-              $active_membership_seat_unavailable_alert_button_2_style,
-              $active_membership_seat_unavailable_alert_button_2_new_tab,
-              '_seats_unavailable'
-          );
-          ?>
+$render_alert_buttons(
+    $active_membership_seat_unavailable_alert_button_1_text,
+    $active_membership_seat_unavailable_alert_button_1_url,
+    $active_membership_seat_unavailable_alert_button_1_style,
+    $active_membership_seat_unavailable_alert_button_1_new_tab,
+    $active_membership_seat_unavailable_alert_button_2_text,
+    $active_membership_seat_unavailable_alert_button_2_url,
+    $active_membership_seat_unavailable_alert_button_2_style,
+    $active_membership_seat_unavailable_alert_button_2_new_tab,
+    '_seats_unavailable'
+);
+?>
         </div>
       </div>
     </div>
@@ -678,21 +684,21 @@ if (!$is_wicket_theme) {
     $buttonClasses[] = 'button--reversed';
 } ?>
         <?php get_component('button', [
-    'variant'  => 'primary',
-    'label'    => __('Search', 'wicket'),
-    'type'     => 'button',
-    'classes'  => $buttonClasses,
-    'atts'  => ['x-on:click.prevent="handleSearch()"'],
-]); ?>
+            'variant'  => 'primary',
+            'label'    => __('Search', 'wicket'),
+            'type'     => 'button',
+            'classes'  => $buttonClasses,
+            'atts'  => ['x-on:click.prevent="handleSearch()"'],
+        ]); ?>
       </div>
       <div class="sm:flex-shrink-0" x-show="firstSearchSubmitted" x-cloak>
         <?php get_component('button', [
-    'variant'  => 'primary',
-    'label'    => __('Clear', 'wicket'),
-    'type'     => 'button',
-    'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
-    'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
-]); ?>
+            'variant'  => 'primary',
+            'label'    => __('Clear', 'wicket'),
+            'type'     => 'button',
+            'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
+            'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
+        ]); ?>
       </div>
     </div>
     <div id="orgss_search_message" class="orgss_error component-org-search-select__search-message" x-cloak
@@ -730,23 +736,23 @@ if (!$is_wicket_theme) {
             <?php endif; ?>
             <div class="component-org-search-select__matching-org-action" >
               <?php get_component('button', [
-          'variant'  => 'secondary',
-          'reversed' => false,
-          'label'    => __('Select', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__select-result-button'],
-          'atts'     => [
-              'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
-              'x-bind:class="{
+                  'variant'  => 'secondary',
+                  'reversed' => false,
+                  'label'    => __('Select', 'wicket'),
+                  'type'     => 'button',
+                  'classes'  => ['component-org-search-select__select-result-button'],
+                  'atts'     => [
+                      'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
+                      'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection($data.result.id)
                       || (disableSelectingOrgsWithActiveMembership && result.active_membership)
                   }"',
-              'x-bind:disabled="isOrgAlreadyAConnection($data.result.id)
+                      'x-bind:disabled="isOrgAlreadyAConnection($data.result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership)"',
-              'x-bind:aria-disabled="(isOrgAlreadyAConnection($data.result.id)
+                      'x-bind:aria-disabled="(isOrgAlreadyAConnection($data.result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
-          ],
-      ]); ?>
+                  ],
+              ]); ?>
             </div>
           </div>
         </template>
@@ -770,14 +776,14 @@ if (empty($title)) : ?>
 
         <div x-show="selectedOrgUuid" x-cloak>
           <?php get_component('button', [
-      'variant'  => 'secondary',
-      'label'    => __('Clear Selection', 'wicket'),
-      'type'     => 'button',
-      'classes'  => ['component-org-search-select__clear-selection-button'],
-      'atts'     => [
-          'x-on:click.prevent="selectedOrgUuid = \'\'; hideGfNextButton(); $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
-      ],
-  ]); ?>
+              'variant'  => 'secondary',
+              'label'    => __('Clear Selection', 'wicket'),
+              'type'     => 'button',
+              'classes'  => ['component-org-search-select__clear-selection-button'],
+              'atts'     => [
+                  'x-on:click.prevent="selectedOrgUuid = \'\'; hideGfNextButton(); $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
+              ],
+          ]); ?>
         </div>
       </div>
 
@@ -864,57 +870,57 @@ if (empty($title)) : ?>
             class="current-org-listing-right component-org-search-select__card-right <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-4 md:mt-0' ?>">
             <template x-if="justCreatedNewOrg && connection.org_id === justCreatedOrgUuid">
               <?php get_component('button', [
-          'variant'  => 'secondary',
-          'reversed' => false,
-          'label'    => '✓ ' . __('Selected', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
-          'atts'     => [
-              'x-show="!hideSelectButtons"',
-          ],
-      ]); ?>
+                  'variant'  => 'secondary',
+                  'reversed' => false,
+                  'label'    => '✓ ' . __('Selected', 'wicket'),
+                  'type'     => 'button',
+                  'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
+                  'atts'     => [
+                      'x-show="!hideSelectButtons"',
+                  ],
+              ]); ?>
             </template>
             <template x-if="!(justCreatedNewOrg && connection.org_id === justCreatedOrgUuid)">
               <?php get_component('button', [
-          'variant'  => 'secondary',
-          'reversed' => false,
-          'label'    => sprintf(__('Proceed with %s', 'wicket'), $orgTermSingularCap),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
-          'atts'     => [
-              'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true, connection.active_membership_seat_summary)"',
-              'x-bind:class="{
+                  'variant'  => 'secondary',
+                  'reversed' => false,
+                  'label'    => sprintf(__('Proceed with %s', 'wicket'), $orgTermSingularCap),
+                  'type'     => 'button',
+                  'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
+                  'atts'     => [
+                      'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true, connection.active_membership_seat_summary)"',
+                      'x-bind:class="{
                     \'orgss_disabled_button\': connection.active_membership && disableSelectingOrgsWithActiveMembership
                   }"',
-              'x-bind:disabled="connection.active_membership && disableSelectingOrgsWithActiveMembership"',
-              'x-bind:aria-disabled="(connection.active_membership && disableSelectingOrgsWithActiveMembership) ? \'true\' : \'false\'"',
-              'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
-          ],
-      ]); ?>
+                      'x-bind:disabled="connection.active_membership && disableSelectingOrgsWithActiveMembership"',
+                      'x-bind:aria-disabled="(connection.active_membership && disableSelectingOrgsWithActiveMembership) ? \'true\' : \'false\'"',
+                      'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
+                  ],
+              ]); ?>
             </template>
             <template x-if="connection.org_id === selectedOrgUuid">
               <?php get_component('button', [
-          'variant'  => 'secondary',
-          'reversed' => false,
-          'label'    => '✓ ' . __('Selected', 'wicket'),
-          'type'     => 'button',
-          'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
-          'atts'     => [
-              'x-show="!hideSelectButtons"',
-          ],
-      ]); ?>
+                  'variant'  => 'secondary',
+                  'reversed' => false,
+                  'label'    => '✓ ' . __('Selected', 'wicket'),
+                  'type'     => 'button',
+                  'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
+                  'atts'     => [
+                      'x-show="!hideSelectButtons"',
+                  ],
+              ]); ?>
             </template>
             <?php get_component('button', [
-        'variant'  => 'ghost',
-        'label'    => __('Remove', 'wicket'),
-        'suffix_icon' => 'fa-regular fa-trash',
-        'type'     => 'button',
-        'classes'  => ['component-org-search-select__remove-button', 'whitespace-nowrap'],
-        'atts'     => [
-            'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',
-            'x-show="!hideRemoveButtons"',
-        ],
-    ]); ?>
+                'variant'  => 'ghost',
+                'label'    => __('Remove', 'wicket'),
+                'suffix_icon' => 'fa-regular fa-trash',
+                'type'     => 'button',
+                'classes'  => ['component-org-search-select__remove-button', 'whitespace-nowrap'],
+                'atts'     => [
+                    'x-on:click.prevent="terminateRelationship($data.connection.connection_id)"',
+                    'x-show="!hideRemoveButtons"',
+                ],
+            ]); ?>
           </div>
         </div>
       </template>
@@ -961,12 +967,12 @@ if (empty($title)) : ?>
       <div
         class="component-org-search-select__create-org-button-wrapper flex flex-col w-2/12 items-center justify-end">
         <?php get_component('button', [
-    'variant'  => 'primary',
-    'label'    => __('Add', 'wicket'),
-    'type'     => 'button',
-    'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
-    'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
-]); ?>
+            'variant'  => 'primary',
+            'label'    => __('Add', 'wicket'),
+            'type'     => 'button',
+            'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
+            'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
+        ]); ?>
       </div>
     </div>
     <div x-show="displayDuplicateOrgWarning"

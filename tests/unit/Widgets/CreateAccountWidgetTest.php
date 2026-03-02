@@ -7,7 +7,6 @@ namespace WicketWP\Tests\Widgets;
 use PHPUnit\Framework\Attributes\CoversClass;
 use WicketWP\Tests\AbstractTestCase;
 use WicketWP\Widgets\CreateAccount;
-use WicketWP\Main;
 
 #[CoversClass(CreateAccount::class)]
 class CreateAccountWidgetTest extends AbstractTestCase

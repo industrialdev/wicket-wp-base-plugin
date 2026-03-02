@@ -11,4 +11,3 @@ $testSuite->configure(
     namespace: 'WicketWP\\Tests',
     source: 'src'
 );
-

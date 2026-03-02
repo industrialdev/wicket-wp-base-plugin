@@ -7,7 +7,6 @@ namespace WicketWP\Tests\Widgets;
 use PHPUnit\Framework\Attributes\CoversClass;
 use WicketWP\Tests\AbstractTestCase;
 use WicketWP\Widgets\ManagePreferences;
-use WicketWP\Main;
 
 #[CoversClass(ManagePreferences::class)]
 class ManagePreferencesWidgetTest extends AbstractTestCase

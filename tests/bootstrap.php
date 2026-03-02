@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PHPUnit Bootstrap File.
  *
@@ -37,6 +38,10 @@ if (!defined('YEAR_IN_SECONDS')) {
 }
 
 // Define Wicket plugin constants
+if (!defined('WICKET_DOING_TESTS')) {
+    define('WICKET_DOING_TESTS', true);
+}
+
 if (!defined('WICKET_URL')) {
     define('WICKET_URL', 'http://example.com/wp-content/plugins/wicket-wp-base-plugin/');
 }
@@ -51,7 +56,8 @@ if (!defined('WICKET_PLUGIN_DIR')) {
 
 // Mock WordPress classes
 if (!class_exists('WP_Widget')) {
-    class WP_Widget {
+    class WP_Widget
+    {
         public function __construct($id_base = '', $name = '', $widget_options = [], $control_options = []) {}
     }
 }

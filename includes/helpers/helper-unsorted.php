@@ -258,9 +258,10 @@ function wicket_get_organization($uuid, $include = null)
     }
     try {
         $organization = $client->get('organizations/' . $uuid . $query_string);
-    } catch (\GuzzleHttp\Exception\ClientException $e) {
+    } catch (GuzzleHttp\Exception\ClientException $e) {
         // Gracefully handle missing organizations (e.g., stale UUIDs)
         error_log('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage());
+
         return false;
     }
 
@@ -705,6 +706,7 @@ function wicket_get_person_connections(array $options = [])
             }
             $connections['data'] = $filtered;
         }
+
         return $connections;
     }
 }
@@ -2016,10 +2018,10 @@ function wicket_assign_organization_membership(
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
-        $starts_at = date('c', time());
+        $starts_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime());
     }
     if (empty($ends_at)) {
-        $ends_at = date('c', strtotime('+1 year'));
+        $ends_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime('+1 year'));
     }
 
     // build membership payload
@@ -2137,10 +2139,10 @@ function wicket_assign_individual_membership(
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
-        $starts_at = date('c', time());
+        $starts_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime());
     }
     if (empty($ends_at)) {
-        $ends_at = date('c', strtotime('+1 year'));
+        $ends_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime('+1 year'));
     }
 
     // build membership payload
@@ -2193,10 +2195,10 @@ function wicket_update_individual_membership_dates($membership_uuid, $starts_at 
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
-        $starts_at = date('c', time());
+        $starts_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime());
     }
     if (empty($ends_at)) {
-        $ends_at = date('c', strtotime('+1 year'));
+        $ends_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime('+1 year'));
     }
 
     // build membership payload
@@ -2231,10 +2233,10 @@ function wicket_update_organization_membership_dates($membership_uuid, $starts_a
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
-        $starts_at = date('c', time());
+        $starts_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime());
     }
     if (empty($ends_at)) {
-        $ends_at = date('c', strtotime('+1 year'));
+        $ends_at = wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime('+1 year'));
     }
 
     // build membership payload

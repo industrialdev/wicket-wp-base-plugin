@@ -216,6 +216,7 @@ class EmailBlocker
         // Explicit sends always pass through
         if ($this->is_explicit_send_request($email)) {
             $this->log_decision('allow', 'explicit', $email, $object);
+
             return $enabled;
         }
 
@@ -225,6 +226,7 @@ class EmailBlocker
         }
 
         $this->log_decision('block', 'admin_update', $email, $object);
+
         return false;
     }
 

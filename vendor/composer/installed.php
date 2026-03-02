@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'industrialdev/wicket-wp-base-plugin',
-        'pretty_version' => '2.2.17',
-        'version' => '2.2.17.0',
+        'pretty_version' => '2.2.22',
+        'version' => '2.2.22.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -38,9 +38,9 @@
             'dev_requirement' => false,
         ),
         'firebase/php-jwt' => array(
-            'pretty_version' => 'v6.11.1',
-            'version' => '6.11.1.0',
-            'reference' => 'd1e91ecf8c598d073d0995afa8cd5c75c6e19e66',
+            'pretty_version' => 'v7.0.3',
+            'version' => '7.0.3.0',
+            'reference' => '28aa0694bcfdfa5e2959c394d5a1ee7a5083629e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../firebase/php-jwt',
             'aliases' => array(),
@@ -121,7 +121,7 @@
         'industrialdev/wicket-sdk-php' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '2973a3b8776b6e28af81f8228050a62045f237ad',
+            'reference' => 'd12dd4fc8fb1642baac91c40a0af47b4620f3f44',
             'type' => 'php',
             'install_path' => __DIR__ . '/../industrialdev/wicket-sdk-php',
             'aliases' => array(
@@ -130,8 +130,8 @@
             'dev_requirement' => false,
         ),
         'industrialdev/wicket-wp-base-plugin' => array(
-            'pretty_version' => '2.2.17',
-            'version' => '2.2.17.0',
+            'pretty_version' => '2.2.22',
+            'version' => '2.2.22.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
@@ -271,9 +271,9 @@
             'dev_requirement' => false,
         ),
         'symfony/translation' => array(
-            'pretty_version' => 'v6.4.32',
-            'version' => '6.4.32.0',
-            'reference' => 'd6cc8e2fdd484f2f41d25938b0e8e3915de3cfbc',
+            'pretty_version' => 'v6.4.34',
+            'version' => '6.4.34.0',
+            'reference' => 'd07d117db41341511671b0a1a2be48f2772189ce',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/translation',
             'aliases' => array(),

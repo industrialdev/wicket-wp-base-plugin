@@ -421,21 +421,21 @@ function wicket_get_connection_by_id($connection_id)
 }
 
 /**
- * End a connection by setting its end timestamp using the site timezone.
+ * End a connection by setting its end timestamp as standardized UTC ISO8601.
  *
  * @param string                  $connection_id Connection ID.
- * @param \DateTimeInterface|null $end_time      Optional explicit end time; defaults to now in site TZ.
+ * @param DateTimeInterface|null $end_time      Optional explicit end time; defaults to now in site TZ.
  *
  * @return mixed Updated connection on success, false on failure.
  */
-function wicket_end_connection(string $connection_id, ?\DateTimeInterface $end_time = null): mixed
+function wicket_end_connection(string $connection_id, ?DateTimeInterface $end_time = null): mixed
 {
     if ($connection_id === '') {
         return false;
     }
 
-    $timestamp = $end_time ?? new \DateTime('now', wp_timezone());
-    $formatted_end = $timestamp->format('Y-m-d\TH:i:sP');
+    $timestamp = $end_time ?? new DateTime('now', wp_timezone());
+    $formatted_end = wicket_time_format_iso8601_utc($timestamp);
 
     return wicket_update_connection_attributes($connection_id, ['ends_at' => $formatted_end]);
 }

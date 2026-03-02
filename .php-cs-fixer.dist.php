@@ -113,7 +113,9 @@ $rules = [
     'phpdoc_trim' => true,
     'phpdoc_types' => true,
     'phpdoc_var_without_name' => true,
-    'psr_autoloading' => true,
+    // Legacy plugin code includes non-PSR entrypoints/stubs (e.g., wicket.php, tests/bootstrap.php).
+    // Keep this disabled to prevent class renames based on filename.
+    'psr_autoloading' => false,
     'self_accessor' => true,
     'short_scalar_cast' => true,
     'simplified_null_return' => false,

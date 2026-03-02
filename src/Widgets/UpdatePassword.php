@@ -242,9 +242,9 @@ class UpdatePassword extends \WP_Widget
 
             <?php
                 get_component('button', [
-        'label'    => __('Change password'),
-        'type'    => 'submit',
-        'variant' => 'primary',
+                    'label'    => __('Change password'),
+                    'type'    => 'submit',
+                    'variant' => 'primary',
                 ]);
         ?>
         </form>

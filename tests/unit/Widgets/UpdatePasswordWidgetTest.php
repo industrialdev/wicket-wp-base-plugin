@@ -7,7 +7,6 @@ namespace WicketWP\Tests\Widgets;
 use PHPUnit\Framework\Attributes\CoversClass;
 use WicketWP\Tests\AbstractTestCase;
 use WicketWP\Widgets\UpdatePassword;
-use WicketWP\Main;
 
 #[CoversClass(UpdatePassword::class)]
 class UpdatePasswordWidgetTest extends AbstractTestCase
