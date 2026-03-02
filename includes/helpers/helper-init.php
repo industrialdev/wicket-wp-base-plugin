@@ -8,6 +8,7 @@ defined('ABSPATH') || exit;
 // These files will be included at the end of the current file
 $wicket_helpers = [
     'helper-general.php',
+    'helper-time.php',
     'helper-unsorted.php',
     'helper-persons.php',
     'helper-person-preferences.php',
@@ -181,8 +182,6 @@ function wicket_get_access_token($person_id, $org_uuid)
 
         return $token['token'];
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
-
         error_log($e->getMessage());
     }
 
