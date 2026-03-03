@@ -4,6 +4,7 @@ $defaults = [
     'org_id'                     => '',
     'org_info_data_field_name'   => 'profile-org-info',
     'validation_data_field_name' => 'profile-org-validation',
+    'fields'                     => [],
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -12,6 +13,7 @@ $org_id = $args['org_id'];
 $org_required_resources = $args['org_required_resources'] === '' ? '{}' : $args['org_required_resources'];
 $org_info_data_field_name = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
+$fields = $args['fields'];
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
 if (empty($org_id)) {
@@ -103,6 +105,9 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
          orgId: '<?php echo $org_id; ?>',
          lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
          extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
+        <?php if (!empty($fields)) : ?>
+          fields: <?php echo json_encode($fields); ?>,
+        <?php endif; ?>
          requiredResources: <?php echo $org_required_resources; ?>,
        }).then(function(widget) {
         <?php

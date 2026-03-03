@@ -6,6 +6,7 @@ $defaults = [
     'profile_required_resources' => '{}',
     'org_id'                     => '',
     'hidden_fields'              => [],
+    'fields'                     => [],
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -15,6 +16,7 @@ $validation_data_field_name = $args['validation_data_field_name'];
 $org_id = $args['org_id'];
 $profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
 $hidden_fields = $args['hidden_fields'];
+$fields = $args['fields'];
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
 $wicket_settings = get_wicket_settings();
@@ -67,7 +69,10 @@ $wicket_settings = get_wicket_settings();
          <?php if (!empty($hidden_fields)) : ?>
          hiddenFields: <?php echo json_encode($hidden_fields); ?>,
          <?php endif; ?>
-         lang: "<?php echo wicket_get_current_language(); ?>",
+        <?php if (!empty($fields)) : ?>
+          fields: <?php echo json_encode($fields); ?>,
+        <?php endif; ?>
+        lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
        }).then(function(widget) {
         <?php
