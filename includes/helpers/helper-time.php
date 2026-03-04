@@ -141,6 +141,19 @@ function wicket_time_format_iso8601_utc(DateTimeInterface $date_time): string
 }
 
 /**
+ * Get a point-in-time timestamp formatted as UTC ISO8601.
+ *
+ * Unlike day-boundary helpers, this preserves the actual event moment.
+ *
+ * @param string $date_string
+ * @return string
+ */
+function wicket_time_get_current_iso8601_utc(string $date_string = 'now'): string
+{
+    return wicket_time_format_iso8601_utc(wicket_time_get_utc_datetime($date_string));
+}
+
+/**
  * Get an MDP day start timestamp formatted as UTC ISO8601.
  *
  * @param string $date_string

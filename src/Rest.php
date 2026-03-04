@@ -271,7 +271,8 @@ class Rest
                     'attributes' => [
                         'connection_type'   => $relationshipType,
                         'type'              => $roleSlug,
-                        'starts_at'         => wicket_time_get_mdp_day_start_iso8601_utc(),
+                        // Use actual action time to avoid date-shift artifacts across timezones.
+                        'starts_at'         => wicket_time_get_current_iso8601_utc(),
                         'ends_at'           => null,
                         'description'       => $description,
                         'tags'              => [],

@@ -93,4 +93,17 @@ class HelperTimeTest extends AbstractTestCase
         $this->assertSame('00:00:00', $start->setTimezone($timezone)->format('H:i:s'));
         $this->assertSame('23:59:59', $end->setTimezone($timezone)->format('H:i:s'));
     }
+
+    public function test_current_iso8601_utc_returns_point_in_time_not_day_boundary(): void
+    {
+        $_ENV['WICKET_MSHIP_MDP_TIMEZONE'] = 'America/Toronto';
+        putenv('WICKET_MSHIP_MDP_TIMEZONE=America/Toronto');
+
+        $current = \wicket_time_get_current_iso8601_utc('2026-03-03 21:17:30');
+        $dayStart = \wicket_time_get_mdp_day_start_iso8601_utc('2026-03-03 21:17:30');
+
+        $this->assertSame('2026-03-04T02:17:30Z', $current);
+        $this->assertSame('2026-03-03T05:00:00Z', $dayStart);
+        $this->assertNotSame($dayStart, $current);
+    }
 }
