@@ -1,7 +1,6 @@
-<script>window.WICKET_ORGSS_DEBUG = true;</script>
 <?php
 //<script>window.WICKET_ORGSS_DEBUG = true;</script>
-define('WICKET_ORGSS_DEBUG', true);
+//define('WICKET_ORGSS_DEBUG', true);
 
 $defaults = [
     'classes'                                       => [],
@@ -1565,53 +1564,6 @@ if (defined('WICKET_WP_THEME_V2')) {
         });
         window.dispatchEvent(newEvent);
       },
-      getCurrentFormPageNumber(form, currentPage) {
-        const formId = <?php echo (int) $formId; ?>;
-
-        if (currentPage && currentPage.id) {
-          const pageMatch = currentPage.id.match(/^gform_page_\d+_(\d+)$/);
-          if (pageMatch && pageMatch[1]) {
-            return String(pageMatch[1]);
-          }
-        }
-
-        const sourcePageInput = form.querySelector('input[name="gform_source_page_number_' + formId + '"]');
-        const sourcePageNumber = parseInt(sourcePageInput ? sourcePageInput.value : '', 10);
-        if (Number.isFinite(sourcePageNumber) && sourcePageNumber > 0) {
-          return String(sourcePageNumber);
-        }
-
-        const targetPageInput = form.querySelector('input[name="gform_target_page_number_' + formId + '"]');
-        const targetPageNumber = parseInt(targetPageInput ? targetPageInput.value : '', 10);
-        if (Number.isFinite(targetPageNumber) && targetPageNumber > 0) {
-          return String(targetPageNumber);
-        }
-
-        const visiblePage = form.querySelector('.gform_page[style*="display: block"], .gform_page:not([style*="display: none"])');
-        if (visiblePage && visiblePage.id) {
-          const visiblePageMatch = visiblePage.id.match(/^gform_page_\d+_(\d+)$/);
-          if (visiblePageMatch && visiblePageMatch[1]) {
-            return String(visiblePageMatch[1]);
-          }
-        }
-
-        // First render can have empty/zero hidden page inputs.
-        return '1';
-      },
-      isRogueFooterForCurrentPage(footer, currentPageNumber) {
-        if (!footer || !currentPageNumber) {
-          return false;
-        }
-
-        const pageButton = footer.querySelector(
-          '[id^="gform_next_button_<?php echo (int) $formId; ?>_"], [id^="gform_previous_button_<?php echo (int) $formId; ?>_"]'
-        );
-        if (!pageButton || !pageButton.id) {
-          return false;
-        }
-
-        return pageButton.id.endsWith('_' + currentPageNumber);
-      },
       showGfNextButton() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
@@ -1635,7 +1587,6 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         // Scope to the current page only to avoid revealing buttons on other pages
         const currentPage = this.$el.closest('.gform_page') || form;
-        const currentPageNumber = this.getCurrentFormPageNumber(form, currentPage);
         // Field is on an inactive page — leave GF alone
         if (currentPage !== form && currentPage.style.display === 'none') return;
 
@@ -1646,37 +1597,19 @@ if (defined('WICKET_WP_THEME_V2')) {
         const footer = currentPage.querySelector(selectors.join(','));
         revealElement(footer);
 
-        const matchedRogueFooters = [];
-        form.querySelectorAll(selectors.join(',')).forEach((candidateFooter) => {
-          if (candidateFooter.closest('.gform_page')) {
-            return;
-          }
-          if (!this.isRogueFooterForCurrentPage(candidateFooter, currentPageNumber)) {
-            return;
-          }
-          revealElement(candidateFooter);
-          matchedRogueFooters.push(candidateFooter);
-        });
-
         const buttonSelectors = [
           '.gform_next_button',
           '.gform_button',
           '.gform_submit_button'
         ];
-        const buttonNodes = new Set();
-        currentPage.querySelectorAll(buttonSelectors.join(',')).forEach((button) => buttonNodes.add(button));
-        matchedRogueFooters.forEach((matchedFooter) => {
-          matchedFooter.querySelectorAll(buttonSelectors.join(',')).forEach((button) => buttonNodes.add(button));
-        });
-        buttonNodes.forEach((button) => revealElement(button));
+        const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
+        buttons.forEach((button) => revealElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
         wicketOrgssDebug.log('ORGSS: revealed GF next/submit buttons', {
           formId,
-          currentPageNumber,
           footerFound: !!footer,
-          rogueFooterCount: matchedRogueFooters.length,
-          buttonCount: buttonNodes.size,
+          buttonCount: buttons.length,
           gfFieldCount: gfFields.length,
           gfFieldValues: Array.from(gfFields).map((field) => field.value),
         });
@@ -1706,9 +1639,8 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         // Scope to the current page only to avoid hiding buttons on other pages
         const currentPage = this.$el.closest('.gform_page') || form;
-        const currentPageNumber = this.getCurrentFormPageNumber(form, currentPage);
         // Field is on an inactive page — leave GF alone
-        wicketOrgssDebug.log('ORGSS: hideGfNextButton scope', { currentPageId: currentPage?.id, currentPageDisplay: currentPage?.style?.display, currentPageNumber, isForm: currentPage === form });
+        wicketOrgssDebug.log('ORGSS: hideGfNextButton scope', { currentPageId: currentPage?.id, currentPageDisplay: currentPage?.style?.display, isForm: currentPage === form });
         if (currentPage !== form && currentPage.style.display === 'none') {
           wicketOrgssDebug.log('ORGSS: hideGfNextButton — inactive page, bailing');
           return;
@@ -1722,37 +1654,19 @@ if (defined('WICKET_WP_THEME_V2')) {
         wicketOrgssDebug.log('ORGSS: hideGfNextButton — footer found:', !!footer, footer);
         hideElement(footer);
 
-        const matchedRogueFooters = [];
-        form.querySelectorAll(selectors.join(',')).forEach((candidateFooter) => {
-          if (candidateFooter.closest('.gform_page')) {
-            return;
-          }
-          if (!this.isRogueFooterForCurrentPage(candidateFooter, currentPageNumber)) {
-            return;
-          }
-          hideElement(candidateFooter);
-          matchedRogueFooters.push(candidateFooter);
-        });
-
         const buttonSelectors = [
           '.gform_next_button',
           '.gform_button',
           '.gform_submit_button'
         ];
-        const buttonNodes = new Set();
-        currentPage.querySelectorAll(buttonSelectors.join(',')).forEach((button) => buttonNodes.add(button));
-        matchedRogueFooters.forEach((matchedFooter) => {
-          matchedFooter.querySelectorAll(buttonSelectors.join(',')).forEach((button) => buttonNodes.add(button));
-        });
-        buttonNodes.forEach((button) => hideElement(button));
+        const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
+        buttons.forEach((button) => hideElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
         wicketOrgssDebug.log('ORGSS: hid GF next/submit buttons', {
           formId,
-          currentPageNumber,
           footerFound: !!footer,
-          rogueFooterCount: matchedRogueFooters.length,
-          buttonCount: buttonNodes.size,
+          buttonCount: buttons.length,
           gfFieldCount: gfFields.length,
           gfFieldValues: Array.from(gfFields).map((field) => field.value),
         });
@@ -1767,7 +1681,6 @@ if (defined('WICKET_WP_THEME_V2')) {
         if (!currentPage) return;
         // Field is on an inactive page — leave GF alone
         if (currentPage.style.display === 'none') return;
-        const currentPageNumber = this.getCurrentFormPageNumber(form, currentPage);
         form.querySelectorAll('.gform_page').forEach((page) => {
           if (page === currentPage) return;
           const footer = page.querySelector('.gform_page_footer, .gform-page-footer');
@@ -1778,11 +1691,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Also hide rogue footers rendered outside any .gform_page (GFML bug in lang != EN)
         form.querySelectorAll('.gform_page_footer, .gform-page-footer').forEach((footer) => {
           if (!footer.closest('.gform_page')) {
-            if (this.isRogueFooterForCurrentPage(footer, currentPageNumber)) {
-              wicketOrgssDebug.log('ORGSS: keeping current-page rogue footer visible', { currentPageNumber, footer });
-              return;
-            }
-            wicketOrgssDebug.log('ORGSS: hiding rogue footer outside .gform_page', { currentPageNumber, footer });
+            wicketOrgssDebug.log('ORGSS: hiding rogue footer outside .gform_page', footer);
             footer.style.setProperty('display', 'none', 'important');
             footer.hidden = true;
           }
