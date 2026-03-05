@@ -207,7 +207,36 @@ class Rest
 
     public function create_or_update_relationship(\WP_REST_Request $request)
     {
+        $logger = function_exists('wc_get_logger') ? wc_get_logger() : null;
+        $log_source = 'wicket-orgss-relationship-debug';
+        $trace_id = substr(md5((string) microtime(true) . '-' . (string) wp_rand()), 0, 12);
+        $log_debug = function (string $message, array $context = []) use ($logger, $log_source, $trace_id): void {
+            $payload = array_merge(['source' => $log_source, 'trace_id' => $trace_id], $context);
+            if ($logger) {
+                $logger->debug($message, $payload);
+                return;
+            }
+
+            // Fallback for environments where Woo logger is unavailable.
+            error_log('[ORGSS relationship debug] ' . $message . ' ' . wp_json_encode($payload));
+        };
+
         $params = $request->get_json_params();
+        $log_debug('create_or_update_relationship invoked', [
+            'current_user_id' => get_current_user_id(),
+            'from_uuid' => $params['fromUuid'] ?? null,
+            'to_uuid' => $params['toUuid'] ?? null,
+            'relationship_type' => $params['relationshipType'] ?? null,
+            'roles_csv' => $params['userRoleInRelationship'] ?? null,
+            'description_provided' => isset($params['description']) && $params['description'] !== '',
+            'mdp_timezone_env' => $_ENV['WICKET_MSHIP_MDP_TIMEZONE'] ?? getenv('WICKET_MSHIP_MDP_TIMEZONE') ?: null,
+            'wp_timezone_string' => wp_timezone_string(),
+            'wp_option_timezone_string' => get_option('timezone_string'),
+            'php_default_timezone' => date_default_timezone_get(),
+            'current_iso8601_utc' => function_exists('wicket_time_get_current_iso8601_utc') ? wicket_time_get_current_iso8601_utc() : null,
+            'mdp_day_start_iso8601_utc' => function_exists('wicket_time_get_mdp_day_start_iso8601_utc') ? wicket_time_get_mdp_day_start_iso8601_utc() : null,
+            'mdp_day_end_iso8601_utc' => function_exists('wicket_time_get_mdp_day_end_iso8601_utc') ? wicket_time_get_mdp_day_end_iso8601_utc() : null,
+        ]);
 
         if (!isset($params['fromUuid'])) {
             wp_send_json_error('fromUuid not provided');
@@ -264,6 +293,14 @@ class Rest
             $roleSlug = trim($userRoleInRelationship);
 
             $existing_match = wicket_find_person_org_connection($fromUuid, $toUuid, $relationshipType, $roleSlug, true);
+            $log_debug('Role evaluation started', [
+                'role_slug' => $roleSlug,
+                'existing_match_found' => (bool) $existing_match,
+                'existing_connection_id' => $existing_match['id'] ?? null,
+                'existing_starts_at' => $existing_match['attributes']['starts_at'] ?? null,
+                'existing_ends_at' => $existing_match['attributes']['ends_at'] ?? null,
+                'existing_active' => $existing_match['attributes']['active'] ?? null,
+            ]);
 
             $payload = [
                 'data' => [
@@ -297,6 +334,11 @@ class Rest
                     ],
                 ],
             ];
+            $log_debug('Prepared create payload', [
+                'role_slug' => $roleSlug,
+                'payload_starts_at' => $payload['data']['attributes']['starts_at'] ?? null,
+                'payload_ends_at' => $payload['data']['attributes']['ends_at'] ?? null,
+            ]);
 
             if ($existing_match) {
                 $connection_id = $existing_match['id'] ?? '';
@@ -314,10 +356,28 @@ class Rest
                 }
 
                 $new_connection = $updated;
+                $log_debug('Existing connection reopened/updated', [
+                    'role_slug' => $roleSlug,
+                    'connection_id' => $connection_id,
+                    'result_starts_at' => $new_connection['data']['attributes']['starts_at'] ?? null,
+                    'result_ends_at' => $new_connection['data']['attributes']['ends_at'] ?? null,
+                    'result_active' => $new_connection['data']['attributes']['active'] ?? null,
+                ]);
             } else {
                 try {
                     $new_connection = wicket_create_connection($payload);
+                    $log_debug('New connection created', [
+                        'role_slug' => $roleSlug,
+                        'connection_id' => $new_connection['data']['id'] ?? null,
+                        'result_starts_at' => $new_connection['data']['attributes']['starts_at'] ?? null,
+                        'result_ends_at' => $new_connection['data']['attributes']['ends_at'] ?? null,
+                        'result_active' => $new_connection['data']['attributes']['active'] ?? null,
+                    ]);
                 } catch (\Exception $e) {
+                    $log_debug('Connection creation exception', [
+                        'role_slug' => $roleSlug,
+                        'error_message' => $e->getMessage(),
+                    ]);
                     wp_send_json_error($e->getMessage());
                 }
             }
@@ -365,7 +425,30 @@ class Rest
                 'org_parent_name'   => $org_info['org_parent_name'],
                 'person_id'         => $fromUuid,
             ];
+            $log_debug('Role evaluation completed', [
+                'role_slug' => $roleSlug,
+                'connection_id' => $new_connection['data']['id'] ?? '',
+                'starts_at' => $new_connection['data']['attributes']['starts_at'] ?? '',
+                'ends_at' => $new_connection['data']['attributes']['ends_at'] ?? '',
+                'active_connection' => $new_connection['data']['attributes']['active'] ?? null,
+            ]);
         }
+
+        $log_debug('create_or_update_relationship completed', [
+            'result_count' => count($return),
+            'result_connection_ids' => array_map(
+                static fn(array $row): string => (string) ($row['connection_id'] ?? ''),
+                $return
+            ),
+            'result_starts_at' => array_map(
+                static fn(array $row): string => (string) ($row['starts_at'] ?? ''),
+                $return
+            ),
+            'result_ends_at' => array_map(
+                static fn(array $row): string => (string) ($row['ends_at'] ?? ''),
+                $return
+            ),
+        ]);
 
         wp_send_json_success($return);
     }
