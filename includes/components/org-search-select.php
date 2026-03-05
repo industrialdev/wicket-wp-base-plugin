@@ -1187,6 +1187,18 @@ if (defined('WICKET_WP_THEME_V2')) {
           }
         });
 
+        // Keep GF footer visibility in sync with selection state.
+        // This protects navigation when no org is selected, and restores it once selected.
+        this.$watch('selectedOrgUuid', (value, oldValue) => {
+          wicketOrgssDebug.log('ORGSS: footer selectedOrgUuid changed', {
+            oldValue: oldValue || '',
+            newValue: value || '',
+          });
+          this.$nextTick(() => {
+            this.syncGfFooterVisibility();
+          });
+        });
+
         // Hide footers on all other pages — this field controls only its own page navigation
         wicketOrgssDebug.log('ORGSS: init footer logic', { selectedOrgUuid: this.selectedOrgUuid, elExists: !!this.$el, closestPage: this.$el?.closest('.gform_page')?.id });
         this.$nextTick(() => {
@@ -1201,6 +1213,10 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.hideGfNextButton();
           });
         }
+
+        this.$nextTick(() => {
+          this.syncGfFooterVisibility();
+        });
       },
       prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
         // Reset to base state initially
@@ -1455,6 +1471,10 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         if (created && created.success) {
           this.selectOrg(orgUuid, event);
+          this.showGfNextButton();
+          this.$nextTick(() => {
+            window.requestAnimationFrame(() => this.showGfNextButton());
+          });
           this.searchBox = '';
           const existingConnection = this.getOrgFromConnectionsByUuid(orgUuid);
           if (!existingConnection || !existingConnection.org_id) {
@@ -1564,10 +1584,79 @@ if (defined('WICKET_WP_THEME_V2')) {
         });
         window.dispatchEvent(newEvent);
       },
+      shouldHideGfFooterForCurrentPage() {
+        const currentPage = this.$el.closest('.gform_page');
+        if (!currentPage) {
+          const shouldHideNoPage = !this.selectedOrgUuid;
+          wicketOrgssDebug.log('ORGSS: footer no current .gform_page found', {
+            selectedOrgUuid: this.selectedOrgUuid || '',
+            shouldHide: shouldHideNoPage,
+          });
+          return shouldHideNoPage;
+        }
+
+        const orgssInputs = currentPage.querySelectorAll('input.gf_org_search_select_input');
+        if (!orgssInputs.length) {
+          const shouldHideNoInputs = !this.selectedOrgUuid;
+          wicketOrgssDebug.log('ORGSS: footer no ORGSS inputs found on current page', {
+            currentPageId: currentPage.id || '',
+            selectedOrgUuid: this.selectedOrgUuid || '',
+            shouldHide: shouldHideNoInputs,
+          });
+          return shouldHideNoInputs;
+        }
+
+        // Hide footer if any visible ORGSS input on the current page is empty.
+        for (const input of orgssInputs) {
+          const container = input.closest('.gfield');
+          const isVisible = !container || container.offsetParent !== null;
+          if (!isVisible) {
+            wicketOrgssDebug.log('ORGSS: footer skipping hidden ORGSS field', {
+              inputId: input.id || '',
+              inputName: input.name || '',
+            });
+            continue;
+          }
+          if (!input.value || String(input.value).trim() === '') {
+            wicketOrgssDebug.log('ORGSS: footer should hide: visible ORGSS field empty', {
+              inputId: input.id || '',
+              inputName: input.name || '',
+              currentPageId: currentPage.id || '',
+            });
+            return true;
+          }
+          wicketOrgssDebug.log('ORGSS: footer visible ORGSS field has value', {
+            inputId: input.id || '',
+            inputName: input.name || '',
+            valueLength: String(input.value || '').length,
+          });
+        }
+
+        wicketOrgssDebug.log('ORGSS: footer should show: all visible ORGSS fields populated', {
+          currentPageId: currentPage.id || '',
+          orgssInputCount: orgssInputs.length,
+        });
+        return false;
+      },
+      syncGfFooterVisibility() {
+        const shouldHide = this.shouldHideGfFooterForCurrentPage();
+        wicketOrgssDebug.log('ORGSS: footer sync footer visibility', {
+          selectedOrgUuid: this.selectedOrgUuid || '',
+          shouldHide,
+        });
+        if (shouldHide) {
+          this.hideGfNextButton();
+          return;
+        }
+        this.showGfNextButton();
+      },
       showGfNextButton() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
         if (!form) {
+          wicketOrgssDebug.log('ORGSS: footer show requested but form not found', {
+            formId,
+          });
           return;
         }
 
@@ -1588,7 +1677,12 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Scope to the current page only to avoid revealing buttons on other pages
         const currentPage = this.$el.closest('.gform_page') || form;
         // Field is on an inactive page — leave GF alone
-        if (currentPage !== form && currentPage.style.display === 'none') return;
+        if (currentPage !== form && currentPage.style.display === 'none') {
+          wicketOrgssDebug.log('ORGSS: footer show skipped on inactive page', {
+            currentPageId: currentPage.id || '',
+          });
+          return;
+        }
 
         const selectors = [
           '.gform_page_footer',
@@ -1606,6 +1700,13 @@ if (defined('WICKET_WP_THEME_V2')) {
         buttons.forEach((button) => revealElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
+        wicketOrgssDebug.log('ORGSS: footer show applied', {
+          formId,
+          currentPageId: currentPage.id || '',
+          footerFound: !!footer,
+          buttonCount: buttons.length,
+          gfFieldValues: Array.from(gfFields).map((field) => field.value),
+        });
         wicketOrgssDebug.log('ORGSS: revealed GF next/submit buttons', {
           formId,
           footerFound: !!footer,
@@ -1617,6 +1718,11 @@ if (defined('WICKET_WP_THEME_V2')) {
       hideGfNextButton() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
+        wicketOrgssDebug.log('ORGSS: footer hide requested', {
+          formId,
+          formFound: !!form,
+          selectedOrgUuid: this.selectedOrgUuid || '',
+        });
         wicketOrgssDebug.log('ORGSS: hideGfNextButton called', { formId, formFound: !!form });
         if (!form) {
           wicketOrgssDebug.warn('ORGSS: hideGfNextButton — form not found, bailing');
@@ -1643,6 +1749,9 @@ if (defined('WICKET_WP_THEME_V2')) {
         wicketOrgssDebug.log('ORGSS: hideGfNextButton scope', { currentPageId: currentPage?.id, currentPageDisplay: currentPage?.style?.display, isForm: currentPage === form });
         if (currentPage !== form && currentPage.style.display === 'none') {
           wicketOrgssDebug.log('ORGSS: hideGfNextButton — inactive page, bailing');
+          wicketOrgssDebug.log('ORGSS: footer hide skipped on inactive page', {
+            currentPageId: currentPage.id || '',
+          });
           return;
         }
 
@@ -1663,6 +1772,13 @@ if (defined('WICKET_WP_THEME_V2')) {
         buttons.forEach((button) => hideElement(button));
 
         const gfFields = form.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
+        wicketOrgssDebug.log('ORGSS: footer hide applied', {
+          formId,
+          currentPageId: currentPage.id || '',
+          footerFound: !!footer,
+          buttonCount: buttons.length,
+          gfFieldValues: Array.from(gfFields).map((field) => field.value),
+        });
         wicketOrgssDebug.log('ORGSS: hid GF next/submit buttons', {
           formId,
           footerFound: !!footer,
