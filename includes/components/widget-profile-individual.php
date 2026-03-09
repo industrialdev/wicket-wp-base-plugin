@@ -7,6 +7,7 @@ $defaults = [
     'org_id'                     => '',
     'hidden_fields'              => [],
     'fields'                     => [],
+    'person_id'                  => '',
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -17,6 +18,7 @@ $org_id = $args['org_id'];
 $profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
 $hidden_fields = $args['hidden_fields'];
 $fields = $args['fields'];
+$person_id = $args['person_id'] ?? wicket_current_person_uuid();
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
 $wicket_settings = get_wicket_settings();
@@ -64,7 +66,7 @@ $wicket_settings = get_wicket_settings();
          rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
          apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
          accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
-         personId: '<?php echo wicket_current_person_uuid(); ?>',
+         personId: '<?php echo $person_id; ?>',
          orgId: '<?php echo $org_id; ?>',
          <?php if (!empty($hidden_fields)) : ?>
          hiddenFields: <?php echo json_encode($hidden_fields); ?>,
