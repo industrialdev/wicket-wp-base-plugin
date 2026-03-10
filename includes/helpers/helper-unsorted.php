@@ -3087,12 +3087,15 @@ function get_person_to_organizations_connection_types_list()
 
 /**
  * Gets all individual memberships.
+ * 
+ * @param string $id (Optional) The ID of a specific membership to retrieve. If empty, retrieves all memberships.
+ * @param array $params (Optional) Additional query parameters to filter the memberships. Should be an associative array where keys are parameter names and values are parameter values. For example: ['sort' => '-category_weight'] to sort by category weight in descending order.
  *
  * @return array
  *
  * @see https://wicketapi.docs.apiary.io/#reference/supplemental-resources/membership-tiers/fetch-membership-tiers
  */
-function get_individual_memberships($id = '')
+function get_individual_memberships($id = '', $params = [])
 {
     $client = wicket_api_client();
     $path = 'memberships';
@@ -3100,7 +3103,7 @@ function get_individual_memberships($id = '')
         $path = $path . "/$id";
     }
     try {
-        $search_organizations = $client->get($path);
+        $search_organizations = $client->get($path, ['query' => $params]);
     } catch (Exception $e) {
         // echo "<pre>";
         // print_r($e->getMessage());
