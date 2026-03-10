@@ -898,7 +898,7 @@ if (empty($title)) : ?>
                   ],
               ]); ?>
             </template>
-            <template x-if="connection.org_id === selectedOrgUuid">
+            <template x-if="connection.org_id === selectedOrgUuid && !(justCreatedNewOrg && connection.org_id === justCreatedOrgUuid)">
               <?php get_component('button', [
                   'variant'  => 'secondary',
                   'reversed' => false,
