@@ -4,6 +4,7 @@ $defaults = [
     'hide_comm_prefs'              => false,
     'preferences_data_field_name'  => 'preferences-info',
     'validation_data_field_name'   => 'preferences-validation',
+    'person_id'                    => '',
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -11,6 +12,7 @@ $classes = $args['classes'];
 $hide_comm_prefs = $args['hide_comm_prefs'];
 $preferences_data_field_name = $args['preferences_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
+$person_id = $args['person_id'] ?? wicket_current_person_uuid();
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
 $wicket_settings = get_wicket_settings();
@@ -60,7 +62,7 @@ $wicket_settings = get_wicket_settings();
         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
-        personId: '<?php echo wicket_current_person_uuid(); ?>',
+        personId: '<?php echo $person_id; ?>',
         lang: "<?php echo wicket_get_current_language(); ?>",
         hideCommunicationPreferences: <?php echo $hide_comm_prefs ? 'true' : 'false' ?> ,
       }).then(function(widget) {
