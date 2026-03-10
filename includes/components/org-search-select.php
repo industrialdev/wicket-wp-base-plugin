@@ -671,7 +671,7 @@ $render_alert_buttons(
     <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
       <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
       ?>
-      <div class="flex-grow">
+      <div class="flex-grow w-full">
         <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
           class="orgss-search-box component-org-search-select__search-input w-full"
           placeholder="<?php _e('Search by ' . $orgTermSingularLower . ' name', 'wicket') ?>" />
