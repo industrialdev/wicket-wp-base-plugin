@@ -1638,7 +1638,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           if (!el) {
             return;
           }
-          el.style.setProperty('display', 'block', 'important');
+          el.style.setProperty('display', 'flex', 'important');
           el.style.setProperty('opacity', '1', 'important');
           el.style.setProperty('max-height', 'none', 'important');
           el.style.setProperty('height', 'auto', 'important');
