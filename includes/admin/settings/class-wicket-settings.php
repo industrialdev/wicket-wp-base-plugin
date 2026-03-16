@@ -476,6 +476,12 @@ if (!class_exists('Wicket_Settings')) {
                 'description' => __('Allow refund emails to customers when refunds are triggered by an admin.', 'wicket'),
                 'default' => '0',
             ]);
+            $section->add_option('text', [
+                'name' => 'wicket_admin_settings_woo_draft_order_retention_days',
+                'label' => __('Draft order retention (days)', 'wicket'),
+                'description' => __('Number of days a draft (checkout-draft) order is kept before being automatically deleted. Defaults to 60 days. Set to 0 to disable automatic deletion entirely. Set to 1 to match WooCommerce\'s built-in default behaviour. Note: this overrides WooCommerce\'s built-in behaviour, which deletes draft orders after just 1 day.', 'wicket'),
+                'default' => '60',
+            ]);
 
             // run a client check, otherwise the whole site will die if there's no connection filled out yet to an MDP
             if ($client = wicket_api_client()) {

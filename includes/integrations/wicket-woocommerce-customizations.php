@@ -68,24 +68,36 @@ if (wicket_get_option('wicket_admin_settings_woo_remove_added_to_cart_message') 
 }
 
 /*
- * Prevent WooCommerce from deleting draft orders
+ * Draft order retention policy (default: 60 days)
  *
- * This prevents WooCommerce (v10+) from scheduling the automatic cleanup of draft orders
- * via Action Scheduler. By default, this prevents ALL draft order deletion.
+ * WooCommerce schedules a daily 'woocommerce_cleanup_draft_orders' recurring action that
+ * deletes draft orders older than 24 hours. There is no upstream filter to change that
+ * threshold. Crucially, Action Scheduler reschedules recurring actions internally after
+ * each run — it does NOT call as_schedule_recurring_action() again — so pre_as_* filters
+ * alone cannot stop a job that is already in the queue.
  *
- * Developers can disable this prevention by using the filter:
+ * This code takes a three-step approach:
  *
- * Example to allow draft order cleanup:
- * add_filter( 'wicket_prevent_draft_order_cleanup', '__return_false' );
+ * Step 1 – Block WooCommerce from (re-)scheduling its own cleanup via the public API.
+ * Step 2 – One-time migration: evict any pre-existing WooCommerce action from the queue
+ *           and schedule our own daily replacement.
+ * Step 3 – Run the actual cleanup with the configurable retention period.
  *
- * Example to conditionally allow cleanup (e.g., only for specific draft orders):
- * add_filter( 'wicket_prevent_draft_order_cleanup', function( $prevent, $hook, $args ) {
- *     // Your custom logic here
- *     return $prevent;
- * }, 10, 3 );
+ * The retention period is configured under Wicket > Settings > Integrations > WooCommerce
+ * (option: 'Draft order retention (days)'). It defaults to 60 days. Set to 0 to disable
+ * automatic deletion entirely.
+ *
+ * Developers can override the configured value in code (e.g. per environment):
+ *   add_filter( 'wicket_draft_order_retention_days', fn( $days ) => 90 );
+ *
+ * To opt out of all Wicket draft-order management and revert to WooCommerce's default
+ * 24-hour behaviour, return false from the wicket_prevent_draft_order_cleanup filter:
+ *   add_filter( 'wicket_prevent_draft_order_cleanup', '__return_false' );
  *
  * @since 2.1.50
  */
+
+// Step 1: Block WooCommerce from scheduling / re-scheduling via the public AS API.
 add_filter('pre_as_schedule_recurring_action', function ($return, $timestamp, $interval, $hook, $args) {
     if ('woocommerce_cleanup_draft_orders' === $hook) {
         $prevent = apply_filters('wicket_prevent_draft_order_cleanup', true, $hook, $args);
@@ -129,6 +141,73 @@ add_filter('pre_as_enqueue_async_action', function ($return, $hook, $args) {
 
     return $return;
 }, 10, 3);
+
+// Step 2: One-time migration — evict the already-queued WooCommerce action from the
+// Action Scheduler database and register our own daily replacement.
+// Runs once on woocommerce_init, guarded by an option flag.
+add_action('woocommerce_init', function () {
+    if (!function_exists('as_has_scheduled_action') || !function_exists('as_schedule_recurring_action')) {
+        return;
+    }
+
+    $prevent = apply_filters('wicket_prevent_draft_order_cleanup', true, 'woocommerce_cleanup_draft_orders', []);
+    if (!$prevent) {
+        // Developer has opted out of Wicket management; leave WooCommerce in control.
+        return;
+    }
+
+    // Remove any pre-existing WooCommerce recurring action from the queue.
+    // This is the step the pre_as_* filters cannot do on their own.
+    if (!get_option('wicket_draft_cleanup_migrated')) {
+        if (function_exists('as_unschedule_all_actions')) {
+            as_unschedule_all_actions('woocommerce_cleanup_draft_orders');
+        }
+        update_option('wicket_draft_cleanup_migrated', '1', false);
+    }
+
+    // Ensure our own daily cleanup action is in the queue.
+    if (!as_has_scheduled_action('wicket_cleanup_draft_orders')) {
+        $midnight_tonight = strtotime('midnight tonight');
+        if (false !== $midnight_tonight) {
+            as_schedule_recurring_action($midnight_tonight, DAY_IN_SECONDS, 'wicket_cleanup_draft_orders');
+        }
+    }
+});
+
+// Step 3: Perform the configurable-retention cleanup, mirroring WooCommerce's own
+// batching logic (20 orders per run, with an immediate async follow-up if the batch
+// was full, to drain large backlogs without a single long-running process).
+add_action('wicket_cleanup_draft_orders', function () {
+    $option_days    = wicket_get_option('wicket_admin_settings_woo_draft_order_retention_days');
+    // is_numeric guards against null/false/'' all returning 0 on (int) cast,
+    // which would incorrectly trigger the "disabled" early-return below.
+    $default_days   = is_numeric($option_days) ? (int) $option_days : 60;
+    $retention_days = (int) apply_filters('wicket_draft_order_retention_days', $default_days);
+    $batch_size     = 20;
+    $count          = 0;
+
+    // A retention_days of 0 means deletion is disabled.
+    if ($retention_days <= 0) {
+        return;
+    }
+
+    $orders = wc_get_orders([
+        'date_modified' => '<=' . strtotime("-{$retention_days} DAYS"),
+        'limit'         => $batch_size,
+        'status'        => 'wc-checkout-draft',
+        'type'          => 'shop_order',
+    ]);
+
+    foreach ($orders as $order) {
+        $order->delete(true);
+        ++$count;
+    }
+
+    // If the batch was full there may be more; queue an immediate follow-up pass.
+    if ($count === $batch_size && function_exists('as_enqueue_async_action')) {
+        as_enqueue_async_action('wicket_cleanup_draft_orders');
+    }
+});
 
 /**
  * Add a sortable customer column to Woo orders and subscriptions list tables.
