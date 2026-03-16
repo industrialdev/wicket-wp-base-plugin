@@ -144,8 +144,10 @@ add_filter('pre_as_enqueue_async_action', function ($return, $hook, $args) {
 
 // Step 2: One-time migration — evict the already-queued WooCommerce action from the
 // Action Scheduler database and register our own daily replacement.
-// Runs once on woocommerce_init, guarded by an option flag.
-add_action('woocommerce_init', function () {
+// Uses 'init' at priority 20 (after WooCommerce's own init at priority 10) because this
+// file is itself included on 'init' priority 0, meaning 'woocommerce_init' has already
+// fired by the time our hook registrations run.
+add_action('init', function () {
     if (!function_exists('as_has_scheduled_action') || !function_exists('as_schedule_recurring_action')) {
         return;
     }
@@ -167,12 +169,15 @@ add_action('woocommerce_init', function () {
 
     // Ensure our own daily cleanup action is in the queue.
     if (!as_has_scheduled_action('wicket_cleanup_draft_orders')) {
-        $midnight_tonight = strtotime('midnight tonight');
-        if (false !== $midnight_tonight) {
-            as_schedule_recurring_action($midnight_tonight, DAY_IN_SECONDS, 'wicket_cleanup_draft_orders');
+        // Use tomorrow midnight in the site's configured timezone. Fall back to
+        // 24 hours from now if strtotime fails (e.g. unusual server timezone configs).
+        $next_run = strtotime('tomorrow midnight', time());
+        if (false === $next_run || $next_run <= time()) {
+            $next_run = time() + DAY_IN_SECONDS;
         }
+        as_schedule_recurring_action($next_run, DAY_IN_SECONDS, 'wicket_cleanup_draft_orders');
     }
-});
+}, 20);
 
 // Step 3: Perform the configurable-retention cleanup, mirroring WooCommerce's own
 // batching logic (20 orders per run, with an immediate async follow-up if the batch
