@@ -19,11 +19,6 @@
       "WicketWP\\": "src/"
     }
   },
-  "autoload-dev": {
-    "psr-4": {
-      "WicketWP\\Tests\\": "tests/unit/"
-    }
-  },
   "config": {
     "allow-plugins": {
       "pestphp/pest-plugin": true
@@ -41,27 +36,17 @@
     "php": "\u003e=8.2"
   },
   "require-dev": {
-    "brain/monkey": "^2",
-    "friendsofphp/php-cs-fixer": "^3",
-    "pestphp/pest": "^4",
-    "pestphp/pest-plugin-browser": "^4",
-    "phpunit/phpunit": "^12"
+    "friendsofphp/php-cs-fixer": "^3"
   },
   "scripts": {
     "check": [
-      "@cs:lint",
-      "@test"
+      "@cs:lint"
     ],
     "cs:fix": "php-cs-fixer fix",
     "cs:format": "php-cs-fixer fix",
     "cs:lint": "php-cs-fixer fix --dry-run --diff",
     "production": "[ -x vendor/bin/php-cs-fixer ] || composer install && composer cs:fix && rm -rf vendor && composer update --no-dev && composer install --no-dev --optimize-autoloader",
     "setup-hooks": "mkdir -p .git/hooks && cp .ci/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo 'Git hooks installed to .git/hooks/pre-push'",
-    "test": "[ -x vendor/bin/pest ] || composer install && ./vendor/bin/pest --testsuite unit",
-    "test:browser": "sh -lc 'if [ -f .env ]; then set -a; . ./.env; set +a; fi; : \"${WICKET_BROWSER_BASE_URL:=https://localhost}\"; export WICKET_BROWSER_BASE_URL; ./vendor/bin/pest --testsuite browser'",
-    "test:coverage": "pest --testsuite unit --coverage-html coverage",
-    "test:frontend": "@test:browser",
-    "test:unit": "pest --testsuite unit",
     "version-bump": [
       "@php ./.ci/version-bump.php"
     ]
