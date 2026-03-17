@@ -668,7 +668,7 @@ $render_alert_buttons(
   <div
     class="orgss-search-form component-org-search-select__search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
 
-    <div class="component-org-search-select__search-controls flex flex-col sm:flex-row sm:items-center gap-2" x-show="!justCreatedNewOrg">
+    <div class="component-org-search-select__search-controls flex sm:items-center gap-2" x-show="!justCreatedNewOrg">
       <?php // Can add `@keyup=\"if($el.value.length > 3){ handleSearch(); } \"` to get autocomplete, but it's not quite fast enough
       ?>
       <div class="flex-grow w-full">
@@ -759,7 +759,7 @@ if (!$is_wicket_theme) {
 
       </div>
     </div>
-    <div class="component-org-search-select__current-orgs" x-show="currentConnections.length > 0 && !firstSearchSubmitted" x-cloak>
+    <div class="component-org-search-select__current-orgs" x-show="currentConnections.some(c => matchesFilter(c) && (!justCreatedNewOrg || c.org_id === justCreatedOrgUuid) && (selectedOrgUuid === '' || c.org_id === selectedOrgUuid)) && !firstSearchSubmitted" x-cloak>
       <div class="component-org-search-select__header-section flex justify-between items-center">
         <?php
 if (empty($title)) : ?>
