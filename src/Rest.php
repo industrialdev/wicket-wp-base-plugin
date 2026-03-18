@@ -214,6 +214,7 @@ class Rest
             $payload = array_merge(['source' => $log_source, 'trace_id' => $trace_id], $context);
             if ($logger) {
                 $logger->debug($message, $payload);
+
                 return;
             }
 
@@ -437,15 +438,15 @@ class Rest
         $log_debug('create_or_update_relationship completed', [
             'result_count' => count($return),
             'result_connection_ids' => array_map(
-                static fn(array $row): string => (string) ($row['connection_id'] ?? ''),
+                static fn (array $row): string => (string) ($row['connection_id'] ?? ''),
                 $return
             ),
             'result_starts_at' => array_map(
-                static fn(array $row): string => (string) ($row['starts_at'] ?? ''),
+                static fn (array $row): string => (string) ($row['starts_at'] ?? ''),
                 $return
             ),
             'result_ends_at' => array_map(
-                static fn(array $row): string => (string) ($row['ends_at'] ?? ''),
+                static fn (array $row): string => (string) ($row['ends_at'] ?? ''),
                 $return
             ),
         ]);

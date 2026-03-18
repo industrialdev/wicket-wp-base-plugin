@@ -1,7 +1,7 @@
 {
   "name": "industrialdev/wicket-wp-base-plugin",
   "description": "Wicket Core Plugin",
-  "version": "2.2.39",
+  "version": "2.2.40",
   "type": "wordpress-plugin",
   "homepage": "https://github.com/industrialdev/wicket-wp-base-plugin",
   "keywords": [
@@ -45,10 +45,7 @@
     "cs:fix": "php-cs-fixer fix",
     "cs:format": "php-cs-fixer fix",
     "cs:lint": "php-cs-fixer fix --dry-run --diff",
-    "production": "[ -x vendor/bin/php-cs-fixer ] || composer install && composer cs:fix && rm -rf vendor && composer update --no-dev && composer install --no-dev --optimize-autoloader",
-    "setup-hooks": "mkdir -p .git/hooks && cp .ci/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo 'Git hooks installed to .git/hooks/pre-push'",
-    "version-bump": [
-      "@php ./.ci/version-bump.php"
-    ]
+    "production": "composer install && composer cs:fix && composer install --no-dev --optimize-autoloader",
+    "setup-hooks": "mkdir -p .git/hooks && cp .ci/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push && echo 'Git hooks installed to .git/hooks/pre-push'"
   }
 }

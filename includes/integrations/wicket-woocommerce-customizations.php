@@ -183,13 +183,13 @@ add_action('init', function () {
 // batching logic (20 orders per run, with an immediate async follow-up if the batch
 // was full, to drain large backlogs without a single long-running process).
 add_action('wicket_cleanup_draft_orders', function () {
-    $option_days    = wicket_get_option('wicket_admin_settings_woo_draft_order_retention_days');
+    $option_days = wicket_get_option('wicket_admin_settings_woo_draft_order_retention_days');
     // is_numeric guards against null/false/'' all returning 0 on (int) cast,
     // which would incorrectly trigger the "disabled" early-return below.
-    $default_days   = is_numeric($option_days) ? (int) $option_days : 60;
+    $default_days = is_numeric($option_days) ? (int) $option_days : 60;
     $retention_days = (int) apply_filters('wicket_draft_order_retention_days', $default_days);
-    $batch_size     = 20;
-    $count          = 0;
+    $batch_size = 20;
+    $count = 0;
 
     // A retention_days of 0 means deletion is disabled.
     if ($retention_days <= 0) {
@@ -205,7 +205,7 @@ add_action('wicket_cleanup_draft_orders', function () {
 
     foreach ($orders as $order) {
         $order->delete(true);
-        ++$count;
+        $count++;
     }
 
     // If the batch was full there may be more; queue an immediate follow-up pass.
@@ -214,7 +214,7 @@ add_action('wicket_cleanup_draft_orders', function () {
     }
 });
 
-/**
+/*
  * Add a sortable customer column to Woo orders and subscriptions list tables.
  *
  * The column is managed through the native Screen Options panel by default
@@ -301,6 +301,7 @@ function wicket_wc_render_customer_column_for_post_row($column, $post_id)
     $order = wc_get_order($post_id);
     if (!$order instanceof WC_Order) {
         echo '&mdash;';
+
         return;
     }
 
