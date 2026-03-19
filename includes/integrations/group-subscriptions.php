@@ -454,18 +454,73 @@ function wicket_get_subscription_group_ids($sub)
 function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
 {
     if ($skip_if_exists) {
+        // Log: Start of duplicate check
+        wicket_wc_log_group_sync([
+            'DUPLICATE_CHECK_START',
+            'person_id' => $person_id,
+            'group_id' => $group_id,
+            'group_role_slug' => $group_role_slug
+        ], 'info');
+        
         // Check if the user is already an active member of that group with the same role
         $current_user_groups = wicket_get_person_groups($person_id);
+        
+        // Log: Result of get person groups call
+        $group_count = isset($current_user_groups['data']) ? count($current_user_groups['data']) : 0;
+        wicket_wc_log_group_sync([
+            'DUPLICATE_CHECK_GET_PERSON_GROUPS_RESULT',
+            'groups_returned' => $group_count
+        ], 'info');
         if (isset($current_user_groups['data'])) {
             foreach ($current_user_groups['data'] as $group) {
+                $this_group_id = $group['relationships']['group']['data']['id'];
+                $this_group_role = $group['attributes']['type'];
+                $this_group_active = !empty($group['attributes']['active']);
+                
+                // Log: Each group comparison
+                wicket_wc_log_group_sync([
+                    'DUPLICATE_CHECK_COMPARING_GROUP',
+                    'this_group_id' => $this_group_id,
+                    'matches_target_group_id' => ($this_group_id == $group_id),
+                    'this_group_role' => $this_group_role,
+                    'matches_target_role' => ($this_group_role == $group_role_slug),
+                    'is_active' => $this_group_active
+                ], 'info');
+                
                 if (
-                    $group['relationships']['group']['data']['id'] == $group_id
-                    && $group['attributes']['type'] == $group_role_slug && !empty($group['attributes']['active'])
+                    $this_group_id == $group_id
+                    && $this_group_role == $group_role_slug && $this_group_active
                 ) {
+                    // Log: Duplicate found
+                    wicket_wc_log_group_sync([
+                        'DUPLICATE_FOUND',
+                        'person_id' => $person_id,
+                        'group_id' => $group_id,
+                        'group_role_slug' => $group_role_slug,
+                        'existing_membership_uuid' => $group['attributes']['uuid'],
+                        'group_name' => isset($group['attributes']['name']) ? $group['attributes']['name'] : 'unknown'
+                    ], 'info');
+                    
                     // Matching group found - returning that group connection instead of adding them to the group again
                     return $group;
                 }
             }
+            
+            // Log: No duplicate found - will proceed to API creation
+            wicket_wc_log_group_sync([
+                'NO_DUPLICATE_FOUND',
+                'person_id' => $person_id,
+                'group_id' => $group_id,
+                'group_role_slug' => $group_role_slug,
+                'will_create_new' => true
+            ], 'info');
+        } else {
+            // Log: get_person_groups returned no data
+            wicket_wc_log_group_sync([
+                'DUPLICATE_CHECK_NO_DATA',
+                'person_id' => $person_id,
+                'reason' => 'get_person_groups returned empty data array'
+            ], 'warning');
         }
     }
 
@@ -502,6 +557,16 @@ function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug,
     } catch (Exception $e) {
         $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
         $response = new WP_Error('wicket_api_error', $wicket_api_error);
+        
+        // Log: API error when creating group member
+        wicket_wc_log_group_sync([
+            'API_ERROR_CREATE_GROUP_MEMBER',
+            'person_id' => $person_id,
+            'group_id' => $group_id,
+            'group_role_slug' => $group_role_slug,
+            'error_message' => $e->getMessage(),
+            'api_errors' => $wicket_api_error
+        ], 'error');
     }
 
     return $response;
