@@ -52,8 +52,8 @@ class Assets
      */
     public function enqueue_plugin_styles()
     {
-        // Check if it's a Wicket theme
-        $is_wicket_theme = is_wicket_theme_active();
+        // Check if it's a Wicket theme (defensive: may not be loaded yet during early hooks)
+        $is_wicket_theme = function_exists('is_wicket_theme_active') ? is_wicket_theme_active() : false;
 
         $base_styles_url = WICKET_URL . 'assets/css/min/wicket.min.css';
         $base_styles_path = WICKET_PLUGIN_DIR . 'assets/css/min/wicket.min.css';
@@ -132,8 +132,8 @@ class Assets
      */
     public function enqueue_plugin_scripts()
     {
-        // Check if it's a Wicket theme
-        $is_wicket_theme = is_wicket_theme_active();
+        // Check if it's a Wicket theme (defensive: may not be loaded yet during early hooks)
+        $is_wicket_theme = function_exists('is_wicket_theme_active') ? is_wicket_theme_active() : false;
 
         $alpine_scripts_url = WICKET_URL . 'assets/js/min/wicket-alpine.min.js';
         $alpine_scripts_path = WICKET_PLUGIN_DIR . 'assets/js/min/wicket-alpine.min.js';
