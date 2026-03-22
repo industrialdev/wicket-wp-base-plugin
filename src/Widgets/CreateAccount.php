@@ -129,9 +129,9 @@ class CreateAccount extends \WP_Widget
             /**------------------------------------------------------------------
              * Create Account
             ------------------------------------------------------------------*/
-            $first_name = $_POST['given_name'] ?? '';
-            $last_name = $_POST['family_name'] ?? '';
-            $email = $_POST['address'] ?? '';
+            $first_name = sanitize_text_field( $_POST['given_name'] ?? '' );
+            $last_name  = sanitize_text_field( $_POST['family_name'] ?? '' );
+            $email      = sanitize_email( $_POST['address'] ?? '' );
             $password = $_POST['password'] ?? '';
             $password_confirmation = $_POST['password_confirmation'] ?? '';
 
@@ -329,7 +329,7 @@ class CreateAccount extends \WP_Widget
                 }
         ?>
                 </label>
-                <input class="form__input <?php echo isset($given_name_err) ? 'error_input' : '' ?>" required type="text" id="given_name" name="given_name" value="<?php echo $_POST['given_name'] ?? '' ?>">
+                <input class="form__input <?php echo isset($given_name_err) ? 'error_input' : '' ?>" required type="text" id="given_name" name="given_name" value="<?php echo esc_attr( $_POST['given_name'] ?? '' ) ?>">
             </div>
 
             <div class="form__group">
@@ -345,7 +345,7 @@ class CreateAccount extends \WP_Widget
         }
         ?>
                 </label>
-                <input class="form__input <?php echo isset($last_name_err) ? 'error_input' : '' ?>" required type="text" id="family_name" name="family_name" value="<?php echo $_POST['family_name'] ?? '' ?>">
+                <input class="form__input <?php echo isset($last_name_err) ? 'error_input' : '' ?>" required type="text" id="family_name" name="family_name" value="<?php echo esc_attr( $_POST['family_name'] ?? '' ) ?>">
             </div>
 
             <div class="form__group">
@@ -361,7 +361,7 @@ class CreateAccount extends \WP_Widget
         }
         ?>
                 </label>
-                <input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo $_POST['address'] ?? '' ?>">
+                <input class="form__input <?php echo isset($address_err) ? 'error_input' : '' ?>" required type="text" id="address" name="address" value="<?php echo esc_attr( $_POST['address'] ?? '' ) ?>">
             </div>
 
             <div class="form__group">
