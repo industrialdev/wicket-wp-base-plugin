@@ -463,8 +463,7 @@ function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug,
         ], 'info');
         
         // Check if the user is already an active member of that group with the same role
-        $current_user_groups = wicket_get_person_groups($person_id);
-        
+        $current_user_groups = wicket_get_person_groups(['person_uuid' => $person_id]);
         // Log: Result of get person groups call
         $group_count = isset($current_user_groups['data']) ? count($current_user_groups['data']) : 0;
         wicket_wc_log_group_sync([
