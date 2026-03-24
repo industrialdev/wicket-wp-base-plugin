@@ -228,7 +228,7 @@ if ($searchMode == 'org') {
         'dedupe' => 'org_id',
     ]);
 
-    foreach ($current_connections['data'] as $connection) {
+    foreach (($current_connections['data'] ?? []) as $connection) {
         $connection_id = $connection['id'];
         if (isset($connection['attributes']['connection_type'])) {
             $org_id = $connection['relationships']['organization']['data']['id'];

@@ -672,12 +672,14 @@ function wicket_get_person_connections(array $options = [])
         'dedupe' => false,
     ], $options);
 
-    $client = wicket_api_client();
     $person_id = wicket_current_person_uuid();
-    if ($person_id) {
-        $client = wicket_api_client();
-        $person = $client->people->fetch($person_id);
+    if (!$person_id) {
+        return [];
     }
+
+    $client = wicket_api_client();
+    $person  = $client->people->fetch($person_id);
+
     static $connections = null;
     // prepare and memoize all connections from Wicket
     if (is_null($connections)) {
