@@ -28,8 +28,5 @@
     "color": "^4.2.3",
     "postcss-prefixwrap": "^1.52.0"
   },
-  "volta": {
-    "node": "18.20.7",
-    "yarn": "4.7.0"
-  }
+  "packageManager": "yarn@4.13.0"
 }

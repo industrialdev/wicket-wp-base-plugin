@@ -1444,6 +1444,14 @@ if (defined('WICKET_WP_THEME_V2')) {
         };
       },
       async selectOrgFromSearchResult(result, event = null) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation();
+          }
+        }
+
         const orgUuid = result.id;
 
         if (!orgUuid) {
@@ -1557,7 +1565,8 @@ if (defined('WICKET_WP_THEME_V2')) {
             searchType: this.searchType,
             orgDetails: orgInfo,
             event: incomingEvent,
-            formId: <?php echo $formId; ?>
+            formId: <?php echo $formId; ?>,
+            orgSearchSelectKey: '<?php echo $key; ?>'
           });
         }
 
@@ -1662,7 +1671,6 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         const buttonSelectors = [
           '.gform_next_button',
-          '.gform_button',
           '.gform_submit_button'
         ];
         const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
@@ -1715,11 +1723,20 @@ if (defined('WICKET_WP_THEME_V2')) {
         ];
         const footer = currentPage.querySelector(selectors.join(','));
         wicketOrgssDebug.log('ORGSS: hideGfNextButton — footer found:', !!footer, footer);
-        hideElement(footer);
+        // Keep footer container visible so alternate actions (e.g. proceed without employer) remain accessible.
+        if (footer) {
+          footer.style.setProperty('display', 'flex', 'important');
+          footer.style.setProperty('opacity', '1', 'important');
+          footer.style.setProperty('max-height', 'none', 'important');
+          footer.style.setProperty('height', 'auto', 'important');
+          footer.style.setProperty('visibility', 'visible', 'important');
+          footer.hidden = false;
+          footer.classList.remove('gform_hidden', 'hidden', 'gf_invisible');
+          footer.removeAttribute('aria-hidden');
+        }
 
         const buttonSelectors = [
           '.gform_next_button',
-          '.gform_button',
           '.gform_submit_button'
         ];
         const buttons = currentPage.querySelectorAll(buttonSelectors.join(','));
@@ -1762,6 +1779,14 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === 'function') {
+            event.stopImmediatePropagation();
+          }
+        }
+
         wicketOrgssDebug.log('ORGSS: selectOrgAndCreateRelationship', {
           orgUuid,
           existingActiveMembership,
