@@ -36,7 +36,7 @@ $wicket_settings = get_wicket_settings();
   id="<?php echo esc_attr($unique_widget_id); ?>"
   data-widget-id="<?php echo esc_attr($unique_widget_id); ?>"
   role="complementary">
-  <h2><?php _e('Additional Info', 'wicket'); ?></h2>
+  <!-- <h2><?php _e('Additional Info', 'wicket'); ?></h2> -->
   <div id="additional-info-<?php echo esc_attr($unique_widget_id); ?>"></div>
   <input type="hidden" name="<?php echo $additional_info_data_field_name; ?>" />
   <input type="hidden" name="<?php echo $additional_info_validation; ?>" />
