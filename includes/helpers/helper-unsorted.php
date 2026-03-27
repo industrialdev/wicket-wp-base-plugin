@@ -260,7 +260,9 @@ function wicket_get_organization($uuid, $include = null)
         $organization = $client->get('organizations/' . $uuid . $query_string);
     } catch (GuzzleHttp\Exception\ClientException $e) {
         // Gracefully handle missing organizations (e.g., stale UUIDs)
-        error_log('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage());
+        if (apply_filters('wicket_log_missing_organization_lookup', true, $uuid, $e)) {
+            error_log('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage());
+        }
 
         return false;
     }
@@ -2021,6 +2023,24 @@ function wicket_assign_organization_membership(
     $previous_membership_uuid = '',
     $grant_owner_assignment = false
 ) {
+    $override = apply_filters(
+        'wicket_pre_assign_organization_membership',
+        null,
+        $person_uuid,
+        $org_id,
+        $membership_id,
+        $starts_at,
+        $ends_at,
+        $max_seats,
+        $grace_period_days,
+        $previous_membership_uuid,
+        $grant_owner_assignment
+    );
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
