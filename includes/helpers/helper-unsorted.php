@@ -2118,6 +2118,12 @@ function change_organization_membership_owner($org_membership_uuid, $person_uuid
  */
 function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '')
 {
+    $override = apply_filters('wicket_pre_get_person_membership_exists', null, $person_uuid, $membership_uuid, $starts_at, $ends_at);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
     try {
         $response = $client->get("people/$person_uuid/membership_entries?include=membership&filter[starts_at_eq]=$starts_at&filter[ends_at_eq]=$ends_at&page[size]=2000");
@@ -2142,6 +2148,12 @@ function wicket_assign_individual_membership(
     $grace_period_days = 0,
     $previous_membership_uuid = ''
 ) {
+    $override = apply_filters('wicket_pre_assign_individual_membership', null, $person_uuid, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $previous_membership_uuid);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
@@ -2198,6 +2210,12 @@ function wicket_assign_individual_membership(
  ------------------------------------------------------------------*/
 function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false)
 {
+    $override = apply_filters('wicket_pre_update_individual_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $grace_period_days);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
@@ -2236,6 +2254,12 @@ function wicket_update_individual_membership_dates($membership_uuid, $starts_at 
  ------------------------------------------------------------------*/
 function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false)
 {
+    $override = apply_filters('wicket_pre_update_organization_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $max_seats, $grace_period_days);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
@@ -2318,6 +2342,12 @@ function wicket_delete_organization_membership($membership_uuid)
  */
 function wicket_update_membership_external_id($membership_uuid, $membership_type, $external_id)
 {
+    $override = apply_filters('wicket_pre_update_membership_external_id', null, $membership_uuid, $membership_type, $external_id);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (!in_array($membership_type, ['organization_memberships', 'person_memberships'])) {
