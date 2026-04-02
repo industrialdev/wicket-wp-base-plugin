@@ -94,10 +94,11 @@ class Log
         if (empty($source)) {
             $source = 'wicket-plugin';
         }
+        $filename_source = str_starts_with($source, 'wicket-') ? $source : "wicket-{$source}";
 
         $date_suffix = date('Y-m-d');
         $file_hash = wp_hash($source);
-        $filename = "wicket-{$source}-{$date_suffix}-{$file_hash}.log";
+        $filename = "{$filename_source}-{$date_suffix}-{$file_hash}.log";
         $log_file_path = self::$logBaseDir . $filename;
 
         $timestamp = date('Y-m-d\\TH:i:s\\Z'); // ISO 8601 UTC
