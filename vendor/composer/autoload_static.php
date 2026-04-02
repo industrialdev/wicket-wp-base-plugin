@@ -800,6 +800,7 @@ class ComposerStaticInit27fdeeeb41c2e5728d4761dfe4bff975
         'WicketWP\\Assets' => __DIR__ . '/../..' . '/src/Assets.php',
         'WicketWP\\Blocks' => __DIR__ . '/../..' . '/src/Blocks.php',
         'WicketWP\\Includes' => __DIR__ . '/../..' . '/src/Includes.php',
+        'WicketWP\\Log' => __DIR__ . '/../..' . '/src/Log.php',
         'WicketWP\\Main' => __DIR__ . '/../..' . '/src/Main.php',
         'WicketWP\\Rest' => __DIR__ . '/../..' . '/src/Rest.php',
         'WicketWP\\Widgets' => __DIR__ . '/../..' . '/src/Widgets.php',

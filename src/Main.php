@@ -64,6 +64,13 @@ class Main
     public $woo_email_blocker;
 
     /**
+     * Instance of the Log class.
+     *
+     * @var Log
+     */
+    private Log $_log;
+
+    /**
      * Get the instance of the Main class.
      *
      * @return Main
@@ -86,6 +93,31 @@ class Main
     }
 
     /**
+     * Access the logger or write a log entry directly.
+     *
+     * Two calling conventions are supported:
+     *
+     *   // Getter — returns the Log instance for chained level calls:
+     *   Wicket()->log()->error('message', $context);
+     *
+     *   // Direct — write a log entry in one call:
+     *   Wicket()->log('error', 'message', $context);
+     *
+     * @param string|null $level   Log level (LOG_LEVEL_* constant or string). Omit to get the Log instance.
+     * @param string      $message Log message (required when $level is provided).
+     * @param array       $context Optional context array.
+     * @return Log|bool   Log instance when called with no args; bool write result when called with args.
+     */
+    public function log(?string $level = null, string $message = '', array $context = []): Log|bool
+    {
+        if ($level === null) {
+            return $this->_log;
+        }
+
+        return $this->_log->log($level, $message, $context);
+    }
+
+    /**
      * Initialize the plugin components.
      *
      * @param object $plugin The main plugin instance
@@ -93,6 +125,9 @@ class Main
      */
     public function init($plugin)
     {
+        // Initialize Log first so all subsequent classes can use it
+        $this->_log = new Log();
+
         // Initialize Assets class
         $this->assets = new Assets($this);
 

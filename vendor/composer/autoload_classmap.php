@@ -628,6 +628,7 @@ return array(
     'WicketWP\\Assets' => $baseDir . '/src/Assets.php',
     'WicketWP\\Blocks' => $baseDir . '/src/Blocks.php',
     'WicketWP\\Includes' => $baseDir . '/src/Includes.php',
+    'WicketWP\\Log' => $baseDir . '/src/Log.php',
     'WicketWP\\Main' => $baseDir . '/src/Main.php',
     'WicketWP\\Rest' => $baseDir . '/src/Rest.php',
     'WicketWP\\Widgets' => $baseDir . '/src/Widgets.php',

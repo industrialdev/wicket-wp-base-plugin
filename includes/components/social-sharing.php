@@ -129,9 +129,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'rounded'            => true,
 		    'a_tag'              => false,
 		    'atts'               => [
-																	'data-copy-url' => get_the_permalink(),
-																	'title' => __('Copy page URL to clipboard', 'wicket'),
-																],
+		        'data-copy-url' => get_the_permalink(),
+		        'title' => __('Copy page URL to clipboard', 'wicket'),
+		    ],
 		    'screen_reader_text' => __('Copy page URL to clipboard', 'wicket'),
 		]) ?>
 	</li>

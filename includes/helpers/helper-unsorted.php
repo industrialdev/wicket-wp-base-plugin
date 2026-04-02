@@ -680,7 +680,7 @@ function wicket_get_person_connections(array $options = [])
     }
 
     $client = wicket_api_client();
-    $person  = $client->people->fetch($person_id);
+    $person = $client->people->fetch($person_id);
 
     static $connections = null;
     // prepare and memoize all connections from Wicket

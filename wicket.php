@@ -4,7 +4,7 @@
  * Plugin Name: Wicket Base
  * Plugin URI: http://wicket.io
  * Description: This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation.
- * Version: 2.2.48
+ * Version: 2.2.49
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
  * Text Domain: wicket
@@ -31,6 +31,25 @@ if (is_file(ABSPATH . 'vendor/autoload.php')) {
 define('WICKET_URL', plugin_dir_url(__FILE__));
 define('WICKET_BASENAME', plugin_basename(__FILE__));
 define('WICKET_PLUGIN_DIR', plugin_dir_path(__FILE__));
+
+/**
+ * Global accessor for the Wicket base plugin's Main instance.
+ *
+ * Exposes shared services to the entire Wicket stack:
+ *   Wicket()->log()->error('message', ['source' => 'my-plugin']);
+ *
+ * @return WicketWP\Main
+ */
+function Wicket(): WicketWP\Main
+{
+    return WicketWP\Main::get_instance();
+}
+
+// Register fatal error handler immediately (before plugins_loaded) so we
+// capture fatal errors that occur during WordPress bootstrap.
+if (class_exists(WicketWP\Log::class)) {
+    WicketWP\Log::registerFatalErrorHandler();
+}
 
 /**
  * The main WicketWP class.
