@@ -17,6 +17,10 @@ The class is owned by `wicket-wp-base-plugin` and exposed to the rest of the sta
 
 **Filename pattern:** `wicket-{source}-{Y-m-d}-{hash}.log`
 
+When WooCommerce is present and loaded, Wicket writes into the same `wc-logs/` folder that WooCommerce uses. This means all Wicket log files appear alongside WooCommerce's own logs and are accessible directly from the WordPress admin at **WooCommerce → Status → Logs** — no server access required.
+
+When WooCommerce is not available, logs are written to a dedicated `wicket-logs/` folder inside the uploads directory instead. These files must be accessed directly on the server or via SFTP/SSH.
+
 Each `source` value produces a separate file, so logs from different plugins stay isolated. The directory is created automatically on first use and is protected against direct web access (`.htaccess` + `index.html`).
 
 ---
@@ -390,9 +394,9 @@ Calls `Wicket()->log()` directly at callsites rather than using a wrapper class.
 
 ## Viewing Logs
 
-**When WooCommerce is active:** WooCommerce → Status → Logs → filter by source name (e.g. `wicket-finance`).
+**When WooCommerce is active:** Go to **WooCommerce → Status → Logs** in the WordPress admin and filter by source name (e.g. `wicket-finance`). Wicket log files appear in the same list as WooCommerce's own logs because they share the `wc-logs/` directory.
 
-**Without WooCommerce:** Open the file directly from `wp-content/uploads/wicket-logs/`.
+**Without WooCommerce:** Log files must be read directly from `wp-content/uploads/wicket-logs/` via the server, SFTP, or SSH. There is no built-in admin UI for this directory.
 
 Files rotate daily. The date in the filename is the calendar date the entry was written (server timezone as configured in `date()`).
 
