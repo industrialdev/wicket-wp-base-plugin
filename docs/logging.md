@@ -149,6 +149,197 @@ For a plugin that injects a logger into its service classes, create a thin wrapp
 
 ---
 
+## Usage Examples (Outside the Base Plugin)
+
+All examples below assume your code runs after `plugins_loaded`, when `Wicket()` is available.
+
+### Logging inside a WordPress action or filter callback
+
+```php
+add_action('wicket_member_created', function (string $person_uuid): void {
+    // Happy path
+    Wicket()->log()->info('Member created', [
+        'source'      => 'wicket-my-plugin',
+        'person_uuid' => $person_uuid,
+    ]);
+});
+
+add_filter('wicket_membership_tier', function ($tier, int $user_id) {
+    if (empty($tier)) {
+        Wicket()->log()->warning('No membership tier resolved for user', [
+            'source'  => 'wicket-my-plugin',
+            'user_id' => $user_id,
+        ]);
+    }
+    return $tier;
+}, 10, 2);
+```
+
+### Wrapping an API call with error logging
+
+```php
+function my_plugin_sync_member(string $person_uuid): bool
+{
+    try {
+        $response = wicket_get_person_by_uuid($person_uuid);
+
+        if (empty($response)) {
+            Wicket()->log()->warning('Empty MDP response for member sync', [
+                'source'      => 'wicket-my-plugin',
+                'person_uuid' => $person_uuid,
+            ]);
+            return false;
+        }
+
+        // ... process $response ...
+
+        Wicket()->log()->debug('Member sync complete', [
+            'source'      => 'wicket-my-plugin',
+            'person_uuid' => $person_uuid,
+        ]);
+
+        return true;
+    } catch (\Exception $e) {
+        Wicket()->log()->error('Member sync threw an exception', [
+            'source'      => 'wicket-my-plugin',
+            'person_uuid' => $person_uuid,
+            'exception'   => $e->getMessage(),
+        ]);
+        return false;
+    }
+}
+```
+
+### Inside a class — storing the logger in a property
+
+Calling `Wicket()->log()` on every line is fine, but storing the instance avoids the repeated lookup in tight loops or classes with many log calls:
+
+```php
+class MyPluginImporter
+{
+    private \WicketWP\Log $log;
+
+    public function __construct()
+    {
+        $this->log = Wicket()->log();
+    }
+
+    public function run(array $records): void
+    {
+        foreach ($records as $record) {
+            try {
+                $this->process($record);
+                $this->log->debug('Record imported', [
+                    'source' => 'wicket-my-plugin',
+                    'id'     => $record['id'],
+                ]);
+            } catch (\Exception $e) {
+                $this->log->error('Record import failed', [
+                    'source'    => 'wicket-my-plugin',
+                    'id'        => $record['id'],
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+}
+```
+
+### Creating a wrapper class for constructor injection
+
+When your plugin uses constructor injection, a thin wrapper keeps callsites clean and makes unit testing easier (the wrapper can be swapped for a no-op stub in tests):
+
+```php
+namespace MyPlugin\Support;
+
+class Logger
+{
+    private const SOURCE = 'wicket-my-plugin';
+
+    public function error(string $message, array $context = []): void
+    {
+        Wicket()->log()->error($message, array_merge(['source' => self::SOURCE], $context));
+    }
+
+    public function warning(string $message, array $context = []): void
+    {
+        Wicket()->log()->warning($message, array_merge(['source' => self::SOURCE], $context));
+    }
+
+    public function info(string $message, array $context = []): void
+    {
+        Wicket()->log()->info($message, array_merge(['source' => self::SOURCE], $context));
+    }
+
+    public function debug(string $message, array $context = []): void
+    {
+        Wicket()->log()->debug($message, array_merge(['source' => self::SOURCE], $context));
+    }
+}
+```
+
+Injecting it:
+
+```php
+class MyPluginService
+{
+    public function __construct(private Logger $logger) {}
+
+    public function do_something(): void
+    {
+        $this->logger->info('Starting job');
+        // ...
+    }
+}
+
+// Wiring at boot time
+$service = new MyPluginService(new \MyPlugin\Support\Logger());
+```
+
+### Logging from a theme's `functions.php`
+
+The `Wicket()` helper is available in theme code after `plugins_loaded`. Wrap the call in a guard so the theme degrades gracefully if the base plugin is not active:
+
+```php
+// wp-content/themes/my-child-theme/functions.php
+
+add_action('wicket_after_profile_save', function (int $user_id): void {
+    if (! function_exists('Wicket')) {
+        return;
+    }
+
+    Wicket()->log()->info('Profile saved via theme hook', [
+        'source'  => 'wicket-my-theme',
+        'user_id' => $user_id,
+    ]);
+});
+```
+
+### Conditional debug logging with a plugin-specific constant
+
+Use a constant in `wp-config.php` to enable verbose logging for your plugin only, without turning on `WP_DEBUG` globally:
+
+```php
+// wp-config.php
+define('MY_PLUGIN_DEBUG', true);
+```
+
+```php
+// In your plugin code
+function my_plugin_log_debug(string $message, array $context = []): void
+{
+    if (! defined('MY_PLUGIN_DEBUG') || ! MY_PLUGIN_DEBUG) {
+        return;
+    }
+    Wicket()->log()->debug($message, array_merge(['source' => 'wicket-my-plugin'], $context));
+}
+
+// Callsite
+my_plugin_log_debug('Cache miss', ['key' => $cache_key]);
+```
+
+---
+
 ## Per-Plugin Wrapper Patterns
 
 ### `WicketAcc\Log` (wicket-wp-account-centre)
