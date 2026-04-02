@@ -200,7 +200,7 @@ function wicket_get_org_groups($org_uuid = '', $args = [])
 
         return $response;
     } catch (Exception $e) {
-        wc_get_logger()->error(
+        Wicket()->log()->error(
             'Error in wicket_get_org_groups: ' . $e->getMessage(),
             ['source' => 'wicket-wp-base-plugin']
         );

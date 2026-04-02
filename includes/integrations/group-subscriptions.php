@@ -344,8 +344,8 @@ function wicket_group_membership_subscription_status_active($sub)
 
         $next_payment_date = (new DateTime('@' . $sub_next_payment_date))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
 
-        if (class_exists('WC_Logger') && 'prod' != wicket_get_option('wicket_admin_settings_environment')) {
-            (new WC_Logger())->log('error', wc_print_r(['Processing Group Subscription Product' => [$group_ids, $person_id, $start_date, $next_payment_date]], true), ['source' => 'wicket-group-sync']);
+        if ('prod' != wicket_get_option('wicket_admin_settings_environment')) {
+            Wicket()->log()->debug(wc_print_r(['Processing Group Subscription Product' => [$group_ids, $person_id, $start_date, $next_payment_date]], true), ['source' => 'wicket-group-sync']);
         }
 
         foreach ($group_ids as $group_role_slug => $group_id) {
@@ -648,11 +648,8 @@ function wicket_wicket_update_group_membership($group_membership_uuid, $args = [
 
 function wicket_wc_log_group_sync($data, $level = 'error')
 {
-    if (class_exists('WC_Logger')) {
-        $logger = new WC_Logger();
-        if (is_array($data)) {
-            $data = wc_print_r($data, true);
-        }
-        $logger->log($level, $data, ['source' => 'wicket-group-sync']);
+    if (is_array($data)) {
+        $data = wc_print_r($data, true);
     }
+    Wicket()->log()->log($level, $data, ['source' => 'wicket-group-sync']);
 }

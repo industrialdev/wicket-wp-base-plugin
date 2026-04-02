@@ -164,7 +164,7 @@ function wicket_person_add_tag($person_uuid, $tags)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -193,7 +193,7 @@ function wicket_person_add_tag($person_uuid, $tags)
     try {
         return $client->patch("people/$person_uuid", ['json' => $payload]);
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }

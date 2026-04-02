@@ -36,14 +36,14 @@ function wicket_person_update_communication_preferences($preferences, $options =
         }
 
         if (empty($person_uuid)) {
-            error_log('wicket_person_update_communication_preferences: Unable to determine person UUID');
+            Wicket()->log()->error('wicket_person_update_communication_preferences: Unable to determine person UUID', ['source' => 'wicket-base']);
 
             return false;
         }
     }
 
     if (!is_array($preferences) || empty($preferences)) {
-        error_log('wicket_person_update_communication_preferences: Invalid preferences array');
+        Wicket()->log()->error('wicket_person_update_communication_preferences: Invalid preferences array', ['source' => 'wicket-base']);
 
         return false;
     }
@@ -51,7 +51,7 @@ function wicket_person_update_communication_preferences($preferences, $options =
     try {
         $client = wicket_api_client();
         if (!$client) {
-            error_log('wicket_person_update_communication_preferences: Failed to get Wicket API client');
+            Wicket()->log()->error('wicket_person_update_communication_preferences: Failed to get Wicket API client', ['source' => 'wicket-base']);
 
             return false;
         }
@@ -71,7 +71,7 @@ function wicket_person_update_communication_preferences($preferences, $options =
 
         // If no valid preferences were provided, return false
         if (empty($communications_data)) {
-            error_log('wicket_person_update_communication_preferences: No valid preferences provided');
+            Wicket()->log()->error('wicket_person_update_communication_preferences: No valid preferences provided', ['source' => 'wicket-base']);
 
             return false;
         }
@@ -93,19 +93,19 @@ function wicket_person_update_communication_preferences($preferences, $options =
         $response = $client->patch("people/$person_uuid", ['json' => $payload]);
 
         // Log successful update
-        error_log(sprintf(
+        Wicket()->log()->info(sprintf(
             'wicket_person_update_communication_preferences: Successfully updated preferences for person %s: %s',
             $person_uuid,
             json_encode($communications_data)
-        ));
+        ), ['source' => 'wicket-base']);
 
         return $response;
     } catch (Exception $e) {
-        error_log(sprintf(
+        Wicket()->log()->error(sprintf(
             'wicket_person_update_communication_preferences: Error updating preferences for person %s: %s',
             $person_uuid,
             $e->getMessage()
-        ));
+        ), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -138,7 +138,7 @@ function wicket_person_update_email_preference($email_enabled, $options = [])
 function wicket_person_update_sublist_preferences($sublists, $options = [])
 {
     if (!is_array($sublists) || empty($sublists)) {
-        error_log('wicket_person_update_sublist_preferences: Invalid sublists array provided');
+        Wicket()->log()->error('wicket_person_update_sublist_preferences: Invalid sublists array provided', ['source' => 'wicket-base']);
 
         return false;
     }
@@ -211,7 +211,7 @@ function wicket_person_get_communication_preferences($options = [])
         }
 
         if (empty($person_uuid)) {
-            error_log('wicket_person_get_communication_preferences: Unable to determine person UUID');
+            Wicket()->log()->error('wicket_person_get_communication_preferences: Unable to determine person UUID', ['source' => 'wicket-base']);
 
             return null;
         }
@@ -220,7 +220,7 @@ function wicket_person_get_communication_preferences($options = [])
     try {
         $client = wicket_api_client();
         if (!$client) {
-            error_log('wicket_person_get_communication_preferences: Failed to get Wicket API client');
+            Wicket()->log()->error('wicket_person_get_communication_preferences: Failed to get Wicket API client', ['source' => 'wicket-base']);
 
             return null;
         }
@@ -241,11 +241,11 @@ function wicket_person_get_communication_preferences($options = [])
             'sublists' => $communications['sublists'] ?? [],
         ];
     } catch (Exception $e) {
-        error_log(sprintf(
+        Wicket()->log()->error(sprintf(
             'wicket_person_get_communication_preferences: Error getting preferences for person %s: %s',
             $person_uuid,
             $e->getMessage()
-        ));
+        ), ['source' => 'wicket-base']);
 
         return null;
     }

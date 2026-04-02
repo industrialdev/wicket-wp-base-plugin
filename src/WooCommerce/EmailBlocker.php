@@ -678,10 +678,6 @@ class EmailBlocker
      */
     private function log_decision(string $decision, string $reason, WC_Email $email, $object): void
     {
-        if (!function_exists('wc_get_logger')) {
-            return;
-        }
-
         $order_id = null;
         if (is_object($object) && method_exists($object, 'get_id')) {
             $order_id = $object->get_id();
@@ -696,6 +692,6 @@ class EmailBlocker
             'source' => 'wicket-woo-email-blocker',
         ];
 
-        wc_get_logger()->info('Woo email blocker decision recorded.', $context);
+        Wicket()->log()->info('Woo email blocker decision recorded.', $context);
     }
 }

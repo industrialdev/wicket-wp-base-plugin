@@ -129,13 +129,12 @@ function wicket_create_connection($payload)
         return $apiCall;
     } catch (Exception $e) {
         // Log and return safely instead of echo/die
-        $msg = '[wicket-base-helper] wicket_create_connection exception: ' . $e->getMessage();
-        error_log($msg);
+        Wicket()->log()->error('[wicket-base-helper] wicket_create_connection exception: ' . $e->getMessage(), ['source' => 'wicket-base']);
         // Try to log API error details if available
         try {
             $responseBody = $e->getResponse() ? (string) $e->getResponse()->getBody() : '';
             if (!empty($responseBody)) {
-                error_log('[wicket-base-helper] wicket_create_connection response body: ' . $responseBody);
+                Wicket()->log()->error('[wicket-base-helper] wicket_create_connection response body: ' . $responseBody, ['source' => 'wicket-base']);
             }
         } catch (Throwable $t) {
             // Swallow logging failures
@@ -183,7 +182,7 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
 
     // Defensive: ensure we have valid IDs
     if (empty($person_uuid) || empty($org_uuid)) {
-        error_log('[wicket-base-helper] wicket_create_person_to_org_connection missing IDs: person_uuid=' . ($person_uuid ?: 'EMPTY') . ' org_uuid=' . ($org_uuid ?: 'EMPTY') . ' type=' . $relationship_type);
+        Wicket()->log()->error('[wicket-base-helper] wicket_create_person_to_org_connection missing IDs: person_uuid=' . ($person_uuid ?: 'EMPTY') . ' org_uuid=' . ($org_uuid ?: 'EMPTY') . ' type=' . $relationship_type, ['source' => 'wicket-base']);
 
         return false;
     }
@@ -238,7 +237,7 @@ function wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relati
     ];
 
     // Brief debug log for diagnostics (IDs only)
-    error_log('[wicket-base-helper] Creating person->org connection: person_uuid=' . $person_uuid . ' org_uuid=' . $org_uuid . ' type=' . $relationship_type);
+    Wicket()->log()->debug('[wicket-base-helper] Creating person->org connection: person_uuid=' . $person_uuid . ' org_uuid=' . $org_uuid . ' type=' . $relationship_type, ['source' => 'wicket-base']);
 
     try {
         $new_connection = wicket_create_connection($payload);
@@ -376,7 +375,7 @@ function wicket_remove_connection($connection_id)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -384,7 +383,7 @@ function wicket_remove_connection($connection_id)
     try {
         $removed_connection = $client->delete('connections/' . $connection_id);
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -404,7 +403,7 @@ function wicket_get_connection_by_id($connection_id)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -414,7 +413,7 @@ function wicket_get_connection_by_id($connection_id)
 
         return $connection;
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -611,7 +610,7 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }

@@ -17,9 +17,7 @@ function wicket_time_log_warning(string $message): void
         return;
     }
 
-    if (function_exists('error_log')) {
-        error_log('[wicket-time] ' . $message);
-    }
+    Wicket()->log()->warning('[wicket-time] ' . $message, ['source' => 'wicket-base']);
 }
 
 /**

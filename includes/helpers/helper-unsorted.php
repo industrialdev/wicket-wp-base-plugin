@@ -261,7 +261,7 @@ function wicket_get_organization($uuid, $include = null)
     } catch (GuzzleHttp\Exception\ClientException $e) {
         // Gracefully handle missing organizations (e.g., stale UUIDs)
         if (apply_filters('wicket_log_missing_organization_lookup', true, $uuid, $e)) {
-            error_log('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage());
+            Wicket()->log()->warning('wicket_get_organization 404 for UUID ' . $uuid . ': ' . $e->getMessage(), ['source' => 'wicket-base']);
         }
 
         return false;
@@ -2747,7 +2747,7 @@ function wicket_add_tag_organization($org_uuid, $tags)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -2777,7 +2777,7 @@ function wicket_add_tag_organization($org_uuid, $tags)
     try {
         return $client->patch("organizations/$org_uuid", ['json' => $payload]);
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -2797,7 +2797,7 @@ function wicket_set_tag_organization($org_uuid, $tags)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -2821,7 +2821,7 @@ function wicket_set_tag_organization($org_uuid, $tags)
     try {
         return $client->patch("organizations/$org_uuid", ['json' => $payload]);
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -2841,7 +2841,7 @@ function wicket_remove_tag_organization($org_uuid, $tags)
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -3027,7 +3027,7 @@ function get_organizations_based_on_certain_types($id_array = [])
         try {
             $connections = $client->get($url);
         } catch (Exception $e) {
-            error_log($e->getMessage());
+            Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
         }
 
         // boil down list of connections to just an array of id => legal_name of orgs
@@ -3057,7 +3057,7 @@ function wicket_get_entity_types()
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -3070,7 +3070,7 @@ function wicket_get_entity_types()
             return false;
         }
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -3086,7 +3086,7 @@ function wicket_get_resource_types($entity_type_slug = '')
     try {
         $client = wicket_api_client();
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -3112,7 +3112,7 @@ function wicket_get_resource_types($entity_type_slug = '')
 
         return $resource_types;
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 
         return false;
     }
@@ -3197,7 +3197,7 @@ function wicket_update_schema_single_value($schema_slug, $key, $value, $pass_raw
     $schema_uuid = $schema['id'];
     $data_fields = $wicket_person->data_fields ?? null;
     if (!is_array($data_fields)) {
-        error_log('[wicket-base-helper] Person data_fields missing or not array in wicket_update_schema_single_value; schema_slug=' . $schema_slug . '; person_uuid=' . $person_uuid . '; received_type=' . gettype($data_fields));
+        Wicket()->log()->warning('[wicket-base-helper] Person data_fields missing or not array in wicket_update_schema_single_value; schema_slug=' . $schema_slug . '; person_uuid=' . $person_uuid . '; received_type=' . gettype($data_fields), ['source' => 'wicket-base']);
         $schema_values = [];
     } else {
         $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
@@ -3287,7 +3287,7 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
     if ($type == 'person') {
         $data_fields = $wicket_person->data_fields ?? null;
         if (!is_array($data_fields)) {
-            error_log('[wicket-base-helper] Person data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields));
+            Wicket()->log()->warning('[wicket-base-helper] Person data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields), ['source' => 'wicket-base']);
             $schema_values = [];
         } else {
             $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
@@ -3295,7 +3295,7 @@ function wicket_update_schema_by_slug($schema_slug, $key, $value, $pass_raw_valu
     } elseif ($type == 'org') {
         $data_fields = $wicket_org['data']['attributes']['data_fields'] ?? null;
         if (!is_array($data_fields)) {
-            error_log('[wicket-base-helper] Org data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields));
+            Wicket()->log()->warning('[wicket-base-helper] Org data_fields missing or not array when updating schema by slug; schema_slug=' . $schema_slug . '; target_uuid=' . $target_uuid . '; received_type=' . gettype($data_fields), ['source' => 'wicket-base']);
             $schema_values = [];
         } else {
             $schema_values = wicket_get_field_from_data_fields($data_fields, $schema_slug)['value'];
@@ -3364,7 +3364,7 @@ function wicket_get_field_from_data_fields($data_fields, $key)
     // Ensure we are working with an array to avoid fatal errors
     $isArray = is_array($data_fields);
     if (!$isArray) {
-        error_log('[wicket-base-helper] wicket_get_field_from_data_fields received non-array data_fields; key=' . $key . '; type=' . gettype($data_fields));
+        Wicket()->log()->warning('[wicket-base-helper] wicket_get_field_from_data_fields received non-array data_fields; key=' . $key . '; type=' . gettype($data_fields), ['source' => 'wicket-base']);
 
         // Return an empty value container to maintain expected shape
         return ['value' => []];
@@ -3376,7 +3376,7 @@ function wicket_get_field_from_data_fields($data_fields, $key)
     });
 
     if (empty($matches)) {
-        error_log('[wicket-base-helper] No matching data_field found for key=' . $key);
+        Wicket()->log()->debug('[wicket-base-helper] No matching data_field found for key=' . $key, ['source' => 'wicket-base']);
 
         return ['value' => []];
     }

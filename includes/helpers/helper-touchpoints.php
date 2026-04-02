@@ -62,7 +62,7 @@ function write_touchpoint($params, $wicket_service_id)
         try {
             $res = $client->post('touchpoints', ['json' => $payload]);
         } catch (Exception $e) {
-            error_log($e->getMessage());
+            Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
         }
         if (isset($res)) {
             return true;

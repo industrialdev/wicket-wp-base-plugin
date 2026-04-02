@@ -182,7 +182,7 @@ function wicket_get_access_token($person_id, $org_uuid)
 
         return $token['token'];
     } catch (Exception $e) {
-        error_log($e->getMessage());
+        Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
     }
 
     return false;
