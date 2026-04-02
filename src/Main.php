@@ -110,6 +110,10 @@ class Main
      */
     public function log(?string $level = null, string $message = '', array $context = []): Log|bool
     {
+        if (!isset($this->_log)) {
+            $this->_log = new Log();
+        }
+
         if ($level === null) {
             return $this->_log;
         }
