@@ -250,11 +250,11 @@ class CreateAccountNoPassword extends \WP_Widget
             echo '<ul>';
             foreach ($_SESSION['wicket_create_account_no_password_form_errors'] as $key => $error) {
                 if ($error->meta->field == 'user.given_name') {
-                    $prefix = __('First Name', 'wicket') . ' ';
+                    $prefix = __('First name', 'wicket') . ' ';
                     printf(__("<li><a href='#given_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
                 }
                 if ($error->meta->field == 'user.family_name') {
-                    $prefix = __('Last Name', 'wicket') . ' ';
+                    $prefix = __('Last name', 'wicket') . ' ';
                     printf(__("<li><a href='#family_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
                 }
                 if ($error->meta->field == 'emails.address') {
@@ -278,7 +278,7 @@ class CreateAccountNoPassword extends \WP_Widget
 
         <form class='manage_password_form' method="post">
             <div class="form__group">
-                <label class="form__label" for="given_name"><?php _e('First Name', 'wicket') ?>
+                <label class="form__label" for="given_name"><?php _e('First name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
                 if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
@@ -294,7 +294,7 @@ class CreateAccountNoPassword extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="family_name"><?php _e('Last Name', 'wicket') ?>
+                <label class="form__label" for="family_name"><?php _e('Last name', 'wicket') ?>
                     <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
                     <?php
         if (isset($_SESSION['wicket_create_account_no_password_form_errors']) && !empty($_SESSION['wicket_create_account_no_password_form_errors'])) {
