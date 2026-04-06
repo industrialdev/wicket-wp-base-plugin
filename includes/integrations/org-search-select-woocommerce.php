@@ -54,6 +54,7 @@ function wicket_org_search_select_on_order_complete($order_id)
     // Only proceed if order contains a membership product.
     if ($order instanceof WC_Order) {
         $has_membership_like_item = false;
+        $has_org_membership_context = false;
 
         foreach ($order->get_items() as $item) {
             $product = $item->get_product();
@@ -83,10 +84,21 @@ function wicket_org_search_select_on_order_complete($order_id)
             }
         }
 
-        // If you want to enforce the check strictly, uncomment the next 2 lines
-        // if (!$has_membership_like_item) {
-        //   return; // No qualifying items; skip role grants
-        // }
+        if (!$has_membership_like_item) {
+            return; // No qualifying items; skip role grants
+        }
+
+        foreach ($order->get_items() as $item) {
+            $item_org_uuid = wc_get_order_item_meta($item->get_id(), '_org_uuid', true);
+            if (!empty($item_org_uuid)) {
+                $has_org_membership_context = true;
+                break;
+            }
+        }
+
+        if (!$has_org_membership_context) {
+            return; // No organization context; never grant org-scoped roles
+        }
     }
 
     $org_uuid_for_roster_man_access = get_user_meta($order_user_id, 'wicket_roster_man_org_to_grant', true);

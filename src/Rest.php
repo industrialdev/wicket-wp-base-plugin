@@ -37,6 +37,7 @@ class Rest
             ['create-org', 'create_org'],
             ['flag-for-rm-access', 'flag_for_rm_access'],
             ['flag-for-org-editor-access', 'flag_for_org_editor_access'],
+            ['clear-orgss-pending-grants', 'clear_orgss_pending_grants'],
             ['grant-org-editor', 'grant_org_editor'],
             ['wicket-component-do-action', 'component_do_action'],
             ['orgss-notify-owner', 'orgss_notify_owner'],
@@ -521,6 +522,15 @@ class Rest
         $org_uuid = $params['orgUuid'];
 
         update_user_meta(get_current_user_id(), 'wicket_org_editor_org_to_grant', $org_uuid);
+
+        wp_send_json_success();
+    }
+
+    public function clear_orgss_pending_grants(\WP_REST_Request $request)
+    {
+        $user_id = get_current_user_id();
+        delete_user_meta($user_id, 'wicket_roster_man_org_to_grant');
+        delete_user_meta($user_id, 'wicket_org_editor_org_to_grant');
 
         wp_send_json_success();
     }

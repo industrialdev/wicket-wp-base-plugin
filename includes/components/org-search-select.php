@@ -419,7 +419,7 @@ $available_org_types = wicket_get_resource_types('organizations');
       class="component-org-search-select__active-membership-alert-content rounded-150 border flex flex-col text-left m-[1rem]" style="background-color: var(--bg-white); padding: var(--space-400);">
       <div class="component-org-search-select__active-membership-alert-header flex w-full justify-end"
         style="margin-bottom: var(--space-400);">
-        <button x-on:click.prevent="showingActiveMembershipAlert = false"
+        <button x-on:click.prevent="dismissActiveMembershipAlert()"
           class="component-org-search-select__active-membership-alert-close-button"
           style="color: var(--interactive); background: none; border: none; cursor: pointer;"><?php _e('Close X', 'wicket') ?></button>
       </div>
@@ -529,6 +529,11 @@ $available_org_types = wicket_get_resource_types('organizations');
                 && !empty($button_2_style)
             ) {
                 if ($button_2_url == 'PROCEED') {
+                    $button_2_text_lower = strtolower((string) $button_2_text);
+                    $button_2_is_individual_path = strpos($button_2_text_lower, 'individual') !== false;
+                    $button_2_click_handler = $button_2_is_individual_path
+                        ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');clearSelectedOrgState(true);"'
+                        : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent, true, false, activeMembershipAlertSeatSummary);"';
                     get_component('button', [
                         'variant'  => $button_2_style ?? 'secondary',
                         'size'     => 'md',
@@ -537,7 +542,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'type'     => 'button',
                         'atts'  => [
                             'style="margin-left:20px;"',
-                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');activeMembershipAlertProceedChosen = true;selectOrgAndCreateRelationship(activeMembershipAlertOrgUuid, activeMembershipAlertEvent, true, false, activeMembershipAlertSeatSummary);"',
+                            $button_2_click_handler,
                         ],
                         'classes' => [
                             'component-org-search-select__active-membership-alert-button',
@@ -781,7 +786,7 @@ if (empty($title)) : ?>
               'type'     => 'button',
               'classes'  => ['component-org-search-select__clear-selection-button'],
               'atts'     => [
-                  'x-on:click.prevent="selectedOrgUuid = \'\'; hideGfNextButton(); $dispatch(\'wicket:org_search_select_cleared\', { orgSearchSelectKey: \'' . $key . '\' });"',
+                  'x-on:click.prevent="clearSelectedOrgState();"'
               ],
           ]); ?>
         </div>
@@ -1572,6 +1577,48 @@ if (defined('WICKET_WP_THEME_V2')) {
 
 
 
+        if (dispatchEvent) {
+          this.applyOrgSelectionRoleSideEffects(orgUuid);
+        }
+      },
+      clearSelectedOrgHiddenFields() {
+        const componentFields = document.querySelectorAll('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        componentFields.forEach((field) => {
+          field.value = '';
+        });
+
+        const gfFields = document.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
+        gfFields.forEach((field) => {
+          field.value = '';
+        });
+      },
+      clearSelectedOrgState(clearPendingGrants = false) {
+        // Default keeps pending grant meta untouched so users can clear+reselect
+        // within the same multi-page flow without async clear/set races.
+        this.selectedOrgUuid = '';
+        this.activeMembershipAlertProceedChosen = false;
+        this.activeMembershipAlertOrgUuid = '';
+        this.activeMembershipAlertEvent = null;
+        this.activeMembershipAlertSeatSummary = null;
+        this.showingActiveMembershipAlert = false;
+        this.clearSelectedOrgHiddenFields();
+        this.hideGfNextButton();
+        this.$dispatch('wicket:org_search_select_cleared', {
+          orgSearchSelectKey: '<?php echo $key; ?>'
+        });
+        if (clearPendingGrants) {
+          this.clearPendingOrgRoleFlags();
+        }
+      },
+      dismissActiveMembershipAlert() {
+        this.showingActiveMembershipAlert = false;
+        this.activeMembershipAlertProceedChosen = false;
+        this.activeMembershipAlertOrgUuid = '';
+        this.activeMembershipAlertEvent = null;
+        this.activeMembershipAlertSeatSummary = null;
+        this.hideGfNextButton();
+      },
+      applyOrgSelectionRoleSideEffects(orgUuid) {
         if (this.grantRosterManOnPurchase) {
           this.flagForRosterManagementAccess(orgUuid);
         }
@@ -2258,22 +2305,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         // Clear selection state if removing the currently selected org
         if (removedOrgId === this.selectedOrgUuid) {
-          this.selectedOrgUuid = '';
-          this.activeMembershipAlertProceedChosen = false;
-          this.activeMembershipAlertOrgUuid = '';
-          this.activeMembershipAlertSeatSummary = null;
-
-          // Clear both hidden field values
-          const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
-          if (componentField) {
-            componentField.value = '';
-          }
-
-          // Also clear the standard GF hidden field if it exists
-          const gfFields = document.querySelectorAll('input[name="input_<?php echo $key; ?>"]');
-          gfFields.forEach((field) => {
-            field.value = '';
-          });
+          this.clearSelectedOrgState();
         }
       },
       isOrgAlreadyAConnection(uuid) {
@@ -2502,6 +2534,23 @@ if (defined('WICKET_WP_THEME_V2')) {
               // Handle success if needed
             }
           });
+      },
+      async clearPendingOrgRoleFlags() {
+        await fetch(this.apiUrl + 'clear-orgss-pending-grants', {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+              "X-WP-Nonce": "<?php echo wp_create_nonce('wp_rest'); ?>",
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify({}),
+          }).then(response => response.json())
+          .then(() => {})
+          .catch(() => {});
       }
     }))
   })
