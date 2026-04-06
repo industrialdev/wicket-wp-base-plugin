@@ -99,8 +99,11 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                 $ticket_id = $attendee['product_id'];
                 $event_data = wicket_touchpoint_get_event_data_from_event($event_info[$product_id]->ID);
 
+                $ticket_product_name = get_the_title($product_id);
+
                 $attendee_details = 'Event ID: ' . $event_data['event_id'] . '<br />';
                 $attendee_details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
+                $attendee_details .= 'Ticket Product Name: ' . $ticket_product_name . '<br />';
                 $attendee_details .= 'Start Date: ' . $event_data['start'] . '<br />';
                 $attendee_details .= 'End Date: ' . $event_data['end'] . '<br />';
                 $attendee_details .= 'Event Format: ' . $event_data['format'] . '<br />';
@@ -117,6 +120,7 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                         'end_date' => $event_data['end'],
                         'start_date' => $event_data['start'],
                         'event_title' => $event_data['event_name'],
+                        'ticket_product_name' => $ticket_product_name,
                         'event_type' => $event_data['event_type'],
                         'order_date' => $order->get_date_created(),
                         'event_id' => $event_data['event_id'],
@@ -159,8 +163,11 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                     $ticket_id = $attendee['product_id'];
                     $event_data = wicket_touchpoint_get_event_data_from_event($event_info[$product_id]->ID);
 
+                    $ticket_product_name = get_the_title($product_id);
+
                     $attendee_details = 'Event ID: ' . $event_data['event_id'] . '<br />';
                     $attendee_details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
+                    $attendee_details .= 'Ticket Product Name: ' . $ticket_product_name . '<br />';
                     $attendee_details .= 'Start Date: ' . $event_data['start'] . '<br />';
                     $attendee_details .= 'End Date: ' . $event_data['end'] . '<br />';
                     $attendee_details .= 'Event Format: ' . $event_data['format'] . '<br />';
@@ -177,6 +184,7 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                             'end_date' => $event_data['end'],
                             'start_date' => $event_data['start'],
                             'event_title' => $event_data['event_name'],
+                            'ticket_product_name' => $ticket_product_name,
                             'event_type' => $event_data['event_type'],
                             'order_date' => $order->get_date_created(),
                             'event_id' => $event_data['event_id'],
