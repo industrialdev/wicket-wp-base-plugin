@@ -1,3 +1,11 @@
+---
+title: "Settings — General"
+audience: [implementer, support]
+wp_admin_path: "Wicket → General"
+php_class: Wicket_Settings
+db_option_prefix: wicket_admin_settings_create_account_page, wicket_admin_settings_person_creation_redirect, wicket_admin_settings_google_captcha_, wicket_admin_settings_disable_default_styling
+---
+
 # Wicket Settings — General
 
 Found under **Wicket → General** in the WordPress admin.

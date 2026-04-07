@@ -1,3 +1,10 @@
+---
+title: "Centralized Logging"
+audience: [developer, agent]
+php_class: WicketWP\Log
+source_files: ["src/Log.php", "src/Main.php", "wicket.php"]
+---
+
 # Centralized Logging (`WicketWP\Log`)
 
 **Developer reference** — single logging class for the entire Wicket plugin stack.

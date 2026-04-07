@@ -1,3 +1,11 @@
+---
+title: "Settings — Environments"
+audience: [implementer, support]
+wp_admin_path: "Wicket → Environments"
+php_class: Wicket_Settings
+db_option_prefix: wicket_admin_settings_prod_, wicket_admin_settings_stage_, wicket_admin_settings_environment
+---
+
 # Wicket Settings — Environments
 
 Found under **Wicket → Environments** in the WordPress admin.

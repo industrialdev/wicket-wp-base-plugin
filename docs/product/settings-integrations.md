@@ -1,3 +1,11 @@
+---
+title: "Settings — Integrations"
+audience: [implementer, support]
+wp_admin_path: "Wicket → Integrations"
+php_class: Wicket_Settings
+db_option_prefix: wicket_admin_settings_woo_, wicket_admin_settings_wpcassify_, wicket_admin_settings_mailtrap_
+---
+
 # Wicket Settings — Integrations
 
 Found under **Wicket → Integrations** in the WordPress admin.

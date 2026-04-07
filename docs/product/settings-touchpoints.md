@@ -1,3 +1,11 @@
+---
+title: "Settings — Touchpoints"
+audience: [implementer, support]
+wp_admin_path: "Wicket → Touchpoints"
+php_class: Wicket_Settings
+db_option_prefix: wicket_admin_settings_tp_
+---
+
 # Wicket Settings — Touchpoints
 
 Found under **Wicket → Touchpoints** in the WordPress admin.

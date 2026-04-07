@@ -1,3 +1,11 @@
+---
+title: "Settings — Memberships"
+audience: [implementer, support]
+wp_admin_path: "Wicket → Memberships"
+php_class: Wicket_Settings
+db_option_prefix: wicket_admin_settings_membership_categories
+---
+
 # Wicket Settings — Memberships
 
 Found under **Wicket → Memberships** in the WordPress admin.

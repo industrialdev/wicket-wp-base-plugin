@@ -1,20 +1,30 @@
-# Documentation Index
+# Documentation Index — wicket-wp-base-plugin
 
-## End User Docs
+Three directories, three audiences. See [CLAUDE.md](CLAUDE.md) for authoring rules.
 
-_(none — no `user-*.md` files exist yet)_
+---
 
-## Developer Docs
+## Product Docs — Operators & Support
 
-### Settings Reference
+Configuration and settings reference. One file per WP admin screen.
 
-- [Environments](settings-environments.md) — `Wicket → Environments`
-- [General](settings-general.md) — `Wicket → General`
-- [Integrations](settings-integrations.md) — `Wicket → Integrations`
-- [Memberships](settings-memberships.md) — `Wicket → Memberships`
-- [Touchpoints](settings-touchpoints.md) — `Wicket → Touchpoints`
+- [Settings — Environments](product/settings-environments.md) — connect to Wicket staging/production environments
+- [Settings — General](product/settings-general.md) — account creation pages, reCAPTCHA, default styles
+- [Settings — Integrations](product/settings-integrations.md) — WooCommerce, WP-Cassify SSO, Mailtrap
+- [Settings — Memberships](product/settings-memberships.md) — membership tier mapping, membership product categories
+- [Settings — Touchpoints](product/settings-touchpoints.md) — WooCommerce order and Event Tickets touchpoint toggles
 
-### Developer Reference
+---
 
-- [WooCommerce Email Blocker](woocommerce-email-blocker.md) — blocks customer emails on admin order updates
-- [Logging](logging.md) — centralized logging via `WicketWP\Log`
+## Engineering Docs — Developers & Agents
+
+Technical reference for hooks, filters, architecture, and source-level contracts.
+
+- [Centralized Logging](engineering/logging.md) — `WicketWP\Log` usage, log levels, per-plugin wrapper pattern
+- [WooCommerce Email Blocker](engineering/woocommerce-email-blocker.md) — admin email suppression logic, hooks, extension point
+
+---
+
+## Guides — End Users
+
+- [Configure reCAPTCHA on the Create Account Form](guides/configure-recaptcha.md) — get Google keys and enable bot protection on sign-up

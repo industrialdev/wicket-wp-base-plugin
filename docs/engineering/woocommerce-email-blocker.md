@@ -1,3 +1,11 @@
+---
+title: "WooCommerce Email Blocker"
+audience: [developer, agent]
+php_class: WicketWP\WooCommerce\EmailBlocker
+db_option: wicket_admin_settings_woo_email_blocker_enabled
+source_files: ["src/WooCommerce/EmailBlocker.php", "src/Main.php"]
+---
+
 # WooCommerce Email Blocker
 
 **Developer reference** — blocks customer emails on admin-initiated order updates.
