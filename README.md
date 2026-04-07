@@ -204,7 +204,7 @@ apply_filters('wicket_api_url', $url);
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/industrialdev/wicket-wp-base-plugin/issues)
-- **Documentation**: [Wicket Developer Docs](https://wicket.io/docs)
+- **Documentation**: [Internal docs](docs/index.md) · [Wicket Developer Docs](https://wicket.io/docs)
 
 ## License
 
