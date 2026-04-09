@@ -66,8 +66,9 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 
 <script type="text/javascript">
   document.addEventListener("DOMContentLoaded", function() {
+    const wicketGfDebugEnabled = window.location.search.indexOf('wicketGfDebug=1') !== -1;
     const widgetProfileOrgDebug = {
-      enabled: true,
+      enabled: wicketGfDebugEnabled,
       init() {},
       log(message, data) {
         if (!this.enabled || !window.console || !window.console.log) {
@@ -105,18 +106,19 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
          orgId: '<?php echo $org_id; ?>',
          lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
          extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
-        <?php if (!empty($fields)) : ?>
+       <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
          requiredResources: <?php echo $org_required_resources; ?>,
        }).then(function(widget) {
+        const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php
                 // Dispatch custom events to the page on each available widget listener,
                 // so that actions can be taken based on that information if needed,
                 // such as in the Gravity Forms wrapper. Also update hidden fields to
                 // make data available in multiple ways on the page
 ?>
-                 widget.listen(widget.eventTypes.WIDGET_LOADED, function(payload) {
+                 wicketBindWidgetEventIfSupported(widget, eventTypes.WIDGET_LOADED, function(payload) {
 
          let event = new CustomEvent("wwidget-component-profile-org-loaded", {
              detail: payload
@@ -131,50 +133,78 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
 
            window.dispatchEvent(commonEventLoaded);
 
-                      widgetProfileOrgUpdateHiddenFields(payload);
+                      wicketWidgetProfileOrgUpdateHiddenFields(payload);
                       widgetProfileOrgDebug.log('WGF-ORG-PROFILE: loaded', payload);
          });
 
          // Listen for save success
-         widget.listen(widget.eventTypes.SAVE_SUCCESS, function(payload) {
+         wicketBindWidgetEventIfSupported(widget, eventTypes.SAVE_SUCCESS, function(payload) {
            let event = new CustomEvent(
              "wwidget-component-profile-org-save-success", {
                detail: payload
              });
 
            window.dispatchEvent(event);
-           widgetProfileOrgUpdateHiddenFields(payload);
+           wicketWidgetProfileOrgUpdateHiddenFields(payload);
            widgetProfileOrgDebug.log('WGF-ORG-PROFILE: save success', payload);
          });
 
          // Listen for save errors and re-evaluate validation state
-        widget.listen(widget.eventTypes.SAVE_ERROR, function(payload) {
-          widgetProfileOrgUpdateHiddenFields(payload);
+        wicketBindWidgetEventIfSupported(widget, eventTypes.SAVE_ERROR, function(payload) {
+          wicketWidgetProfileOrgUpdateHiddenFields(payload);
           widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: save error', payload);
         });
 
          // Listen for validation errors and re-evaluate validation state
-        widget.listen(widget.eventTypes.VALIDATION_ERROR, function(payload) {
-          widgetProfileOrgUpdateHiddenFields(payload);
+        wicketBindWidgetEventIfSupported(widget, eventTypes.VALIDATION_ERROR, function(payload) {
+          wicketWidgetProfileOrgUpdateHiddenFields(payload);
           widgetProfileOrgDebug.warn('WGF-ORG-PROFILE: validation error', payload);
         });
 
+        // Keep hidden validation state in sync while users edit, even before explicit save.
+        wicketBindWidgetEventIfSupported(widget, eventTypes.STATE_CHANGED, function(payload) {
+          let event = new CustomEvent(
+            "wwidget-component-profile-org-state-changed", {
+              detail: payload
+            });
+
+          window.dispatchEvent(event);
+          wicketWidgetProfileOrgUpdateHiddenFields(payload);
+        });
+        wicketBindWidgetEventIfSupported(widget, eventTypes.WIDGET_STATE_CHANGED, function(payload) {
+          let event = new CustomEvent(
+            "wwidget-component-profile-org-state-changed", {
+              detail: payload
+            });
+
+          window.dispatchEvent(event);
+          wicketWidgetProfileOrgUpdateHiddenFields(payload);
+        });
 
 
-         widget.listen(widget.eventTypes.DELETE_SUCCESS, function(payload) {
+         wicketBindWidgetEventIfSupported(widget, eventTypes.DELETE_SUCCESS, function(payload) {
           let event = new CustomEvent(
             "wwidget-component-profile-org-delete-success", {
               detail: payload
             });
 
           window.dispatchEvent(event);
-          widgetProfileOrgUpdateHiddenFields(payload);
+          wicketWidgetProfileOrgUpdateHiddenFields(payload);
           widgetProfileOrgDebug.log('WGF-ORG-PROFILE: delete success', payload);
         });
       });
         });
 
-         function widgetProfileOrgUpdateHiddenFields(payload) {
+    function wicketBindWidgetEventIfSupported(widget, eventType, handler) {
+      if (!widget || !widget.listen || !eventType) {
+        return;
+      }
+
+      widget.listen(eventType, handler);
+    }
+
+         function wicketWidgetProfileOrgUpdateHiddenFields(payload) {
+       const ignoredIncompleteFieldKeys = ['type'];
        let userInfoDataField = document.querySelector(
          'input[name="<?php echo $org_info_data_field_name; ?>"]'
          );
@@ -190,31 +220,40 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
          return;
        }
 
-       userInfoDataField.value = JSON.stringify(payload);
+       const normalizedPayload = payload && typeof payload === 'object' ? payload : {};
+       const rawIncompleteFields = Array.isArray(normalizedPayload.incompleteRequiredFields)
+         ? normalizedPayload.incompleteRequiredFields
+         : [];
+       const filteredIncompleteFields = rawIncompleteFields.filter(function(fieldKey) {
+         return ignoredIncompleteFieldKeys.indexOf(fieldKey) === -1;
+       });
+       normalizedPayload.incompleteRequiredFields = filteredIncompleteFields;
 
-       validationDataField.value = true;
+       userInfoDataField.value = JSON.stringify(normalizedPayload);
+
+       validationDataField.value = 'true';
        let validationFailures = [];
 
-       if (payload.incompleteRequiredFields) {
-         if (payload.incompleteRequiredFields.length > 0) {
-           validationDataField.value = false;
-           validationFailures.push('incomplete required fields: ' + payload.incompleteRequiredFields.join(', '));
+       if (normalizedPayload.incompleteRequiredFields) {
+         if (normalizedPayload.incompleteRequiredFields.length > 0) {
+           validationDataField.value = 'false';
+           validationFailures.push('incomplete required fields: ' + normalizedPayload.incompleteRequiredFields.join(', '));
          }
        }
 
        // Validate required resources so the hidden validation field reflects current state
-      if (payload.incompleteRequiredResources) {
-        if (payload.incompleteRequiredResources.length > 0) {
-          validationDataField.value = false;
-          validationFailures.push('incomplete required resources: ' + payload.incompleteRequiredResources.join(', '));
+      if (normalizedPayload.incompleteRequiredResources) {
+        if (normalizedPayload.incompleteRequiredResources.length > 0) {
+          validationDataField.value = 'false';
+          validationFailures.push('incomplete required resources: ' + normalizedPayload.incompleteRequiredResources.join(', '));
         }
       }
 
       // Fallback/override: if all four resource collections have at least one item, consider resources satisfied
-      const hasAddresses    = Array.isArray(payload.addresses) && payload.addresses.length > 0;
-      const hasEmails       = Array.isArray(payload.emails) && payload.emails.length > 0;
-      const hasPhones       = Array.isArray(payload.phones) && payload.phones.length > 0;
-      const hasWebAddresses = Array.isArray(payload.webAddresses) && payload.webAddresses.length > 0;
+      const hasAddresses    = Array.isArray(normalizedPayload.addresses) && normalizedPayload.addresses.length > 0;
+      const hasEmails       = Array.isArray(normalizedPayload.emails) && normalizedPayload.emails.length > 0;
+      const hasPhones       = Array.isArray(normalizedPayload.phones) && normalizedPayload.phones.length > 0;
+      const hasWebAddresses = Array.isArray(normalizedPayload.webAddresses) && normalizedPayload.webAddresses.length > 0;
       if (hasAddresses && hasEmails && hasPhones && hasWebAddresses) {
         // Remove any previously-added resource-related failure message
         validationFailures = validationFailures.filter(function(msg){
@@ -222,7 +261,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
         });
         // Only keep fields-related failures, otherwise mark as valid
         if (validationFailures.length === 0) {
-          validationDataField.value = true;
+          validationDataField.value = 'true';
         }
       }
 
@@ -238,7 +277,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
       });
      }
 
-    function logFormFieldState(origin) {
+    function wicketLogFormFieldState(origin) {
       const infoField = document.querySelector('input[name="<?php echo $org_info_data_field_name; ?>"]');
       const validationField = document.querySelector('input[name="<?php echo $validation_data_field_name; ?>"]');
       const form = infoField ? infoField.form : (validationField ? validationField.form : null);
@@ -312,7 +351,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
           infoFieldLength: infoField ? (infoField.value || '').length : null,
           validationFieldValue: validationField ? validationField.value : null
         });
-        logFormFieldState('click');
+        wicketLogFormFieldState('click');
       }, true);
 
       document.addEventListener('submit', function(event) {
@@ -320,7 +359,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
         if (!form || !form.id || !form.id.startsWith('gform_')) {
           return;
         }
-        logFormFieldState('submit');
+        wicketLogFormFieldState('submit');
       }, true);
     }
 
