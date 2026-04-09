@@ -786,7 +786,7 @@ if (empty($title)) : ?>
               'type'     => 'button',
               'classes'  => ['component-org-search-select__clear-selection-button'],
               'atts'     => [
-                  'x-on:click.prevent="clearSelectedOrgState();"'
+                  'x-on:click.prevent="clearSelectedOrgState();"',
               ],
           ]); ?>
         </div>
