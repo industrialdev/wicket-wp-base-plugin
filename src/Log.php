@@ -74,6 +74,10 @@ class Log
      */
     public function log(string $level, string $message, array $context = []): bool
     {
+        if ($this->isLoggingDisabled()) {
+            return true;
+        }
+
         // Always log CRITICAL and ERROR. All other levels require WP_DEBUG.
         if ($level !== self::LOG_LEVEL_CRITICAL && $level !== self::LOG_LEVEL_ERROR) {
             if (!defined('WP_DEBUG') || !WP_DEBUG) {
@@ -116,6 +120,30 @@ class Log
         }
 
         return true;
+    }
+
+    /**
+     * Test/runtime switch to disable stack logging globally.
+     *
+     * - Constant: WICKET_DOING_TESTS=true
+     * - Filter:   wicket/log/enabled (default true)
+     */
+    private function isLoggingDisabled(): bool
+    {
+        if (
+            defined('WICKET_DOING_TESTS')
+            && WICKET_DOING_TESTS
+            && defined('WP_ENVIRONMENT_TYPE')
+            && WP_ENVIRONMENT_TYPE === 'testing'
+        ) {
+            return true;
+        }
+
+        if (function_exists('apply_filters')) {
+            return apply_filters('wicket/log/enabled', true) !== true;
+        }
+
+        return false;
     }
 
     public function critical(string $message, array $context = []): void
