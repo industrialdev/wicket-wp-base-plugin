@@ -1213,14 +1213,10 @@ if (defined('WICKET_WP_THEME_V2')) {
           wicketOrgssDebug.log('ORGSS: $nextTick -> hideOtherPageFooters');
           this.hideOtherPageFooters();
         });
-        // If no org is selected on init, also hide the current page's GF footer
-        if (!this.selectedOrgUuid) {
-          wicketOrgssDebug.log('ORGSS: no org selected, will hideGfNextButton on $nextTick');
-          this.$nextTick(() => {
-            wicketOrgssDebug.log('ORGSS: $nextTick -> hideGfNextButton');
-            this.hideGfNextButton();
-          });
-        }
+        // Initial button visibility is handled by syncGfFooterVisibility() in the $nextTick above.
+        // Do NOT schedule a separate hideGfNextButton() here — it runs after hydration completes
+        // and would hide the button even when a previously-selected org UUID was just restored,
+        // breaking the "Previous → return to ORGSS step" flow.
       },
       prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
         // Reset to base state initially
