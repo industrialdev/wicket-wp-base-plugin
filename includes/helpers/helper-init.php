@@ -140,6 +140,7 @@ function wicket_api_client_smart()
             $wicket_settings = get_wicket_settings();
             $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
             $client->authorize($wicket_settings['person_id']);
+
             return $client;
         } catch (Exception $e) {
             return false;
@@ -162,26 +163,29 @@ function wicket_api_client_smart()
             try {
                 // Try per-user authentication first
                 $client->authorize($person_id);
+
                 return $client;
             } catch (Exception $e) {
                 // Per-user auth failed, fall through to shared account
                 Wicket()->log()->warning('Per-user authentication failed, falling back to shared account', [
                     'source' => 'wicket-base',
                     'person_id' => $person_id,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
         // Fall back to shared service account
         $client->authorize($wicket_settings['person_id']);
+
         return $client;
 
     } catch (Exception $e) {
         Wicket()->log()->error('Smart authentication failed completely', [
             'source' => 'wicket-base',
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
         ]);
+
         return false;
     }
 }
