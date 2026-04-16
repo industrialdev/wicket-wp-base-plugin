@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  */
 function wicket_get_organization_addresses($org_id)
 {
-    $client = wicket_api_client_smart();
+    $client = wicket_api_client();
 
     try {
         $org = $client->get("organizations/$org_id/addresses");
