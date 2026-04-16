@@ -427,24 +427,38 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         $max_results = 100; // TODO: Handle edge case where there are more than 100 results and
         // we need to filter by a specific org type, thus they wouldn't all show
 
-        $autocomplete_results = $client->get('/search/autocomplete', [
-            'query' => [
-                // Autocomplete lookup query, can filter based on name, membership number, email etc.
-                'query' => $search_term,
-                // Skip side-loading of people for faster request time.
-                // 'include' => '',
-                'fields' => [
-                    'organizations' => 'legal_name_en,legal_name_fr,type',
+        $cache_key = 'wicket_search_orgs_ac_' . md5(
+            $search_term . '|'
+            . (is_array($org_type) ? implode(',', $org_type) : (string) $org_type) . '|'
+            . $lang
+        );
+        $cached = get_transient($cache_key);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        try {
+            $autocomplete_results = $client->get('/search/autocomplete', [
+                'query' => [
+                    // Autocomplete lookup query, can filter based on name, membership number, email etc.
+                    'query' => $search_term,
+                    // Skip side-loading of people for faster request time.
+                    // 'include' => '',
+                    'fields' => [
+                        'organizations' => 'legal_name_en,legal_name_fr,type',
+                    ],
+                    'filter' => [
+                        // Limit autocomplete results to only organization resources
+                        'resource_type' => 'organizations',
+                    ],
+                    'page' => [
+                        'size' => $max_results,
+                    ],
                 ],
-                'filter' => [
-                    // Limit autocomplete results to only organization resources
-                    'resource_type' => 'organizations',
-                ],
-                'page' => [
-                    'size' => $max_results,
-                ],
-            ],
-        ]);
+            ]);
+        } catch (Exception $e) {
+            return false;
+        }
 
         $return = [];
         $temp_org_type = is_array($org_type) ? $org_type : [$org_type]; // make sure it's an array for easier checking
@@ -464,6 +478,8 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             $tmp['id'] = $result['id'];
             $return[] = $tmp;
         }
+
+        set_transient($cache_key, $return, 10 * MINUTE_IN_SECONDS);
 
         return $return;
     } else {

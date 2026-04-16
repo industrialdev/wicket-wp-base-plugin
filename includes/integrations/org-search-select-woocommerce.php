@@ -363,9 +363,12 @@ function wicket_display_org_input_on_order($order)
     }
 
     /* Hover effect for result items */
-    .woocommerce-results .result-item:hover {
-      background-color: #f7f7f7;
-      /* Change background on hover */
+    .woocommerce-results .result-item:hover,
+    .woocommerce-results .result-item.highlight {
+      background-color: #0071a1;
+      /* WP admin blue on hover/keyboard nav */
+      color: #fff;
+      /* White text when highlighted */
     }
 
     /* No results found message */
@@ -376,6 +379,31 @@ function wicket_display_org_input_on_order($order)
       /* Color for no results text */
       text-align: center;
       /* Center text */
+    }
+
+    /* Loading indicator */
+    #wc-org-results .loading {
+      padding: 10px;
+      color: #666;
+      text-align: center;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* WordPress spinner - use core WP styling */
+    #wc-org-results .spinner {
+      display: inline-block;
+      visibility: visible;
+      float: none;
+      margin: 0;
+    }
+
+    /* Input searching state - optional visual indicator */
+    #wc-org-search.wicket-searching {
+      border-color: #0071a1;
     }
   </style>
 <?php
@@ -410,7 +438,7 @@ function wicket_handle_wc_org_search()
 {
     check_ajax_referer('wc_org_nonce', 'nonce');
     $search_term = isset($_POST['term']) ? sanitize_text_field($_POST['term']) : '';
-    $search_json = json_encode(['searchTerm' => $search_term, 'autocomplete' => true]);
+    $search_json = json_encode(['searchTerm' => $search_term, 'autocomplete' => true, 'includeMembershipSummary' => false]);
     $request = new WP_REST_Request('POST');
     $request->set_headers(['Content-Type' => 'application/json']);
     $request->set_body($search_json); // Set the body as the JSON string
