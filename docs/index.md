@@ -1,3 +1,8 @@
+---
+title: "Wicket Base Plugin Documentation Index"
+audience: [implementer, support, developer, end-user]
+---
+
 # Documentation Index — wicket-wp-base-plugin
 
 Three directories, three audiences. See [CLAUDE.md](CLAUDE.md) for authoring rules.

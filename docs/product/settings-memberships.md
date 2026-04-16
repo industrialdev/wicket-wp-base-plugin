@@ -27,3 +27,9 @@ If you have recently made changes to your Wicket Membership Tiers, or if you hav
 ### Membership Categories
 
 A multi-select field that lets you choose which WooCommerce product categories contain membership products. Marking categories here allows other parts of the plugin — and custom development — to identify which products are memberships. This selection also feeds into settings such as hiding membership product pages and filtering them out of search results (configured in the Integrations tab).
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_membership_categories` |
+| PHP access | `get_option('wicket_admin_settings_membership_categories')` |
+| Default | _(none)_ |

@@ -20,6 +20,12 @@ This tab is where you connect the plugin to your Wicket Member Data Platform (MD
 
 A toggle that determines which set of credentials the plugin uses when talking to Wicket — **Staging** or **Production**. Only one environment is active at a time. Switch this when you want to test against staging or when you're ready to go live.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_environment` |
+| PHP access | `get_option('wicket_admin_settings_environment')` |
+| Default | `production` |
+
 ---
 
 ## Wicket Production
@@ -30,21 +36,51 @@ Credentials and addresses for your live Wicket environment.
 
 The full URL of the Wicket API for your production instance. It follows the format `https://[client]-api.wicketcloud.com`. This is where all data requests are sent when the Production environment is active.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_prod_api_endpoint` |
+| PHP access | `get_option('wicket_admin_settings_prod_api_endpoint')` |
+| Default | _(none)_ |
+
 ### JWT Secret Key
 
 A secret key issued by Wicket that is used to authenticate requests from WordPress to the Wicket API. This value should be kept private and not shared.
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_prod_secret_key` |
+| PHP access | `get_option('wicket_admin_settings_prod_secret_key')` |
+| Default | _(none)_ |
 
 ### Person ID
 
 A specific Person ID from Wicket used by the plugin to perform background operations (such as API authentication on behalf of the site). This is provided by Wicket.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_prod_person_id` |
+| PHP access | `get_option('wicket_admin_settings_prod_person_id')` |
+| Default | _(none)_ |
+
 ### Parent Org
 
 The **alternate name** of the top-level organization in your Wicket account, found under Organizations in the Wicket admin. This value is used when creating new people through the create account form — it tells Wicket which organization to associate new sign-ups with.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_prod_parent_org` |
+| PHP access | `get_option('wicket_admin_settings_prod_parent_org')` |
+| Default | _(none)_ |
+
 ### Wicket Admin
 
 The URL for your production Wicket admin interface, following the format `https://[client]-admin.wicketcloud.com`. This is used for building direct links to records (such as order touchpoints) within the Wicket admin.
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_prod_wicket_admin` |
+| PHP access | `get_option('wicket_admin_settings_prod_wicket_admin')` |
+| Default | _(none)_ |
 
 ---
 
@@ -56,18 +92,48 @@ Identical settings to Production, but for the staging environment. These credent
 
 The full URL of the Wicket API for your staging instance. Format: `https://[client]-api.staging.wicketcloud.com`.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_stage_api_endpoint` |
+| PHP access | `get_option('wicket_admin_settings_stage_api_endpoint')` |
+| Default | _(none)_ |
+
 ### JWT Secret Key
 
 The secret key for staging API authentication. Kept private and separate from production.
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_stage_secret_key` |
+| PHP access | `get_option('wicket_admin_settings_stage_secret_key')` |
+| Default | _(none)_ |
 
 ### Person ID
 
 The Person ID used for staging background API operations.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_stage_person_id` |
+| PHP access | `get_option('wicket_admin_settings_stage_person_id')` |
+| Default | _(none)_ |
+
 ### Parent Org
 
 The alternate name of the top-level organization in your staging Wicket account, used when creating new users on staging.
 
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_stage_parent_org` |
+| PHP access | `get_option('wicket_admin_settings_stage_parent_org')` |
+| Default | _(none)_ |
+
 ### Wicket Admin
 
 The URL for the staging Wicket admin interface. Format: `https://[client]-admin.staging.wicketcloud.com`.
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_stage_wicket_admin` |
+| PHP access | `get_option('wicket_admin_settings_stage_wicket_admin')` |
+| Default | _(none)_ |

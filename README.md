@@ -9,7 +9,7 @@ This plugin is not available in the WordPress.org plugin repository. It is distr
 ## Requirements
 
 - **WordPress**: 6.6+
-- **PHP**: 8.1+
+- **PHP**: 8.2+
 - **Advanced Custom Fields Pro**: Required dependency
 - **Composer**: For dependency management
 
