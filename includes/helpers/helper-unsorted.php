@@ -413,7 +413,7 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
 function wicket_search_organizations($search_term, $search_by = 'org_name', $org_type = null, $autocomplete = false, $lang = 'en', $include_memberships = true)
 {
     try {
-        $client = wicket_api_client();
+        $client = wicket_api_client_smart();
     } catch (Exception $e) {
         return false;
     }

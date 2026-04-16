@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  */
 function wicket_get_groups()
 {
-    $client = wicket_api_client();
+    $client = wicket_api_client_smart();
 
     $groups = $client->get('groups');
 
@@ -331,7 +331,7 @@ function wicket_get_group($uuid)
         return false;
     }
 
-    $client = wicket_api_client();
+    $client = wicket_api_client_smart();
 
     $group = $client->get("groups/{$uuid}");
 
