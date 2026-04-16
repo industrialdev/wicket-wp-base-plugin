@@ -77,22 +77,32 @@ function get_wicket_settings($environment = null)
 /**
  * Loads the Wicket API client.
  *
- * This is a backward compatibility wrapper that delegates to wicket_api_client_smart().
- * All authentication logic (settings-based routing, legacy vs smart modes) is handled
- * by the smart client function.
- *
  * @return Client|false The initialized Wicket API client, or false if the client could not be initialized.
  */
 function wicket_api_client()
 {
-    return wicket_api_client_smart();
+    try {
+        if (!class_exists('\Wicket\Client')) {
+            // No SDK available!
+            return false;
+        }
+
+        // connect to the wicket api and get the current person
+        $wicket_settings = get_wicket_settings();
+        $client = new Client($app_key = '', $wicket_settings['jwt'], $wicket_settings['api_endpoint']);
+        $client->authorize($wicket_settings['person_id']);
+    } catch (Exception $e) {
+        // don't return the $client unless the API is up.
+        return false;
+    }
+
+    return $client;
 }
 
 /**
  * Get Wicket client, authorized as the current user.
  *
  * This function initializes the Wicket API client and authorizes it as the current user.
- * Note: This function now delegates to wicket_api_client() which uses smart authentication.
  *
  * @return Client|null The initialized and authorized Wicket API client, or null if authorization fails.
  */
@@ -117,18 +127,28 @@ function wicket_api_client_current_user()
  * Get Wicket client with smart authentication strategy.
  *
  * This function implements intelligent authentication routing:
- * - Checks if hybrid authentication is enabled in WordPress settings
+ * - Checks if hybrid authentication is enabled via 'wicket_enable_smart_authentication' filter
  * - When enabled: uses per-user authentication for UUID usernames, falls back to shared account
  * - When disabled: uses legacy shared service account authentication (default)
  *
- * Settings check: wicket_get_option('wicket_admin_settings_enable_smart_auth', false)
+ * Filter: apply_filters('wicket_enable_smart_authentication', false)
+ *
+ * @usage
+ *
+ * **Basic usage - Enable globally:**
+ * add_filter('wicket_enable_smart_authentication', '__return_true');
+ *
+ * **Enable only for administrators:**
+ * add_filter('wicket_enable_smart_authentication', function($enabled) {
+ *     return is_admin() && current_user_can('manage_options');
+ * });
  *
  * @return Client|false The initialized Wicket API client, or false if authentication fails completely.
  */
 function wicket_api_client_smart()
 {
-    // Check if hybrid authentication is enabled in settings
-    $enable_smart_auth = wicket_get_option('wicket_admin_settings_enable_smart_auth', false);
+    // Check if hybrid authentication is enabled via filter
+    $enable_smart_auth = apply_filters('wicket_enable_smart_authentication', false);
 
     // When smart auth is disabled, use legacy shared service account
     if (!$enable_smart_auth) {

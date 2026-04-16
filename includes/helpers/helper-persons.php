@@ -78,7 +78,7 @@ function wicket_person_has_uuid()
 function wicket_get_person_by_uuid($uuid)
 {
     if ($uuid) {
-        $client = wicket_api_client_smart();
+        $client = wicket_api_client();
         $person = $client->people->fetch($uuid);
 
         return $person;
@@ -132,7 +132,7 @@ function wicket_get_person_profile(?string $person_uuid = null): ?array
     }
 
     try {
-        $client = wicket_api_client_smart();
+        $client = wicket_api_client();
         // Fetch SDK resource object then convert to a plain array for easier consumption.
         $profile = $client->people->fetch($person_uuid);
 
@@ -162,7 +162,7 @@ function wicket_get_person_profile(?string $person_uuid = null): ?array
 function wicket_person_add_tag($person_uuid, $tags)
 {
     try {
-        $client = wicket_api_client_smart();
+        $client = wicket_api_client();
     } catch (Exception $e) {
         Wicket()->log()->error($e->getMessage(), ['source' => 'wicket-base']);
 

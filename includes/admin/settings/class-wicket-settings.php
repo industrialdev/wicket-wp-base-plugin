@@ -293,16 +293,6 @@ if (!class_exists('Wicket_Settings')) {
                 ],
             ]);
 
-            $section->add_option('checkbox', [
-                'name' => 'wicket_admin_settings_enable_smart_auth',
-                'label' => __('Enable Smart Authentication', 'wicket'),
-                'description' => __('Enable smart authentication that uses authenticated user tokens to distribute API rate limits across MDP person UUIDs. When enabled, WordPress users linked to the MDP will use their own authentication token instead of the shared service account. This can help avoid rate limiting issues. Default is disabled (legacy behavior).', 'wicket'),
-                'default' => false,
-                'css' => [
-                    'input_class' => 'wicket-smart-auth',
-                ],
-            ]);
-
             $section->add_option('wicket-api-check');
 
             // Production Section
