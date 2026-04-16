@@ -223,6 +223,7 @@ if (!class_exists('Wicket_Settings')) {
          */
         public function register_general_tab($tab)
         {
+            $section = $tab->add_section(__('General', 'wicket'));
             $section->add_option('select', [
                 'name' => 'wicket_admin_settings_create_account_page',
                 'label' => __('Create Account Page', 'wicket'),
@@ -264,7 +265,6 @@ if (!class_exists('Wicket_Settings')) {
                 ],
             ]);
 
-            // Styles section
             $section = $tab->add_section(__('Styles', 'wicket'));
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_disable_default_styling',
