@@ -77,6 +77,12 @@ function get_wicket_settings($environment = null)
 /**
  * Loads the Wicket API client.
  *
+ * Use this admin-token client only when elevated access is required, such as
+ * reading or writing another person's data, performing background tasks, or
+ * running cross-user aggregation queries. For requests on behalf of the
+ * currently logged-in user, prefer wicket_api_client_current_user() so the
+ * request stays scoped to that user's permissions and audit trail.
+ *
  * @return Client|false The initialized Wicket API client, or false if the client could not be initialized.
  */
 function wicket_api_client()
@@ -102,31 +108,43 @@ function wicket_api_client()
 /**
  * Get Wicket client, authorized as the current user.
  *
- * This function initializes the Wicket API client and authorizes it as the current user.
+ * Prefer this helper by default when the operation is being performed on
+ * behalf of the currently logged-in user. It keeps permissions scoped to that
+ * user, distributes rate limiting across per-user tokens, and improves audit
+ * traceability in MDP logs.
  *
  * @return Client|null The initialized and authorized Wicket API client, or null if authorization fails.
  */
 function wicket_api_client_current_user()
 {
-    $client = wicket_api_client();
+    try {
+        $client = wicket_api_client();
 
-    if ($client) {
-        $person_id = wicket_current_person_uuid();
+        if ($client) {
+            $person_id = wicket_current_person_uuid();
 
-        if ($person_id) {
-            $client->authorize($person_id);
-        } else {
-            $client = null;
+            if ($person_id) {
+                $client->authorize($person_id);
+            } else {
+                $client = null;
+            }
         }
+    } catch (Exception $e) {
+        return null;
     }
 
     return $client;
 }
 
-/**------------------------------------------------------------------
- * Get wicket client, authorized as the current user.
- * Taken from the wicket SDK (it's used as a protected method there)
-------------------------------------------------------------------*/
+/**
+ * Generate an access token for a Wicket person.
+ *
+ * Taken from the Wicket SDK, where it is used as a protected method.
+ *
+ * @param string $person_id The Wicket person UUID.
+ * @param int $expiresIn The token lifetime in seconds. Default is 8 hours.
+ * @return string The encoded JWT access token.
+ */
 function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8)
 {
     $settings = get_wicket_settings();
@@ -141,11 +159,16 @@ function wicket_access_token_for_person($person_id, $expiresIn = 60 * 60 * 8)
     return Firebase\JWT\JWT::encode($token, $settings['jwt'], 'HS256');
 }
 
-/**------------------------------------------------------------------
- * Generate access token for Org widgets
- * This endpoint will return an access token that lets you use the profile + additional info widget on any org.
- * You will need to know the person uuid (the person currently logged into the website) and the organization uuid so you can provide it to the widget_tokens endpoint
-------------------------------------------------------------------*/
+/**
+ * Generate an access token for organization widgets.
+ *
+ * This returns a token that can be used for the profile and additional info
+ * widget on a specific organization.
+ *
+ * @param string $person_id The Wicket person UUID for the current user.
+ * @param string $org_uuid The organization UUID.
+ * @return string|false The token string on success, or false on failure.
+ */
 function wicket_get_access_token($person_id, $org_uuid)
 {
     $client = wicket_api_client();
