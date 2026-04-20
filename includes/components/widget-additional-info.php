@@ -106,6 +106,7 @@ if ($resource_type == 'organizations') {
                 } ?>',
               },
               lang: "<?php echo esc_js(wicket_get_current_language()); ?>",
+              <?php if (!empty($schemas_and_overrides)) : ?>
               schemas: [
                 <?php
                 $schema_outputs = [];
@@ -133,6 +134,7 @@ foreach ($schemas_and_overrides as $schema) {
 echo implode(",\n                ", $schema_outputs);
 ?>
               ],
+              <?php endif; ?>
             };
 
             Wicket.widgets.editAdditionalInfo(options).then(function(widget) {
