@@ -110,27 +110,27 @@ if ($resource_type == 'organizations') {
               schemas: [
                 <?php
                 $schema_outputs = [];
-foreach ($schemas_and_overrides as $schema) {
-    $schema_obj = [];
+                  foreach ($schemas_and_overrides as $schema) {
+                      $schema_obj = [];
 
-    if (isset($schema['slug']) && !empty($schema['slug'])) {
-        $schema_obj[] = "slug: '" . esc_js($schema['slug']) . "'";
-        if (isset($schema['resourceSlug']) && !empty($schema['resourceSlug'])) {
-            $schema_obj[] = "resourceSlug: '" . esc_js($schema['resourceSlug']) . "'";
-        }
-    } else {
-        $schema_obj[] = "id: '" . esc_js($schema['id']) . "'";
-        if (isset($schema['resourceId']) && !empty($schema['resourceId'])) {
-            $schema_obj[] = "resourceId: '" . esc_js($schema['resourceId']) . "'";
-        }
-    }
+                      if (isset($schema['slug']) && !empty($schema['slug'])) {
+                          $schema_obj[] = "slug: '" . esc_js($schema['slug']) . "'";
+                          if (isset($schema['resourceSlug']) && !empty($schema['resourceSlug'])) {
+                              $schema_obj[] = "resourceSlug: '" . esc_js($schema['resourceSlug']) . "'";
+                          }
+                      } else {
+                          $schema_obj[] = "id: '" . esc_js($schema['id']) . "'";
+                          if (isset($schema['resourceId']) && !empty($schema['resourceId'])) {
+                              $schema_obj[] = "resourceId: '" . esc_js($schema['resourceId']) . "'";
+                          }
+                      }
 
-    if (isset($schema['showAsRequired']) && $schema['showAsRequired']) {
-        $schema_obj[] = 'showAsRequired: true';
-    }
+                      if (isset($schema['showAsRequired']) && $schema['showAsRequired']) {
+                          $schema_obj[] = 'showAsRequired: true';
+                      }
 
-    $schema_outputs[] = '{ ' . implode(', ', $schema_obj) . ' }';
-}
+                      $schema_outputs[] = '{ ' . implode(', ', $schema_obj) . ' }';
+                  }
 echo implode(",\n                ", $schema_outputs);
 ?>
               ],
