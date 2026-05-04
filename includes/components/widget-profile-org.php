@@ -249,21 +249,6 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
         }
       }
 
-      // Fallback/override: if all four resource collections have at least one item, consider resources satisfied
-      const hasAddresses    = Array.isArray(normalizedPayload.addresses) && normalizedPayload.addresses.length > 0;
-      const hasEmails       = Array.isArray(normalizedPayload.emails) && normalizedPayload.emails.length > 0;
-      const hasPhones       = Array.isArray(normalizedPayload.phones) && normalizedPayload.phones.length > 0;
-      const hasWebAddresses = Array.isArray(normalizedPayload.webAddresses) && normalizedPayload.webAddresses.length > 0;
-      if (hasAddresses && hasEmails && hasPhones && hasWebAddresses) {
-        // Remove any previously-added resource-related failure message
-        validationFailures = validationFailures.filter(function(msg){
-          return !/^incomplete required resources:/.test(msg);
-        });
-        // Only keep fields-related failures, otherwise mark as valid
-        if (validationFailures.length === 0) {
-          validationDataField.value = 'true';
-        }
-      }
 
      if (validationFailures.length > 0) {
        console.log('DEBUG: Validation failures:', validationFailures);

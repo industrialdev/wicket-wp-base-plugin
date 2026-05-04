@@ -217,7 +217,7 @@ class CreateAccountNoPassword extends \WP_Widget
                     // Fallback if missing
                     if (!$creation_redirect_path) {
                         $creation_redirect_path = site_url('/verify-account');
-                        Wicket()->log()->warning('[wicket-create-account-no-password] Redirect option missing or invalid, falling back to /verify-account. Please set this under Wicket -> General -> New Account Redirect', ['source' => 'wicket-base']);
+                        \Wicket()->log()->warning('[wicket-create-account-no-password] Redirect option missing or invalid, falling back to /verify-account. Please set this under Wicket -> General -> New Account Redirect', ['source' => 'wicket-base']);
                     }
 
                     ob_clean();

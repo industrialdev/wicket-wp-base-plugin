@@ -98,10 +98,10 @@ class Main
      * Two calling conventions are supported:
      *
      *   // Getter — returns the Log instance for chained level calls:
-     *   Wicket()->log()->error('message', $context);
+     *   \Wicket()->log()->error('message', $context);
      *
      *   // Direct — write a log entry in one call:
-     *   Wicket()->log('error', 'message', $context);
+     *   \Wicket()->log('error', 'message', $context);
      *
      * @param string|null $level   Log level (LOG_LEVEL_* constant or string). Omit to get the Log instance.
      * @param string      $message Log message (required when $level is provided).

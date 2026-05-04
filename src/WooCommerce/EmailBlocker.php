@@ -692,6 +692,6 @@ class EmailBlocker
             'source' => 'wicket-woo-email-blocker',
         ];
 
-        Wicket()->log()->info('Woo email blocker decision recorded.', $context);
+        \Wicket()->log()->info('Woo email blocker decision recorded.', $context);
     }
 }
