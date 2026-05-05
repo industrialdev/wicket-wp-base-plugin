@@ -749,15 +749,18 @@ if (!$is_wicket_theme) {
                   'atts'     => [
                       'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
                       'x-bind:class="{
-                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection($data.result.id)
+                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection(result.id)
                       || (disableSelectingOrgsWithActiveMembership && result.active_membership)
                   }"',
-                      'x-bind:disabled="isOrgAlreadyAConnection($data.result.id)
-                || (disableSelectingOrgsWithActiveMembership && result.active_membership)"',
-                      'x-bind:aria-disabled="(isOrgAlreadyAConnection($data.result.id)
+                      'x-bind:disabled="isOrgAlreadyAConnection(result.id)"',
+                      'x-bind:aria-disabled="(isOrgAlreadyAConnection(result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
                   ],
               ]); ?>
+              <div class="orgss_error component-org-search-select__active-membership-inline-message"
+                x-show="disableSelectingOrgsWithActiveMembership && result.active_membership"
+                x-cloak
+                x-html="activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>'"></div>
             </div>
           </div>
         </template>
@@ -1327,8 +1330,22 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
 
       },
+      normalizeSearchMessage(message) {
+        const safeMessage = message === null || typeof message === 'undefined' ? '' : String(message);
+        const parser = document.createElement('div');
+        parser.innerHTML = safeMessage;
+        return parser.textContent || parser.innerText || '';
+      },
+      getActiveMembershipBlockingMessage() {
+        return this.activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>';
+      },
       setSearchMessage(message) {
-        document.getElementById('orgss_search_message').innerHTML = message;
+        const searchMessage = document.getElementById('orgss_search_message');
+        if (!searchMessage) {
+          return;
+        }
+
+        searchMessage.textContent = this.normalizeSearchMessage(message);
         this.showSearchMessage = true;
       },
       async searchOrgs(searchTerm, showLoading = true) {
@@ -1408,6 +1425,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         this.isLoading = true;
         let seatSummary = null;
         let hasActiveMembership = false;
+        let checkFailed = false;
 
         try {
           let results = await fetch(this.apiUrl + 'orgss-seat-summary', {
@@ -1435,6 +1453,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           wicketOrgssDebug.warn('ORGSS: seat summary fetch failed', error);
           seatSummary = null;
           hasActiveMembership = false;
+          checkFailed = true;
         } finally {
           this.isLoading = false;
         }
@@ -1442,6 +1461,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         return {
           seatSummary,
           hasActiveMembership,
+          checkFailed,
         };
       },
       async selectOrgFromSearchResult(result, event = null) {
@@ -1460,12 +1480,20 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
 
         if (this.disableSelectingOrgsWithActiveMembership && result.active_membership) {
+          this.setSearchMessage(this.getActiveMembershipBlockingMessage());
           return;
         }
 
         if (this.disableSelectingOrgsWithActiveMembership) {
           const seatData = await this.fetchSeatSummary(orgUuid);
+          if (seatData.checkFailed) {
+            this.setSearchMessage('<?php echo esc_js(__('We could not verify active membership status right now. Please try again.', 'wicket')); ?>');
+            return;
+          }
+
           if (seatData.hasActiveMembership) {
+            result.active_membership = true;
+            this.setSearchMessage(this.getActiveMembershipBlockingMessage());
             return;
           }
         }
