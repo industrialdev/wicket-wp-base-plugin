@@ -217,9 +217,10 @@ function wicket_get_org_groups($org_uuid = '', $args = [])
  * @param string $group_role_slug The type of group role to assign to the person
  * @param array $args {
  *     Optional. Arguments to pass to the function.
- *     @type string $start_date     [optional] The date to start the group membership. Default null.
- *     @type string $end_date       [optional] The date to end the group membership. Default null.
- *     @type bool   $skip_if_exists [optional] Whether to skip adding if the user is already a member with the same role. Default true.
+ *     @type string     $start_date        [optional] The date to start the group membership. Default null.
+ *     @type string     $end_date          [optional] The date to end the group membership. Default null.
+ *     @type bool       $skip_if_exists    [optional] Whether to skip adding if the user is already a member with the same role. Default true.
+ *     @type array|null $custom_data_field [optional] custom_data_field payload for group member create. Default null.
  * }
  *
  * @return object|array|WP_Error The response object from the Wicket API, the existing group membership array if skipped, or WP_Error on failure.
@@ -228,9 +229,10 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
 {
     // Default args
     $defaults = [
-        'start_date'     => null,
-        'end_date'       => null,
-        'skip_if_exists' => true,
+        'start_date'        => null,
+        'end_date'          => null,
+        'skip_if_exists'    => true,
+        'custom_data_field' => null,
     ];
     $args = wp_parse_args($args, $defaults);
 
@@ -238,6 +240,7 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
     $start_date = $args['start_date'];
     $end_date = $args['end_date'];
     $skip_if_exists = $args['skip_if_exists'];
+    $custom_data_field = $args['custom_data_field'];
 
     // No start_date? Use the standardized MDP day start in UTC ISO8601.
     if (empty($start_date)) {
@@ -265,7 +268,7 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
     $payload = [
         'data' => [
             'attributes'   => [
-                'custom_data_field' => null,
+                'custom_data_field' => $custom_data_field,
                 'end_date'          => $end_date,
                 'person_id'         => $person_id, // Redundant in payload? Check API docs. Keeping for now.
                 'start_date'        => $start_date,
