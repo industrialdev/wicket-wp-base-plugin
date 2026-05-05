@@ -335,6 +335,35 @@ $available_org_types = wicket_get_resource_types('organizations');
     font-size: .8em;
     margin-top: 5px;
   }
+
+  .component-org-search-select__active-membership-inline-message {
+    margin-top: 0.5rem;
+    margin-left: auto;
+    max-width: 28rem;
+    padding: var(--space-250, 20px 15px);
+    border: 1px solid var(--wicket-ac-danger-100, var(--state-error, var(--wicket-base-state-error, #DC3545)));
+    border-left: var(--border-alert, var(--wicket-base-border-alert, 4px)) solid var(--wicket-ac-danger-100, var(--state-error, var(--wicket-base-state-error, #DC3545)));
+    border-radius: var(--alerts-corner-radius, var(--wicket-base-alerts-corner-radius, 0px));
+    background: var(--wicket-ac-danger-020, var(--state-error-light, var(--wicket-base-state-error-light, #F5C2C7)));
+    color: var(--text-content, var(--text-dark, var(--wicket-base-text-content, #1d2327)));
+    font-size: var(--body-sm-font-size, 0.875rem);
+    line-height: 1.45;
+    text-align: left;
+    word-break: break-word;
+  }
+
+  .component-org-search-select__active-membership-inline-message p {
+    margin: 0;
+  }
+
+  .component-org-search-select__active-membership-inline-message p + p {
+    margin-top: 0.35rem;
+  }
+
+  .component-org-search-select__active-membership-inline-message a {
+    color: var(--interactive, var(--wicket-base-interactive, #00447c));
+    text-decoration: underline;
+  }
 </style>
 
 <div class="container component-org-search-select relative form <?php echo implode(' ', $classes); ?>"
@@ -750,14 +779,16 @@ if (!$is_wicket_theme) {
                       'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
                       'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection(result.id)
-                      || (disableSelectingOrgsWithActiveMembership && result.active_membership)
+                      || (disableSelectingOrgsWithActiveMembership && result.active_membership),
+                    \'hidden\': disableSelectingOrgsWithActiveMembership && result.active_membership
                   }"',
                       'x-bind:disabled="isOrgAlreadyAConnection(result.id)"',
                       'x-bind:aria-disabled="(isOrgAlreadyAConnection(result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
+                      'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership) ? \'-1\' : \'0\'"',
                   ],
               ]); ?>
-              <div class="orgss_error component-org-search-select__active-membership-inline-message"
+              <div class="component-org-search-select__active-membership-inline-message"
                 x-show="disableSelectingOrgsWithActiveMembership && result.active_membership"
                 x-cloak
                 x-html="activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>'"></div>
