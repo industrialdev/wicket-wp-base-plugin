@@ -778,12 +778,12 @@ if (!$is_wicket_theme) {
                   'atts'     => [
                       'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
                       'x-bind:class="{
-                    \'orgss_disabled_button_hollow\': isOrgAlreadyAConnection(result.id)
+                    \'orgss_disabled_button_hollow\': isOrgAlreadyASelectableConnection(result.id)
                       || (disableSelectingOrgsWithActiveMembership && result.active_membership),
                     \'hidden\': disableSelectingOrgsWithActiveMembership && result.active_membership
                   }"',
-                      'x-bind:disabled="isOrgAlreadyAConnection(result.id)"',
-                      'x-bind:aria-disabled="(isOrgAlreadyAConnection(result.id)
+                      'x-bind:disabled="isOrgAlreadyASelectableConnection(result.id)"',
+                      'x-bind:aria-disabled="(isOrgAlreadyASelectableConnection(result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
                       'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership) ? \'-1\' : \'0\'"',
                   ],
@@ -2363,20 +2363,29 @@ if (defined('WICKET_WP_THEME_V2')) {
           this.clearSelectedOrgState();
         }
       },
-      isOrgAlreadyAConnection(uuid) {
+      isOrgAlreadyASelectableConnection(uuid) {
         let connections = this.currentConnections;
-        let isOrgAlreadyAConnection = false;
+        let isOrgAlreadyASelectableConnection = false;
 
-        connections.forEach((val, i, array) => {
-          let org_id = val.org_id;
-          //console.log(`Checking if already a connection: incoming ${uuid} vs existing ${org_id}`);
-          if (org_id == uuid) {
-            //console.log('Is already a connection');
-            isOrgAlreadyAConnection = true;
+        connections.forEach((connection) => {
+          if (connection.org_id != uuid) {
+            return;
+          }
+
+          const visibleInCurrentList = this.matchesFilter(connection)
+            && (!this.justCreatedNewOrg || connection.org_id === this.justCreatedOrgUuid)
+            && (this.selectedOrgUuid === '' || connection.org_id === this.selectedOrgUuid);
+
+          if (!visibleInCurrentList) {
+            return;
+          }
+
+          if (!this.hideSelectButtons) {
+            isOrgAlreadyASelectableConnection = true;
           }
         });
 
-        return isOrgAlreadyAConnection;
+        return isOrgAlreadyASelectableConnection;
       },
       getOrgFromConnectionsByUuid(uuid) {
         let found = {};
