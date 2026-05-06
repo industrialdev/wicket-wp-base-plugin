@@ -1510,6 +1510,13 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
+        const existingConnection = this.getOrgFromConnectionsByUuid(orgUuid);
+        if (existingConnection && existingConnection.org_id) {
+          this.selectOrg(orgUuid, event);
+          this.searchBox = '';
+          return;
+        }
+
         if (this.disableSelectingOrgsWithActiveMembership && result.active_membership) {
           this.setSearchMessage(this.getActiveMembershipBlockingMessage());
           return;

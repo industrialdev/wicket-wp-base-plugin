@@ -252,7 +252,17 @@ class Rest
         $description = $params['description'] ?? null;
         $userRoleInRelationshipArray = explode(',', $userRoleInRelationship);
 
-        $personProfile = wicket_current_person();
+        $personProfile = null;
+        try {
+            $personProfile = wicket_current_person();
+        } catch (\Throwable $e) {
+            if (function_exists('Wicket')) {
+                \Wicket()->log()->warning(
+                    sprintf('create-relationship: unable to load current person profile (%s)', $e->getMessage()),
+                    ['source' => 'wicket-base']
+                );
+            }
+        }
 
         $jobTitle = null;
         if (is_object($personProfile)) {
