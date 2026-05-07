@@ -198,3 +198,99 @@ function wicket_person_add_tag($person_uuid, $tags)
         return false;
     }
 }
+
+/**
+ * Find or create a person in Wicket and optionally update their profile.
+ *
+ * Lookup order:
+ *   1. wicket_get_person_by_email() — primary/legacy helper.
+ *   2. Direct API filter (/people?filter[emails_address_eq]=) — handles secondary/alias emails.
+ *   3. wicket_create_person() — only called when no match is found.
+ *
+ * After resolving the UUID, optional profile fields (job_title, phone) are updated
+ * when provided in $extras.
+ *
+ * @param string $first_name Person first name.
+ * @param string $last_name  Person last name.
+ * @param string $email      Person email address.
+ * @param array  $extras     Optional: 'job_title' (string), 'phone' (string).
+ * @return string|WP_Error Person UUID on success, WP_Error on failure.
+ */
+function wicket_create_or_get_person(string $first_name, string $last_name, string $email, array $extras = [])
+{
+    $first_name = sanitize_text_field($first_name);
+    $last_name  = sanitize_text_field($last_name);
+    $email      = is_scalar($email) ? filter_var((string) $email, FILTER_SANITIZE_EMAIL) : '';
+
+    if ('' === $first_name || '' === $last_name || '' === $email) {
+        return new WP_Error('invalid_person_data', 'First name, last name, and a valid email are required.');
+    }
+
+    if (!function_exists('wicket_create_person')) {
+        return new WP_Error('missing_dependency', 'wicket_create_person() is unavailable.');
+    }
+
+    // 1. Primary lookup via legacy helper
+    $person = null;
+    if (function_exists('wicket_get_person_by_email')) {
+        $found = wicket_get_person_by_email($email);
+        if (!empty($found)) {
+            $person = $found;
+        }
+    }
+
+    // 2. Fallback: direct API filter (catches secondary / alias email addresses)
+    if (!$person && function_exists('wicket_api_client')) {
+        try {
+            $client = wicket_api_client();
+            $response = $client->get('/people?filter[emails_address_eq]=' . rawurlencode($email));
+            if (!empty($response['data'][0])) {
+                $person = $response['data'][0];
+            }
+        } catch (Throwable $e) {
+            // Non-fatal — will attempt create below.
+        }
+    }
+
+    // 3. Create if still not found
+    if (!$person) {
+        $person = wicket_create_person($first_name, $last_name, $email);
+        if (!$person || (is_array($person) && isset($person['errors']))) {
+            return new WP_Error('person_creation_failed', 'Failed to create person in Wicket.');
+        }
+    }
+
+    // 4. Extract UUID from whatever shape the API returned
+    $uuid = null;
+    if (is_array($person)) {
+        $uuid = $person['id'] ?? $person['data']['id'] ?? null;
+    } elseif (is_object($person)) {
+        $uuid = $person->id ?? null;
+    }
+
+    if (!$uuid) {
+        return new WP_Error('person_resolution_failed', 'Unable to resolve person UUID from Wicket response.');
+    }
+
+    // 5. Update optional profile fields (non-fatal on individual failure)
+    $job_title = isset($extras['job_title']) ? sanitize_text_field((string) $extras['job_title']) : '';
+    if ('' !== $job_title && function_exists('wicket_update_person')) {
+        wicket_update_person($uuid, ['attributes' => ['job_title' => $job_title]]);
+    }
+
+    $phone = isset($extras['phone']) ? preg_replace('/[^0-9+]/', '', (string) $extras['phone']) : '';
+    if ('' !== $phone && function_exists('wicket_create_person_phone')) {
+        try {
+            wicket_create_person_phone($uuid, [
+                'data' => [
+                    'type'       => 'phones',
+                    'attributes' => ['number' => $phone, 'type' => 'work'],
+                ],
+            ]);
+        } catch (Throwable $e) {
+            // Non-fatal.
+        }
+    }
+
+    return $uuid;
+}

@@ -72,6 +72,107 @@ function wicket_is_membership_product($product)
 }
 
 /**
+ * Check whether a person (identified by email) holds an active assignment in a given org membership.
+ *
+ * Queries the Wicket `/person_memberships/query` endpoint which accepts an email filter.
+ * Returns true when at least one active assignment is found for the given membership UUID.
+ *
+ * @param string $membership_uuid Org-membership UUID to check against.
+ * @param string $email           Person email to look up.
+ *
+ * @return bool True if an active membership assignment exists, false otherwise.
+ */
+function wicket_person_in_membership(string $membership_uuid, string $email): bool
+{
+    if ('' === $membership_uuid || '' === $email) {
+        return false;
+    }
+
+    if (!function_exists('wicket_api_client')) {
+        return false;
+    }
+
+    try {
+        $client = wicket_api_client();
+        $response = $client->post('/person_memberships/query', [
+            'json' => [
+                'filter' => [
+                    'organization_membership_uuid_in' => [$membership_uuid],
+                    'person_emails_address_eq'        => $email,
+                    'active_at'                       => 'now',
+                ],
+            ],
+        ]);
+
+        if (empty($response['data']) || !is_array($response['data'])) {
+            return false;
+        }
+
+        foreach ($response['data'] as $item) {
+            if ((bool) ($item['attributes']['active'] ?? false)) {
+                return true;
+            }
+        }
+    } catch (Throwable $e) {
+        return false;
+    }
+
+    return false;
+}
+
+/**
+ * Check whether a person (identified by UUID) is an active member of a given org membership.
+ *
+ * Paginates through `/organizations/{org_uuid}/person_memberships` filtering by the membership
+ * UUID to confirm an active assignment exists. Uses paginated requests (page[size]=200).
+ *
+ * @param string $person_uuid     Person UUID.
+ * @param string $membership_uuid Org-membership UUID to check against.
+ *
+ * @return bool True if an active membership assignment exists for the person.
+ */
+function wicket_person_has_membership(string $person_uuid, string $membership_uuid): bool
+{
+    if ('' === $person_uuid || '' === $membership_uuid) {
+        return false;
+    }
+
+    if (!function_exists('wicket_api_client')) {
+        return false;
+    }
+
+    try {
+        $client = wicket_api_client();
+        $page = 1;
+        $perPage = 200;
+
+        do {
+            $response = $client->get("people/{$person_uuid}/person_memberships", [
+                'query' => [
+                    'page[number]' => $page,
+                    'page[size]'   => $perPage,
+                ],
+            ]);
+
+            foreach ($response['data'] ?? [] as $item) {
+                $uuid = $item['relationships']['membership']['data']['id'] ?? '';
+                $active = $item['attributes']['active'] ?? false;
+                if ($uuid === $membership_uuid && $active) {
+                    return true;
+                }
+            }
+
+            $total = (int) ($response['meta']['page']['total'] ?? 0);
+            $page++;
+        } while (($page - 1) * $perPage < $total);
+    } catch (Throwable $e) {
+        return false;
+    }
+
+    return false;
+}
+
+/**
  * Build a normalized summary of the active membership seat allocation for an org.
  *
  * @param array $org_memberships Result of wicket_get_org_memberships().

@@ -6,6 +6,38 @@ declare(strict_types=1);
 defined('ABSPATH') || exit;
 
 /**
+ * Return all known person→organization relationship type slugs with their display labels.
+ *
+ * These slugs are the canonical values accepted by the Wicket MDP `type` attribute on
+ * person-to-organization connections. Use this list to populate dropdowns or validate input.
+ *
+ * @return array<string, string> Map of slug → display label.
+ */
+function wicket_get_person_org_relationship_types(): array
+{
+    return apply_filters('wicket/person_org_relationship_types', [
+        'employee_staff'  => 'Employee',
+        'manager'         => 'Manager',
+        'owner'           => 'Owner',
+        'member'          => 'Member',
+        'contact'         => 'Contact',
+        'representative'  => 'Representative',
+    ]);
+}
+
+/**
+ * Check whether a string is a valid person→organization relationship type slug.
+ *
+ * @param string $type Slug to validate.
+ *
+ * @return bool True if the slug is a recognized relationship type.
+ */
+function wicket_is_valid_person_org_relationship_type(string $type): bool
+{
+    return array_key_exists($type, wicket_get_person_org_relationship_types());
+}
+
+/**
  * Update a connection's attributes (start/end, description, tags, etc.).
  *
  * @param string $connection_id Connection ID.
@@ -583,6 +615,124 @@ function wicket_person_has_org_connection(
     bool $includeEnded = false
 ): bool {
     return wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role_slug, $includeEnded) !== null;
+}
+
+/**
+ * Ensure a person→organization connection of the given relationship type exists.
+ *
+ * If a matching active connection already exists (same org, same type) it is returned
+ * unchanged. Otherwise `wicket_create_person_to_org_connection()` is called with
+ * `starts_at` defaulting to the current UTC timestamp unless overridden via $atts.
+ *
+ * @param string $person_uuid       Person UUID.
+ * @param string $org_uuid          Organization UUID.
+ * @param string $relationship_type Relationship type slug.
+ * @param array  $atts              Extra connection attributes (e.g. 'starts_at', 'ends_at', 'description').
+ *
+ * @return true|WP_Error True on success (new or existing connection), WP_Error on failure.
+ */
+function wicket_ensure_person_org_connection(
+    string $person_uuid,
+    string $org_uuid,
+    string $relationship_type,
+    array $atts = []
+): true|WP_Error {
+    if ('' === $person_uuid || '' === $org_uuid || '' === $relationship_type) {
+        return new WP_Error('invalid_args', 'person_uuid, org_uuid, and relationship_type are required.');
+    }
+
+    // Check for existing active connection matching org + type
+    if (!array_key_exists('starts_at', $atts)) {
+        $atts['starts_at'] = gmdate('Y-m-d\TH:i:s\Z');
+    }
+
+    $result = wicket_create_person_to_org_connection($person_uuid, $org_uuid, $relationship_type, true, $atts);
+
+    if (false === $result) {
+        return new WP_Error('connection_failed', "Failed to create/find person→org connection for person {$person_uuid} → org {$org_uuid}.");
+    }
+
+    return true;
+}
+
+/**
+ * Return all active person→organization connections for a given person and org.
+ *
+ * Queries `/people/{person_uuid}/connections` and filters to connections whose `to`
+ * resource is the specified org UUID and whose `active` attribute is truthy.
+ *
+ * @param string $person_uuid Person UUID.
+ * @param string $org_uuid    Organization UUID.
+ *
+ * @return array|WP_Error Indexed array of matching connection items, or WP_Error on failure.
+ */
+function wicket_get_active_person_org_connections(string $person_uuid, string $org_uuid): array|WP_Error
+{
+    if ('' === $person_uuid || '' === $org_uuid) {
+        return new WP_Error('invalid_args', 'person_uuid and org_uuid are required.');
+    }
+
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        return new WP_Error('api_unavailable', $e->getMessage());
+    }
+
+    try {
+        $response = $client->get('people/' . $person_uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    } catch (Exception $e) {
+        return new WP_Error('api_error', $e->getMessage());
+    }
+
+    $active = [];
+    foreach ($response['data'] ?? [] as $conn) {
+        $to_id = $conn['relationships']['to']['data']['id'] ?? '';
+        $to_type = $conn['relationships']['to']['data']['type'] ?? '';
+        $is_active = (bool) ($conn['attributes']['active'] ?? false);
+
+        if ($to_id === $org_uuid && $to_type === 'organizations' && $is_active) {
+            $active[] = $conn;
+        }
+    }
+
+    return $active;
+}
+
+/**
+ * End a specific person→organization connection by setting its end date.
+ *
+ * The $person_uuid and $org_id parameters are accepted for context/logging only;
+ * the actual patch targets the connection ID. Optional args go in $options:
+ *   - 'ends_at' (string) ISO 8601 UTC timestamp; defaults to current UTC when absent.
+ *
+ * @param string $person_uuid   Person UUID (for context/logging).
+ * @param string $connection_id Connection ID to end.
+ * @param string $org_id        Organization UUID (for context/logging).
+ * @param array  $options       Optional: 'ends_at' (string ISO 8601 UTC).
+ *
+ * @return true|WP_Error True on success, WP_Error on failure.
+ */
+function wicket_end_person_org_connection(
+    string $person_uuid,
+    string $connection_id,
+    string $org_id,
+    array $options = []
+): true|WP_Error {
+    if ('' === $connection_id) {
+        return new WP_Error('invalid_args', 'connection_id is required.');
+    }
+
+    $ends_at = isset($options['ends_at']) && '' !== $options['ends_at'] ? (string) $options['ends_at'] : gmdate('Y-m-d\TH:i:s\Z');
+    $result = wicket_update_connection_attributes($connection_id, ['ends_at' => $ends_at]);
+
+    if (false === $result) {
+        return new WP_Error(
+            'end_connection_failed',
+            "Failed to end connection {$connection_id} for person {$person_uuid} → org {$org_id}."
+        );
+    }
+
+    return true;
 }
 
 /**
