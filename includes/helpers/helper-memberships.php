@@ -123,8 +123,9 @@ function wicket_person_in_membership(string $membership_uuid, string $email): bo
 /**
  * Check whether a person (identified by UUID) is an active member of a given org membership.
  *
- * Paginates through `/organizations/{org_uuid}/person_memberships` filtering by the membership
- * UUID to confirm an active assignment exists. Uses paginated requests (page[size]=200).
+ * Uses the `/person_memberships/query` endpoint with `active_at=now` so the API
+ * evaluates activity from membership dates rather than a potentially stale `active`
+ * boolean on the list endpoint.
  *
  * @param string $person_uuid     Person UUID.
  * @param string $membership_uuid Org-membership UUID to check against.
@@ -143,28 +144,21 @@ function wicket_person_has_membership(string $person_uuid, string $membership_uu
 
     try {
         $client = wicket_api_client();
-        $page = 1;
-        $perPage = 200;
-
-        do {
-            $response = $client->get("people/{$person_uuid}/person_memberships", [
-                'query' => [
-                    'page[number]' => $page,
-                    'page[size]'   => $perPage,
+        $response = $client->post('/person_memberships/query', [
+            'json' => [
+                'filter' => [
+                    'organization_membership_uuid_in' => [$membership_uuid],
+                    'person_uuid_in'                  => [$person_uuid],
+                    'active_at'                       => 'now',
                 ],
-            ]);
+                'page' => [
+                    'number' => 1,
+                    'size'   => 1,
+                ],
+            ],
+        ]);
 
-            foreach ($response['data'] ?? [] as $item) {
-                $uuid = $item['relationships']['membership']['data']['id'] ?? '';
-                $active = $item['attributes']['active'] ?? false;
-                if ($uuid === $membership_uuid && $active) {
-                    return true;
-                }
-            }
-
-            $total = (int) ($response['meta']['page']['total'] ?? 0);
-            $page++;
-        } while (($page - 1) * $perPage < $total);
+        return !empty($response['data']);
     } catch (Throwable $e) {
         return false;
     }
