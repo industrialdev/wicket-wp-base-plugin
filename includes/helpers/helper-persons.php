@@ -219,8 +219,8 @@ function wicket_person_add_tag($person_uuid, $tags)
 function wicket_create_or_get_person(string $first_name, string $last_name, string $email, array $extras = [])
 {
     $first_name = sanitize_text_field($first_name);
-    $last_name  = sanitize_text_field($last_name);
-    $email      = is_scalar($email) ? filter_var((string) $email, FILTER_SANITIZE_EMAIL) : '';
+    $last_name = sanitize_text_field($last_name);
+    $email = is_scalar($email) ? filter_var((string) $email, FILTER_SANITIZE_EMAIL) : '';
 
     if ('' === $first_name || '' === $last_name || '' === $email) {
         return new WP_Error('invalid_person_data', 'First name, last name, and a valid email are required.');

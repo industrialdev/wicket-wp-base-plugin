@@ -1199,11 +1199,13 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
         this.relationshipTypeFilter = this.relationshipTypeFilter.trim();
 
-        // Determine if the active membership modal has enough data to use
-        // Modal is available if either base message OR seat-specific messages are configured
+        // Modal is available when there is content to show, independent of whether
+        // org selection is blocked. shouldRunActiveMembershipFlow covers both block
+        // mode and seat-messaging-only mode.
         const hasBaseMessage = this.activeMembershipAlertTitle.length > 0 || this.activeMembershipAlertBody.length > 0;
         const hasSeatMessages = this.activeMembershipSeatMessagingEnabled && (this.seatMessageHasAvailableSeats || this.seatMessageHasNoSeats);
-        if (this.disableSelectingOrgsWithActiveMembership && (hasBaseMessage || hasSeatMessages)) {
+        const shouldRunActiveMembershipFlow = this.disableSelectingOrgsWithActiveMembership || hasBaseMessage || hasSeatMessages;
+        if (shouldRunActiveMembershipFlow) {
           this.activeMembershipAlertAvailable = true;
         }
 
@@ -1385,7 +1387,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
 
         const includeLocation = this.displayOrgFields === 'name_location' || this.displayOrgFields === 'name_address';
-        const includeMembershipSummary = this.disableSelectingOrgsWithActiveMembership;
+        const includeMembershipSummary = this.disableSelectingOrgsWithActiveMembership || this.activeMembershipSeatMessagingEnabled;
         const orgTypes = this.searchOrgType.split(',').map(type => type.trim());
         let data = {};
         if (this.searchOrgType.length > 0) {
@@ -1522,7 +1524,8 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
-        if (this.disableSelectingOrgsWithActiveMembership) {
+        const shouldFetchSummary = this.disableSelectingOrgsWithActiveMembership || this.activeMembershipSeatMessagingEnabled;
+        if (shouldFetchSummary) {
           const seatData = await this.fetchSeatSummary(orgUuid);
           if (seatData.checkFailed) {
             this.setSearchMessage('<?php echo esc_js(__('We could not verify active membership status right now. Please try again.', 'wicket')); ?>');
@@ -1531,8 +1534,10 @@ if (defined('WICKET_WP_THEME_V2')) {
 
           if (seatData.hasActiveMembership) {
             result.active_membership = true;
-            this.setSearchMessage(this.getActiveMembershipBlockingMessage());
-            return;
+            if (this.disableSelectingOrgsWithActiveMembership) {
+              this.setSearchMessage(this.getActiveMembershipBlockingMessage());
+              return;
+            }
           }
         }
 
@@ -1921,10 +1926,9 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Active Membership modal alert
         // ------------------
 
-        // Only show if the 'Disable Org Select with Active Membership' feature is enabled, sufficient modal data
-        // was populated, and the user hasn't already chosen to proceed with the usual actions
-        if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership && this
-          .activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
+        // Show modal when org has active membership, modal has content, and user hasn't already proceeded.
+        // Hard block (disableSelectingOrgsWithActiveMembership) is handled above at line 1907.
+        if (existingActiveMembership && this.activeMembershipAlertAvailable && !this.activeMembershipAlertProceedChosen) {
           if (seatSummary && typeof seatSummary === 'object') {
             if (typeof seatSummary.has_active_membership !== 'boolean') {
               seatSummary.has_active_membership = existingActiveMembership;
@@ -1981,9 +1985,8 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
-        // The user choose to proceed the modal
-        if (this.disableSelectingOrgsWithActiveMembership && this
-          .activeMembershipAlertAvailable && this.activeMembershipAlertProceedChosen) {
+        // The user chose to proceed from the modal — clean up regardless of block mode.
+        if (this.activeMembershipAlertAvailable && this.activeMembershipAlertProceedChosen) {
           // Clear temp data
           this.activeMembershipAlertOrgUuid = '';
           this.activeMembershipAlertEvent = null;
