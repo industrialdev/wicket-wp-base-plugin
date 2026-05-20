@@ -78,10 +78,14 @@ if (!function_exists('wicket_generate_renewal_order')) {
         // the workflow fires more than once while the subscription is on-hold.
         $last_renewal = wcs_get_last_renewal_order($subscription);
         if ($last_renewal && $last_renewal->needs_payment()) {
-            return;
+           do_action('wicket_aw_renewal_order_created', $last_renewal->get_id());
+           return;
         }
 
         $subscription->update_status('on-hold'); // must be on-hold to accept payment
-        wcs_create_renewal_order($subscription);
+        $renewal_order = wcs_create_renewal_order($subscription);
+        if (!is_wp_error($renewal_order)) {
+            do_action('wicket_aw_renewal_order_created', $renewal_order->get_id());
+        }
     }
 }
