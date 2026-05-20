@@ -38,7 +38,7 @@ function tec_custom_field_label($fields, $ticket_iac_setting, $ticket_id)
 // whenever the configured meta has any checkbox-type field, so fields added via the IAC filter
 // (like Last Name) never become columns on events that also use a checkbox question.
 add_filter('manage_tribe_events_page_tickets-attendees_columns', function ($columns) {
-    if (! isset($columns['last-name'])) {
+    if (!isset($columns['last-name'])) {
         $columns['last-name'] = __('Last Name', 'wicket');
     }
 
@@ -46,7 +46,7 @@ add_filter('manage_tribe_events_page_tickets-attendees_columns', function ($colu
 }, 25);
 
 add_filter('tribe_events_tickets_attendees_csv_export_columns', function ($columns, $items, $event_id) {
-    if (! isset($columns['last-name'])) {
+    if (!isset($columns['last-name'])) {
         $columns['last-name'] = __('Last Name', 'wicket');
     }
 
