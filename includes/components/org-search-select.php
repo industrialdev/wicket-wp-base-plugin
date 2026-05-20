@@ -779,17 +779,17 @@ if (!$is_wicket_theme) {
                       'x-on:click.prevent="selectOrgFromSearchResult(result, $event)"',
                       'x-bind:class="{
                     \'orgss_disabled_button_hollow\': isOrgAlreadyASelectableConnection(result.id)
-                      || (disableSelectingOrgsWithActiveMembership && result.active_membership),
-                    \'hidden\': disableSelectingOrgsWithActiveMembership && result.active_membership
+                      || (disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled),
+                    \'hidden\': disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled
                   }"',
                       'x-bind:disabled="isOrgAlreadyASelectableConnection(result.id)"',
                       'x-bind:aria-disabled="(isOrgAlreadyASelectableConnection(result.id)
-                || (disableSelectingOrgsWithActiveMembership && result.active_membership)) ? \'true\' : \'false\'"',
-                      'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership) ? \'-1\' : \'0\'"',
+                || (disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled)) ? \'true\' : \'false\'"',
+                      'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled) ? \'-1\' : \'0\'"',
                   ],
               ]); ?>
               <div class="component-org-search-select__active-membership-inline-message"
-                x-show="disableSelectingOrgsWithActiveMembership && result.active_membership"
+                x-show="disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled"
                 x-cloak
                 x-html="activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>'"></div>
             </div>
@@ -929,10 +929,10 @@ if (empty($title)) : ?>
                   'atts'     => [
                       'x-on:click.prevent="selectOrgAndCreateRelationship($data.connection.org_id, $event, connection.active_membership, true, connection.active_membership_seat_summary)"',
                       'x-bind:class="{
-                    \'orgss_disabled_button\': connection.active_membership && disableSelectingOrgsWithActiveMembership
+                    \'orgss_disabled_button\': connection.active_membership && disableSelectingOrgsWithActiveMembership && !activeMembershipSeatMessagingEnabled
                   }"',
-                      'x-bind:disabled="connection.active_membership && disableSelectingOrgsWithActiveMembership"',
-                      'x-bind:aria-disabled="(connection.active_membership && disableSelectingOrgsWithActiveMembership) ? \'true\' : \'false\'"',
+                      'x-bind:disabled="connection.active_membership && disableSelectingOrgsWithActiveMembership && !activeMembershipSeatMessagingEnabled"',
+                      'x-bind:aria-disabled="(connection.active_membership && disableSelectingOrgsWithActiveMembership && !activeMembershipSeatMessagingEnabled) ? \'true\' : \'false\'"',
                       'x-show="!hideSelectButtons && connection.org_id !== selectedOrgUuid"',
                   ],
               ]); ?>
@@ -1519,7 +1519,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
-        if (this.disableSelectingOrgsWithActiveMembership && result.active_membership) {
+        if (this.disableSelectingOrgsWithActiveMembership && result.active_membership && !this.activeMembershipSeatMessagingEnabled) {
           this.setSearchMessage(this.getActiveMembershipBlockingMessage());
           return;
         }
@@ -1534,8 +1534,12 @@ if (defined('WICKET_WP_THEME_V2')) {
 
           if (seatData.hasActiveMembership) {
             result.active_membership = true;
-            if (this.disableSelectingOrgsWithActiveMembership) {
+            if (this.disableSelectingOrgsWithActiveMembership && !this.activeMembershipSeatMessagingEnabled) {
               this.setSearchMessage(this.getActiveMembershipBlockingMessage());
+              return;
+            }
+            if (this.activeMembershipAlertAvailable) {
+              this.selectOrgAndCreateRelationship(orgUuid, event, true, false, seatData.seatSummary);
               return;
             }
           }
@@ -1678,12 +1682,11 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
       },
       dismissActiveMembershipAlert() {
-        this.showingActiveMembershipAlert = false;
-        this.activeMembershipAlertProceedChosen = false;
         this.activeMembershipAlertOrgUuid = '';
         this.activeMembershipAlertEvent = null;
         this.activeMembershipAlertSeatSummary = null;
-        this.hideGfNextButton();
+        this.showingActiveMembershipAlert = false;
+        this.clearSelectedOrgState();
       },
       applyOrgSelectionRoleSideEffects(orgUuid) {
         if (this.grantRosterManOnPurchase) {
@@ -1741,7 +1744,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
-        if (this.selectedOrgUuid && String(this.selectedOrgUuid).trim() !== '') {
+        if (this.selectedOrgUuid && String(this.selectedOrgUuid).trim() !== '' && !this.showingActiveMembershipAlert) {
           wicketOrgssDebug.log('ORGSS: syncGfFooterVisibility -> show');
           this.showGfNextButton();
           return;
@@ -1909,7 +1912,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         });
         // TODO: Handle when a Group is selected instead of an org
 
-        if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership) {
+        if (existingActiveMembership && this.disableSelectingOrgsWithActiveMembership && !this.activeMembershipSeatMessagingEnabled) {
           wicketOrgssDebug.warn('ORGSS: selection blocked due to active membership setting', {
             orgUuid,
           });
