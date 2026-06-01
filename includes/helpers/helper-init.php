@@ -17,6 +17,7 @@ $wicket_helpers = [
     'helper-touchpoints.php',
     'helper-segments.php',
     'helper-memberships.php',
+    'helper-membership-bundles.php',
     'helper-multilang.php',
     'helper-connections.php',
     'helper-theme.php',
