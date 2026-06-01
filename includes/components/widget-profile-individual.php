@@ -7,6 +7,7 @@ $defaults = [
     'org_id'                     => '',
     'hidden_fields'              => [],
     'fields'                     => [],
+    'sections'                   => [],
     'person_id'                  => '',
 ];
 
@@ -18,6 +19,7 @@ $org_id = $args['org_id'];
 $profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
 $hidden_fields = $args['hidden_fields'];
 $fields = $args['fields'];
+$sections = $args['sections'];
 $person_id = $args['person_id'] ?? wicket_current_person_uuid();
 $unique_widget_id = rand(1, PHP_INT_MAX);
 
@@ -99,6 +101,9 @@ $wicket_settings = get_wicket_settings();
          <?php endif; ?>
         <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
+        <?php endif; ?>
+        <?php if (!empty($sections)) : ?>
+          sections: <?php echo json_encode($sections); ?>,
         <?php endif; ?>
         lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
