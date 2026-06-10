@@ -1108,7 +1108,11 @@ if (defined('WICKET_WP_THEME_V2')) {
       defaultActiveMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
       activeMembershipAlertTitle: <?php echo json_encode($active_membership_alert_title); ?>,
       activeMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
-      activeMembershipSeatMessagingEnabled: <?php echo ($active_membership_seat_messaging_enabled || $seat_available_message_configured || $seat_unavailable_message_configured) ? 'true' : 'false'; ?>,
+      <?php // Gate seat-based messaging on the explicit admin toggle only. The
+            // $seat_*_message_configured flags are derived from titles/bodies that always
+            // default to non-empty strings, so OR-ing them in turned this on for every form
+            // (including ones that never enabled it), trapping users in a buttonless modal. ?>
+      activeMembershipSeatMessagingEnabled: <?php echo $active_membership_seat_messaging_enabled ? 'true' : 'false'; ?>,
       seatMessageHasAvailableSeats: <?php echo $seat_available_message_configured ? 'true' : 'false'; ?>,
       seatMessageHasNoSeats: <?php echo $seat_unavailable_message_configured ? 'true' : 'false'; ?>,
       seatAvailableMessageTitle: <?php echo json_encode($active_membership_seat_available_alert_title); ?>,
