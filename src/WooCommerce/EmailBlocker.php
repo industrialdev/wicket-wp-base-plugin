@@ -56,30 +56,18 @@ class EmailBlocker
             return;
         }
 
-        // Register filters for all known emails at WooCommerce init
-        add_action('woocommerce_init', [$this, 'register_email_filters']);
-
-        // Catch custom email classes registered by third-party plugins
+        // Hook every email via the woocommerce_email_classes filter, which fires
+        // when WC_Emails initialises naturally — after all plugins (including
+        // Event Tickets) have registered their email classes. We deliberately do
+        // NOT call WC()->mailer() on woocommerce_init: forcing WC_Emails to build
+        // early caches its email list before late-registered emails (e.g. the
+        // Event Tickets "wootickets" email) are added, permanently dropping them
+        // and silently breaking ticket delivery.
         add_filter('woocommerce_email_classes', [$this, 'register_filters_for_custom_emails'], PHP_INT_MAX);
 
         // Explicit-send allowlists
         add_action('woocommerce_before_resend_order_emails', [$this, 'allow_for_resend'], 5, 2);
         add_action('woocommerce_new_customer_note', [$this, 'allow_for_customer_note'], 5, 1);
-    }
-
-    /**
-     * Register filters for all WooCommerce emails available at init.
-     *
-     * @return void
-     */
-    public function register_email_filters(): void
-    {
-        $mailer = WC()->mailer();
-        $emails = $mailer ? $mailer->get_emails() : [];
-
-        foreach ($emails as $email) {
-            $this->hook_email($email);
-        }
     }
 
     /**
@@ -234,17 +222,24 @@ class EmailBlocker
      * Check if the email should be explicitly allowed through.
      *
      * Order of checks:
-     * 1. Pre-registered allow list (resend action, customer note action)
-     * 2. Manual "Email invoice / order details to customer" order action
-     * 3. Customer note added via AJAX
-     * 4. Refund emails (only when the allow-refund setting is ON)
-     * 5. Third-party opt-in via filter
+     * 1. Always-allowed fulfilment emails (e.g. Event Tickets ticket emails)
+     * 2. Pre-registered allow list (resend action, customer note action)
+     * 3. Manual "Email invoice / order details to customer" order action
+     * 4. Customer note added via AJAX
+     * 5. Refund emails (only when the allow-refund setting is ON)
+     * 6. Third-party opt-in via filter
      *
      * @param WC_Email $email Email instance.
      * @return bool
      */
     private function is_explicit_send_request(WC_Email $email): bool
     {
+        // Fulfilment emails are part of a front-end purchase and must always
+        // reach the customer, regardless of who triggered the order update.
+        if (in_array($email->id, $this->always_allowed_email_ids(), true)) {
+            return true;
+        }
+
         if (isset($this->allowed_email_ids[$email->id])) {
             return true;
         }
@@ -263,6 +258,29 @@ class EmailBlocker
         }
 
         return (bool) apply_filters('wicket_woo_email_blocker_allow_send', false, $email);
+    }
+
+    /**
+     * WooCommerce email IDs that must always send, even during admin order updates.
+     *
+     * These are customer fulfilment emails delivered as part of a front-end
+     * purchase (e.g. Event Tickets ticket emails), not admin-edit notifications,
+     * so blocking them would withhold something the customer paid for.
+     *
+     * @return array<int, string>
+     */
+    private function always_allowed_email_ids(): array
+    {
+        $ids = [
+            'wootickets', // Event Tickets Plus — WooCommerce ticket email.
+        ];
+
+        /**
+         * Filters the WooCommerce email IDs the blocker always allows through.
+         *
+         * @param array<int, string> $ids Email IDs that bypass the admin-update block.
+         */
+        return (array) apply_filters('wicket_woo_email_blocker_always_allowed_email_ids', $ids);
     }
 
     /**
