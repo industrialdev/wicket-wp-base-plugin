@@ -16,7 +16,7 @@ A summary of your changes
 - [ ] No dev dependencies in vendor/ (run `composer production` before tagging)
 - [ ] Updated documentation where needed
 - [ ] Tagged reviewers & QA
-- [ ] Demo available at link provided.
+- [ ] Demo link provided in the Task Link
 
 ## Testing Steps
 
