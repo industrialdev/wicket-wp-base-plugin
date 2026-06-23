@@ -2,6 +2,6 @@
 
 This is a proposed naming convention for pull requests.
 
-- feature/ASANA-\<task-id\>-short-description
-- fix/ASANA-\<task-id\>-short-description
-- chore/ASANA-\<task-id\>-short-description
+- feature/WWID-####-short-description
+- fix/WWID-####-short-description
+- chore/WWID-####-short-description
