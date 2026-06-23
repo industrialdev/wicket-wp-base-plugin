@@ -14,6 +14,7 @@ A summary of your changes
 - [ ] Wrote tests for new components/features
 - [ ] Tested manually
 - [ ] No dev dependencies in vendor/ (run `composer production` before tagging)
+- [ ] Updated documentation where needed
 - [ ] Tagged reviewers & QA
 - [ ] Demo available at link provided.
 
