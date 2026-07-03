@@ -99,7 +99,13 @@ if (!class_exists('Wicket_Settings')) {
 
             // Create Settings page with same slug as menu
             $settings = new WPSettings(__('Wicket Settings'), ('wicket-settings'));
-            $settings->set_menu_parent_slug('wicket-settings');
+			// Keep parent slug: makes WPSettings register as a child of the 'Wicket'
+			// top-level menu (Wicket_Admin::wicket_admin_menu, admin_menu p10).
+			// Relabel the submenu 'Settings' instead of the default 'Wicket Settings',
+			// so it no longer duplicates WP's auto-inserted 'Wicket' parent link
+			// (both pointed at the same wicket-settings slug, producing two entries).
+			$settings->set_menu_parent_slug('wicket-settings');
+			$settings->set_menu_title(__('Settings', 'wicket'));
 
             /*
              * Priority-based tab registration.
