@@ -146,6 +146,8 @@ These settings control how the plugin integrates with WP-Cassify, a Single Sign-
 
 When enabled, every time a user logs in to WordPress via WP-Cassify, the plugin retrieves any security roles assigned to that person in the Wicket MDP (found under their profile → Security → Roles) and applies them as WordPress user roles.
 
+This sync is authoritative. On each login it first removes **all** of the user's existing WordPress roles, then reapplies only the roles derived from Wicket (security roles, plus memberships and tags if those options are on, minus anything in Ignore Roles). Any role granted to a synced user by hand in the WordPress **Users** screen is therefore wiped the next time that user logs in through SSO. Leave this option off if you assign WordPress roles manually.
+
 | | |
 |---|---|
 | Option key | `wicket_admin_settings_wpcassify_sync_roles` |
