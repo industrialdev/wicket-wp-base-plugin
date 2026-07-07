@@ -786,6 +786,7 @@ if (!$is_wicket_theme) {
                       'x-bind:aria-disabled="(isOrgAlreadyASelectableConnection(result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled)) ? \'true\' : \'false\'"',
                       'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled) ? \'-1\' : \'0\'"',
+                      'x-text="isOrgAlreadyASelectableConnection(result.id) ? \'✓ ' . esc_js(__('Already Selected', 'wicket')) . '\' : \'' . esc_js(__('Select', 'wicket')) . '\'"',
                   ],
               ]); ?>
               <div class="component-org-search-select__active-membership-inline-message"
