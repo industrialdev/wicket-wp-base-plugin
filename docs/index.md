@@ -18,6 +18,7 @@ Configuration and settings reference. One file per WP admin screen.
 - [Settings — Integrations](product/settings-integrations.md) — WooCommerce, WP-Cassify SSO, Mailtrap
 - [Settings — Memberships](product/settings-memberships.md) — membership tier mapping, membership product categories
 - [Settings — Touchpoints](product/settings-touchpoints.md) — WooCommerce order and Event Tickets touchpoint toggles
+- [Settings — WP Cassify (SSO)](product/settings-wp-cassify.md) — recommended WP Cassify field values for a Wicket SSO integration
 
 ---
 
@@ -33,3 +34,4 @@ Technical reference for hooks, filters, architecture, and source-level contracts
 ## Guides — End Users
 
 - [Configure reCAPTCHA on the Create Account Form](guides/configure-recaptcha.md) — get Google keys and enable bot protection on sign-up
+- [Set Up Wicket and SSO on a Self-Hosted WordPress](guides/set-up-wicket-and-sso-on-self-hosted-wordpress.md) — full install-and-configure playbook for a self-hosted client IT team
