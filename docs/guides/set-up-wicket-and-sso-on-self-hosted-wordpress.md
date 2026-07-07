@@ -39,7 +39,7 @@ The critical link between the two plugins: **the WordPress username must equal t
 
 - WordPress **6.6** or newer
 - PHP **8.2** or newer
-- **Advanced Custom Fields (ACF)** installed and active. The free version from the WordPress.org plugin repository is sufficient (ACF Pro also satisfies the requirement if you already use it). The Wicket Base plugin declares ACF as a required plugin, so WordPress will not let it activate until ACF is installed and active. ACF powers the Wicket blocks and widgets.
+- **Advanced Custom Fields Pro (ACF Pro)** installed, licensed, and active. Free ACF is not sufficient: the plugin uses Pro-only ACF features (ACF Blocks for its Gutenberg blocks, and a Flexible Content field for the social links component). The plugin declares ACF Pro as a required plugin, so WordPress will not let it activate until ACF Pro is installed and active.
 - Administrator access to the WordPress site (and, for the Composer install option, shell access to the server)
 
 **Credentials to request from Wicket**
@@ -68,7 +68,7 @@ The Wicket CAS server only accepts logins from site URLs it recognizes. Give the
 
 ## Step 1: Install the Prerequisites
 
-1. Install and activate **Advanced Custom Fields (ACF)**. The free version is enough: install it from **Plugins > Add New** by searching for "Advanced Custom Fields". If you already license ACF Pro, that satisfies the requirement too (upload it via **Plugins > Add New > Upload Plugin**).
+1. Install and activate **Advanced Custom Fields Pro (ACF Pro)**. Download it from your ACF Pro account, upload it via **Plugins > Add New > Upload Plugin**, and enter your license key. The free WordPress.org version will not work: the plugin depends on Pro-only ACF features (ACF Blocks and a Flexible Content field).
 2. Install and activate **WP Cassify**. It is free on the WordPress.org repository, so you can install it directly from **Plugins > Add New** by searching for "WP Cassify". Leave it configured later in Step 3.
 
 
@@ -245,7 +245,7 @@ $logout_url = wp_logout_url(home_url('/'));
   - **Deployer for Git (Option B):** open its settings screen and run the deployment to pull the latest code from the tracked branch. This follows the branch, not tagged releases.
   - **Composer (Option C):** raise the version constraint if needed, then run `composer update industrialdev/wicket-wp-base-plugin` from your project root.
 - **Versioning:** releases are tagged with bare version numbers (e.g. `2.4.10`). Watch the [GitHub repository](https://github.com/industrialdev/wicket-wp-base-plugin) for new versions.
-- **ACF and WP Cassify update independently** through their own normal update channels (free ACF updates from the **Plugins** screen like any repository plugin). Keep all three current.
+- **ACF Pro and WP Cassify update independently** through their own normal update channels (ACF Pro updates from the **Plugins** screen once its license key is entered). Keep all three current.
 - After any Wicket Base update, revisit **Wicket > Environments** to confirm the Status is still **CONNECTED**.
 
 
@@ -268,7 +268,7 @@ $logout_url = wp_logout_url(home_url('/'));
 - Double-check the API Endpoint, JWT Secret Key, and Person ID for the **active** environment, and confirm the **Wicket Environment** toggle points at the environment whose credentials you filled in.
 
 **Features / blocks do not appear**
-- Confirm **ACF** is installed and active. The Wicket blocks and widgets do not register without it. (WordPress should also refuse to activate Wicket Base while ACF is inactive.)
+- Confirm **ACF Pro** is installed and active. The Wicket blocks (ACF Blocks) and the social links component rely on Pro-only ACF features and will not work under free ACF. WordPress should also refuse to activate Wicket Base while ACF is inactive.
 
 **The plugin activates but errors about missing classes**
 - Its autoloaded dependencies are not available. With a ZIP or Deployer install (Options A and B), the committed `vendor/` folder was stripped during copying or deploy; re-download the ZIP or redeploy so `vendor/` is present. With a Composer-managed install (Option C), run `composer install` from your project root so Composer resolves the plugin's dependencies.
