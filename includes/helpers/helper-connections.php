@@ -130,13 +130,65 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
         return $updated_connection;
     } catch (Exception $e) {
         $error_message = $e->getMessage();
-        if (strpos($error_message, 'must be before') !== false) {
-            // This is a special case where the end date is being set to the same day as the start date
-            // So we need to simply remove the connection and return true
-            wicket_remove_connection($connection_id);
 
-            return true;
+        // The MDP API requires ends_at to be strictly after starts_at. When the requested
+        // ends_at is not after starts_at (same-day add+remove, same-second timestamps, or a
+        // start date at/after the requested end), the PATCH is rejected with a 422 carrying
+        // "must be before" / "must be after" validation errors.
+        //
+        // Previously this branch HARD-DELETED the connection, destroying history and breaking
+        // the roster contract that removal end-dates a relationship. End-date instead by
+        // clamping ends_at to one second after starts_at and retrying once. If the retry also
+        // fails, leave the connection intact and report failure. Never delete here.
+        if (strpos($error_message, 'must be before') !== false || strpos($error_message, 'must be after') !== false) {
+            $starts_at = $merged_attributes['starts_at'] ?? null;
+            $starts_ts = $starts_at !== null ? strtotime((string) $starts_at) : false;
+
+            if ($starts_ts !== false) {
+                $merged_attributes['ends_at'] = gmdate('Y-m-d\TH:i:s\Z', $starts_ts + 1);
+
+                try {
+                    $retry_payload = [
+                        'data' => [
+                            'attributes'    => $merged_attributes,
+                            'id'            => $connection_id,
+                            'relationships' => [
+                                'from' => $current_connection_info['data']['relationships']['from'],
+                                'to'   => $current_connection_info['data']['relationships']['to'],
+                            ],
+                            'type'          => $current_connection_info['data']['type'],
+                        ],
+                    ];
+
+                    return $client->patch('connections/' . $connection_id, ['json' => $retry_payload]);
+                } catch (Exception $retry_e) {
+                    Wicket()->log()->error('[wicket-base-helper] wicket_update_connection_attributes: end-date clamp retry failed, connection left intact', [
+                        'source'        => 'wicket-base',
+                        'connection_id' => $connection_id,
+                        'starts_at'     => $starts_at,
+                        'error'         => $retry_e->getMessage(),
+                    ]);
+
+                    return false;
+                }
+            }
+
+            Wicket()->log()->error('[wicket-base-helper] wicket_update_connection_attributes: cannot end-date (no starts_at), connection left intact', [
+                'source'         => 'wicket-base',
+                'connection_id'  => $connection_id,
+                'original_error' => $error_message,
+            ]);
+
+            return false;
         }
+
+        // Unhandled PATCH error (not a date-ordering validation). Log so a future MDP
+        // message-wording change does not silently disable the end-date clamp branch above.
+        Wicket()->log()->error('[wicket-base-helper] wicket_update_connection_attributes: unhandled PATCH error', [
+            'source'         => 'wicket-base',
+            'connection_id'  => $connection_id,
+            'original_error' => $error_message,
+        ]);
 
         return false;
     }
