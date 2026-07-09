@@ -2107,7 +2107,8 @@ function wicket_assign_organization_membership(
     $max_seats = 0,
     $grace_period_days = 0,
     $previous_membership_uuid = '',
-    $grant_owner_assignment = false
+    $grant_owner_assignment = false,
+    $copy_previous_assignments = true
 ) {
     $override = apply_filters(
         'wicket_pre_assign_organization_membership',
@@ -2120,7 +2121,8 @@ function wicket_assign_organization_membership(
         $max_seats,
         $grace_period_days,
         $previous_membership_uuid,
-        $grant_owner_assignment
+        $grant_owner_assignment,
+        $copy_previous_assignments
     );
 
     if ($override !== null) {
@@ -2174,7 +2176,7 @@ function wicket_assign_organization_membership(
     }
 
     if (!empty($previous_membership_uuid)) {
-        $payload['data']['attributes']['copy_previous_assignments'] = true;
+        $payload['data']['attributes']['copy_previous_assignments'] = (bool) $copy_previous_assignments;
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
             'type' => 'organization_memberships',
             'id' => $previous_membership_uuid,
