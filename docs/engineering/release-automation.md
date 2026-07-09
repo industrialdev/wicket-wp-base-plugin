@@ -1,7 +1,7 @@
 ---
 title: "Release Automation (Auto Version Bump & Tag)"
 audience: [developer]
-source_files: [".github/workflows/release.yml", ".ci/version-bump.php"]
+source_files: [".github/workflows/release.yml", ".ci/version-bump.php", ".ci/changelog.php"]
 ---
 
 # Release Automation
@@ -15,7 +15,8 @@ Every merge into `main` bumps the plugin version and pushes a matching git tag a
 1. A PR merges into `main` (push event).
 2. [.github/workflows/release.yml](../../.github/workflows/release.yml) mints a GitHub App token, checks out `main`.
 3. It reads the merge commit message for a bump marker and runs [.ci/version-bump.php](../../.ci/version-bump.php).
-4. It commits `chore(release): x.y.z`, tags that commit `x.y.z`, and pushes both to `main`.
+4. It runs [.ci/changelog.php](../../.ci/changelog.php) to prepend a `CHANGELOG.md` section for the new version.
+5. It commits `chore(release): x.y.z` (version files + changelog), tags that commit `x.y.z`, and pushes both to `main`.
 
 The workflow ignores its own `chore(release):` commits, so it does not loop.
 
@@ -38,6 +39,30 @@ The version is written to two files, kept in sync:
 - The main plugin file header `Version:` (auto-detected: the root `*.php` whose header contains `Plugin Name:`).
 
 `readme.txt` `Stable tag` is intentionally not touched (these plugins are not WP.org-hosted; that field is unused here).
+
+## Changelog
+
+`CHANGELOG.md` (repo root, [Keep a Changelog](https://keepachangelog.com) style, newest on top) is updated automatically in the same release commit. [.ci/changelog.php](../../.ci/changelog.php) reads the commits merged since the last tag (`git log <last-tag>..HEAD --no-merges`) and prepends one section for the new version.
+
+Every commit type is included and grouped by its conventional prefix. The only commits skipped are the bot's own `chore(release):` commits (they are the changelog commits themselves). Commits with no conventional prefix are listed verbatim under **Other**.
+
+| Prefix | Section | | Prefix | Section |
+|---|---|---|---|---|
+| `feat` | Added | | `test` | Tests |
+| `fix` | Fixed | | `build` | Build |
+| `perf` | Performance | | `ci` | CI |
+| `refactor` | Changed | | `chore`, `style` | Maintenance |
+| `docs` | Documentation | | _(none / unknown)_ | Other |
+
+A `!` in the prefix (e.g. `feat!:`) prefixes the line with **BREAKING**.
+
+New sections are inserted below the `<!-- new releases inserted below this line -->` marker, so the file header stays fixed. Cleaner commit subjects (or squash-merge, so one PR is one line) produce a cleaner changelog.
+
+Regenerate or back-fill a range manually with an explicit range argument:
+
+```bash
+php .ci/changelog.php 2.4.11 2.4.8..2.4.11
+```
 
 ## Local use
 
