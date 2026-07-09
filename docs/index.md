@@ -28,6 +28,7 @@ Technical reference for hooks, filters, architecture, and source-level contracts
 
 - [Centralized Logging](engineering/logging.md) — `WicketWP\Log` usage, log levels, per-plugin wrapper pattern
 - [WooCommerce Email Blocker](engineering/woocommerce-email-blocker.md) — admin email suppression logic, hooks, extension point
+- [Release Automation](engineering/release-automation.md): auto version bump and tag on merge to main, GitHub App setup
 
 ---
 
