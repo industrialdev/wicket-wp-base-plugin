@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.13] - 2026-07-13
+
+### Fixed
+- scope role removal to org, handle already-absent roles, log delete errors
+
+### Documentation
+- add automated release process to AGENTS.md #norelease
+- self-contained release automation reference #norelease
+- add release automation reference #norelease
+
+
 ## [2.4.12] - 2026-07-09
 
 ### Added
