@@ -1973,57 +1973,127 @@ function wicket_assign_role($person_uuid, $role_name, $org_uuid = '')
     return false;
 }
 
+
 /**------------------------------------------------------------------
  * Removes role from person
  * $role_name is the text name of the role
  * The lookup is case sensitive so "prospective AO" and "prospective ao" would be considered different roles
+ * $org_id, when provided, scopes the match to a specific org resource so a
+ * same-named role held at a different org is never deleted.
+ * Idempotent: if the person fetch succeeds but the role is absent, returns true
+ * (the role is already gone, e.g. membership-derived role revoked server-side).
  ------------------------------------------------------------------*/
-function wicket_remove_role($person_uuid, $role_name)
+function wicket_remove_role($person_uuid, $role_name, $org_id = '')
 {
     $client = wicket_api_client();
     $person = wicket_get_person_by_id($person_uuid);
 
+    // Never mask a fetch failure: if the person could not be loaded, the role
+    // absence is untrustworthy. Return false so callers can surface the error.
+    if (!$person) {
+        if (function_exists('wc_get_logger')) {
+            wc_get_logger()->error('wicket_remove_role: person fetch returned empty', [
+                'source' => 'wicket-orgman',
+                'person_uuid' => $person_uuid,
+                'role_name' => $role_name,
+                'org_id' => $org_id,
+            ]);
+        }
+
+        return false;
+    }
+
+    // Normalize included() to a plain iterable array. The SDK returns a
+    // Illuminate\Support\Collection (an object) or null.
+    $included_raw = is_object($person) && method_exists($person, 'included')
+        ? $person->included()
+        : null;
+    $included_items = [];
+    if (is_array($included_raw)) {
+        $included_items = $included_raw;
+    } elseif ($included_raw instanceof \Traversable) {
+        foreach ($included_raw as $inc_item) {
+            $included_items[] = $inc_item;
+        }
+    }
+
     $role_id = '';
-    if ($person) {
-        foreach ($person->included() as $included) {
-            if ($included['type'] == 'roles' && $included['attributes']['name'] == $role_name) {
-                // get the role id for use in the payload below
-                $role_id = $included['id'];
-                break;
+    foreach ($included_items as $included) {
+        if (($included['type'] ?? '') !== 'roles') {
+            continue;
+        }
+        if (($included['attributes']['name'] ?? '') !== $role_name) {
+            continue;
+        }
+        // When org_id is provided, only match roles scoped to that org.
+        if ($org_id !== '') {
+            $resource_id = (string) (
+                $included['relationships']['resource']['data']['id']
+                ?? $included['relationships']['organization']['data']['id']
+                ?? ''
+            );
+            if ($resource_id !== $org_id) {
+                continue;
             }
         }
+        $role_id = $included['id'];
+        break;
     }
 
-    if ($role_id) {
-        // build role payload
-        $payload = [
-            'data' => [
-                [
-                    'type' => 'roles',
-                    'id' => $role_id,
-                ],
-            ],
-        ];
-
-        try {
-            $client->delete("people/$person_uuid/relationships/roles", ['json' => $payload]);
-
-            return true;
-        } catch (Exception $e) {
-            $errors = json_decode($e->getResponse()->getBody())->errors;
-            // echo "<pre>";
-            // print_r($e->getMessage());
-            // echo "</pre>";
-            //
-            // echo "<pre>";
-            // print_r($errors);
-            // echo "</pre>";
-            // die;
+    // Role not found despite a successful person fetch: it is already gone
+    // (e.g. membership-derived role auto-revoked server-side). Treat as success.
+    if ('' === $role_id) {
+        if (function_exists('wc_get_logger')) {
+            wc_get_logger()->info('wicket_remove_role: role already absent, treating as success', [
+                'source' => 'wicket-orgman',
+                'person_uuid' => $person_uuid,
+                'role_name' => $role_name,
+                'org_id' => $org_id,
+            ]);
         }
+
+        return true;
     }
 
-    return false;
+    // build role payload
+    $payload = [
+        'data' => [
+            [
+                'type' => 'roles',
+                'id' => $role_id,
+            ],
+        ],
+    ];
+
+    try {
+        $client->delete("people/$person_uuid/relationships/roles", ['json' => $payload]);
+
+        return true;
+    } catch (Exception $e) {
+        // Safe error extraction: getResponse() may be null for non-HTTP failures.
+        $error_detail = $e->getMessage();
+        if (method_exists($e, 'getResponse') && $e->getResponse()) {
+            $body = (string) $e->getResponse()->getBody();
+            $decoded = json_decode($body, true);
+            if (isset($decoded['errors'])) {
+                $error_detail .= ' | ' . wp_json_encode($decoded['errors']);
+            }
+        }
+        if (function_exists('wc_get_logger')) {
+            wc_get_logger()->error('wicket_remove_role: DELETE request failed', [
+                'source' => 'wicket-orgman',
+                'person_uuid' => $person_uuid,
+                'role_name' => $role_name,
+                'org_id' => $org_id,
+                'role_id' => $role_id,
+                'error' => $error_detail,
+            ]);
+        }
+
+        return false;
+    }
 }
+
 
 /**------------------------------------------------------------------
  * Assign organization membership to person
