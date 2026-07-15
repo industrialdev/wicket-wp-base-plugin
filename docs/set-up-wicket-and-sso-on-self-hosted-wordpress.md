@@ -122,7 +122,7 @@ The plugin is not on Packagist, and its `composer.json` requires the Wicket PHP 
 
 ## Step 3: Configure WP Cassify (SSO)
 
-Go to **Settings -> WP Cassify** in the WordPress admin sidebar. See [Settings: WP Cassify](../product/settings-wp-cassify.md) for a full field reference. The recommended values are:
+Go to **Settings -> WP Cassify** in the WordPress admin sidebar. See [Settings: WP Cassify](./settings-wp-cassify.md) for a full field reference. The recommended values are:
 
 **General Settings**
 
@@ -166,11 +166,11 @@ All settings live under **Wicket** in the WordPress admin sidebar.
 
 ### Environments (connect to Wicket)
 
-Go to **Wicket > Environments**. Enter the credentials from Wicket into the **Wicket Production** and **Wicket Staging** sections (API Endpoint, JWT Secret Key, Person ID, Parent Org, Wicket Admin). Then set **Wicket Environment** to the one you want active. When the credentials are correct, the **Status** indicator turns green and reads **CONNECTED** (it performs a live test call to the API). Full reference: [Settings: Environments](../product/settings-environments.md).
+Go to **Wicket > Environments**. Enter the credentials from Wicket into the **Wicket Production** and **Wicket Staging** sections (API Endpoint, JWT Secret Key, Person ID, Parent Org, Wicket Admin). Then set **Wicket Environment** to the one you want active. When the credentials are correct, the **Status** indicator turns green and reads **CONNECTED** (it performs a live test call to the API). Full reference: [Settings: Environments](./settings-environments.md).
 
 ### General
 
-Go to **Wicket > General** and set the **Create Account Page** and **New Account Redirect** pages, and configure reCAPTCHA if you use the Create Account form. Reference: [Settings: General](../product/settings-general.md). To set up reCAPTCHA, follow [Configure reCAPTCHA on the Create Account Form](configure-recaptcha.md).
+Go to **Wicket > General** and set the **Create Account Page** and **New Account Redirect** pages, and configure reCAPTCHA if you use the Create Account form. Reference: [Settings: General](./settings-general.md). To set up reCAPTCHA, follow [Configure reCAPTCHA on the Create Account Form](configure-recaptcha.md).
 
 ### Integrations (SSO role sync)
 
@@ -185,7 +185,7 @@ Go to **Wicket > Integrations** and, under **WP Cassify**, enable what you need:
 
 > **Heads up:** with Sync Security Roles on, each login first clears the user's existing WordPress roles and then reapplies them from Wicket. Roles you assign manually in WordPress will not survive the member's next login.
 
-Full reference: [Settings: Integrations](../product/settings-integrations.md).
+Full reference: [Settings: Integrations](./settings-integrations.md).
 
 
 

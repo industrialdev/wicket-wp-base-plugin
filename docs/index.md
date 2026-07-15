@@ -1,38 +1,24 @@
----
-title: "Wicket Base Plugin Documentation Index"
-audience: [implementer, support, developer, end-user]
----
-
 # Documentation Index — wicket-wp-base-plugin
 
-Three directories, three audiences. See [AGENTS.md](AGENTS.md) for authoring rules.
+## Settings Reference (Operators & Support)
 
----
+- [Settings — Environments](settings-environments.md) — connect to Wicket staging/production environments
+- [Settings — General](settings-general.md) — account creation pages, reCAPTCHA, default styles
+- [Settings — Integrations](settings-integrations.md) — WooCommerce, WP-Cassify SSO, Mailtrap
+- [Settings — Memberships](settings-memberships.md) — membership tier mapping, membership product categories
+- [Settings — Touchpoints](settings-touchpoints.md) — WooCommerce order and Event Tickets touchpoint toggles
+- [Settings — WP Cassify (SSO)](settings-wp-cassify.md) — recommended WP Cassify field values for a Wicket SSO integration
 
-## Product Docs — Operators & Support
+## Group Subscription (Operators & Support)
 
-Configuration and settings reference. One file per WP admin screen.
+- [Global Settings — Group Subscription](global-settings-group-subscription.md)
+- [Product Tab — Group Assignment Options](product-tab-group-assignment-options.md)
+- [Subscription Date Behavior](subscription-date-behavior.md)
+- [Product — Group Product Assignment Tab](product-group-product-assignment-tab.md)
+- [Wicket Settings — Integrations — WooCommerce — Group Subscriptions](wicket-settings-integrations-woocommerce-group-subscriptions.md)
+- [Troubleshooting: Group Membership Not Extended on Renewal](group-membership-not-extended-on-renewal.md)
 
-- [Settings — Environments](product/settings-environments.md) — connect to Wicket staging/production environments
-- [Settings — General](product/settings-general.md) — account creation pages, reCAPTCHA, default styles
-- [Settings — Integrations](product/settings-integrations.md) — WooCommerce, WP-Cassify SSO, Mailtrap
-- [Settings — Memberships](product/settings-memberships.md) — membership tier mapping, membership product categories
-- [Settings — Touchpoints](product/settings-touchpoints.md) — WooCommerce order and Event Tickets touchpoint toggles
-- [Settings — WP Cassify (SSO)](product/settings-wp-cassify.md) — recommended WP Cassify field values for a Wicket SSO integration
+## Guides (End Users)
 
----
-
-## Engineering Docs — Developers & Agents
-
-Technical reference for hooks, filters, architecture, and source-level contracts.
-
-- [Centralized Logging](engineering/logging.md) — `WicketWP\Log` usage, log levels, per-plugin wrapper pattern
-- [WooCommerce Email Blocker](engineering/woocommerce-email-blocker.md) — admin email suppression logic, hooks, extension point
-- [Release Automation](engineering/release-automation.md): auto version bump and tag on merge to main, GitHub App setup
-
----
-
-## Guides — End Users
-
-- [Configure reCAPTCHA on the Create Account Form](guides/configure-recaptcha.md) — get Google keys and enable bot protection on sign-up
-- [Set Up Wicket and SSO on a Self-Hosted WordPress](guides/set-up-wicket-and-sso-on-self-hosted-wordpress.md) — full install-and-configure playbook for a self-hosted client IT team
+- [Configure reCAPTCHA on the Create Account Form](configure-recaptcha.md) — get Google keys and enable bot protection on sign-up
+- [Set Up Wicket and SSO on a Self-Hosted WordPress](set-up-wicket-and-sso-on-self-hosted-wordpress.md) — full install-and-configure playbook for a self-hosted client IT team

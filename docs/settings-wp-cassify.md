@@ -10,7 +10,7 @@ Found under **Settings -> WP Cassify** in the WordPress admin sidebar.
 
 WP Cassify is a free, third-party Single Sign-On plugin. It is documented here because it is almost always deployed alongside the Wicket Base plugin: it authenticates members against the Wicket CAS server and hands the Wicket person UUID to WordPress, which the Wicket Base plugin then uses to identify the member and sync their roles.
 
-For a full walkthrough of installing and wiring everything together, see the guide [Set Up Wicket and SSO on a Self-Hosted WordPress](../guides/set-up-wicket-and-sso-on-self-hosted-wordpress.md).
+For a full walkthrough of installing and wiring everything together, see the guide [Set Up Wicket and SSO on a Self-Hosted WordPress](./set-up-wicket-and-sso-on-self-hosted-wordpress.md).
 
 > These are the recommended values for a Wicket integration. WP Cassify has many more options than listed here; the ones below are the settings that matter for Wicket.
 
@@ -119,5 +119,5 @@ Use this to rescue a site or to reconfigure SSO/Wicket settings when the CAS ser
 
 ## Related
 
-- [Set Up Wicket and SSO on a Self-Hosted WordPress](../guides/set-up-wicket-and-sso-on-self-hosted-wordpress.md): the full install-and-configure playbook.
+- [Set Up Wicket and SSO on a Self-Hosted WordPress](./set-up-wicket-and-sso-on-self-hosted-wordpress.md): the full install-and-configure playbook.
 - [Settings: Integrations](settings-integrations.md): the Wicket Base plugin's WP Cassify role-sync options (Sync Security Roles, Sync Memberships as Roles, Sync Tags as Roles, Ignore Roles).

@@ -51,8 +51,6 @@ create tags by hand. The bump level comes from a marker in the PR title
 Conventional commit prefixes (`feat:`, `fix:`, `docs:`, ...) drive changelog
 grouping; a `!` (e.g. `feat!:`) flags a BREAKING change.
 
-Canonical doc: Wicket Atlas `conventions/release-automation.md` (wicket-atlas
-repo, sibling of `qa/` in the stack assembly).
 
 ## Security & WordPress-Specific Requirements
 - Sanitize, validate, and escape all input/output (`sanitize_text_field`, `esc_html`, etc.).
