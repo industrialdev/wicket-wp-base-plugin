@@ -37,39 +37,22 @@ Git history favors short, imperative, scope-specific messages (for example `fixe
 - PRs should include: purpose, risk notes, test evidence (`composer check` output), and screenshots for UI/admin changes.
 - Link related issue/ticket and call out breaking or release-impacting changes.
 
-## Release Process (Automated)
+## Release & Branch Workflow
 
-Releases are **fully automated**. Merging a PR to `main` cuts a release via the `wicket-release-bot` GitHub App: it bumps the version, prepends `CHANGELOG.md`, commits `chore(release): x.y.z`, and pushes the matching git tag. No one needs push access to `main`.
+All work happens on branches. `main` is locked; changes land via peer-reviewed
+Pull Request (devs cross-review each other). Never commit to `main` directly, and never push or open a
+PR without explicit human approval.
 
-**Never do these by hand:** bump the version, edit `composer.json` / the main file header / `*_VERSION` constants (and `style.css` for the theme), or create git tags. The bot owns all of that after merge.
+Merging a PR to `main` **auto-releases** via the `wicket-release-bot` GitHub
+App: version bump, `CHANGELOG.md` update, git tag. Never bump versions or
+create tags by hand. The bump level comes from a marker in the PR title
+(squash-merge makes it the commit message): _(none)_ / `#patch` = patch, `#minor`,
+`#major`, or `#norelease` (no release; use for docs/tooling-only merges).
+Conventional commit prefixes (`feat:`, `fix:`, `docs:`, ...) drive changelog
+grouping; a `!` (e.g. `feat!:`) flags a BREAKING change.
 
-### Releasing (default behavior)
-
-Every PR merged to `main` releases automatically with a **patch** bump. Control the bump by putting a marker in the **PR title** (squash-merge makes the title the commit message):
-
-| Marker | Result |
-|---|---|
-| _(none)_ | patch (`2.4.10` -> `2.4.11`) |
-| `#minor` | minor (`2.4.10` -> `2.5.0`) |
-| `#major` | major (`2.4.10` -> `3.0.0`) |
-| `#norelease` | no bump, no tag |
-
-### Not releasing
-
-Add `#norelease` to the PR title for docs/tooling-only changes that should not cut a version. **Every merge releases unless the message contains `#norelease`.**
-
-### Commit conventions that affect the changelog
-
-- Use conventional prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `perf:`, `refactor:`, etc. The changelog groups entries by prefix.
-- `feat!:` (or any `!:`) flags a **BREAKING** change in the changelog.
-- **Squash-merge** yields the cleanest changelog (one PR = one line). Merge commits list each individual commit.
-- A release lists **everything merged since the last tag**, not just the triggering PR. Catch-up is expected.
-
-### Local version bump (optional)
-
-`composer version-bump` (or `php .ci/version-bump.php`) edits version files only; it never commits or tags. Use it to preview, not to release.
-
-Full details, markers, and troubleshooting: [`docs/engineering/release-automation.md`](docs/engineering/release-automation.md).
+Canonical doc: Wicket Atlas `conventions/release-automation.md` (wicket-atlas
+repo, sibling of `qa/` in the stack assembly).
 
 ## Security & WordPress-Specific Requirements
 - Sanitize, validate, and escape all input/output (`sanitize_text_field`, `esc_html`, etc.).
