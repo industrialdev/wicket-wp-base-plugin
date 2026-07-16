@@ -6,9 +6,14 @@ $defaults = [
     'profile_required_resources' => '{}',
     'org_id'                     => '',
     'hidden_fields'              => [],
+    // 'fields' and 'sections' remain valid, general-purpose args on this component.
+    // Not deprecated themselves, but every current caller (GF widget-profile fields,
+    // AC profile blocks) only reaches them via their own deprecated legacy
+    // properties, as a fallback for when 'widget_config' is empty/invalid.
     'fields'                     => [],
     'sections'                   => [],
     'person_id'                  => '',
+    'widget_config'              => [],
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -16,12 +21,27 @@ $classes = $args['classes'];
 $user_info_data_field_name = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $org_id = $args['org_id'];
-$profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
+$profile_required_resources_decoded = json_decode((string) $args['profile_required_resources'], true);
+$profile_required_resources = json_encode(is_array($profile_required_resources_decoded) ? $profile_required_resources_decoded : []);
 $hidden_fields = $args['hidden_fields'];
 $fields = $args['fields'];
 $sections = $args['sections'];
 $person_id = $args['person_id'] ?? wicket_current_person_uuid();
 $unique_widget_id = rand(1, PHP_INT_MAX);
+
+$widget_config_blocklist = ['rootEl', 'apiRoot', 'accessToken', 'personId', 'orgId', '__proto__', 'constructor', 'prototype'];
+$widget_config = is_array($args['widget_config']) ? array_diff_key($args['widget_config'], array_flip($widget_config_blocklist)) : [];
+
+// A caller-supplied 'hidden_fields' arg is a hardcoded plugin requirement (e.g.
+// GF's widget-profile-individual field always force-hides 'personType' for its
+// own validation logic to hold, see WidgetProfile.php) — it must always apply
+// regardless of what a config author's JSON says, so merge it into whatever
+// 'hiddenFields' widget_config carries rather than letting either side clobber
+// the other via last-wins emit order.
+if (!empty($hidden_fields)) {
+    $config_hidden_fields = isset($widget_config['hiddenFields']) && is_array($widget_config['hiddenFields']) ? $widget_config['hiddenFields'] : [];
+    $widget_config['hiddenFields'] = array_values(array_unique(array_merge($hidden_fields, $config_hidden_fields)));
+}
 
 $wicket_settings = get_wicket_settings();
 ?>
@@ -99,6 +119,10 @@ $wicket_settings = get_wicket_settings();
          <?php if (!empty($hidden_fields)) : ?>
          hiddenFields: <?php echo json_encode($hidden_fields); ?>,
          <?php endif; ?>
+        <?php // Deprecated: the 'fields'/'sections' args are only ever populated
+              // today by a caller's legacy fallback path (see the 'fields'/'sections'
+              // arg comment near $defaults above) — every current caller passes
+              // 'widget_config' instead when it has one. Kept working, not removed. ?>
         <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
@@ -107,6 +131,9 @@ $wicket_settings = get_wicket_settings();
         <?php endif; ?>
         lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
+         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
+         <?php echo esc_js($wc_key); ?>: <?php echo json_encode($wc_value); ?>,
+         <?php endforeach; ?>
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php

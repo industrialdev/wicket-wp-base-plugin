@@ -4,17 +4,26 @@ $defaults = [
     'org_id'                     => '',
     'org_info_data_field_name'   => 'profile-org-info',
     'validation_data_field_name' => 'profile-org-validation',
+    // 'fields' remains a valid, general-purpose arg on this component. Not
+    // deprecated itself, but every current caller (GF org profile field, AC org
+    // profile block) only reaches it via its own deprecated legacy property, as
+    // a fallback for when 'widget_config' is empty/invalid.
     'fields'                     => [],
+    'widget_config'              => [],
 ];
 
 $args = wp_parse_args($args, $defaults);
 $classes = $args['classes'];
 $org_id = $args['org_id'];
-$org_required_resources = $args['org_required_resources'] === '' ? '{}' : $args['org_required_resources'];
+$org_required_resources_decoded = json_decode((string) $args['org_required_resources'], true);
+$org_required_resources = json_encode(is_array($org_required_resources_decoded) ? $org_required_resources_decoded : []);
 $org_info_data_field_name = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $fields = $args['fields'];
 $unique_widget_id = rand(1, PHP_INT_MAX);
+
+$widget_config_blocklist = ['rootEl', 'apiRoot', 'accessToken', 'orgId', '__proto__', 'constructor', 'prototype'];
+$widget_config = is_array($args['widget_config']) ? array_diff_key($args['widget_config'], array_flip($widget_config_blocklist)) : [];
 
 if (empty($org_id)) {
     return; // Returning nothing in case this needs to be dynamically reloaded, so the user doesn't see the error
@@ -106,10 +115,17 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
          orgId: '<?php echo $org_id; ?>',
          lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
          extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
+       <?php // Deprecated: the 'fields' arg is only ever populated today by a
+             // caller's legacy fallback path (see the 'fields' arg comment near
+             // $defaults above) — every current caller passes 'widget_config'
+             // instead when it has one. Kept working, not removed. ?>
        <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
          requiredResources: <?php echo $org_required_resources; ?>,
+         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
+         <?php echo esc_js($wc_key); ?>: <?php echo json_encode($wc_value); ?>,
+         <?php endforeach; ?>
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php
