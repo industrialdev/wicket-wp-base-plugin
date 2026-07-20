@@ -128,9 +128,6 @@ $wicket_settings = get_wicket_settings();
           sections: <?php echo json_encode($sections); ?>,
         <?php endif; ?>
          requiredResources: <?php echo $profile_required_resources; ?>,
-         <?php if (!empty($hidden_fields)) : ?>
-         hiddenFields: <?php echo json_encode($hidden_fields); ?>,
-         <?php endif; ?>
         lang: "<?php echo wicket_get_current_language(); ?>",
          rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
          apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
