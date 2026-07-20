@@ -124,7 +124,7 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
         <?php endif; ?>
          requiredResources: <?php echo $org_required_resources; ?>,
          <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
-         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value); ?>,
+         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
          <?php endforeach; ?>
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};

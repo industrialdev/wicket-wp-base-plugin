@@ -132,7 +132,7 @@ $wicket_settings = get_wicket_settings();
         lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
          <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
-         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value); ?>,
+         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
          <?php endforeach; ?>
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
