@@ -6,9 +6,14 @@ $defaults = [
     'profile_required_resources' => '{}',
     'org_id'                     => '',
     'hidden_fields'              => [],
+    // 'fields' and 'sections' remain valid, general-purpose args on this component.
+    // Not deprecated themselves, but every current caller (GF widget-profile fields,
+    // AC profile blocks) only reaches them via their own deprecated legacy
+    // properties, as a fallback for when 'widget_config' is empty/invalid.
     'fields'                     => [],
     'sections'                   => [],
     'person_id'                  => '',
+    'widget_config'              => [],
 ];
 
 $args = wp_parse_args($args, $defaults);
@@ -16,12 +21,30 @@ $classes = $args['classes'];
 $user_info_data_field_name = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $org_id = $args['org_id'];
-$profile_required_resources = $args['profile_required_resources'] === '' ? '{}' : $args['profile_required_resources'];
+$profile_required_resources_decoded = json_decode((string) $args['profile_required_resources'], true);
+// JSON_FORCE_OBJECT: requiredResources is a map keyed by resource type, so an
+// empty input must round-trip to '{}', not '[]' — plain json_encode() can't
+// tell an empty object from an empty array once decoded into a PHP array.
+$profile_required_resources = json_encode(is_array($profile_required_resources_decoded) ? $profile_required_resources_decoded : [], JSON_FORCE_OBJECT);
 $hidden_fields = $args['hidden_fields'];
 $fields = $args['fields'];
 $sections = $args['sections'];
 $person_id = $args['person_id'] ?? wicket_current_person_uuid();
 $unique_widget_id = rand(1, PHP_INT_MAX);
+
+$widget_config_blocklist = ['rootEl', 'apiRoot', 'accessToken', 'personId', 'orgId', '__proto__', 'constructor', 'prototype'];
+$widget_config = is_array($args['widget_config']) ? array_diff_key($args['widget_config'], array_flip($widget_config_blocklist)) : [];
+
+// A caller-supplied 'hidden_fields' arg is a hardcoded plugin requirement (e.g.
+// GF's widget-profile-individual field always force-hides 'personType' for its
+// own validation logic to hold, see WidgetProfile.php) — it must always apply
+// regardless of what a config author's JSON says, so merge it into whatever
+// 'hiddenFields' widget_config carries rather than letting either side clobber
+// the other via last-wins emit order.
+if (!empty($hidden_fields)) {
+    $config_hidden_fields = isset($widget_config['hiddenFields']) && is_array($widget_config['hiddenFields']) ? $widget_config['hiddenFields'] : [];
+    $widget_config['hiddenFields'] = array_values(array_unique(array_merge($hidden_fields, $config_hidden_fields)));
+}
 
 $wicket_settings = get_wicket_settings();
 ?>
@@ -91,22 +114,26 @@ $wicket_settings = get_wicket_settings();
           'profile-<?php echo $unique_widget_id; ?>');
 
              Wicket.widgets.createPersonProfile({
-         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
-         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
-         personId: '<?php echo $person_id; ?>',
-         orgId: '<?php echo $org_id; ?>',
-         <?php if (!empty($hidden_fields)) : ?>
-         hiddenFields: <?php echo json_encode($hidden_fields); ?>,
-         <?php endif; ?>
-        <?php if (!empty($fields)) : ?>
+        <?php // widget_config emits first so the trusted, plugin-owned keys below
+              // always win the JS object literal's last-wins duplicate-key rule,
+              // regardless of whether the blocklist above covers every possible
+              // config key an MDP widget update might introduce. ?>
+         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
+         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
+         <?php endforeach; ?>
+         <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
         <?php if (!empty($sections)) : ?>
           sections: <?php echo json_encode($sections); ?>,
         <?php endif; ?>
-        lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
+        lang: "<?php echo wicket_get_current_language(); ?>",
+         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
+         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
+         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
+         personId: '<?php echo $person_id; ?>',
+         orgId: '<?php echo $org_id; ?>',
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php
