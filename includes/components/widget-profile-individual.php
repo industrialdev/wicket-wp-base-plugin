@@ -111,29 +111,29 @@ $wicket_settings = get_wicket_settings();
           'profile-<?php echo $unique_widget_id; ?>');
 
              Wicket.widgets.createPersonProfile({
-         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
-         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
-         personId: '<?php echo $person_id; ?>',
-         orgId: '<?php echo $org_id; ?>',
-         <?php if (!empty($hidden_fields)) : ?>
-         hiddenFields: <?php echo json_encode($hidden_fields); ?>,
-         <?php endif; ?>
-        <?php // Deprecated: the 'fields'/'sections' args are only ever populated
-              // today by a caller's legacy fallback path (see the 'fields'/'sections'
-              // arg comment near $defaults above) — every current caller passes
-              // 'widget_config' instead when it has one. Kept working, not removed. ?>
-        <?php if (!empty($fields)) : ?>
+        <?php // widget_config emits first so the trusted, plugin-owned keys below
+              // always win the JS object literal's last-wins duplicate-key rule,
+              // regardless of whether the blocklist above covers every possible
+              // config key an MDP widget update might introduce. ?>
+         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
+         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
+         <?php endforeach; ?>
+         <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
         <?php if (!empty($sections)) : ?>
           sections: <?php echo json_encode($sections); ?>,
         <?php endif; ?>
-        lang: "<?php echo wicket_get_current_language(); ?>",
          requiredResources: <?php echo $profile_required_resources; ?>,
-         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
-         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
-         <?php endforeach; ?>
+         <?php if (!empty($hidden_fields)) : ?>
+         hiddenFields: <?php echo json_encode($hidden_fields); ?>,
+         <?php endif; ?>
+        lang: "<?php echo wicket_get_current_language(); ?>",
+         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
+         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
+         accessToken: '<?php echo wicket_access_token_for_person(wicket_current_person_uuid()) ?>',
+         personId: '<?php echo $person_id; ?>',
+         orgId: '<?php echo $org_id; ?>',
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php

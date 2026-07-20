@@ -109,23 +109,23 @@ $widget_profile_org_extra_fields = json_encode($widget_profile_org_extra_fields)
           );
 
              Wicket.widgets.editOrganizationProfile({
-         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
-         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
-         accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
-         orgId: '<?php echo $org_id; ?>',
-         lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
-         extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
-       <?php // Deprecated: the 'fields' arg is only ever populated today by a
-             // caller's legacy fallback path (see the 'fields' arg comment near
-             // $defaults above) — every current caller passes 'widget_config'
-             // instead when it has one. Kept working, not removed. ?>
+        <?php // widget_config emits first so the trusted, plugin-owned keys below
+              // always win the JS object literal's last-wins duplicate-key rule,
+              // regardless of whether the blocklist above covers every possible
+              // config key an MDP widget update might introduce. ?>
+         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
+         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
+         <?php endforeach; ?>
        <?php if (!empty($fields)) : ?>
           fields: <?php echo json_encode($fields); ?>,
         <?php endif; ?>
          requiredResources: <?php echo $org_required_resources; ?>,
-         <?php foreach ($widget_config as $wc_key => $wc_value) : ?>
-         <?php echo json_encode((string) $wc_key); ?>: <?php echo json_encode($wc_value) ?: 'null'; ?>,
-         <?php endforeach; ?>
+         extraFields: <?php echo $widget_profile_org_extra_fields; ?>,
+         lang: "<?php echo defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en' ?>",
+         rootEl: widgetRoot_<?php echo $unique_widget_id; ?> ,
+         apiRoot: '<?php echo $wicket_settings['api_endpoint'] ?>',
+         accessToken: '<?php echo wicket_get_access_token(wicket_current_person_uuid(), $org_id); ?>',
+         orgId: '<?php echo $org_id; ?>',
        }).then(function(widget) {
         const eventTypes = widget && widget.eventTypes ? widget.eventTypes : {};
         <?php
