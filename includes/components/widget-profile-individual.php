@@ -22,7 +22,10 @@ $user_info_data_field_name = $args['user_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $org_id = $args['org_id'];
 $profile_required_resources_decoded = json_decode((string) $args['profile_required_resources'], true);
-$profile_required_resources = json_encode(is_array($profile_required_resources_decoded) ? $profile_required_resources_decoded : []);
+// JSON_FORCE_OBJECT: requiredResources is a map keyed by resource type, so an
+// empty input must round-trip to '{}', not '[]' — plain json_encode() can't
+// tell an empty object from an empty array once decoded into a PHP array.
+$profile_required_resources = json_encode(is_array($profile_required_resources_decoded) ? $profile_required_resources_decoded : [], JSON_FORCE_OBJECT);
 $hidden_fields = $args['hidden_fields'];
 $fields = $args['fields'];
 $sections = $args['sections'];
