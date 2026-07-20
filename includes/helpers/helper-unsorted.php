@@ -2187,6 +2187,26 @@ function wicket_assign_organization_membership(
         $response = $client->post('organization_memberships', ['json' => $payload]);
     } catch (Exception $e) {
         $response = new WP_Error('wicket_api_error', $e->getMessage());
+
+        // Flag seat-count overflow (max_assignments) so callers can retry without
+        // carrying assignments over. Carried only in error_data under the existing
+        // code; never a new error code (the call site reads 'wicket_api_error').
+        // ConnectException (network) has no response; guard before reading the body.
+        $overflow = false;
+        if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->getResponse()) {
+            $body = json_decode((string) $e->getResponse()->getBody(), true);
+            if (is_array($body) && !empty($body['errors'])) {
+                foreach ($body['errors'] as $err) {
+                    if (($err['meta']['field'] ?? '') === 'max_assignments') {
+                        $overflow = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if ($overflow) {
+            $response->add_data(['overflow' => true], 'wicket_api_error');
+        }
     }
 
     return $response;
