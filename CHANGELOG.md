@@ -5,6 +5,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.15] - 2026-07-21
+
+### Added
+- **helpers:** defensive logs on org assign failure for QA observability
+- **helpers:** add wicket_supports capability registry and overflow flag on org assign
+- **memberships:** add copy_previous_assignments param to org assignment
+
+
 ## [2.4.14] - 2026-07-20
 
 ### Added
