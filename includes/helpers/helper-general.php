@@ -78,3 +78,54 @@ function wicket_csv_resolve_headers(array $headers, array $column_definitions): 
 
     return $index_map;
 }
+
+/**
+ * Check whether the installed Wicket base plugin supports a given feature.
+ *
+ * Registry-backed capability detection for forward features. Add a dotted key
+ * to $features in the same release that ships the feature; downstream
+ * consumers then gate on it instead of version_compare(WICKET_BASE_PLUGIN_VERSION).
+ * Unknown keys return false (safe fallback to legacy behavior).
+ *
+ * Per-key filter "wicket_supports_{$feature}" allows runtime override and is the
+ * test seam for QA (e.g. add_filter('wicket_supports_<feature>', '__return_false')).
+ * Full usage patterns (force-off, force-on, conditional, removal, dot-tag pitfall):
+ * atlas/conventions/capability-detection.md#using-the-filter-runtime-override--test-seam.
+ *
+ * Key format: '<package>.<subsystem>.<capability>'
+ *   package    = qa/ slug from wicket-wp-stack/qa/package-config.json
+ *                (the canonical short name for the owning plugin).
+ *                Expected values: base-plugin, account-centre, memberships,
+ *                gravity-forms, guest-checkout, financial-fields, importer,
+ *                portus, admin-org-roster, woo-order-status-limits, theme,
+ *                theme-v1. NOT the text-domain and NOT the repo folder name.
+ *   subsystem  = structural area inside that plugin (e.g.
+ *                organization_membership, orm, renewal, registration).
+ *                Called 'subsystem' not 'component' to avoid collision with the
+ *                base-plugin UI components subsystem (register_component/)
+ *                and with atlas using 'component' to mean a package itself.
+ *   capability = the specific feature (e.g. copy_previous_assignments).
+ * Example: 'base-plugin.organization_membership.copy_previous_assignments'.
+ *
+ * Convention: atlas/conventions/capability-detection.md (ADR 0004).
+ *
+ * @param string $feature Dotted feature key: '<package>.<subsystem>.<capability>'.
+ * @return bool
+ *
+ * Note on strict_types: this file declares strict_types=1, but PHP evaluates it
+ * per-CALLING file. A consumer without strict_types that passes a non-string
+ * (int, null, object) gets coerced/fatal'd by the caller's own mode, not this
+ * declaration. In practice the arg is always a string literal; do not rely on
+ * cross-file type enforcement here.
+ */
+function wicket_supports(string $feature): bool
+{
+    $features = [
+        // Key format: '<package>.<subsystem>.<capability>'
+        // package = qa/ slug (see package-config.json), e.g. base-plugin.
+        'base-plugin.organization_membership.copy_previous_assignments' => true,
+        // Add keys here in the release that ships each feature.
+    ];
+
+    return (bool) apply_filters("wicket_supports_{$feature}", $features[$feature] ?? false);
+}

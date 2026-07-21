@@ -2107,7 +2107,8 @@ function wicket_assign_organization_membership(
     $max_seats = 0,
     $grace_period_days = 0,
     $previous_membership_uuid = '',
-    $grant_owner_assignment = false
+    $grant_owner_assignment = false,
+    $copy_previous_assignments = true
 ) {
     $override = apply_filters(
         'wicket_pre_assign_organization_membership',
@@ -2120,7 +2121,8 @@ function wicket_assign_organization_membership(
         $max_seats,
         $grace_period_days,
         $previous_membership_uuid,
-        $grant_owner_assignment
+        $grant_owner_assignment,
+        $copy_previous_assignments
     );
 
     if ($override !== null) {
@@ -2174,7 +2176,7 @@ function wicket_assign_organization_membership(
     }
 
     if (!empty($previous_membership_uuid)) {
-        $payload['data']['attributes']['copy_previous_assignments'] = true;
+        $payload['data']['attributes']['copy_previous_assignments'] = (bool) $copy_previous_assignments;
         $payload['data']['relationships']['previous_membership_entry']['data'] = [
             'type' => 'organization_memberships',
             'id' => $previous_membership_uuid,
@@ -2185,6 +2187,46 @@ function wicket_assign_organization_membership(
         $response = $client->post('organization_memberships', ['json' => $payload]);
     } catch (Exception $e) {
         $response = new WP_Error('wicket_api_error', $e->getMessage());
+
+        // Flag seat-count overflow (max_assignments) so callers can retry without
+        // carrying assignments over. Carried only in error_data under the existing
+        // code; never a new error code (the call site reads 'wicket_api_error').
+        // ConnectException (network) has no response; guard before reading the body.
+        $overflow = false;
+        $log_context = ['source' => 'wicket_assign_organization_membership'];
+        if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->getResponse()) {
+            $log_context['status'] = $e->getResponse()->getStatusCode();
+            $body = json_decode((string) $e->getResponse()->getBody(), true);
+            if (is_array($body) && !empty($body['errors'])) {
+                foreach ($body['errors'] as $err) {
+                    if (($err['meta']['field'] ?? '') === 'max_assignments') {
+                        $overflow = true;
+                        break;
+                    }
+                }
+                // Defensive: record the fields the MDP actually reported so QA can
+                // see WHY a 422 did not classify as overflow (e.g. a different
+                // validation error bundled into the same response).
+                $log_context['mdp_error_fields'] = array_values(array_filter(array_map(function ($err) {
+                    return $err['meta']['field'] ?? null;
+                }, $body['errors'])));
+            } else {
+                // Body present but malformed / no errors[]: the MDP returned a
+                // non-JSON:API error shape. Log so QA catches protocol drift.
+                $log_context['body_shape'] = is_array($body) ? 'no_errors_key' : 'json_decode_failed';
+            }
+        } else {
+            // Not a RequestException: network failure, connect timeout, etc.
+            $log_context['type'] = 'non_request_exception';
+            $log_context['exception_class'] = get_class($e);
+        }
+        if ($overflow) {
+            $response->add_data(['overflow' => true], 'wicket_api_error');
+            $log_context['overflow'] = true;
+        }
+        // Defensive log on every failure path: surfaces overflow detection,
+        // the actual MDP error fields, and non-HTTP exceptions during QA.
+        Wicket()->log()->error('assign_organization_membership failed: ' . $e->getMessage(), $log_context);
     }
 
     return $response;
