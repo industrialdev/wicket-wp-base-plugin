@@ -34,6 +34,8 @@ defined('ABSPATH') || exit;
  *   'icon',
  *   'image',
  *   'link',
+ *   'modal',
+ *   'modal-trigger',
  *   'org-search-select',
  *   'related-events',
  *   'related-posts',
@@ -136,3 +138,46 @@ function get_components_dir()
 
 // Remove WP content filter that sometimes breaks component rendering
 remove_filter('the_content', 'wptexturize');
+
+/**
+ * Render a modal and its trigger together (the 1:1 case).
+ *
+ * Thin convenience over get_component('modal-trigger') + get_component('modal').
+ * Removes the duplicated config (id, mode, open_signal) that the two-call form
+ * requires when a modal has exactly one trigger rendered next to it.
+ *
+ * For the 1:N case (one modal opened by many triggers, e.g. a members list where
+ * each row opens the same edit dialog), do NOT use this — render the modal once
+ * outside the loop and call get_component('modal-trigger') per row.
+ *
+ * @param array $args {
+ *   All modal() args (id, title, body, mode, open_signal, width, ...).
+ *   Plus:
+ *     @type array $trigger Override keys forwarded to modal-trigger:
+ *                          label, variant, size, classes, atts.
+ * }
+ * @param bool  $output Echo if true (default), return string if false.
+ *
+ * @return void|string
+ */
+function get_modal_pair(array $args, $output = true)
+{
+    $trigger_overrides = $args['trigger'] ?? [];
+
+    // Shared config: the trigger needs modal_id (+ mode/open_signal to match).
+    $trigger_args = array_merge([
+        'modal_id'    => $args['id'] ?? '',
+        'mode'        => $args['mode'] ?? 'vanilla',
+        'open_signal' => $args['open_signal'] ?? '',
+        'label'       => $args['title'] ?? '',   // sensible default: reuse title
+        'variant'     => 'secondary',
+    ], $trigger_overrides);
+
+    if (!$output) {
+        return get_component('modal-trigger', $trigger_args, false)
+            . get_component('modal', $args, false);
+    }
+
+    get_component('modal-trigger', $trigger_args, true);
+    get_component('modal', $args, true);
+}
