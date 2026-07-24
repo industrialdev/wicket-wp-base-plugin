@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.17] - 2026-07-24
+
+### Other
+- Honor email_type and phone_type extras in wicket_create_or_get_person
+
+
 ## [2.4.16] - 2026-07-21
 
 ### Added
