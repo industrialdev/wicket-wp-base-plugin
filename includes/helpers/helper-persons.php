@@ -207,13 +207,21 @@ function wicket_person_add_tag($person_uuid, $tags)
  *   2. Direct API filter (/people?filter[emails_address_eq]=) — handles secondary/alias emails.
  *   3. wicket_create_person() — only called when no match is found.
  *
- * After resolving the UUID, optional profile fields (job_title, phone) are updated
- * when provided in $extras.
+ * After resolving the UUID, optional profile fields (job_title, phone, phone_type)
+ * are updated when provided in $extras, regardless of whether the person was just
+ * created or already existed. 'email_type' is the exception: it is only applied
+ * when a new person is created (passed straight into wicket_create_person()). An
+ * existing person's email type is left untouched — this is a "get", not a place
+ * to silently overwrite data that may have been set deliberately elsewhere.
  *
  * @param string $first_name Person first name.
  * @param string $last_name  Person last name.
  * @param string $email      Person email address.
- * @param array  $extras     Optional: 'job_title' (string), 'phone' (string).
+ * @param array  $extras     Optional: 'job_title' (string), 'phone' (string),
+ *                           'email_type' (string, e.g. 'work'/'personal' — applied
+ *                           only when creating a new person), 'phone_type' (string,
+ *                           e.g. 'work'/'mobile' — applied to the phone created
+ *                           from 'phone'; defaults to 'work').
  * @return string|WP_Error Person UUID on success, WP_Error on failure.
  */
 function wicket_create_or_get_person(string $first_name, string $last_name, string $email, array $extras = [])
@@ -254,7 +262,8 @@ function wicket_create_or_get_person(string $first_name, string $last_name, stri
 
     // 3. Create if still not found
     if (!$person) {
-        $person = wicket_create_person($first_name, $last_name, $email);
+        $emailType = isset($extras['email_type']) ? sanitize_text_field((string) $extras['email_type']) : '';
+        $person = wicket_create_person($first_name, $last_name, $email, '', '', '', '', [], $emailType);
         if (!$person || (is_array($person) && isset($person['errors']))) {
             return new WP_Error('person_creation_failed', 'Failed to create person in Wicket.');
         }
@@ -278,13 +287,14 @@ function wicket_create_or_get_person(string $first_name, string $last_name, stri
         wicket_update_person($uuid, ['attributes' => ['job_title' => $job_title]]);
     }
 
+    $phoneType = isset($extras['phone_type']) ? sanitize_text_field((string) $extras['phone_type']) : 'work';
     $phone = isset($extras['phone']) ? preg_replace('/[^0-9+]/', '', (string) $extras['phone']) : '';
     if ('' !== $phone && function_exists('wicket_create_person_phone')) {
         try {
             wicket_create_person_phone($uuid, [
                 'data' => [
                     'type'       => 'phones',
-                    'attributes' => ['number' => $phone, 'type' => 'work'],
+                    'attributes' => ['number' => $phone, 'type' => $phoneType],
                 ],
             ]);
         } catch (Throwable $e) {

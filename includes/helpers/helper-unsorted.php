@@ -1170,7 +1170,7 @@ function send_approval_required_email($email, $membership_link)
 /**------------------------------------------------------------------
  * Create basic person record, no password
  ------------------------------------------------------------------*/
-function wicket_create_person($given_name, $family_name, $address = '', $password = '', $password_confirmation = '', $job_title = '', $gender = '', $additional_info = [])
+function wicket_create_person($given_name, $family_name, $address = '', $password = '', $password_confirmation = '', $job_title = '', $gender = '', $additional_info = [], $email_type = '')
 {
     $client = wicket_api_client();
 
@@ -1185,11 +1185,15 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
         ],
     ];
 
-    // add optional email ('address')
+    // add optional email ('address'), with optional type (e.g. 'work', 'personal')
     if (isset($address)) {
+        $email_attributes = ['address' => $address];
+        if (isset($email_type) && '' !== $email_type) {
+            $email_attributes['type'] = $email_type;
+        }
         $payload['data']['relationships']['emails']['data'][] = [
             'type' => 'emails',
-            'attributes' => ['address' => $address],
+            'attributes' => $email_attributes,
         ];
     }
     // add optional password
