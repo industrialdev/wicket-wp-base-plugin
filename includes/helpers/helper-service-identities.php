@@ -29,19 +29,19 @@ defined('ABSPATH') || exit;
  * @param string $service_uuid UUID of the service (e.g. the "Bar ID" service).
  * @param string|null $external_id Explicit value to set. Omit (null) to let the
  *                                 MDP auto-generate the next sequential value.
- * @return array|\WP_Error The created service identity entry
+ * @return array|WP_Error The created service identity entry
  *                         ({id, attributes:{external_id,...}}) on success, or
  *                         WP_Error on failure.
  */
-function wicket_mint_service_identity(string $person_uuid, string $service_uuid, ?string $external_id = null)
+function wicket_mint_service_identity(string $person_uuid, string $service_uuid, ?string $external_id = null): array|WP_Error
 {
     if ($person_uuid === '' || $service_uuid === '') {
-        return new \WP_Error('wicket_service_identity_missing_args', 'person_uuid and service_uuid are required.');
+        return new WP_Error('wicket_service_identity_missing_args', 'person_uuid and service_uuid are required.');
     }
 
     $client = wicket_api_client();
     if ($client === false) {
-        return new \WP_Error('wicket_client_unavailable', 'Wicket API client is not available.');
+        return new WP_Error('wicket_client_unavailable', 'Wicket API client is not available.');
     }
 
     $attributes = [];
@@ -66,16 +66,17 @@ function wicket_mint_service_identity(string $person_uuid, string $service_uuid,
 
     try {
         $response = $client->post('service_identities', ['json' => $payload]);
-    } catch (\Throwable $e) {
-        if (function_exists('Wicket') && Wicket()->log()) {
-            Wicket()->log()->error('wicket_mint_service_identity failed.', [
+    } catch (Throwable $e) {
+        $logger = function_exists('Wicket') ? Wicket()->log() : null;
+        if ($logger) {
+            $logger->error('wicket_mint_service_identity failed.', [
                 'person_uuid' => $person_uuid,
                 'service_uuid' => $service_uuid,
                 'error' => $e->getMessage(),
             ]);
         }
 
-        return new \WP_Error('wicket_service_identity_create_failed', $e->getMessage());
+        return new WP_Error('wicket_service_identity_create_failed', $e->getMessage());
     }
 
     // Unwrap JSON:API envelope to the entry.
@@ -84,7 +85,7 @@ function wicket_mint_service_identity(string $person_uuid, string $service_uuid,
         : (is_array($response) ? $response : []);
 
     if (empty($entry['id'])) {
-        return new \WP_Error('wicket_service_identity_no_id', 'MDP returned no service identity id.');
+        return new WP_Error('wicket_service_identity_no_id', 'MDP returned no service identity id.');
     }
 
     return $entry;
@@ -108,19 +109,41 @@ function wicket_get_person_service_identity(string $person_uuid, string $service
         return null;
     }
 
+    // Memoize found identities only, keyed per (person, service) for batch/import
+    // use. Absence and failures are deliberately NOT cached: an absent result is
+    // re-fetched so a same-request mint is immediately visible on re-check, and a
+    // transient API error must not be remembered as "no identity" or a retry would
+    // skip the idempotency check and mint a dupe.
+    static $cache = [];
+    $cache_key = $person_uuid . '|' . $service_uuid;
+    if (array_key_exists($cache_key, $cache)) {
+        return $cache[$cache_key];
+    }
+
     $client = wicket_api_client();
     if ($client === false) {
         return null;
     }
 
     try {
-        $response = $client->get("people/{$person_uuid}/service_identities", ['query' => 'page[size]=25']);
-    } catch (\Throwable $e) {
+        // Filter server-side by the service UUID so we fetch only this service's
+        // identities, not every identity on the person. `service` is a ransackable
+        // association on ServiceIdentity (all reflections exposed), so the MDP
+        // joins services.uuid and returns only matches - no client-side scan, no
+        // silent miss when a person has many identities on other services.
+        // rawurlencode both UUIDs: they land in path + query and only empty-string
+        // is validated upstream. Encoding is a no-op for valid UUIDs (hex+dashes)
+        // but neutralizes a malformed value corrupting the path / query string.
+        $response = $client->get('people/' . rawurlencode($person_uuid) . '/service_identities?filter[service_uuid_eq]=' . rawurlencode($service_uuid) . '&page[size]=100');
+    } catch (Throwable $e) {
         // Fail safe: a lookup failure surfaces as "no existing identity", so the
-        // caller proceeds to mint. The MDP's own per-service uniqueness guard is
-        // the backstop. Logged for visibility.
-        if (function_exists('Wicket') && Wicket()->log()) {
-            Wicket()->log()->warning('wicket_get_person_service_identity lookup failed.', [
+        // caller proceeds to mint. NOTE the MDP does NOT unconditionally enforce
+        // per-service uniqueness - it depends on the service's uniqueness_scope,
+        // which can be 'none' (no DB uniqueness, no backstop). So this precheck
+        // is load-bearing for dupe prevention, not belt-and-suspenders. Logged.
+        $logger = function_exists('Wicket') ? Wicket()->log() : null;
+        if ($logger) {
+            $logger->warning('wicket_get_person_service_identity lookup failed.', [
                 'person_uuid' => $person_uuid,
                 'service_uuid' => $service_uuid,
                 'error' => $e->getMessage(),
@@ -137,6 +160,8 @@ function wicket_get_person_service_identity(string $person_uuid, string $service
     foreach ($identities as $identity) {
         $match_service_id = $identity['relationships']['service']['data']['id'] ?? '';
         if ($match_service_id === $service_uuid) {
+            $cache[$cache_key] = $identity;
+
             return $identity;
         }
     }
