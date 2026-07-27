@@ -43,9 +43,9 @@ foreach ($ancestry_array['family_tree'] as $post_id => $children_branch) {
      */
 
     $topmost_parent_id = $post_id;
-    $body_content = '<ul class="">';
     $accordion_item_index = 0;
     foreach ($children_branch as $child_post_id => $child_2_branch) {
+        $body_content = '<ul class="">';
         // Commenting out as these have been moved to the accordion headings
         //$child_post_name = get_the_title($child_post_id);
         //$child_post_url = get_permalink($child_post_id);
