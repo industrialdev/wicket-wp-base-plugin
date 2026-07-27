@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.19] - 2026-07-27
+
+### Added
+- **helpers:** add service identity mint helper for MDP sequential generation
+
+### Fixed
+- **helpers:** address review on service identity helpers
+- **helpers:** key active-memberships memoization by UUID
+
+
 ## [2.4.18] - 2026-07-27
 
 ### Fixed
