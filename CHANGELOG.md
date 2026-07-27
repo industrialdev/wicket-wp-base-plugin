@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.18] - 2026-07-27
+
+### Fixed
+- reset sidebar contextual nav body content per accordion item
+
+
 ## [2.4.17] - 2026-07-24
 
 ### Other
