@@ -2554,19 +2554,24 @@ function wicket_get_person_memberships($uuid)
  ------------------------------------------------------------------*/
 function wicket_get_person_active_memberships($uuid)
 {
-    $client = wicket_api_client();
-    static $memberships = null;
+    static $cache = [];
 
-    // prepare and memoize all connections from Wicket
-    if (is_null($memberships)) {
+    // Memoize per-person, keyed by UUID. The previous implementation used a
+    // single request-global static with no key, so the first person's result
+    // was returned for every subsequent UUID in the same request - unsafe for
+    // batch/per-row use such as the importer's conflict pre-pass. Behavior for
+    // single-UUID callers is unchanged (still one fetch per UUID per request).
+    if (!isset($cache[$uuid])) {
+        $client = wicket_api_client();
         try {
-            $memberships = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription&filter[active_at]=now');
-        } catch (Exception $e) {
-
+            $cache[$uuid] = $client->get('people/' . $uuid . '/membership_entries?include=membership,organization_membership.organization,fusebill_subscription&filter[active_at]=now');
+        } catch (Throwable $e) {
+            $cache[$uuid] = false;
         }
     }
-    if ($memberships) {
-        return $memberships;
+
+    if ($cache[$uuid]) {
+        return $cache[$uuid];
     }
 
     return false;
