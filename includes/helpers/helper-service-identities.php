@@ -319,6 +319,48 @@ function wicket_find_service_identity_by_external_id(string $external_id, string
     return $matches[0] ?? null;
 }
 
+/**
+ * Resolve an MDP service by its slug.
+ *
+ * GET /services?filter[slug_eq]={slug}. The MDP recommends resolving
+ * services by slug (stable) rather than name. Returns the full service entry
+ * ({id, attributes:{name, slug, ...}}) so callers can read the UUID, or null.
+ *
+ * Used to resolve the service UUID the service-identity helpers need (e.g. an
+ * OBA minter resolving its 'bar-number' service before minting).
+ *
+ * @param string $slug The service slug (e.g. 'bar-number').
+ * @return array|null The service entry, or null when not found / on lookup failure.
+ */
+function wicket_get_service_by_slug(string $slug): ?array
+{
+    if ($slug === '') {
+        return null;
+    }
+
+    $client = wicket_api_client();
+    if ($client === false) {
+        return null;
+    }
+
+    try {
+        $response = $client->get('services?filter[slug_eq]=' . rawurlencode($slug) . '&page[size]=1');
+    } catch (Throwable $e) {
+        wicket_service_identity_log('warning', 'wicket_get_service_by_slug lookup failed.', [
+            'slug' => $slug,
+            'error' => $e->getMessage(),
+        ]);
+
+        return null;
+    }
+
+    $entry = is_array($response) && isset($response['data'][0]) && is_array($response['data'][0])
+        ? $response['data'][0]
+        : null;
+
+    return (is_array($entry) && ! empty($entry['id'])) ? $entry : null;
+}
+
 // ---------------------------------------------------------------------------
 // Person wrappers (back-office + import call sites; pass identifiable 'people')
 // ---------------------------------------------------------------------------
