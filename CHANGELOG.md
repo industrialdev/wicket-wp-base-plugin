@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.20] - 2026-07-30
+
+### Other
+- Clarifying what the demo link should be
+- Update CONTRIBUTING.md
+- Added Alex's suggestion to PR template
+- Creating a pull request template and contributing guidelines for the project.
+
+
 ## [2.4.19] - 2026-07-27
 
 ### Added
