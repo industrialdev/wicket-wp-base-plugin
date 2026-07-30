@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.22] - 2026-07-30
+
+### Fixed
+- **service-identities:** send attributes as object not array
+
+
 ## [2.4.21] - 2026-07-30
 
 ### Added
