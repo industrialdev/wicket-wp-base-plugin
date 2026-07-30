@@ -99,13 +99,13 @@ if (!class_exists('Wicket_Settings')) {
 
             // Create Settings page with same slug as menu
             $settings = new WPSettings(__('Wicket Settings'), ('wicket-settings'));
-			// Keep parent slug: makes WPSettings register as a child of the 'Wicket'
-			// top-level menu (Wicket_Admin::wicket_admin_menu, admin_menu p10).
-			// Relabel the submenu 'Settings' instead of the default 'Wicket Settings',
-			// so it no longer duplicates WP's auto-inserted 'Wicket' parent link
-			// (both pointed at the same wicket-settings slug, producing two entries).
-			$settings->set_menu_parent_slug('wicket-settings');
-			$settings->set_menu_title(__('Settings', 'wicket'));
+            // Keep parent slug: makes WPSettings register as a child of the 'Wicket'
+            // top-level menu (Wicket_Admin::wicket_admin_menu, admin_menu p10).
+            // Relabel the submenu 'Settings' instead of the default 'Wicket Settings',
+            // so it no longer duplicates WP's auto-inserted 'Wicket' parent link
+            // (both pointed at the same wicket-settings slug, producing two entries).
+            $settings->set_menu_parent_slug('wicket-settings');
+            $settings->set_menu_title(__('Settings', 'wicket'));
 
             /*
              * Priority-based tab registration.
@@ -424,6 +424,21 @@ if (!class_exists('Wicket_Settings')) {
                 'name' => 'wicket_admin_settings_tp_event_ticket_attendees_rsvp',
                 'label' => __('Event Tickets attendee RSVP for an event', 'wicket'),
                 'description' => __('Enable a touchpoint to be written when attendees RSVP for an event', 'wicket'),
+            ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_tp_event_ticket_attendees_added',
+                'label' => __('Event Tickets attendee added by an admin or CSV import', 'wicket'),
+                'description' => __('Enable a touchpoint to be written when an attendee is added from the WordPress admin Attendees screen, or imported from CSV. Recorded as a registration, with the source noted on the touchpoint. <br><small>Imported attendees carry no registration form answers, because the CSV importer does not collect them.</small>', 'wicket'),
+            ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_tp_event_ticket_attendees_removed',
+                'label' => __('Event Tickets attendee removed from an event', 'wicket'),
+                'description' => __('Enable a touchpoint to be written when an attendee is removed from an event. <br><small>Written once, whether the attendee is moved to the trash or deleted outright.</small>', 'wicket'),
+            ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_tp_event_ticket_attendees_answers',
+                'label' => __('Include registration form answers', 'wicket'),
+                'description' => __('Include the attendee\'s registration form answers in event touchpoints, as label and value pairs. <br><small>Every answered field is sent. Use the wicket_tec_registration_answers filter to leave fields out.</small>', 'wicket'),
             ]);
 
             //Custom Touchpoints Section

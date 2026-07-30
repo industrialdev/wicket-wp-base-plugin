@@ -31,14 +31,15 @@ function wicket_touchpoint_write_attendee($attendee_id, $action)
     }
 
     // check if they exist in Wicket, if they do use that as $person_id, if they do not exist in Wicket, create account and use that as $person_id
-    $person = wicket_resolve_person_by_email(
-        (string) ($attendee['holder_email'] ?? ''),
+    // holder_name is a full name, so pass it through the shared identity resolver rather
+    // than using it as a given name (which is what created "Jane Doe Doe" style records).
+    $identity = wicket_tec_attendee_identity((int) $attendee_id, (int) ($attendee['product_id'] ?? 0));
+
+    $person = wicket_tec_resolve_attendee_person(
+        $identity['email'] !== '' ? $identity['email'] : (string) ($attendee['holder_email'] ?? ''),
         [
-            'first_name' => (string) ($attendee['holder_name'] ?? ''),
-            'last_name' => (string) ($attendee['attendee_meta']['last-name']['value'] ?? ''),
-            // Primary-only lookup, matching this writer's historical behaviour.
-            'match_all_emails' => false,
-            'on_ambiguous' => 'first',
+            'first_name' => $identity['first_name'],
+            'last_name' => $identity['last_name'],
         ]
     );
 

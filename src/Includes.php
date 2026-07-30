@@ -94,6 +94,16 @@ class Includes
             include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_field_hooks.php';
         }
 
+        // Include touchpoints for attendees added by an admin or CSV import, and for attendees removed.
+        // Deliberately outside the WooCommerce block below: removals need to work on sites that
+        // only use RSVP or Tickets Commerce. Each hook inside is gated on its own option.
+        if (
+            wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_added') === '1'
+            || wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_removed') === '1'
+        ) {
+            include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_added_removed.php';
+        }
+
         // Include wp-cassify sync
         if (is_plugin_active('wp-cassify/wp-cassify.php') && (wicket_get_option('wicket_admin_settings_wpcassify_sync_roles') === '1')) {
             include_once WICKET_PLUGIN_DIR . 'includes/integrations/wicket-cas-role-sync.php';
