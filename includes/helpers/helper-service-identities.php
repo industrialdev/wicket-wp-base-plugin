@@ -80,10 +80,15 @@ function wicket_create_service_identity(string $identifiable_type, string $ident
         $attributes['external_id'] = $external_id;
     }
 
+    // JSON:API requires `attributes` to be an OBJECT. PHP serializes an empty
+    // array to a JSON array ([]), which the MDP deserializer rejects (it bails
+    // and the request 403s). The auto-mint path (external_id omitted, the OBA
+    // Bar Number flow) leaves $attributes empty, so cast to object to force {}
+    // on the wire; a populated array casts to an object identically.
     $payload = [
         'data' => [
             'type' => 'service_identities',
-            'attributes' => $attributes,
+            'attributes' => (object) $attributes,
             'relationships' => [
                 'service' => ['data' => ['type' => 'services', 'id' => $service_uuid]],
                 'identifiable' => ['data' => ['type' => $identifiable_type, 'id' => $identifiable_id]],
