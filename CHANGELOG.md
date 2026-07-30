@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.21] - 2026-07-30
+
+### Added
+- **helpers:** add slug-based service resolver
+- **helpers:** generic service-identity CRUD + person wrappers
+
+
 ## [2.4.20] - 2026-07-30
 
 ### Other
