@@ -8,8 +8,9 @@ $defaults = [
     'excerpt'        => '',
     'date'           => '',
     'link'           => '',
-    'image'          => '',
-    'image_position' => 'top',
+    'image'           => '',
+    'image_aspect_ratio' => '3/2',
+    'image_position'  => 'top',
     'member_only'    => false,
     'cta'            => null,
     'cta_label'      => '',
@@ -24,6 +25,7 @@ $excerpt = $args['excerpt'];
 $date = $args['date'];
 $link = $args['link'];
 $image = $args['image'];
+$image_aspect_ratio = $args['image_aspect_ratio']; // '' = original ratio
 $image_position = $args['image_position']; // top, left, right
 $member_only = $args['member_only'];
 $cta = $args['cta'];
@@ -60,12 +62,29 @@ if ($image_position === 'right') {
     $classes[] = '@2xl:flex-row-reverse lg:flex-row-reverse @2xl:items-start justify-between';
     $image_wrapper_classes[] = 'hidden @lg:block basis-1/4 flex-none';
 }
+
+// When the caller opts out of a forced ratio (original aspect requested),
+// turn the image slot into a fixed-ratio frame: the image is shown full
+// (no crop, object-fit: contain) over a blurred copy of itself, so cards
+// in a grid stay aligned without cropping. See card-featured.scss.
+$image_wrapper_attrs = '';
+if ($image_aspect_ratio === '') {
+    $image_wrapper_classes[] = 'component-card-featured__image-wrapper--natural';
+
+    if ($image) {
+        $card_image_url = wp_get_attachment_image_url($image['id'], 'large');
+
+        if ($card_image_url) {
+            $image_wrapper_attrs = ' style="--card-image-url: url(\'' . esc_url($card_image_url) . '\')"';
+        }
+    }
+}
 ?>
 
 <div class="@container">
 	<div class="<?php echo implode(' ', $classes) ?>">
 		<?php if ($member_only && $image_position === 'top') { ?>
-			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
+			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
 				<?php get_component('tag', [
 				    'label'   => __('Members Only', 'wicket'),
 				    'icon'    => 'fa-regular fa-lock',
@@ -76,11 +95,11 @@ if ($image_position === 'right') {
 		<?php } ?>
 
 		<?php if ($image) { ?>
-			<div class="<?php echo implode(' ', $image_wrapper_classes) ?>">
+			<div class="<?php echo implode(' ', $image_wrapper_classes) ?>"<?php echo $image_wrapper_attrs; ?>>
 				<?php get_component('image', [
 				    'id'           => $image['id'],
 				    'alt'          => $image['alt'],
-				    'aspect_ratio' => '3/2',
+				    'aspect_ratio' => $image_aspect_ratio,
 				]); ?>
 			</div>
 		<?php } ?>
