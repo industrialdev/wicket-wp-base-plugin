@@ -20,6 +20,7 @@ $wicket_helpers = [
     'helper-membership-bundles.php',
     'helper-multilang.php',
     'helper-connections.php',
+    'helper-service-identities.php',
     'helper-theme.php',
     'helper-woocommerce.php',
     'helper-automatewoo.php',
