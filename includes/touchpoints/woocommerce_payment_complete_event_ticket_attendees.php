@@ -67,6 +67,9 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                 $temp['name'] = $attendee['tribe-tickets-plus-iac-name'] ?? '';
                 $temp['email'] = $attendee['tribe-tickets-plus-iac-email'] ?? '';
                 $temp['last-name'] = $attendee['last-name'] ?? '';
+                // The rest of this array is the attendee's registration form answers,
+                // keyed by field slug. Kept whole so they can be added to the touchpoint.
+                $temp['raw_answers'] = is_array($attendee) ? $attendee : [];
                 $attendees_arr[$product_id][] = $temp;
             }
         }
@@ -137,13 +140,12 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                 continue;
             }
 
-            // check to see if a record for this person already exists in wicket, creating one if not
-            $person = wicket_resolve_person_by_email($attendee['email'], [
+            // check to see if a record for this person already exists in wicket, creating one if not.
+            // Matches on the primary address first, then across every address on a record, so a
+            // returning attendee who used a secondary address is not duplicated.
+            $person = wicket_tec_resolve_attendee_person($attendee['email'], [
                 'first_name' => (string) ($attendee['name'] ?? ''),
                 'last_name' => (string) ($attendee['last-name'] ?? ''),
-                // Primary-only lookup, matching this writer's historical behaviour.
-                'match_all_emails' => false,
-                'on_ambiguous' => 'first',
             ]);
 
             // Previously a failed wicket_create_person() returned a truthy ['errors' => ...]
@@ -162,6 +164,16 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
             $event_data = wicket_touchpoint_get_event_data_from_event($event_info[$product_id]->ID);
             $ticket_product_name = get_the_title($product_id);
 
+            // Registration form answers, taken from the order meta this writer already
+            // reads. Empty unless the setting is on and the ticket collects answers, so
+            // payloads without them are unchanged.
+            $answers = wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_answers') === '1'
+                ? wicket_tec_registration_answers_from_raw(
+                    (array) ($attendee['raw_answers'] ?? []),
+                    (int) $product_id,
+                    (int) $event_info[$product_id]->ID
+                )
+                : [];
 
             $attendee_details = 'Event ID: ' . $event_data['event_id'] . '<br />';
             $attendee_details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
@@ -170,6 +182,7 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
             $attendee_details .= 'End Date: ' . $event_data['end'] . '<br />';
             $attendee_details .= 'Event Format: ' . $event_data['format'] . '<br />';
             $attendee_details .= 'Event Type: ' . $event_data['event_type'] . '<br />';
+            $attendee_details .= wicket_tec_registration_answers_details($answers);
 
             $action = 'Registered for an event';
 
@@ -192,6 +205,11 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
                 ],
             ];
 
+            // Added last, and only when there are answers, so payloads without them keep
+            // exactly the key set and order they have always had.
+            if ($answers !== []) {
+                $params['data']['registration_answers'] = $answers;
+            }
 
             // Build a predictable, hashable string
             $hashInput = json_encode([

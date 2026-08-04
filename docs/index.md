@@ -27,6 +27,7 @@ Configuration and settings reference. One file per WP admin screen.
 Technical reference for hooks, filters, architecture, and source-level contracts.
 
 - [Centralized Logging](engineering/logging.md) — `WicketWP\Log` usage, log levels, per-plugin wrapper pattern
+- [Event Tickets Touchpoints](engineering/tec-touchpoints.md): attendee origin detection, deduplication, filters, person resolution
 - [WooCommerce Email Blocker](engineering/woocommerce-email-blocker.md) — admin email suppression logic, hooks, extension point
 - [Release Automation](engineering/release-automation.md): auto version bump and tag on merge to main, GitHub App setup
 

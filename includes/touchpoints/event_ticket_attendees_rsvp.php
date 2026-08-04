@@ -27,14 +27,11 @@ function wicket_touchpoint_write_attendee_rsvp($attendee_id, $event_id, $action)
     // see here https://www.loom.com/share/1a080095f9f047668b05e39af04d8ae3
 
     // check if they exist in Wicket, if they do use that as $person_id, if they do not exist in Wicket, create account and use that as $person_id
-    $person = wicket_resolve_person_by_email(
+    $person = wicket_tec_resolve_attendee_person(
         (string) ($attendee['attendee_meta']['email']['value'] ?? ''),
         [
             'first_name' => (string) ($attendee['attendee_meta']['first-name']['value'] ?? ''),
             'last_name' => (string) ($attendee['attendee_meta']['last-name']['value'] ?? ''),
-            // Primary-only lookup, matching this writer's historical behaviour.
-            'match_all_emails' => false,
-            'on_ambiguous' => 'first',
         ]
     );
 
