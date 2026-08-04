@@ -1,74 +1,56 @@
 <?php
 
+/**
+ * Get event data for an RSVP event.
+ *
+ * Kept for backward compatibility: themes may call this directly. Delegates to
+ * wicket_tec_event_data() and returns the same key set this has always returned.
+ *
+ * @param int|string $event_id The event post ID.
+ * @return array The legacy event-data key set.
+ */
 function wicket_rsvp_touchpoint_get_event_data_from_event($event_id)
 {
-    $start_date = tribe_get_start_date($event_id, false, 'Y-m-d g:i A T');
-    $end_date = tribe_get_end_date($event_id, false, 'Y-m-d g:i A T');
-    $is_virtual = get_post_meta($event_id, '_tribe_events_is_virtual');
-    $is_virtual_hybrid = get_post_meta($event_id, '_tribe_virtual_events_type')[0] == 'hybrid';
-    // build location string
-    $event_location = '';
-    $args = [
-        'event' => $event_id,
-    ];
-    $venue_object = tribe_get_venues(false, -1, true, $args);
-    $venue_id = $venue_object[0]->ID;
-    $event_location .= tribe_get_address($venue_id) . ', ';
-    $event_location .= tribe_get_city($venue_id) . ', ';
-    $event_location .= tribe_get_region($venue_id) . ', ';
-    $event_location .= tribe_get_country($venue_id) . ' ';
-    $event_location .= tribe_get_zip($venue_id);
-    // if event is purely virtual, not a hybrid the location = Virtual, else calculate physical location
-    $event_location = $is_virtual && !$is_virtual_hybrid ? 'VIRTUAL' : $event_location;
-    // build event types string
-    $event_type = wp_get_post_terms($event_id, 'tribe_events_cat') ? wp_get_post_terms($event_id, 'tribe_events_cat')[0]->name : 'Not set';
-
-    $data['start'] = $start_date;
-    $data['end'] = $end_date;
-    $data['event_name'] = get_the_title($event_id);
-    $data['event_id'] = $event_id;
-    $data['url'] = get_permalink($event_id);
-    $data['event_type'] = $event_type;
-    // new fields
-    $data['location'] = $event_location;
-    if ($is_virtual && !$is_virtual_hybrid) {
-        $data['format'] = 'Virtual';
-    } elseif ($is_virtual_hybrid) {
-        $data['format'] = 'Hybrid';
-    } else {
-        $data['format'] = 'In person';
-    }
-
-    return $data;
+    return wicket_tec_event_data_legacy_shape(wicket_tec_event_data((int) $event_id), 'ticket');
 }
 
 function wicket_touchpoint_write_attendee_rsvp($attendee_id, $event_id, $action)
 {
-    $client = wicket_api_client();
-    $attendee = tribe_tickets_get_attendees($attendee_id)[0];
+    $attendee = tribe_tickets_get_attendees($attendee_id)[0] ?? null;
+
+    if (!$attendee) {
+        return;
+    }
 
     // NOTE! The attendee meta fields must be setup in order for this to work with multiple rsvp's at once.
     // It only provides the 'holder email' and 'holder name' for the first one. The other guests only are shown the meta fields, therefore first name, last name, and email must be configured
     // see here https://www.loom.com/share/1a080095f9f047668b05e39af04d8ae3
 
     // check if they exist in Wicket, if they do use that as $person_id, if they do not exist in Wicket, create account and use that as $person_id
-    $search_emails_result = $client->get('/people?filter[emails_address_eq]=' . urlencode($attendee['attendee_meta']['email']['value']) . '&filter[emails_primary_eq]=true');
+    $person = wicket_resolve_person_by_email(
+        (string) ($attendee['attendee_meta']['email']['value'] ?? ''),
+        [
+            'first_name' => (string) ($attendee['attendee_meta']['first-name']['value'] ?? ''),
+            'last_name' => (string) ($attendee['attendee_meta']['last-name']['value'] ?? ''),
+            // Primary-only lookup, matching this writer's historical behaviour.
+            'match_all_emails' => false,
+            'on_ambiguous' => 'first',
+        ]
+    );
 
-    if ($search_emails_result['meta']['page']['total_items'] != 0) {
-        // we have someone, there will only be one result since primary emails are unique in wicket
-        $person_uuid = $search_emails_result['data'][0]['attributes']['uuid'];
-    } else {
-        // person does not exists, so create a new person
-        $new_person = wicket_create_person(
-            $attendee['attendee_meta']['first-name']['value'],
-            $attendee['attendee_meta']['last-name']['value'],
-            $attendee['attendee_meta']['email']['value']
-        );
+    // Previously a failed wicket_create_person() left $person_uuid undefined and the
+    // touchpoint was written with person_id => null. Skip instead.
+    if ($person['uuid'] === '') {
+        wicket_tec_log_error('Skipped RSVP touchpoint: could not resolve a Wicket person', [
+            'reason' => $person['code'],
+            'attendee_id' => $attendee_id,
+            'event_id' => $event_id,
+        ]);
 
-        if ($new_person) {
-            $person_uuid = $new_person['data']['attributes']['uuid'];
-        }
+        return;
     }
+
+    $person_uuid = $person['uuid'];
 
     $event_data = wicket_rsvp_touchpoint_get_event_data_from_event($event_id);
     $attendee_details = 'Event ID: ' . $event_data['event_id'] . '<br />';

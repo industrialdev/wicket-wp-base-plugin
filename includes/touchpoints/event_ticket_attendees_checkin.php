@@ -1,92 +1,59 @@
 <?php
 
+/**
+ * Get event data for a ticket product.
+ *
+ * Kept for backward compatibility: themes may call this directly. Delegates to
+ * wicket_tec_event_data() and returns the same key set this has always returned.
+ *
+ * @param int|string $ticket_id The ticket product post ID.
+ * @return array The legacy event-data key set.
+ */
 function wicket_touchpoint_get_event_data_from_ticket($ticket_id)
 {
-    $event_id = get_post_meta($ticket_id, '_tribe_wooticket_for_event')[0];
-    // set this incase the above isn't set in certain circumstances (should be the same though)
-    $alternate_event = get_post_meta($ticket_id, '_tribe_rsvp_for_event');
-    $alternate_event_id = 0;
-    if (isset($alternate_event[0])) {
-        $alternate_event_id = $alternate_event[0];
-    }
+    $event_id = wicket_tec_event_id_from_ticket((int) $ticket_id);
+    $data = wicket_tec_event_data_legacy_shape(wicket_tec_event_data($event_id), 'ticket');
 
-    $event_id ??= $alternate_event_id;
-    $start_date = tribe_get_start_date($event_id, false, 'Y-m-d g:i A T');
-    $end_date = tribe_get_end_date($event_id, false, 'Y-m-d g:i A T');
-    $is_virtual = get_post_meta($event_id, '_tribe_events_is_virtual');
-    $is_virtual_hybrid = false;
-    $virtual_event_type = get_post_meta($event_id, '_tribe_virtual_events_type');
-    if (isset($virtual_event_type[0])) {
-        $is_virtual_hybrid = $virtual_event_type[0] == 'hybrid';
-    }
-    // build location string
-    $event_location = '';
-    $args = [
-        'event' => $event_id,
-    ];
-    $venue_object = tribe_get_venues(false, -1, true, $args);
-    $venue_id = 0;
-    if (isset($venue_object[0])) {
-        if (isset($venue_object[0]->ID)) {
-            $venue_id = $venue_object[0]->ID;
-        }
-    }
-    if ($venue_id != 0) {
-        $event_location .= tribe_get_address($venue_id) . ', ';
-        $event_location .= tribe_get_city($venue_id) . ', ';
-        $event_location .= tribe_get_region($venue_id) . ', ';
-        $event_location .= tribe_get_country($venue_id) . ' ';
-        $event_location .= tribe_get_zip($venue_id);
-    }
-
-    // if event is purely virtual, not a hybrid the location = Virtual, else calculate physical location
-    $event_location = $is_virtual && !$is_virtual_hybrid ? 'VIRTUAL' : $event_location;
-    // build event types string
-    $event_type = wp_get_post_terms($event_id, 'tribe_events_cat') ? wp_get_post_terms($event_id, 'tribe_events_cat')[0]->name : 'Not set';
-
-    $data['start'] = $start_date;
-    $data['end'] = $end_date;
-    $data['event_name'] = get_the_title($event_id);
-    $data['event_id'] = $event_id;
-    $data['url'] = get_permalink($event_id);
-    $data['event_type'] = $event_type;
-    // new fields
-    $data['location'] = $event_location;
-    if ($is_virtual && !$is_virtual_hybrid) {
-        $data['format'] = 'Virtual';
-    } elseif ($is_virtual_hybrid) {
-        $data['format'] = 'Hybrid';
-    } else {
-        $data['format'] = 'In person';
-    }
+    // This builder read the event ID out of postmeta, so it has always been a string
+    // here while the purchase writer's builder returned an int. Cast back rather than
+    // silently changing the JSON type the MDP receives on this path.
+    $data['event_id'] = (string) $data['event_id'];
 
     return $data;
 }
 
 function wicket_touchpoint_write_attendee($attendee_id, $action)
 {
-    $client = wicket_api_client();
-    $attendee = tribe_tickets_get_attendees($attendee_id)[0];
-    $order = wc_get_order($attendee['order_id']);
+    $attendee = tribe_tickets_get_attendees($attendee_id)[0] ?? null;
+
+    if (!$attendee) {
+        return;
+    }
 
     // check if they exist in Wicket, if they do use that as $person_id, if they do not exist in Wicket, create account and use that as $person_id
-    $search_emails_result = $client->get('/people?filter[emails_address_eq]=' . urlencode($attendee['holder_email']) . '&filter[emails_primary_eq]=true');
+    $person = wicket_resolve_person_by_email(
+        (string) ($attendee['holder_email'] ?? ''),
+        [
+            'first_name' => (string) ($attendee['holder_name'] ?? ''),
+            'last_name' => (string) ($attendee['attendee_meta']['last-name']['value'] ?? ''),
+            // Primary-only lookup, matching this writer's historical behaviour.
+            'match_all_emails' => false,
+            'on_ambiguous' => 'first',
+        ]
+    );
 
-    if ($search_emails_result['meta']['page']['total_items'] != 0) {
-        // we have someone, there will only be one result since primary emails are unique in wicket
-        $person_uuid = $search_emails_result['data'][0]['attributes']['uuid'];
-    } else {
-        // person does not exists, so create a new person
-        $new_person = wicket_create_person(
-            $attendee['holder_name'],
-            $attendee['attendee_meta']['last-name']['value'],
-            $attendee['holder_email']
-        );
+    // Previously a failed wicket_create_person() left $person_uuid undefined and the
+    // touchpoint was written with person_id => null. Skip instead.
+    if ($person['uuid'] === '') {
+        wicket_tec_log_error('Skipped check-in touchpoint: could not resolve a Wicket person', [
+            'reason' => $person['code'],
+            'attendee_id' => $attendee_id,
+        ]);
 
-        if ($new_person) {
-            $person_uuid = $new_person['data']['attributes']['uuid'];
-        }
+        return;
     }
+
+    $person_uuid = $person['uuid'];
 
     $ticket_id = $attendee['product_id'];
     $event_data = wicket_touchpoint_get_event_data_from_ticket($ticket_id);

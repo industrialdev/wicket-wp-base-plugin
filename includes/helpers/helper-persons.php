@@ -304,3 +304,324 @@ function wicket_create_or_get_person(string $first_name, string $last_name, stri
 
     return $uuid;
 }
+
+/**
+ * Extract a person UUID from any of the shapes the Wicket API and helpers return.
+ *
+ * A person record may arrive as the JSON:API resource itself (with 'id' and
+ * 'attributes.uuid'), wrapped in a 'data' envelope, as a collection, or as an object.
+ *
+ * @param mixed $person A person resource, envelope, collection, or object.
+ * @return string The UUID, or '' when one cannot be found.
+ */
+function wicket_person_uuid_from_result($person): string
+{
+    if (is_object($person)) {
+        $person = json_decode((string) wp_json_encode($person), true);
+    }
+
+    if (!is_array($person)) {
+        return '';
+    }
+
+    // Unwrap a { data: ... } envelope.
+    if (isset($person['data']) && is_array($person['data'])) {
+        $person = $person['data'];
+    }
+
+    // A collection: take the first resource.
+    if (isset($person[0]) && is_array($person[0])) {
+        $person = $person[0];
+    }
+
+    foreach ([$person['attributes']['uuid'] ?? null, $person['uuid'] ?? null, $person['id'] ?? null] as $candidate) {
+        if (is_string($candidate) && $candidate !== '') {
+            return $candidate;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Log a Wicket touchpoint error.
+ *
+ * Uses error level deliberately: WicketWP\Log suppresses anything below error unless
+ * WP_DEBUG is on, and these need to be visible in production. The 'wicket-base' source
+ * keeps them in the log file support already reads.
+ *
+ * @param string $message The message to log.
+ * @param array  $context Extra context merged into the log entry.
+ */
+function wicket_tec_log_error(string $message, array $context = []): void
+{
+    if (!function_exists('Wicket')) {
+        return;
+    }
+
+    Wicket()->log()->error($message, array_merge([
+        'source' => 'wicket-base',
+        'context' => 'tec-touchpoint',
+    ], $context));
+}
+
+/**
+ * Decide whether a set of matched person rows identifies exactly one person.
+ *
+ * Split out from wicket_resolve_person_by_email() so the decision can be tested
+ * without an API client, and because the interesting cases are hard to reproduce
+ * against live data.
+ *
+ * meta.page.total_items counts matched rows, not distinct people: one person can match
+ * on several of their own addresses. So rows are deduplicated by UUID, and uniqueness is
+ * only claimed when the reported total fits inside the page actually read. If the total
+ * overruns the page, an unseen match could exist further on, which is ambiguous.
+ *
+ * @param array $rows      The 'data' rows from a people lookup.
+ * @param int   $total     The reported total matched rows (meta.page.total_items).
+ * @param int   $page_size The page size that was requested.
+ * @return array{status: string, uuids: array<int, string>} status is 'found',
+ *               'ambiguous' or 'none'.
+ */
+function wicket_person_match_verdict(array $rows, int $total, int $page_size): array
+{
+    $unique = [];
+    foreach ($rows as $row) {
+        $uuid = wicket_person_uuid_from_result($row);
+        if ($uuid !== '') {
+            $unique[$uuid] = true;
+        }
+    }
+    $uuids = array_keys($unique);
+
+    if ($uuids === []) {
+        return ['status' => 'none', 'uuids' => []];
+    }
+
+    if (count($uuids) === 1 && $total <= $page_size) {
+        return ['status' => 'found', 'uuids' => $uuids];
+    }
+
+    return ['status' => 'ambiguous', 'uuids' => $uuids];
+}
+
+/**
+ * Resolve an email address to a Wicket person UUID, creating the person if needed.
+ *
+ * Lookup order:
+ *   1. Primary email only. Primary addresses are unique in Wicket, so a hit here is
+ *      unambiguous. This reuses the exact query the TEC touchpoint writers have always
+ *      used, so behaviour on the common path is unchanged.
+ *   2. All email addresses, which also matches secondary and alias addresses. A single
+ *      distinct person is used. Several distinct people is reported as 'ambiguous',
+ *      because guessing would attach activity to the wrong person.
+ *   3. Create a new person.
+ *
+ * Counting deserves a note. meta.page.total_items counts matched rows, not distinct
+ * people, and one person can match on more than one of their own addresses. So rows are
+ * deduplicated by UUID, and uniqueness is only claimed when the reported total fits
+ * inside the page actually read. Otherwise an unseen match could exist on a later page,
+ * which is 'ambiguous', not 'found'.
+ *
+ * @param string $email The email address to resolve.
+ * @param array  $args  Optional:
+ *                      'first_name' (string) used only when creating.
+ *                      'last_name' (string) used only when creating.
+ *                      'email_type' (string) e.g. 'work', used only when creating.
+ *                      'create' (bool) create when nothing matched. Default true.
+ *                      'on_ambiguous' (string) 'error' to report ambiguity, or 'first'
+ *                      to take the first match. Default 'error'.
+ *                      'page_size' (int) results per page for the all-emails lookup.
+ *                      Default 25.
+ * @return array{status: string, uuid: string, source: string, matches: array<int, string>, total: int, code: string}
+ *               status is 'found', 'created', 'ambiguous' or 'error'.
+ *               source is 'primary', 'any', 'created' or ''.
+ */
+function wicket_resolve_person_by_email(string $email, array $args = []): array
+{
+    $args = array_merge([
+        'first_name' => '',
+        'last_name' => '',
+        'email_type' => '',
+        'create' => true,
+        'match_all_emails' => true,
+        'on_ambiguous' => 'error',
+        'page_size' => 25,
+    ], $args);
+
+    $result = [
+        'status' => 'error',
+        'uuid' => '',
+        'source' => '',
+        'matches' => [],
+        'total' => 0,
+        'code' => '',
+    ];
+
+    $email = sanitize_email($email);
+
+    if ($email === '' || !is_email($email)) {
+        $result['code'] = 'invalid_email';
+
+        return $result;
+    }
+
+    if (!function_exists('wicket_api_client')) {
+        $result['code'] = 'client_unavailable';
+
+        return $result;
+    }
+
+    // 1. Primary-email lookup. Unique in Wicket, so any hit wins outright.
+    try {
+        $client = wicket_api_client();
+        $primary = $client->get('/people?filter[emails_primary_eq]=true&filter[emails_address_eq]=' . urlencode($email));
+    } catch (Throwable $e) {
+        // Never let an MDP outage take down a checkout or an admin save.
+        $result['code'] = 'api_error';
+        wicket_tec_log_error('Wicket person lookup failed for ' . $email . ': ' . $e->getMessage(), ['reason' => 'api_error']);
+
+        return $result;
+    }
+
+    $uuid = wicket_person_uuid_from_result($primary['data'] ?? []);
+
+    if ($uuid !== '') {
+        return [
+            'status' => 'found',
+            'uuid' => $uuid,
+            'source' => 'primary',
+            'matches' => [$uuid],
+            'total' => 1,
+            'code' => '',
+        ];
+    }
+
+    // 2. All-email lookup, which picks up secondary and alias addresses. Optional so a
+    // caller can keep the historical primary-only behaviour.
+    if (!$args['match_all_emails']) {
+        return wicket_resolve_person_create($email, $args);
+    }
+
+    $page_size = max(1, (int) $args['page_size']);
+
+    try {
+        $any = $client->get('/people?filter[emails_address_eq]=' . urlencode($email) . '&page[size]=' . $page_size);
+    } catch (Throwable $e) {
+        $result['code'] = 'api_error';
+        wicket_tec_log_error('Wicket person lookup failed for ' . $email . ': ' . $e->getMessage(), ['reason' => 'api_error']);
+
+        return $result;
+    }
+
+    $rows = is_array($any['data'] ?? null) ? $any['data'] : [];
+    $total = (int) ($any['meta']['page']['total_items'] ?? count($rows));
+
+    $verdict = wicket_person_match_verdict($rows, $total, $page_size);
+
+    $result['matches'] = $verdict['uuids'];
+    $result['total'] = $total;
+
+    if ($verdict['status'] === 'found') {
+        return [
+            'status' => 'found',
+            'uuid' => $verdict['uuids'][0],
+            'source' => 'any',
+            'matches' => $verdict['uuids'],
+            'total' => $total,
+            'code' => '',
+        ];
+    }
+
+    if ($verdict['status'] === 'ambiguous') {
+        if ($args['on_ambiguous'] === 'first') {
+            return [
+                'status' => 'found',
+                'uuid' => $verdict['uuids'][0],
+                'source' => 'any',
+                'matches' => $verdict['uuids'],
+                'total' => $total,
+                'code' => 'ambiguous_used_first',
+            ];
+        }
+
+        $result['status'] = 'ambiguous';
+        $result['code'] = 'person_ambiguous';
+
+        return $result;
+    }
+
+    // 3. Nothing matched.
+    return wicket_resolve_person_create($email, $args);
+}
+
+/**
+ * Create a Wicket person, in the result shape wicket_resolve_person_by_email() returns.
+ *
+ * @param string $email The email address for the new person.
+ * @param array  $args  Resolved args from wicket_resolve_person_by_email().
+ * @return array{status: string, uuid: string, source: string, matches: array<int, string>, total: int, code: string}
+ */
+function wicket_resolve_person_create(string $email, array $args): array
+{
+    $result = [
+        'status' => 'error',
+        'uuid' => '',
+        'source' => '',
+        'matches' => [],
+        'total' => 0,
+        'code' => '',
+    ];
+
+    if (empty($args['create'])) {
+        $result['code'] = 'not_found';
+
+        return $result;
+    }
+
+    if (!function_exists('wicket_create_person')) {
+        $result['code'] = 'create_unavailable';
+
+        return $result;
+    }
+
+    $created = wicket_create_person(
+        (string) ($args['first_name'] ?? ''),
+        (string) ($args['last_name'] ?? ''),
+        $email,
+        '',
+        '',
+        '',
+        '',
+        [],
+        (string) ($args['email_type'] ?? '')
+    );
+
+    // wicket_create_person() returns ['errors' => ...] on failure, which is truthy.
+    // Callers that only tested truthiness fell through with an unset UUID and posted
+    // person_id => null to the MDP.
+    if (!is_array($created) || isset($created['errors'])) {
+        $result['code'] = 'create_failed';
+        wicket_tec_log_error('Failed to create Wicket person for ' . $email, ['reason' => 'create_failed']);
+
+        return $result;
+    }
+
+    $uuid = wicket_person_uuid_from_result($created);
+
+    if ($uuid === '') {
+        $result['code'] = 'create_no_uuid';
+        wicket_tec_log_error('Created a Wicket person for ' . $email . ' but read no UUID back', ['reason' => 'create_no_uuid']);
+
+        return $result;
+    }
+
+    return [
+        'status' => 'created',
+        'uuid' => $uuid,
+        'source' => 'created',
+        'matches' => [$uuid],
+        'total' => 0,
+        'code' => '',
+    ];
+}
