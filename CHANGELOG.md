@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.4.23] - 2026-08-04
+
+### Fixed
+- TEC touchpoint duplicate writes, venue-less events and null person_id
+
+
 ## [2.4.22] - 2026-07-30
 
 ### Fixed
