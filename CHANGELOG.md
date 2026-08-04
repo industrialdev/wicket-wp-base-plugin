@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.1] - 2026-08-04
+
+### Fixed
+- configurable card-featured image ratio, natural blurred-fill frame, Members Only tag seat
+
+
 ## [2.5.0] - 2026-08-04
 
 ### Added
