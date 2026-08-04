@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.0] - 2026-08-04
+
+### Added
+- TEC touchpoints for admin and CSV attendee adds, removals and registration answers #minor
+
+
 ## [2.4.23] - 2026-08-04
 
 ### Fixed
