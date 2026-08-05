@@ -242,7 +242,7 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 					    'classes' => $image_classes,
 					]); ?>
 				</div>
-			<?php elseif (!empty($call_to_action) && !empty($call_to_action['links'])) : ?>
+			<?php elseif (!empty($call_to_action) && (!empty($call_to_action['title']) || !empty($call_to_action['description']) || !empty($call_to_action['links']))) : ?>
 				<div class="<?php echo implode(' ', $cta_classes) ?>">
 					<?php if ($call_to_action['title']) : ?>
 						<div class="<?php echo (defined('WICKET_WP_THEME_V2')) ? 'cta-card__title' : 'text-[24px] font-bold mb-3' ?>">
