@@ -6,10 +6,14 @@
  * 'datastar'. Default stays 'alpine', so this file is not reached in production
  * unless a child theme opts in.
  *
- * Slice 1: live org search. The input drives an @get to the orgss-ds/search
- * adapter, which runs the MDP search, renders the results server-side, and
- * morphs #orgss-results-<key> over SSE. Selecting a result sets the
- * selectedOrgUuid signal only; relationship creation lands in a later slice.
+ * Slice 1: live org search over HyperPress. The input drives an @get to the
+ * 'wicket:orgss-search' HyperPress template, which runs the MDP search, renders
+ * the results server-side, and morphs #orgss-results-<key> over SSE. Selecting
+ * a result sets the selectedOrgUuid signal only; relationship creation lands in
+ * a later slice.
+ *
+ * HyperPress owns the Datastar client enqueue and auto-attaches the WP nonce to
+ * Datastar fetches, so this template does not enqueue scripts or handle nonces.
  *
  * The $args contract matches the Alpine component. Only the keys this slice
  * references are defaulted here; extra caller args are preserved by wp_parse_args.
@@ -44,22 +48,23 @@ $displayOrgType   = (bool) $args['display_org_type'];
 $ns   = 'orgss_' . $key;
 $lang = function_exists('wicket_get_current_language') ? wicket_get_current_language() : 'en';
 
-// Adapter URL with the fixed params and nonce. searchTerm is appended per request.
+// Endpoint URL with the fixed params baked in. search_term is appended per
+// request from the signal. Param names are snake_case so HyperPress's key
+// sanitization (sanitize_key) leaves them intact.
 $search_url = add_query_arg(
     [
-        '_wpnonce'       => wp_create_nonce('wp_rest'),
-        'orgssKey'       => $key,
-        'orgType'        => $searchOrgType,
-        'lang'           => $lang,
-        'display'        => $displayOrgFields,
-        'displayOrgType' => $displayOrgType ? '1' : '0',
+        'orgss_key'        => $key,
+        'org_type'         => $searchOrgType,
+        'lang'             => $lang,
+        'display'          => $displayOrgFields,
+        'display_org_type' => $displayOrgType ? '1' : '0',
     ],
-    rest_url('wicket-base/v1/orgss-ds/search')
+    hp_get_endpoint_url('wicket:orgss-search')
 );
 
-// Reused @get expression (button + Enter key). Real single quotes; esc_attr at
-// the attribute sink handles HTML escaping, browser decodes for Datastar.
-$search_get = "@get('" . $search_url . "&searchTerm=' + encodeURIComponent($" . $ns . ".searchQuery))";
+// Reused @get expression (button + Enter key). HyperPress's fetch wrapper adds
+// the nonce automatically for Datastar requests.
+$search_get = "@get('" . $search_url . "&search_term=' + encodeURIComponent($" . $ns . ".searchQuery))";
 
 $signals = [
     $ns => [
@@ -78,7 +83,7 @@ $search_placeholder = $args['org_term_singular'] !== ''
 
     <div class="component-org-search-select__variant-banner"
          style="border:1px dashed #999; padding:.5rem .75rem; margin-bottom:.75rem; background:#fafafa; font-size:.85rem;">
-        <strong>ORGSS &middot; Datastar experiment</strong> (slice 1: search)<?php if ($title !== '') : ?> &middot; <?php echo esc_html($title); ?><?php endif; ?>
+        <strong>ORGSS &middot; Datastar experiment</strong> (slice 1: search, via HyperPress)<?php if ($title !== '') : ?> &middot; <?php echo esc_html($title); ?><?php endif; ?>
     </div>
 
     <div class="component-org-search-select__search-form flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3">
@@ -110,7 +115,7 @@ $search_placeholder = $args['org_term_singular'] !== ''
 
     <div id="orgss-results-<?php echo (int) $key; ?>"
          class="component-org-search-select__results">
-        <!-- morphed by the orgss-ds/search SSE adapter -->
+        <!-- morphed by the wicket:orgss-search HyperPress SSE template -->
     </div>
 
     <input type="hidden"

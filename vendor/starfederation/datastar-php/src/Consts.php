@@ -1,0 +1,36 @@
+<?php
+
+namespace starfederation\datastar;
+
+use starfederation\datastar\enums\ElementPatchMode;
+use starfederation\datastar\enums\NamespaceType;
+
+class Consts
+{
+    public const DATASTAR_KEY = 'datastar';
+
+    // The default duration for retrying SSE on connection reset. This is part of the underlying retry mechanism of SSE.
+    public const DEFAULT_SSE_RETRY_DURATION = 1000;
+
+    // Should elements be patched using the ViewTransition API?
+    public const DEFAULT_ELEMENTS_USE_VIEW_TRANSITIONS = false;
+
+    // Should a given set of signals patch if they are missing?
+    public const DEFAULT_PATCH_SIGNALS_ONLY_IF_MISSING = false;
+
+    // The mode in which an element is patched into the DOM.
+    public const DEFAULT_ELEMENT_PATCH_MODE = ElementPatchMode::Outer;
+
+    // The namespace to use when patching elements into the DOM.
+    public const DEFAULT_NAMESPACE = NamespaceType::Html;
+
+    // Dataline literals.
+    public const SELECTOR_DATALINE_LITERAL = 'selector ';
+    public const MODE_DATALINE_LITERAL = 'mode ';
+    public const NAMESPACE_DATALINE_LITERAL = 'namespace ';
+    public const ELEMENTS_DATALINE_LITERAL = 'elements ';
+    public const USE_VIEW_TRANSITION_DATALINE_LITERAL = 'useViewTransition ';
+    public const VIEW_TRANSITION_SELECTOR_DATALINE_LITERAL = 'viewTransitionSelector ';
+    public const SIGNALS_DATALINE_LITERAL = 'signals ';
+    public const ONLY_IF_MISSING_DATALINE_LITERAL = 'onlyIfMissing ';
+}

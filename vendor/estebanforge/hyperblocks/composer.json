@@ -1,0 +1,82 @@
+{
+  "name": "estebanforge/hyperblocks",
+  "description": "HyperBlocks: A powerful block library for WordPress with fluent API and field integration.",
+  "type": "library",
+  "version": "1.5.0",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "gutenberg",
+    "blocks",
+    "fluent-api",
+    "fields"
+  ],
+  "authors": [
+    {
+      "name": "Esteban Cuevas",
+      "email": "esteban@actitud.xyz",
+      "homepage": "https://github.com/EstebanForge"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../HyperFields"
+    }
+  ],
+  "require": {
+    "php": ">=8.2",
+    "estebanforge/hyperfields": "^1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12",
+    "pestphp/pest": "^4",
+    "brain/monkey": "^2",
+    "mockery/mockery": "^1",
+    "friendsofphp/php-cs-fixer": "^3",
+    "squizlabs/php_codesniffer": "^3"
+  },
+  "autoload": {
+    "psr-4": {
+      "HyperBlocks\\": "src/"
+    },
+    "files": [
+      "bootstrap.php"
+    ]
+  },
+  "autoload-dev": {
+    "classmap": [
+      "tests/Unit/"
+    ]
+  },
+  "scripts": {
+    "test": "bash -lc 'if [ ! -f vendor/bin/pest ]; then composer update --no-interaction --no-progress; fi; php -d pcov.enabled=1 vendor/bin/pest --configuration phpunit.xml --colors=always'",
+    "test:unit": "php -d pcov.enabled=1 vendor/bin/pest --configuration phpunit.xml tests/Unit --colors=always",
+    "test:integration": "php -d pcov.enabled=1 vendor/bin/pest --configuration phpunit.xml tests/Integration --colors=always",
+    "test:coverage": "php -d pcov.enabled=1 vendor/bin/pest --configuration phpunit.xml --coverage-html coverage-html --coverage-text",
+    "cs:fix": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+    "cs:check": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
+    "cs:sniff": "vendor/bin/phpcs --standard=PSR12 src/",
+    "version-bump": "bash scripts/version-bump.sh",
+    "production": "@php composer install --no-dev --optimize-autoloader"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/installers": true,
+      "pestphp/pest-plugin": true
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.0-dev"
+    }
+  },
+  "support": {
+    "issues": "https://github.com/EstebanForge/HyperBlocks/issues",
+    "source": "https://github.com/EstebanForge/HyperBlocks",
+    "docs": "https://github.com/EstebanForge/HyperBlocks/blob/main/docs/"
+  }
+}

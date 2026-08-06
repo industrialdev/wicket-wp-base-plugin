@@ -1,0 +1,33 @@
+{
+  "name": "hyperpress",
+  "author": "Esteban Cuevas",
+  "license": "GPL-2.0-or-later",
+  "version": "3.0.5",
+  "description": "Supercharge WordPress with the power of hypermedia. Use HTMX, Alpine Ajax, and Datastar to create rich, interactive blocks and pages—all with the simplicity of PHP.",
+  "keywords": [],
+  "main": "index.js",
+  "scripts": {
+    "download-libraries": "php .ci/update-libraries.php",
+    "update-libraries": "php .ci/update-libraries.php",
+    "update-htmx": "npm run update-libraries -- --library=htmx",
+    "update-htmx-extensions": "npm run update-libraries -- --library=htmx-extensions",
+    "update-hyperscript": "npm run update-libraries -- --library=hyperscript",
+    "update-alpinejs": "npm run update-libraries -- --library=alpinejs",
+    "update-alpine-ajax": "npm run update-libraries -- --library=alpine-ajax",
+    "update-datastar": "npm run update-libraries -- --library=datastar",
+    "update-all": "npm run update-libraries -- --all",
+    "postinstall": "echo '📋 To download all libraries, run: npm run update-all'",
+    "build": "wp-scripts build src/js/editor.js src/js/admin-options.js src/js/map-field.js --output-path=assets/js"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^27.6.0",
+    "alpinejs": "^3",
+    "htmx.org": "^2",
+    "hyperscript.org": "*",
+    "@starfederation/datastar": "^1"
+  },
+  "volta": {
+    "node": "22.15.0",
+    "npm": "10.8.2"
+  }
+}

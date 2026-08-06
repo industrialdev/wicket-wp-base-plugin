@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dc8581cf1b76597c11e3f3f1fadeff67",
+    "content-hash": "fc2ad80f48bfba158cfcaef28a34f1ef",
     "packages": [
         {
             "name": "adbario/php-dot-notation",
@@ -218,6 +218,178 @@
                 }
             ],
             "time": "2025-08-10T19:31:58+00:00"
+        },
+        {
+            "name": "estebanforge/hyperblocks",
+            "version": "1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/EstebanForge/HyperBlocks.git",
+                "reference": "77bf4151e6a33a2c8d63ad7ca4bc38f9688ef7a3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/EstebanForge/HyperBlocks/zipball/77bf4151e6a33a2c8d63ad7ca4bc38f9688ef7a3",
+                "reference": "77bf4151e6a33a2c8d63ad7ca4bc38f9688ef7a3",
+                "shasum": ""
+            },
+            "require": {
+                "estebanforge/hyperfields": "^1",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "brain/monkey": "^2",
+                "friendsofphp/php-cs-fixer": "^3",
+                "mockery/mockery": "^1",
+                "pestphp/pest": "^4",
+                "phpunit/phpunit": "^12",
+                "squizlabs/php_codesniffer": "^3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "HyperBlocks\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Esteban Cuevas",
+                    "email": "esteban@actitud.xyz",
+                    "homepage": "https://github.com/EstebanForge"
+                }
+            ],
+            "description": "HyperBlocks: A powerful block library for WordPress with fluent API and field integration.",
+            "keywords": [
+                "blocks",
+                "fields",
+                "fluent-api",
+                "gutenberg",
+                "wordpress"
+            ],
+            "support": {
+                "docs": "https://github.com/EstebanForge/HyperBlocks/blob/main/docs/",
+                "issues": "https://github.com/EstebanForge/HyperBlocks/issues",
+                "source": "https://github.com/EstebanForge/HyperBlocks"
+            },
+            "time": "2026-08-04T19:45:07+00:00"
+        },
+        {
+            "name": "estebanforge/hyperfields",
+            "version": "1.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/EstebanForge/HyperFields.git",
+                "reference": "38c6ed35b84a2106f456c2df646bee8526527be8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/EstebanForge/HyperFields/zipball/38c6ed35b84a2106f456c2df646bee8526527be8",
+                "reference": "38c6ed35b84a2106f456c2df646bee8526527be8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "brain/monkey": "^2",
+                "friendsofphp/php-cs-fixer": "^3",
+                "mockery/mockery": "^1",
+                "pestphp/pest": "^4",
+                "phpunit/phpunit": "^12"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "HyperFields\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Esteban Cuevas",
+                    "email": "esteban@actitud.xyz"
+                }
+            ],
+            "description": "HyperFields: A powerful custom field system for WordPress, providing metaboxes, options pages, and conditional logic.",
+            "support": {
+                "issues": "https://github.com/EstebanForge/HyperFields/issues",
+                "source": "https://github.com/EstebanForge/HyperFields/tree/1.5.1"
+            },
+            "time": "2026-08-03T19:02:28+00:00"
+        },
+        {
+            "name": "estebanforge/hyperpress-core",
+            "version": "1.5.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/EstebanForge/HyperPress-Core.git",
+                "reference": "8bd0a0a82464a4386f3abc28c0fcd0711c4e05a9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/EstebanForge/HyperPress-Core/zipball/8bd0a0a82464a4386f3abc28c0fcd0711c4e05a9",
+                "reference": "8bd0a0a82464a4386f3abc28c0fcd0711c4e05a9",
+                "shasum": ""
+            },
+            "require": {
+                "estebanforge/hyperblocks": "^1",
+                "estebanforge/hyperfields": "^1",
+                "php": ">=8.2",
+                "starfederation/datastar-php": "^1"
+            },
+            "require-dev": {
+                "brain/monkey": "^2",
+                "friendsofphp/php-cs-fixer": "^3",
+                "pestphp/pest": "^4",
+                "pestphp/pest-plugin-browser": "^4",
+                "phpunit/phpunit": "^12"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "HyperPress\\": "src/"
+                },
+                "exclude-from-classmap": [
+                    "**/vendor/starfederation/datastar-php/**"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Esteban Cuevas",
+                    "email": "esteban@actitud.xyz"
+                }
+            ],
+            "description": "Core HyperPress runtime library: routing, rendering, assets, admin options, and hypermedia integrations.",
+            "support": {
+                "issues": "https://github.com/EstebanForge/HyperPress-Core/issues",
+                "source": "https://github.com/EstebanForge/HyperPress-Core/tree/1.5.2"
+            },
+            "time": "2026-08-04T19:48:27+00:00"
         },
         {
             "name": "firebase/php-jwt",
@@ -1431,6 +1603,53 @@
                 "source": "https://github.com/ralouphie/getallheaders/tree/develop"
             },
             "time": "2019-03-08T08:55:37+00:00"
+        },
+        {
+            "name": "starfederation/datastar-php",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/starfederation/datastar-php.git",
+                "reference": "a02c72956c9ee80fe7ae2ce28d1112cf92c6ffbf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/starfederation/datastar-php/zipball/a02c72956c9ee80fe7ae2ce28d1112cf92c6ffbf",
+                "reference": "a02c72956c9ee80fe7ae2ce28d1112cf92c6ffbf",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "craftcms/ecs": "dev-main",
+                "craftcms/phpstan": "dev-main",
+                "pestphp/pest": "^3.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "starfederation\\datastar\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "mit"
+            ],
+            "authors": [
+                {
+                    "name": "Ben Croker",
+                    "homepage": "https://putyourlightson.com/",
+                    "role": "Author"
+                }
+            ],
+            "description": "A PHP SDK for working with Datastar.",
+            "support": {
+                "docs": "https://github.com/starfederation/datastar-php",
+                "issues": "https://github.com/starfederation/datastar-php/issues",
+                "source": "https://github.com/starfederation/datastar-php"
+            },
+            "time": "2026-06-02T18:56:00+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",

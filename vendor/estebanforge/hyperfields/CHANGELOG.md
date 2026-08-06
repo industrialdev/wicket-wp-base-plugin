@@ -1,0 +1,442 @@
+# Changelog
+
+## [1.5.1] - 2026-08-03
+
+### Changed
+- Dependencies updated.
+
+## [1.5.0] - 2026-07-30
+
+### Added
+- **Automatic cache invalidation on HyperFields saves.** `HyperFields\CacheInvalidator` clears stale transients and resets OPcache whenever HyperFields persists data through its semantic save actions (`hyperfields/options_page/after_save`, `hyperfields/settings/after_save`, the post/term/user `*_meta_container_saved` actions, and `hyperfields/import/after`). Each fires only on a real value change (no-op writes are filtered upstream), so invalidation runs once per actual write, not on every form submit. Wired in by `LibraryBootstrap::init()`.
+  - **Transient clearing is backend-aware:** with no external object cache, transients live in `wp_options` and are purged by a direct SQL DELETE of `_transient_*` / `_site_transient_*` (plus the matching sitemeta rows on a multisite main network). With a persistent object cache (Redis/Memcached), transients live ONLY in the cache under the `transient` / `site-transient` groups, so no DB rows exist; they are cleared surgically via `wp_cache_flush_group()` instead. Backends that do not advertise group-flush support (`wp_cache_supports('flush_group')`) are left alone by default.
+  - **OPcache reset:** `opcache_reset()` when the extension is available. OPcache caches compiled PHP bytecode, not option values; the reset serves sites that derive PHP/config from options or cache compiled templates keyed off option state.
+  - **Filters:** master switch `hyperfields/cache/auto_invalidate` (default `true`) disables everything; `hyperfields/cache/flush_transients` (default `true`) and `hyperfields/cache/reset_opcache` (default `true`) toggle those layers. `hyperfields/cache/flush_object_cache` (default `false`) is an explicit opt-in for a full `wp_cache_flush()`, the documented performance anti-pattern (Trac #63070 wontfix; the redis-cache FAQ warns frequent flushes cause timeouts). Use it only on a persistent backend that lacks group-flush support. `add_filter('hyperfields/cache/auto_invalidate', '__return_false');` turns the feature off entirely.
+  - **Manual flush:** `HyperFields\CacheInvalidator::flush()` or the `hf_flush_hyperfields_cache()` helper trigger a flush outside the save lifecycle (wp-cron, migrations, importers), still honoring the per-layer filters.
+- `tests/Unit/CacheInvalidatorTest.php`: 12 tests covering action registration, the master filter, the transient backend split (Redis group-flush vs DB purge vs unsupported backend), the full-flush opt-in (default off, opt-in, no-ext-cache skip), and the no-`wpdb` guard.
+
+### Changed
+- **WordPress 6.5+ is now the minimum** across the Hyper stack (HyperFields, HyperPress-Core, HyperBlocks, HyperPress plugin). Drops back-compat for older WP. WP 6.5 guarantees modern APIs like `wp_cache_flush_group()` / `wp_cache_supports()` (6.1+), so `CacheInvalidator` needs no `function_exists` guards for cache functions. PHP floor unified at 8.2+.
+  - HyperPress plugin (`api-for-htmx`) `readme.txt`: `Requires at least` 6.4 → 6.5, `Requires PHP` 8.1 → 8.2, `Tested up to` 6.6 → 7.0 (plugin header was already 6.5/8.2).
+  - HyperFields + HyperBlocks `composer.json`: PHP `>=8.1` → `>=8.2`. HyperFields `AGENTS.md` floor: "WordPress 5.0+" → "6.5+", "PHP 8.1+" → "8.2+".
+  - HyperPress-Core was already PHP `>=8.2`; the WP floor is enforced by the consuming plugin header.
+
+## [1.4.5] - 2026-07-24
+
+### Fixed
+- **Admin asset 404s when HyperFields runs under HyperPress.** `TemplateLoader::enqueueAssets()` and `ExportImportUI::enqueuePageAssets()` preferred `HYPERPRESS_PLUGIN_URL` over `HYPERFIELDS_PLUGIN_URL` for HyperFields' own assets (`hyperfields-admin.css`, `conditional-fields.js`, `media-fields.js`, `map-field.js`, `hyperfields-admin.js`) — a legacy of the HyperFields/HyperPress split. Those files live under `hyperfields/assets/`, not `hyperpress-core/assets/`, so every request 404'd. Now prefers `HYPERFIELDS_PLUGIN_URL` (and `HYPERFIELDS_VERSION` for cache-busting), falling back to `HYPERPRESS_*` only when HyperFields' own URL is unavailable.
+
+### Changed
+- `package.json` version resynced to the library version (had drifted during earlier manual bumps).
+- README: added a Jetpack Autoloader note pointing consumers to the direct-require gate.
+- `LibraryBootstrap::VERSION` bumped to match the release (stamps the class file for the version-aware shadow predicate). `version-bump.sh` now scans `src/` recursively, so class-level version stamps are updated automatically on future bumps.
+
+## [1.4.4] - 2026-07-24
+
+### Added
+- **`LibraryBootstrap::VERSION` constant + version-aware shadow predicate.** Closes the `method_exists` blind spot a peer review (Claude Opus) flagged: `method_exists` only catches *absent* methods, not a method present in both versions but with changed behavior. `hyperfields_is_class_shadowed()` now also treats a loaded class whose `VERSION` is older than 1.4.1 (when `resolveContentUrl()`'s stable contract was introduced) as shadowed — catching behavioral drift, not just absence. Classes without the stamp (pre-1.4.4, test stubs) skip the version check and fall through to `method_exists`. Uses `ReflectionClass::hasConstant()` (not `getConstant()` directly) to avoid the PHP 8.5 deprecation for non-existent constants.
+
+### Fixed
+- Companion doc mirrors: the "consumers must directly require `automattic/jetpack-autoloader`" guidance (the non-obvious gate that caused a staging outage) now also lives in `estebanforge/hyperblocks` and `estebanforge/hyperpress-core` docs, not only HyperFields'.
+
+### Notes
+- `LibraryBootstrap::VERSION` must track the library release version on future bumps (the `version-bump.sh` script does not yet update it).
+
+## [1.4.3] - 2026-07-24
+
+### Fixed
+- **Class-shadowing guard extended to the shared procedural wrapper `hyperfields_resolve_content_url()` (in `includes/helpers.php`)** — the chokepoint sibling libraries actually call. 1.4.2 guarded only HyperFields' own bootstrap init call; sibling paths were still vulnerable: HyperPress-Core's bootstrap (`function_exists('hyperfields_resolve_content_url') ? hyperfields_resolve_content_url(...)`) and HyperBlocks' `hyperblocks_resolve_content_url()` both delegate to this wrapper, so a stale bundled `LibraryBootstrap` (< 1.4.1) lacking `resolveContentUrl()` would still fatal through them. The wrapper now runs the same shadow predicate and returns `''` (siblings already treat `''` as the "bail" signal) instead of calling the absent method. The class FQCN is injectable for testing.
+
+### Added
+- `tests/Unit/ResolvePluginUrlTest.php`: two regression tests for the wrapper path (`testWrapperDelegatesToFreshClass`, `testWrapperBailsOnStaleClassInsteadOfFataling`). Removing the wrapper guard makes the stale test fatal.
+
+### Notes
+- 1.4.2 (the bootstrap-path guard) remains a strict improvement and is safe; 1.4.3 closes the sibling-wrapper hole identified in peer review. Together they cover both external call sites of `LibraryBootstrap::resolveContentUrl()`.
+
+## [1.4.2] - 2026-07-24
+
+### Fixed
+- **Class-shadowing fatal eliminated: a stale bundled `HyperFields\LibraryBootstrap` lacking `resolveContentUrl()` (added in 1.4.1) no longer crashes the request when a newer init wins the multi-instance version election.** The election guarantees the newest *init* runs but cannot guarantee the newest *class* is loaded — PHP's autoloader stack may resolve the class from an older bundled copy. Previously the newest init then called a method absent on the stale class and the process fatal'd (`Call to undefined method ... resolveContentUrl()`). The call is now guarded: when the shadow signature is detected (class loaded, method absent) the resolver emits a diagnosable `error_log` alarm and falls back to `plugins_url()` instead of crashing. This is the direct fix for a staging-outage class of failure.
+
+### Added
+- `hyperfields_resolve_plugin_url(string $plugin_dir, string $plugin_file_path, string $plugin_version, string $class = 'HyperFields\LibraryBootstrap', ?callable $alarm = null): string` — extracts the library URL resolution (formerly inline in `hyperfields_run_initialization_logic()`) into a testable function with the class FQCN and alarm callable injectable.
+- `hyperfields_is_class_shadowed(string $class): bool` — pure predicate returning true iff the LibraryBootstrap class is loaded but lacks `resolveContentUrl()`. The alarm trigger logic, unit-testable without `error_log` capture.
+- `tests/Unit/ResolvePluginUrlTest.php` — four regression tests pinning the guard: fresh class delegates, stale class falls back + alarms with the correct message, missing class falls back silently, and the predicate detects the stale shape. Removing the guard makes the stale test fatal.
+
+### Notes
+- This guard is a safety net, not the root-cause fix. The root cause is that consumers (e.g. any distributable plugin vendoring a Hyper library) pull `automattic/jetpack-autoloader` only transitively via `hyperfields → jetpack`, so Jetpack never adopts them and stays inert. Consumers must *directly* require `automattic/jetpack-autoloader` for Jetpack to generate its manifest and own class identity. See `docs/library-bootstrap.md`.
+
+## [1.4.1] - 2026-07-23
+
+### Fixed
+- **Vendored HyperFields no longer produces a 404ing asset URL, fixing admin/options-page assets and field JS (multiselect-enhanced.js) that silently failed to load when the library was installed outside `WP_PLUGIN_DIR`.** The library URL constant `HYPERFIELDS_PLUGIN_URL` was computed with `plugins_url('', $plugin_file_path)` (in `bootstrap.php` and `LibraryBootstrap::resolve_plugin_url()`). That function resolves correctly only when the file sits directly under `WP_PLUGIN_DIR`: it calls `plugin_basename()`, which strips that one prefix and nothing else. When HyperFields is loaded from anywhere else, `plugin_basename()` returns the full filesystem path with its leading slash stripped, and `plugins_url()` glues it to `WP_PLUGIN_URL`, emitting a URL like `https://host/app/plugins/home/.../src/vendor/estebanforge/hyperfields/` that 404s. Assets enqueued from that URL never load, silently breaking options pages and field enhancements. This hit real Bedrock deployments where the app's root `composer.json` pulls a plugin that requires `estebanforge/hyperblocks` (which itself requires `estebanforge/hyperfields`) into `public_html/src/vendor` (outside the `src/web` document root), and that root copy won HyperFields' multi-instance highest-version election, so its (unreachable) assets were the ones enqueued. The new resolver matches the library directory against every web-accessible WordPress content root (`WP_PLUGIN_DIR`/`WP_PLUGIN_URL`, `WPMU_PLUGIN_DIR`/`WPMU_PLUGIN_URL`, `WP_CONTENT_DIR`/`WP_CONTENT_URL`, and the active theme template + stylesheet dirs) on a directory boundary, with `realpath` canonicalization so symlinked plugin dirs (wp-env, Lando, some Bedrock setups) still match. Returns the correct public URL, or an empty string when the path is genuinely not HTTP-reachable.
+- **`HYPERPRESS_PLUGIN_URL` no longer inherits a broken HyperFields value.** `LibraryBootstrap::init()` previously defined `HYPERPRESS_PLUGIN_URL` by copying `HYPERFIELDS_PLUGIN_URL`. When HyperFields' URL was the 404ing value above, that pollution silently broke HyperPress-Core's frontend script enqueue too. HyperFields no longer defines `HYPERPRESS_PLUGIN_URL` at all. HyperPress-Core owns that constant and resolves it from its own base directory (HyperPress vendors HyperFields, so it may live at a different path). A naive "resolve independently from HyperFields' $base_dir" was considered but rejected: that $base_dir is HyperFields' dir, not HyperPress-Core's, so it would still produce the wrong URL. Removing the fallback lets HyperPress-Core's own (correct) bootstrap win.
+
+### Added
+- `LibraryBootstrap::resolveContentUrl(string $path): string` public static method — the canonical content-aware URL resolver shared across the HyperFields / HyperBlocks / HyperPress-Core library family. Matches an absolute filesystem path against web-accessible WordPress content roots with directory-boundary prefix matching and `realpath` canonicalization; returns `''` when no root contains the path.
+- `hyperfields_resolve_content_url(string $path): string` procedural wrapper in `includes/helpers.php`, exposed so sibling libraries (HyperBlocks, HyperPress-Core) delegate to this single implementation when HyperFields is present rather than carrying their own copy.
+- `tests/Unit/ResolveContentUrlTest.php` covering nested plugin-vendor resolution, exact-root match, the shared-prefix boundary guard, the Bedrock-root-vendor (non-web-accessible) empty case, and backslash normalization.
+- `WP_PLUGIN_URL`/`WP_CONTENT_URL` constants in the test bootstrap so the resolver's production code path is exercised (previously only `WP_*_DIR` was defined, so the URL pairs were skipped and the resolver could not be tested meaningfully).
+
+## [1.4.0] - 2026-07-16
+
+### Changed
+- **Admin CSS realigned with current WordPress checkbox/heading UI** — three scoping fixes in `assets/css/hyperfields-admin.css`, all in service of matching recent WP core rendering rather than fighting it:
+  - Section headings now use the admin text-color token (`var(--hf-color-admin-text)`) instead of the generic frontend text token (`var(--hf-color-text)`), so headings match the surrounding WP admin chrome.
+  - Removed the fixed `width: 18px` / `height: 18px` on `.hyperpress-field-input-wrapper input[type="checkbox"]` and `[type="radio"]`. WordPress 6.9+/7.x renders checkboxes via `appearance: none` with an internally-positioned checkmark; forcing a fixed size distorted that internal positioning and produced an off-center check, especially on mobile. Width/height is now left unset so WP core owns the checkbox appearance; `cursor: pointer` is retained.
+  - Scoped the `.hyperpress-heading-label` rule to `.hyperpress-options-wrap .hyperpress-heading-label`, preventing it from leaking out and overriding unrelated heading markup on pages that share the class name.
+
+## [1.3.5] - 2026-07-07
+
+### Fixed
+- **Empty image-field preview rendered as a tiny white box** — the PHP image-field templates always emitted the `.hyperpress-image-preview` shell (padding + white background + border) but only placed an `<img>` inside when a value existed. With no selection the styled shell collapsed to a small empty square. Both rendering paths now show an empty-state placeholder.
+  - `src/templates/field-image.php` (primary path resolved by `TemplateLoader::getTemplateFile()`) and `src/templates/field-input.php` (legacy `image` switch case, reachable via the `hyperfields/template` filter) now render `<span class="hyperpress-image-placeholder">No image selected</span>` and add an `is-empty` class to the preview div when `$value` is empty.
+  - `assets/js/media-fields.js` keeps the placeholder in sync: `updateSinglePreview()` drops `is-empty` when an image is chosen; `clearSingle()` restores the placeholder span + `is-empty` class instead of leaving an empty hidden div (image branch only; file branch unchanged).
+  - New `.hyperpress-image-preview.is-empty` CSS rule renders a 150×150 dashed-border box with muted placeholder text, matching the populated dimensions so selecting/removing causes no layout shift.
+  - `'noImage' => __('No image selected', 'api-for-htmx')` added to the admin `hyperpressFields.l10n` array in `TemplateLoader::enqueueAssets()` so the JS-restored placeholder is translatable.
+- **VIP/WPCS `EscapeOutput` compliance for the `is-empty` class output** — both template `echo` sites now wrap the class literal in `esc_attr()` as defense-in-depth, even though the output is a hardcoded literal.
+
+## [1.3.4] - 2026-07-07
+
+### Added
+- **`wp.media` handler for image, file, and `media_gallery` fields** — the PHP field templates emitted `.hyperpress-upload-button` / `.hyperpress-remove-button` markup but no JavaScript existed to open the media frame. Only the React path (`react-fields.js` / `ImageField.jsx`) had a working picker; consumers on the plain PHP-template path got dead buttons. New dedicated `assets/js/media-fields.js` (ES6 `class HyperFieldsMedia`, singleton-scoped, event-delegated):
+  - Single-select frame for `image` (stores attachment ID) and `file` (stores URL), with live preview updates and remove-button visibility toggling.
+  - Multi-select frame for `media_gallery` (stores comma-joined IDs), with per-item thumbnail fetch via `wp.media.attachment().fetch()` and per-item removal.
+  - Reads the existing `hyperpressFields.l10n` strings; no new localization surface.
+  - Degrades gracefully: returns early when `wp.media` is undefined.
+- **`wp_enqueue_media()` call in `TemplateLoader::enqueueAssets()`** for admin pages, so the core media scripts load alongside the new handler. Guarded with `function_exists()` (progressive enhancement; the hidden input still submits its value without it).
+
+### Fixed
+- **Double-enqueue of `conditional-fields.js`** — `Assets::enqueueScripts()` registered the script under handle `hyperfields-conditional-fields` while `TemplateLoader::enqueueAssets()` used `hyperpress-conditional-fields`. Same file, two handles, so the script (and its `hyperpressFields` localization) loaded twice on every admin page. Removed the redundant enqueue from `Assets.php`; `TemplateLoader` is now the single source.
+- **Flat-layout fields rendered unstyled** — field templates use two layouts: grid-row (number/text/checkbox/textarea/select) and flat (radio/image/file/separator/heading/html). The flat layout emitted classes with zero CSS rules, so radio groups, image pickers, separators, and headings rendered as raw, unstyled HTML. A `:has(> .hyperpress-field-label)` rule now aligns flat fields to the same 220px label/input grid as the grid-row fields (scoped to flat fields only). Native WP-style rules added for `.hyperpress-radio-vertical`/`-horizontal`, `.hyperpress-image-field`/`-file-field`/`-media-gallery-field` (CSS grid: buttons side by side on row 1, preview wraps below and hugs the image), `.hyperpress-separator`, `.hyperpress-heading-wrapper`, `.hyperpress-html-content`. Mobile: flat fields collapse to a single column under 782px, matching the existing grid-row collapse.
+
+### Docs
+- **Jetpack Autoloader guidance** in `docs/library-bootstrap.md`. Host plugins using `automattic/jetpack-autoloader` must explicitly `require_once` the bootstrap file and call `hyperfields_run_initialization_logic()`, because the Jetpack Autoloader skips Composer autoload `files` entries. Without it, `HYPERFIELDS_PLUGIN_URL` is never defined, `TemplateLoader::enqueueAssets()` bails at its empty-URL guard, and the options page renders with zero styling.
+
+## [1.3.2] - 2026-07-06
+
+### Added
+- **Numeric range enforcement for `number` fields** — revived the dead `Field::$min`/`$max` properties (widened `?int` → `?float`) and wired them end-to-end. `setMin(1.0)->setMax(7.0)->setStep(0.1)` now (a) renders `min`/`max`/`step` as HTML attributes on the input, (b) **clamps the sanitized value server-side** to `[min, max]` so saves can never persist out-of-range data, and (c) reports correct numeric validity via `validateValue()`. Out-of-range values are coerced, never rejected, so the save flow cannot fail on range alone. This is a strict improvement on Carbon Fields, which only emits the HTML attributes and trusts the browser.
+- **Type-aware `setValidation(['min'..'max'])`** — for `number` fields, `min`/`max` are now numeric bounds; for string fields they stay string-length bounds (backward compatible). Removes the dual-meaning confusion that made `min`/`max` unsafe for numbers.
+
+### Fixed
+- **Container save path bypassed validation** — `PostMetaContainer`, `TermMetaContainer`, and `UserMetaContainer` called `sanitizeValue()` but never `validateValue()`, so `wps_validate` and `setValidation` rules were silently ignored for post/term/user meta. Each save loop now runs validation and skips fields that fail (existing meta preserved). Numeric range never triggers a skip because the sanitizer clamps first.
+- **`ReactField::getMin`/`getMax` LSP break** — signatures widened from `?int` to `?float` to match the parent after the `Field` property change. (Note: the bodies still read `toArray()['min']`, which never exists — pre-existing dead code that always returns `null`; the parent getters now take precedence via the property. Tracked for a separate cleanup.)
+
+### Tests
+- `FieldTest::testNumberRangeClampAndAttributes` — covers clamp behavior (below-min, above-max, in-range, non-numeric), float getters, `step` independence, HTML attribute injection into `toArray()`, user-attribute precedence, and non-number field isolation.
+- `FieldTest::testValidationRulesAreTypeAware` — covers numeric `min`/`max` for `number` vs string-length `min`/`max` for `text`.
+- `UserMetaContainerTest::testSaveWrapper` — updated to mock the new `validateValue()` save contract.
+
+## [1.3.1] - 2026-07-06
+
+### Added
+- **Semantic save action on `OptionsPage`** — re-emits WP's Settings-API save as `hyperfields/options_page/after_save` so consumers hook intent, not raw `update_option_{$name}` plumbing. Gated on `$old !== $new`, so `after_save` fires exactly once per real value change, not on every form submit. Argument order is `(new, old, page)` (intentional reversal of WP's `(old, new, option)`) to match "the current state after save" intent. Mirrors Carbon Fields' `theme_options_container_saved` surface for migration-friendliness.
+- **`hyperfields/options_page/pre_save` filter** — let third parties alter sanitized values before WP writes them. Receives `(output, pre_save_snapshot, OptionsPage_instance)`. Filter consumers must treat the `OptionsPage` argument as read-only; mutating it mid-sanitize (e.g. re-calling `registerSettings()`) has undefined behavior.
+
+### Tests
+- `OptionsPageTest` covers `onOptionSaved` no-op gating (identical `$old`/`$new` does not fire `after_save`), the `(new, old, page)` arg order, and the `pre_save` filter seam being applied during sanitize.
+
+## [1.3.0] - 2026-07-03
+
+### Added
+- **New `AdminPage` class** — non-form admin page host for tool/wizard pages (sticky white header with H1, URL-based nav tabs, notice relocation) without the settings-form machinery (`OptionsPage` is still the right choice for settings forms). Additive and fully backward-compatible.
+  - `HyperFields::makeAdminPage($title, $slug)` factory.
+  - `addTab($id, $title, callable $render)`, `setParentSlug()`, `setMenuTitle()`, `setCapability()`, `setPosition()`, `setFooterContent()`.
+  - Tabs render always once at least one is added; active tab read from `?tab=` (defaults to the first). No `<form>`, no `register_setting`, no Save button, no sanitize callback.
+  - Emits the same DOM anchors as `OptionsPage` (`.hyperpress-options-wrap`, `[data-hyperpress-sticky-header]`, `#hyperpress-layout__notice-catcher`), so the sticky-header and notice-relocation JS work unchanged.
+- **Mobile nav-tab dropdown morph** — on viewports `<= 782px`, URL-based nav tabs (used by both `OptionsPage` and `AdminPage`) render as a `<select>` dropdown built from the existing `<a>` links (single source of truth). Active tab is preselected; changing the dropdown navigates to the tab URL. Vanilla JS, show/hide driven purely by CSS.
+
+### Fixed
+- **`TabsField` layout regression** — `.hyperpress-tabs-wrapper { display: flex }` laid the tab nav and content side by side. Now `display: block`; the inner `.nav-tab-wrapper` keeps its flex row.
+- **Sticky-header horizontal scrollbar** — the white-bar bleed pseudo-elements pushed past the viewport on the right. Bleed is now asymmetric: left fills `#wpcontent`'s left padding, right syncs to the new `--hf-content-inset-right` variable so content gets breathing room without the white bar falling short.
+- **Mobile sticky-header gaps** — at `max-width: 782px` the bleed now matches the wrap's own mobile padding (`--hf-header-bleed-x: 16px`), so the white header fills edge-to-edge on small screens.
+- **Notice relocation on `AdminPage`** — the notice-hiding inline style (`.wrap.hyperpress-options-wrap > .notice`) kept relocated notices invisible on non-form pages because the catcher had no isolating parent (OptionsPage gets this for free from its `<form>`). The catcher is now wrapped in `.hyperpress-notice-region`.
+
+## [1.2.4] - 2026-04-28
+
+### Added
+- Jetpack Autoloader integration for Composer package conflict management.
+  - Added `automattic/jetpack-autoloader` dependency.
+  - Enabled Composer plugin allow-list entry for Jetpack Autoloader.
+
+### Changed
+- Bootstrap loading flow now attempts `vendor/autoload_packages.php` before `vendor/autoload.php` when running outside a vendor tree.
+
+## [1.2.3] - 2026-04-25
+
+### Changed
+- **PHP Compatibility** - Lowered minimum PHP version from 8.2 to 8.1
+  - All code features compatible with PHP 8.1+ (uses `public readonly` properties)
+  - No `readonly class` or other PHP 8.2+ specific features
+  - Improves WordPress ecosystem compatibility
+
+## [1.2.2] - 2026-04-25
+
+### Fixed
+- **Multiselect Form Submission** - Added hidden select element for proper form data submission
+  - Added `hf-multiselect-hidden` class to hidden select element in multiselect template
+  - Updated JavaScript to prioritize finding hidden select by class before falling back to name-based search
+  - Ensures proper value submission when multiselect field is used in forms
+
+### Changed
+- Improved multiselect field JavaScript selector logic for more robust element detection
+- Enhanced multiselect template with dedicated hidden select for form handling
+
+## [1.2.0] - 2026-04-12
+
+### Added
+- **React Integration** - Modern UI components for options pages with PHP-only API
+  - `ReactField` class extends `Field` with React rendering capabilities
+  - Automatic React asset loading when `ReactField` instances are detected
+  - Supports 10 field types: text, textarea, number, email, url, color, image, checkbox, select
+  - Uses WordPress `@wordpress/components` for consistent admin UI
+  - Media library integration for image fields with live preview
+  - WordPress color picker with alpha channel support
+  - Progressive enhancement - HTML works, React is opt-in
+  - Zero breaking changes - existing code continues to work unchanged
+
+- **ReactField API**:
+  - `ReactField::make()` - Create React-enhanced fields
+  - `setReactProp()` - Pass custom props to React components
+  - `setReactComponent()` - Override default React component
+  - `setUseReact()` - Enable/disable React per field
+  - `getReactComponent()` - Get component name for field type
+  - `getReactProps()` - Get all props for React component
+
+- **Build System**:
+  - Webpack 5 configuration for React asset compilation
+  - Babel preset for JSX transformation
+  - Build commands: `build`, `build:dev`, `watch`, `clean`
+  - Optimized production builds with source maps
+  - WordPress externals (wp-element, wp-components, wp-block-editor)
+
+- **React Components** (`assets/js/src/components/`):
+  - `TextField.jsx` - Modern text input with validation
+  - `TextareaField.jsx` - Multi-line text with rows config
+  - `NumberField.jsx` - Number input with min/max/step
+  - `EmailField.jsx` - Email validation
+  - `UrlField.jsx` - URL input validation
+  - `ColorField.jsx` - WordPress color picker
+  - `ImageField.jsx` - Media library integration with thumbnail preview
+  - `CheckboxField.jsx` - Toggle checkbox
+  - `SelectField.jsx` - Dropdown select
+
+- **Enhanced CSS**:
+  - Modern WooCommerce-inspired design system
+  - CSS variables for theming (--hf-color-primary, etc.)
+  - Card layout with better spacing and typography
+  - Improved tabs and field rows
+  - Responsive design with mobile-first approach
+  - Dark mode support via `@media (prefers-color-scheme: dark)`
+  - React-specific styles in `assets/css/react-fields.css`
+
+- **OptionsPage Integration**:
+  - Auto-detection of `ReactField` instances
+  - Automatic enqueuing of wp-element, wp-components, wp-block-editor
+  - Data bridge via `wp_localize_script()` to `window.hyperfieldsReactData`
+  - React root container (`#hyperpress-react-root`) for component mounting
+  - Hidden input synchronization for form submission
+
+- **Developer Experience**:
+  - One-line change from `Field::make()` to `ReactField::make()`
+  - No React knowledge required
+  - PHP-only API maintained
+  - Optional custom React props per field
+
+- **Documentation**:
+  - `REACT_EXAMPLES.md` - Complete developer guide
+  - `IMPLEMENTATION_SUMMARY.md` - Implementation details
+  - `VERSION_BUMP_GUIDE.md` - Version management guide
+  - `examples/react-test.php` - Working test file
+
+- **Build Automation**:
+  - `composer build-assets` script for standalone asset building
+  - `composer production` now automatically builds React assets
+  - Graceful fallback when npm is not available
+  - Cross-platform support (Linux, macOS, Windows)
+
+- **Version Management**:
+  - Updated `scripts/version-bump.sh` to handle all version locations
+  - Now updates: composer.json, package.json, bootstrap.php, src/OptionsPage.php
+  - Synchronizes fallback versions across all files
+
+### Changed
+- **CSS Refresh** - Modernized `assets/css/hyperfields-admin.css` with:
+  - CSS variable-based theming system
+  - Card layout replacing dated field styling
+  - Better spacing, typography, and visual hierarchy
+  - Improved tabs with active state styling
+  - Responsive design improvements
+  - Dark mode compatibility
+
+- **OptionsPage Enhancements**:
+  - Added `reactFieldsToRender` property for React field tracking
+  - `getReactFields()` method to collect React fields from sections
+  - `hasReactFields()` method to check for React presence
+  - `enqueueReactAssets()` method for React dependency loading
+  - Modified `renderPage()` to include React root container
+
+- **Build System**:
+  - Added `package.json` with React dependencies
+  - Added `webpack.config.js` for asset compilation
+  - Updated `composer.json` scripts to integrate React builds
+
+- **Composer Scripts**:
+  - Added `build-assets` script
+  - Updated `production` script to run asset builds automatically
+
+### Fixed
+- **ImageField Component**:
+  - Added null check for `wp.media` object
+  - Improved error handling for media attachment loading
+  - Fallback to number input when MediaUpload unavailable
+
+- **Build System**:
+  - Fixed webpack externals configuration for WordPress dependencies
+  - Added `@wordpress/block-editor` to dependencies
+  - Resolved module resolution issues
+
+### Performance
+- React assets are minified in production builds
+- Source maps generated for development debugging
+- Lazy loading of React components only when needed
+
+### Developer Experience
+- Zero breaking changes - existing fields work unchanged
+- Opt-in React rendering - choose which fields benefit from modern UI
+- Mixed rendering - use React for complex fields, HTML for simple ones
+- Full backward compatibility maintained
+
+## [1.1.9] - 2026-04-01
+
+### Added
+- Transfer audit logging runtime with dedicated classes:
+  - `Transfer\AuditLogger` hook subscriber for options/content/manager transfer flows
+  - `Transfer\AuditLogStorage` dedicated DB storage (`{wp_prefix}hyperfields_transfer_logs`) with lazy schema setup and pruning
+  - `Transfer\AuditContext` request-scoped manager-depth guard to avoid nested duplicate logs
+- Built-in transfer logs admin screen via `Admin\TransferLogsUI`, integrated into `ExportImportUI` with a contextual `View transfer logs` link.
+- `ExportImportUI` extensibility upgrades:
+  - `renderConfigured(ExportImportPageConfig $config)` entrypoint
+  - custom `exporter`, `previewer`, and `importer` callables
+  - optional `exportFormExtras` HTML injection point in export form
+  - option group labels support in `render(..., array $optionGroups = [])`
+- Transfer Manager envelope customization via `Transfer\SchemaConfig` and `Manager::withSchema(...)`.
+- Automatic transfer-audit hook initialization in `LibraryBootstrap::init()`.
+- Typed-node schema validation for option import/export via `Validation\SchemaValidator`.
+- `ContentExportImport` API for post/content JSON export/import/diff flows.
+- `Transfer\Manager` pluggable module registry for export/import/diff orchestration.
+- New facade and helper methods for content transfer:
+  - `HyperFields::exportPosts()`, `snapshotPosts()`, `importPosts()`, `diffPosts()`, `makeTransferManager()`
+  - `hf_export_posts()`, `hf_snapshot_posts()`, `hf_import_posts()`, `hf_diff_posts()`
+- Strategy support expansion (`__strategy`) for transfer payload behavior control.
+- Expanded transfer/bootstrap docs:
+  - `docs/transfer-and-content-export-import.md`
+  - `docs/library-bootstrap.md`
+
+### Changed
+- Documentation refreshed for transfer logging, Transfer Manager schema configuration, and `ExportImportUI` extension points.
+- `ExportImport` updated to align with transfer-manager, typed-node, and schema-aware flows.
+- `ExportImportUI` overhauled with richer export selection/filter UX and improved diff/import experience.
+- Export options filter layout and admin styling/scripts refactored (`assets/js/hyperfields-admin.js`, `assets/css/hyperfields-admin.css`).
+- Core docs updated with content transfer and extensible manager guidance.
+- Composer/library metadata and README refreshed for library-first usage.
+- Packaging cleanup for library distribution:
+  - adjusted bootstrap/composer metadata
+  - stopped shipping committed Composer vendor autoload artifacts
+- Repository ignore rules updated for generated/vendor files.
+- Minimum supported PHP version raised to `8.2`.
+
+### Fixed
+- Data Tools UI regressions in export/import rendering and request handling.
+- Post-overhaul code quality and test alignment fixes in `ExportImportUI`.
+- Release metadata/version bump consistency updates.
+
+## [1.1.0] - 2026-03-28
+
+### Added
+- `ExportImport` class: export WordPress option groups to JSON and import with prefix filtering, whitelist enforcement, automatic backup transients, and additive merge
+- `ExportImportUI` class: admin submenu page for visual Export / Import with jsondiffpatch diff preview
+- `ExportImportUI::registerPage()` — single-call public API for third-party plugins to register the Data Tools page; hooks asset enqueueing to `admin_enqueue_scripts` automatically
+- `ExportImportUI::enqueuePageAssets()` — public method to enqueue HyperFields admin CSS + jsondiffpatch diff assets
+- `HyperFields::registerDataToolsPage()` — facade entry point for `ExportImportUI::registerPage()`
+- `hf_register_data_tools_page()` helper function — procedural wrapper for registering the Data Tools page
+- `hf_export_options()` helper function — procedural wrapper for `ExportImport::exportOptions()`
+- `hf_import_options()` helper function — procedural wrapper for `ExportImport::importOptions()`
+- Export/Import UI styled with HyperFields admin CSS classes (`hyperpress-options-wrap`, `hyperpress-fields-group`, `hyperpress-field-wrapper`, etc.) for visual consistency with existing options pages
+- Full i18n coverage: all user-visible strings in `ExportImportUI` wrapped with `__()` using `hyperfields` text domain
+- `OptionsPage::addTab()` and `OptionsPage::addSectionToTab()` for explicit tab-to-section composition
+- Section metadata support in `OptionsSection` (`slug`, `as_link`, `allow_html_description`) for section-link navigation and HTML-safe section descriptions
+- WPSettings compatibility mapping for `menu_icon` and `menu_position` to options page menu metadata
+- WPSettings compatibility support for `visible` callbacks to conditionally skip field registration/rendering
+- WPSettings compatibility implementation for `code-editor` / `code_editor` using WordPress code editor assets and initialization (`wp_enqueue_code_editor`)
+- WPSettings compatibility type mapping for `wp-editor` / `wp_editor` to HyperFields `rich_text`
+- WPSettings compatibility type mapping for `media` / `video` to HyperFields `image`
+- WPSettings compatibility support for tab/section `option_level` nesting with option-path read/write handling
+- WPSettings compatibility support for `validate` and callable `sanitize` option args in the options-page save pipeline
+- WPSettings compatibility support for `wp_settings_option_type_map` custom type bridge into HyperFields custom fields
+- Field template/render arg parity extended for `input_type`, `attributes`, `rows`, `cols`, `editor_settings`, and inline `error` output
+- Field template arg parity via `Field::toArray()` for `input_class`, `label_class`, and `help_is_html`
+
+### Fixed
+- `TypeError` in prefix filter arrow functions when option arrays have integer keys — keys now explicitly cast to string before `strpos`
+- `importOptions()` returned `success: true` when whitelist or prefix filtering blocked every incoming entry — now returns `success: false` with a descriptive message
+- `restoreBackup()` did not delete the backup transient when `update_option` returned `false` because the stored value was identical to the current value — unchanged-value case now correctly detected and transient cleaned up
+- XSS via `</script>` injection in diff preview data island — `wp_json_encode` now uses `JSON_HEX_TAG | JSON_HEX_AMP` flags
+- File upload handler did not check `$_FILES['import_file']['error'] !== UPLOAD_ERR_OK` before calling `is_uploaded_file`, allowing error-state uploads to proceed
+- Non-array option values silently coerced to `[]` during export — they are now skipped entirely, matching the additive-import contract
+- `wp_json_encode` returning `false` on unencodable data caused `exportOptions` to return an empty string — fallback is now `'{}'`
+- Asset enqueueing (`wp_enqueue_style` / `wp_enqueue_script`) was called inside an `ob_start()` output buffer in `render()`, which fires too late for WordPress header output — moved to `admin_enqueue_scripts` hook
+- Options-page registration and sanitization for compatibility tabs with multiple sections now process the active renderable section set rather than assuming section ID equals tab ID
+- Options section slug generation now falls back safely when WordPress `sanitize_title()` is unavailable (test/library context)
+- Field templates (`input`, `checkbox`, `radio`, `multiselect`, `custom`) now correctly honor `input_class` / `label_class` and support HTML help rendering with `help_is_html`
+- Custom field fallback markup now uses `name_attr` to preserve correct options-array field naming
+- Compatibility field save flow now supports nested `option_path` values and inline per-field validation feedback without breaking standard options-page behavior
+
+### Changed
+- Updated `docs/hyperfields.md` with the authoritative field type matrix (core field types + compatibility aliases) and current compatibility parity behavior details
+
+## [1.0.3] - 2026-01-08
+
+### Fixed
+- Fixed test environment compatibility by allowing `HYPERFIELDS_TESTING_MODE` constant to bypass ABSPATH checks
+- Updated `bootstrap.php` to conditionally return instead of exit when ABSPATH is not defined in test mode
+- Updated `includes/helpers.php` to support test environment execution
+- Updated `includes/backward-compatibility.php` to support test environment execution
+- Fixed PHPUnit bootstrap configuration to properly initialize Brain\Monkey mocks
+
+### Changed
+- Test bootstrap now defines critical WordPress functions before autoloader to prevent conflicts
+- Improved test infrastructure for downstream packages that depend on HyperFields via Composer
+
+## [1.0.2] - 2024-12-07
+
+### Added
+- Complete custom field system for WordPress
+- Post meta, term meta, and user meta container support
+- Options pages with sections and tabs
+- Conditional logic for dynamic field visibility
+- Field types: text, textarea, email, URL, number, select, checkbox, radio, date, color, image, file, wysiwyg, code editor
+- Repeater fields for creating dynamic field groups
+- Template loader with automatic asset enqueuing
+- Block field adapter for Gutenberg integration
+- Backward compatibility layer for legacy class names
+- PSR-4 autoloading with Composer
+- Comprehensive field validation and sanitization
+- Admin assets manager for styles and scripts
+- Helper functions for field value retrieval
+
+### Features
+- **Metaboxes**: Add custom fields to posts, pages, and custom post types
+- **Options Pages**: Create settings pages with organized sections and tabs
+- **Conditional Logic**: Show/hide fields based on other field values
+- **Flexible Containers**: Support for post meta, term meta, user meta, and options
+- **Rich Field Types**: Extensive collection of field types for any use case
+- **Developer-Friendly**: Clean API with extensive hooks and filters
+- **Performance**: Optimized autoloading and asset management
+- **Extensible**: Easy to extend with custom field types and containers
+
+### Requirements
+- PHP 8.1 or higher
+- WordPress 5.0 or higher
+- Composer for dependency management

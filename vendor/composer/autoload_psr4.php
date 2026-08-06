@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'voku\\' => array($vendorDir . '/voku/portable-ascii/src/voku'),
+    'starfederation\\datastar\\' => array($vendorDir . '/starfederation/datastar-php/src'),
     'Wicket\\' => array($vendorDir . '/industrialdev/wicket-sdk-php/src'),
     'WicketWP\\' => array($baseDir . '/src'),
     'Symfony\\Polyfill\\Php80\\' => array($vendorDir . '/symfony/polyfill-php80'),
@@ -21,6 +22,9 @@ return array(
     'Jeffreyvr\\WPSettings\\' => array($vendorDir . '/jeffreyvanrossum/wp-settings/src'),
     'Illuminate\\Support\\' => array($vendorDir . '/illuminate/support', $vendorDir . '/illuminate/collections', $vendorDir . '/illuminate/macroable', $vendorDir . '/illuminate/conditionable'),
     'Illuminate\\Contracts\\' => array($vendorDir . '/illuminate/contracts'),
+    'HyperPress\\' => array($vendorDir . '/estebanforge/hyperpress-core/src'),
+    'HyperFields\\' => array($vendorDir . '/estebanforge/hyperfields/src'),
+    'HyperBlocks\\' => array($vendorDir . '/estebanforge/hyperblocks/src'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
     'GuzzleHttp\\Promise\\' => array($vendorDir . '/guzzlehttp/promises/src'),
     'GuzzleHttp\\' => array($vendorDir . '/guzzlehttp/guzzle/src'),

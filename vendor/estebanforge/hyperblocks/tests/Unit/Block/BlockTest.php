@@ -1,0 +1,175 @@
+<?php
+
+declare(strict_types=1);
+
+namespace HyperBlocks\Tests\Unit\Block;
+
+use HyperBlocks\Block\Block;
+use HyperBlocks\Block\Field;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Unit tests for Block class.
+ */
+class BlockTest extends TestCase
+{
+    private string $templateDir;
+
+    protected function setUp(): void
+    {
+        // Reset Config before each test
+        \HyperBlocks\Config::reset();
+        $this->templateDir = realpath(__DIR__ . '/../../../examples/blocks') ?: '';
+        $this->assertNotSame('', $this->templateDir);
+        \HyperBlocks\Config::registerBlockPath($this->templateDir);
+        parent::setUp();
+    }
+
+    public function testBlockCreationWithTitle(): void
+    {
+        $block = Block::make('Test Block');
+
+        $this->assertEquals('Test Block', $block->title);
+        $this->assertEquals('hyperblocks/test-block', $block->name);
+    }
+
+    public function testSetName(): void
+    {
+        $block = Block::make('Test')
+            ->setName('custom/name');
+
+        $this->assertEquals('custom/name', $block->name);
+    }
+
+    public function testSetIcon(): void
+    {
+        $block = Block::make('Test')
+            ->setIcon('star-filled');
+
+        $this->assertEquals('star-filled', $block->icon);
+    }
+
+    public function testAddField(): void
+    {
+        $field = Field::make('text', 'title', 'Title');
+
+        $block = Block::make('Test')
+            ->addFields([$field]);
+
+        $this->assertCount(1, $block->fields);
+        $this->assertSame($field, $block->fields[0]);
+    }
+
+    public function testAddMultipleFields(): void
+    {
+        $field1 = Field::make('text', 'title', 'Title');
+        $field2 = Field::make('textarea', 'description', 'Description');
+
+        $block = Block::make('Test')
+            ->addFields([$field1])
+            ->addFields([$field2]);
+
+        $this->assertCount(2, $block->fields);
+    }
+
+    public function testAddFieldGroup(): void
+    {
+        $block = Block::make('Test')
+            ->addFieldGroup('common-fields');
+
+        $this->assertContains('common-fields', $block->field_groups);
+    }
+
+    public function testSetRenderTemplateString(): void
+    {
+        $block = Block::make('Test')
+            ->setRenderTemplate('<div>{{ content }}</div>');
+
+        $this->assertEquals('<div>{{ content }}</div>', $block->render_template);
+    }
+
+    public function testSetRenderTemplateFile(): void
+    {
+        $block = Block::make('Test')
+            ->setRenderTemplateFile('content-box.hb.php');
+
+        $this->assertEquals('file:content-box.hb.php', $block->render_template);
+    }
+
+    public function testFluentApiChaining(): void
+    {
+        $block = Block::make('Test')
+            ->setName('test/block')
+            ->setIcon('star')
+            ->setRenderTemplateFile('content-box.hb.php');
+
+        $this->assertInstanceOf(Block::class, $block);
+        $this->assertEquals('test/block', $block->name);
+        $this->assertEquals('star', $block->icon);
+    }
+
+    public function testToArray(): void
+    {
+        $field = Field::make('text', 'title', 'Title');
+
+        $block = Block::make('Test Block')
+            ->setName('test/block')
+            ->setIcon('star-filled')
+            ->addFields([$field])
+            ->addFieldGroup('common');
+
+        $array = $block->toArray();
+
+        $this->assertEquals('test/block', $array['name']);
+        $this->assertEquals('Test Block', $array['title']);
+        $this->assertEquals('star-filled', $array['icon']);
+        $this->assertIsArray($array['fields']);
+        $this->assertContains('common', $array['field_groups']);
+        // Optional metadata defaults (unset).
+        $this->assertNull($array['category']);
+        $this->assertNull($array['description']);
+        $this->assertSame([], $array['keywords']);
+        $this->assertNull($array['style']);
+    }
+
+    public function testSetCategory(): void
+    {
+        $block = Block::make('Test')->setCategory('widgets');
+        $this->assertEquals('widgets', $block->category);
+        $this->assertEquals('widgets', $block->toArray()['category']);
+    }
+
+    public function testSetDescription(): void
+    {
+        $block = Block::make('Test')->setDescription('A helpful block.');
+        $this->assertEquals('A helpful block.', $block->description);
+        $this->assertEquals('A helpful block.', $block->toArray()['description']);
+    }
+
+    public function testSetKeywordsFiltersNonStrings(): void
+    {
+        $block = Block::make('Test')->setKeywords(['foo', 'bar', 42, 'baz']);
+        $this->assertSame(['foo', 'bar', 'baz'], $block->keywords);
+        $this->assertSame(['foo', 'bar', 'baz'], $block->toArray()['keywords']);
+    }
+
+    public function testSetStyle(): void
+    {
+        $block = Block::make('Test')->setStyle('my-block-style');
+        $this->assertEquals('my-block-style', $block->style);
+        $this->assertEquals('my-block-style', $block->toArray()['style']);
+    }
+
+    public function testGetFieldAdapters(): void
+    {
+        $field = Field::make('text', 'title', 'Title');
+
+        $block = Block::make('Test')
+            ->addFields([$field]);
+
+        $adapters = $block->getFieldAdapters();
+
+        $this->assertArrayHasKey('title', $adapters);
+        $this->assertInstanceOf(\HyperFields\BlockFieldAdapter::class, $adapters['title']);
+    }
+}

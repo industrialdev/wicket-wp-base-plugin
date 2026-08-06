@@ -1,0 +1,469 @@
+# HyperBlocks — Agent & Developer Reference
+
+**Package**: `estebanforge/hyperblocks`
+**Repository**: https://github.com/EstebanForge/HyperBlocks
+
+## Overview
+
+HyperBlocks is a PHP-first Gutenberg block library. Blocks and their fields are defined entirely in PHP using a fluent API. HyperFields (`estebanforge/hyperfields`) is a required dependency and is automatically bootstrapped by HyperBlocks.
+
+Two block definition approaches are supported:
+
+1. **Fluent API** — define blocks in PHP, register them with the Registry.
+2. **block.json** — standard WordPress approach; HyperBlocks discovers and registers these automatically, but **only when `block.json` declares the `"hyperblocks": true` ownership marker** (see "JSON block marker" below). The marker stops HyperBlocks from registering foreign (WP-native/ACF) blocks co-located in a registered path such as a theme `/blocks` tree.
+
+---
+
+## Installation
+
+```bash
+composer require estebanforge/hyperblocks
+```
+
+Load the Composer autoloader from the host project:
+
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+```
+
+HyperBlocks' `bootstrap.php` is included via Composer `autoload.files`. It also bootstraps HyperFields automatically — no extra steps needed.
+
+**Requirements**: PHP 8.2+, WordPress latest.
+
+### Bedrock / Composer-managed WordPress sites
+
+When this library is installed **transitively** into a Bedrock-style project, Composer places it in the project **root `vendor/`** (outside `wp-content/`), because the package is `type: library` and Bedrock's `installer-paths` only route `wordpress-plugin` / `wordpress-muplugin` / `wordpress-theme` types. That root-vendor copy is not under any web-accessible WordPress content root, so its `assets/js/editor.js` cannot be served over HTTP.
+
+`WordPress\Bootstrap::init()` still runs from such a copy — it does **not** gate boot on web-reachability. `Config::$pluginUrl` is simply empty, and the editor-asset enqueue bails gracefully (`registerEditorScript()` logs the "not reachable from any web-accessible WordPress content root" notice and returns) instead of emitting a 404ing URL. Fluent blocks still render server-side; they just will not appear in the inserter until a web-reachable copy provides the URL. The `bootstrap.php` ABSPATH guard also keeps a root-vendor copy from bootstrapping early in Bedrock's `wp-config` load order.
+
+**Recommended pattern for plugins that bundle HyperBlocks:** ship it inside the plugin's own committed `vendor/` (e.g. `wp-content/plugins/<your-plugin>/vendor/estebanforge/hyperblocks/`) and load the plugin's own `vendor/autoload.php`. That copy is web-reachable, so `Config::$pluginUrl` resolves, the editor script registers, and fluent blocks appear in the inserter. Do not rely on a Bedrock root-vendor copy to serve assets; it never can.
+
+---
+
+## Development Commands
+
+```bash
+composer run test            # Full test suite (Pest)
+composer run test:unit       # Unit tests only
+composer run test:coverage   # HTML coverage report
+composer run cs:fix          # Auto-fix code style (php-cs-fixer)
+composer run cs:check        # Dry-run style check
+composer run version-bump    # Bump version in composer.json + bootstrap
+```
+
+---
+
+## Architecture & Directory Structure
+
+```
+bootstrap.php               # Dev-env auto-init bridge (delegates to WordPress\Bootstrap::init())
+src/
+  Block/
+    Block.php               # Fluent block builder
+    Field.php               # Field wrapper (delegates to HyperFields\Field)
+    FieldGroup.php          # Reusable named field groups
+  Config.php                # Static configuration store
+  Registry.php              # Singleton: block + field-group registration
+  Renderer.php              # PHP template executor + component parser
+  RestApi.php               # REST endpoints (block-fields, render-preview)
+  WordPress/
+    Bootstrap.php           # WordPress hook wiring (init, rest_api_init, etc.)
+  helpers.php               # Procedural API (hyperblocks_* functions)
+examples/
+  hero-banner-block.php     # Full fluent-API example
+  field-groups-example.php  # Reusable field groups example
+  blocks/                   # Matching .hb.php templates
+tests/
+  Unit/                     # PHPUnit/Pest unit tests
+  mocks/wp-mocks.php        # WordPress function stubs for tests
+```
+
+---
+
+## Key Classes
+
+### `HyperBlocks\Block\Block`
+
+Fluent builder for a single Gutenberg block.
+
+```php
+use HyperBlocks\Block\Block;
+use HyperBlocks\Block\Field;
+use HyperBlocks\Registry;
+
+$block = Block::make('Hero Banner')            // title; auto-name: hyperblocks/hero-banner
+    ->setName('my-theme/hero-banner')          // override with explicit namespace/slug
+    ->setIcon('cover-image')                   // dashicon slug
+    ->addFields([
+        Field::make('text', 'heading', 'Heading')->setDefault('Welcome'),
+        Field::make('image', 'bg_image', 'Background'),
+    ])
+    ->addFieldGroup('common-settings')         // attach a registered FieldGroup by id
+    ->setRenderTemplateFile('blocks/hero-banner.hb.php');  // file: prefix added automatically
+
+Registry::getInstance()->registerFluentBlock($block);
+```
+
+**Methods**:
+
+| Method | Description |
+|---|---|
+| `Block::make(string $title)` | Static constructor. Derives default name as `hyperblocks/<sanitize_title>`. |
+| `->setName(string $name)` | Override block name (must be `namespace/slug`). |
+| `->setIcon(string $slug)` | Dashicon slug (e.g. `star-filled`). |
+| `->addFields(Field[] $fields)` | Append one or more fields. Chainable. |
+| `->addFieldGroup(string $groupId)` | Attach a pre-registered FieldGroup. Chainable. |
+| `->setRenderTemplate(string $template)` | Inline PHP string template or `file:relative/path.hb.php`. |
+| `->setRenderTemplateFile(string $path)` | Shorthand for `setRenderTemplate('file:' . $path)`. |
+| `->getFieldAdapters()` | Returns `['fieldName' => BlockFieldAdapter, ...]` for all block fields. |
+| `->toArray()` | Serialize to array (name, title, icon, fields, field_groups, render_template). |
+
+Template paths must be relative (no leading `/`, no `..`), within `WP_CONTENT_DIR`, the active theme, or a registered block path.
+
+#### Fluent block file header (required for auto-discovery)
+
+A PHP file loaded via **auto-discovery** (`Registry::discoverAndLoadFluentBlocks()`, which globs registered block paths) **must declare a WordPress-style file header**:
+
+```php
+<?php
+/**
+ * HyperBlocks Block: Hero Banner
+ */
+
+use HyperBlocks\Block\Block;
+use HyperBlocks\Registry;
+
+// Block::make('Hero Banner')->... and Registry::getInstance()->registerFluentBlock($block);
+```
+
+`get_file_data()` reads only the first 8KB and checks for a non-empty `HyperBlocks Block:` header. Files lacking it are **skipped without execution**. This protects against the de-facto WP/ACF `/blocks/<slug>/{block.json,init.php,render.php}` layout: `render.php` / `init.php` there expect to be included by WP's block renderer with `$block` in scope, and auto-loading them at init executes them out of context — echoing markup before `<!DOCTYPE html>` and tripping "undefined `$block`" warnings. The header makes HyperBlocks definition files explicit and opt-in, the same convention WordPress uses for plugins, themes, and dropins.
+
+**Bypassed by explicit registration**: files pointed at directly via the `hyperblocks/blocks/register_fluent_blocks` filter (or a consumer's own `require_once`) are NOT subject to the header check — naming a file directly is explicit consent. Explicit `Config::registerBlockPath()` directories ARE scanned with the header check, so they are safe to point at a theme's `/blocks` tree.
+
+#### JSON block marker (required for auto-discovery)
+
+A `block.json` file is only owned by HyperBlocks (registered, surfaced in the inserter, and resolved by the REST `/block-fields` and `/render-preview` endpoints) when it declares a truthy top-level `hyperblocks` key:
+
+```json
+{
+  "name": "my-plugin/my-block",
+  "title": "My Block",
+  "apiVersion": 3,
+  "hyperblocks": true
+}
+```
+
+This is the JSON analog of the `HyperBlocks Block:` PHP header, and it exists for the same reason: a registered discovery path (including a theme's `/blocks` tree, auto-registered by default) often co-locates foreign `block.json` files from WordPress-native or ACF blocks. Without an explicit opt-in, auto-discovery would register those foreign blocks too. The marker is the single ownership gate (`Registry::isOwnedJsonBlock()`) applied to registration and REST lookup. Owned JSON blocks surface in the editor through WordPress core once `register_block_type_from_metadata()` runs (their `block.json` carries its own `editorScript`/`render`); `assets/js/editor.js` is fluent-only and never handles JSON blocks.
+
+WordPress core's `register_block_type_from_metadata()` ignores unknown top-level keys, so the marker is non-invasive and does not collide with any standard `block.json` field. Underscore-prefixed directories (`_disabled/`) are still skipped before the marker is checked.
+
+---
+
+### `HyperBlocks\Block\Field`
+
+Thin wrapper around `HyperFields\Field` scoped to block usage. All methods delegate to the underlying HyperFields field instance.
+
+```php
+use HyperBlocks\Block\Field;
+
+$field = Field::make('select', 'layout', 'Layout')
+    ->setOptions(['boxed' => 'Boxed', 'full' => 'Full Width'])
+    ->setDefault('boxed')
+    ->setRequired(true)
+    ->setHelp('Controls the block width');
+```
+
+**Supported types** (`Field::FIELD_TYPES`):
+
+`text`, `textarea`, `color`, `image`, `url`, `number`, `email`, `date`, `datetime`, `time`, `file`, `select`, `multiselect`, `checkbox`, `radio`, `rich_text`, `hidden`, `html`, `map`, `oembed`, `separator`, `heading`, `media_gallery`, `repeater`
+
+**Methods**:
+
+| Method | Description |
+|---|---|
+| `Field::make(string $type, string $name, string $label)` | Static constructor. Throws `InvalidArgumentException` for unknown types. |
+| `->setDefault(mixed $value)` | Default attribute value (used in block editor and sanitization fallback). |
+| `->setPlaceholder(string $text)` | Placeholder text shown in editor. |
+| `->setRequired(bool $required = true)` | Mark field as required. |
+| `->setHelp(string $text)` | Help/description text for the editor UI. |
+| `->setOptions(array $options)` | Key-value pairs for `select`, `multiselect`, `radio`. |
+| `->setValidation(array $rules)` | Validation rules array. |
+| `->getHyperField()` | Returns the underlying `HyperFields\Field` instance. |
+| `->getAdapter()` | Returns a `HyperFields\BlockFieldAdapter` for this field. |
+| `->toBlockAttribute()` | Returns `['type' => '...', 'default' => ...]` for `register_block_type`. |
+| `->sanitizeValue(mixed $value)` | Sanitize a value; strips `<script>` before delegating to HyperFields. |
+| `->validateValue(mixed $value)` | Validate a value; delegates to HyperFields. |
+
+Properties `type`, `name`, `label`, `default`, `placeholder`, `required`, `help` are accessible as read/write via magic `__get`/`__set`. `type`, `name`, `label` are immutable after construction.
+
+---
+
+### `HyperBlocks\Block\FieldGroup`
+
+A named, reusable collection of fields that can be attached to multiple blocks.
+
+```php
+use HyperBlocks\Block\FieldGroup;
+use HyperBlocks\Registry;
+
+$group = FieldGroup::make('Common Settings', 'common-settings')
+    ->addFields([
+        Field::make('select', 'alignment', 'Alignment')
+            ->setOptions(['left' => 'Left', 'center' => 'Center', 'right' => 'Right'])
+            ->setDefault('center'),
+        Field::make('checkbox', 'show_border', 'Show Border')->setDefault(false),
+    ]);
+
+Registry::getInstance()->registerFieldGroup($group);
+```
+
+Block fields take precedence over field-group fields when names collide.
+
+---
+
+### `HyperBlocks\Registry`
+
+Singleton managing all block and field-group registrations.
+
+```php
+$registry = Registry::getInstance();
+
+$registry->registerFluentBlock($block);
+$registry->registerFieldGroup($group);
+$registry->getFluentBlock('namespace/slug');     // Block|null
+$registry->getFluentBlocks();                    // Block[]
+$registry->hasFluentBlock('namespace/slug');     // bool
+$registry->getFieldGroup('group-id');            // FieldGroup|null
+$registry->generateBlockAttributes($block);      // ['fieldName' => ['type'=>'string','default'=>...], ...]
+$registry->getMergedFields($block);              // Field[] from block + attached groups, block wins
+Registry::reset();                               // testing only
+```
+
+---
+
+### `HyperBlocks\Config`
+
+Static configuration store. Initialized once; readable anywhere via `Config::get()`.
+
+```php
+use HyperBlocks\Config;
+
+Config::registerBlockPath('/path/to/blocks');                      // discovery + validation (default)
+Config::registerBlockPath('/path/to/templates', ['discover' => false]); // validation only, never scanned
+Config::registerTemplatePath('/path/to/templates');                  // equivalent one-liner for the above
+Config::get('auto_discovery', true);           // read a value
+Config::set('debug', true);                    // set at runtime
+```
+
+**Discovery vs. template paths.** A registered path can serve two independent
+purposes: being scanned for block definitions (discovery) and being on the
+allowlist that resolves `Block::setRenderTemplateFile()` / `Renderer` templates
+(validation). They are split because a directory of render templates is not
+safe to `require_once` as block definitions — auto-discovering it fatals when a
+template expects a render context.
+
+- `registerBlockPath($path)` (no options, default) registers for **both**
+  discovery and validation. This is the backwards-compatible behavior.
+- `registerBlockPath($path, ['discover' => false])` registers for **validation
+  only** — templates resolve through it but `Registry::discoverAndLoadFluentBlocks()`
+  never globs it.
+- `registerTemplatePath($path)` is the one-liner equivalent of the above.
+- `Config::getBlockPaths()` returns discovery paths; `Config::getTemplatePaths()`
+  returns validation-only paths; `Config::getTemplateValidationPaths()` returns
+  the deduplicated union used by the validators.
+
+**Default keys**:
+
+| Key | Default | Description |
+|---|---|---|
+| `block_paths` | `[]` | Directories scanned for block definitions and used for template validation. |
+| `template_paths` | `[]` | Template-validation-only directories; never scanned for block definitions. |
+| `template_extensions` | `.hb.php,.php` | Comma-separated list; first extension is the default. |
+| `auto_discovery` | `true` | Auto-scan block paths on `init`. |
+| `debug` | `false` | Log errors via `error_log`. |
+| `cache_blocks` | `true` | Cache rendered output. |
+| `rest_namespace` | `hyperblocks/v1` | REST API namespace. |
+| `editor_script_handle` | `hyperblocks-editor` | WP script handle for editor JS. |
+
+**WordPress filters**:
+- `hyperblocks/config/defaults` — filter default config array.
+- `hyperblocks/config/override` — highest-priority config override.
+
+---
+
+### `HyperBlocks\Renderer`
+
+Executes PHP block templates. Not instantiated directly in normal usage — called internally by `WordPress\Bootstrap::renderBlock()` and `RestApi::renderPreview()`.
+
+```php
+$renderer = new \HyperBlocks\Renderer();
+$html = $renderer->render($block->render_template, $attributes);
+```
+
+**Template modes**:
+
+- `file:relative/path.hb.php` — resolved against `WP_CONTENT_DIR`, theme dir, `HYPERBLOCKS_PATH`, and registered block paths.
+- Inline PHP string — written to a temp file, executed, then cleaned up.
+
+**Template variables**: all entries in `$attributes` are extracted as local variables via `extract()`. A template for a block with `heading` and `bg_image` fields will have `$heading` and `$bg_image` available directly.
+
+**Custom components** available inside templates:
+
+```html
+<!-- RichText: renders attribute content inside any HTML tag -->
+<RichText attribute="heading" tag="h1" placeholder="Enter heading" />
+<RichText attribute="body" tag="p" style="color: #333;" />
+
+<!-- InnerBlocks: replaced with WordPress inner-block placeholder -->
+<InnerBlocks />
+```
+
+Errors in `WP_DEBUG` mode return an inline `<div class="hyperblocks-error">` — never on production.
+
+---
+
+### `HyperBlocks\WordPress\Bootstrap`
+
+Called from `bootstrap.php` after WordPress loads. Hooks:
+
+| Hook | Action |
+|---|---|
+| `plugins_loaded` (priority 5) | Load config from DB, apply filters. |
+| `init` (priority 5) | Register default block paths (theme `/blocks` dirs). Auto-discovery of files within them requires the `HyperBlocks Block:` header (see above). Theme `/blocks` auto-registration is gated by the `hyperblocks/blocks/auto_discover_theme_blocks` filter (default `true`). |
+| `init` (priority 10) | Discover + register all blocks (fluent and JSON). |
+| `rest_api_init` (priority 10) | Register REST routes. |
+| `enqueue_block_editor_assets` | Enqueue editor CSS if present. |
+
+**WordPress filters**:
+- `hyperblocks/blocks/api_version` — override the apiVersion applied to every fluent block on both server (`register_block_type`) and client (`wp.blocks.registerBlockType`). Default `3` (WordPress 7.1 iframed-editor ready). Change only if a block relies on pre-v3 editor behavior.
+- `hyperblocks/blocks/auto_discover_theme_blocks` — whether to auto-register the active theme's `/blocks` directories as discovery paths. Default `true` (back-compat). Return `false` (e.g. `__return_false`) to opt out entirely; the library's own bundled blocks are unaffected. Combined with the `HyperBlocks Block:` header, this is the second of two independent gates against the WP/ACF `/blocks/<slug>/{render.php,init.php}` footgun.
+- `hyperblocks/blocks/register_json_paths` — add additional directories to scan for `block.json` blocks.
+- `hyperblocks/blocks/register_json_blocks` — add individual block directory paths.
+- `hyperblocks/blocks/register_fluent_paths` — add directories to scan for fluent-block PHP files (header check applies).
+- `hyperblocks/blocks/register_fluent_blocks` — add individual fluent-block file paths (header check **bypassed**: explicit consent).
+
+---
+
+## REST API
+
+Base: `GET|POST /wp-json/hyperblocks/v1/`
+
+### `GET /block-fields?name=namespace/block-slug`
+
+Returns field definitions for a registered block (fluent or JSON).
+
+**Response**: JSON array of field definition objects.
+
+```json
+[
+  { "name": "heading", "label": "Heading", "type": "text", "default": "Welcome" },
+  { "name": "bg_image", "label": "Background Image", "type": "image", "default": "" }
+]
+```
+
+**Permissions**: public (no authentication required).
+
+### `POST /render-preview`
+
+Server-side renders a block with provided attributes. Attributes are sanitized and validated through HyperFields before rendering.
+
+**Request body**:
+```json
+{
+  "blockName": "namespace/block-slug",
+  "attributes": { "heading": "Hello", "bg_image": 42 }
+}
+```
+
+**Response**:
+```json
+{ "success": true, "html": "<section class=\"hb-hero-banner\">...</section>" }
+```
+
+**Permissions**: requires `edit_posts` capability.
+
+---
+
+## Helpers (Procedural API)
+
+All helper functions are defined in `src/helpers.php` and available globally after bootstrap.
+
+```php
+hb_block(string $title): Block
+hb_field(string $type, string $name, string $label): Field
+hb_field_group(string $name, string $id): FieldGroup
+hb_register_block(Block $block): void
+hb_register_field_group(FieldGroup $group): void
+hb_registry(): Registry
+hb_register_path(string $path): void
+hb_register_template_path(string $path): void
+hb_config(string $key, mixed $default = null): mixed
+hb_render(string $template, array $attributes = []): string
+hb_has_block(string $blockName): bool
+hb_get_block(string $blockName): ?Block
+```
+
+---
+
+## Bootstrap System
+
+HyperBlocks self-initializes via `HyperBlocks\WordPress\Bootstrap::init()`, which is idempotent (guarded by `Config::isInitialized()`). When loaded directly through Composer, `bootstrap.php` schedules `init()` at `after_setup_theme` (priority 0); vendored or namespace-prefixed consumers call `WordPress\Bootstrap::init()` explicitly.
+
+Duplicate-load protection: the first copy to reach `init()` claims the namespace-scoped `HyperBlocks\WordPress\LOADED` constant and wins; later copies bail before bootstrapping, so two plugins shipping HyperBlocks do not double-init or fatal. First-to-boot guard (not newest-wins, no version resolution, no class-shadow guard, no jetpack dependency). The guard is namespace-scoped, so a consumer that optionally prefixes the namespace with Mozart gets fully isolated copies that each boot independently.
+
+Runtime identity lives on `HyperBlocks\Config` (prefix-safe), not global constants:
+- `Config::VERSION` - semantic version (mirrors `composer.json`)
+- `Config::$abspath` - library root path, set at init
+- `Config::$pluginUrl` - public URL, or empty when not web-reachable
+- `Config::$pluginFile` - absolute path to the bootstrap file
+
+HyperBlocks defines no `HYPERBLOCKS_*` constants. HyperFields identity lives on `HyperFields\Config`, set by HyperFields' own bootstrap, which HyperBlocks triggers automatically when running standalone.
+
+---
+
+## HyperFields Integration
+
+HyperBlocks integrates HyperFields at three levels:
+
+1. **Field definitions** — `HyperBlocks\Block\Field` wraps `HyperFields\Field`. All field config, sanitization, and validation delegates to HyperFields.
+2. **Block attributes** — `HyperFields\BlockFieldAdapter::toBlockAttribute()` maps HyperFields field types to Gutenberg attribute types (`string`, `number`, `boolean`).
+3. **Sanitization pipeline** — on every `renderBlock` and `renderPreview` call, incoming attributes are run through `BlockFieldAdapter::sanitizeForBlock()` and `validateForBlock()` before the template executes. Invalid values fall back to the field's default.
+
+When HyperBlocks is a Composer dependency (no standalone HyperFields plugin active), `bootstrap.php` triggers HyperFields initialization from the vendored copy. When both are active, HyperFields' own bootstrap guards prevent double-initialization.
+
+---
+
+## Version Management
+
+1. Update `version` in `composer.json`.
+2. Run `composer run version-bump` (updates `bootstrap.php` fallback literals).
+3. Update `CHANGELOG.md`.
+
+---
+
+## Testing
+
+```bash
+# From the HyperBlocks root
+composer run test
+```
+
+Tests use Pest v4 + Brain Monkey for WordPress function stubs. The test bootstrap:
+- Defines `ABSPATH` and `HYPERBLOCKS_PATH`.
+- Loads `vendor/autoload.php`.
+- Loads `tests/mocks/wp-mocks.php` (WordPress function shims).
+- Resets `Config` and `Registry` singletons.
+
+Integration tests live in `tests/Integration/` (currently empty — add WP-loaded tests there).
+
+---
+
+## Important Notes
+
+- PHP 8.2+ required (HyperFields sets the effective minimum).
+- WordPress latest targeted.
+- Do not call `Registry::reset()` outside tests.
+- Do not call `Config::reset()` outside tests.
+- Template paths are validated against an allowlist at both definition time (`Block::setRenderTemplate`) and render time (`Renderer::validateTemplatePath`). Path traversal (`..`) and absolute paths are rejected.
+- `<script>` tags in field values are stripped before HyperFields sanitization.
+- All block output must be escaped in templates (`esc_html`, `esc_url`, `esc_attr`, `wp_kses_post`).
