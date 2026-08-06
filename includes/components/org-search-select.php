@@ -68,6 +68,7 @@ $defaults = [
     'job_title'                                     => '',
     'display_org_fields'                            => 'name', // Options: name, name_location, name_address
     'display_org_type'                              => false,
+    'auto_advance'                                  => false,
     'form_id'                                       => 0,
 ];
 $args = wp_parse_args($args, $defaults);
@@ -136,6 +137,7 @@ $description = $args['description'];
 $job_title = $args['job_title'];
 $display_org_fields = $args['display_org_fields'];
 $display_org_type = $args['display_org_type'] ?? false;
+$autoAdvance = $args['auto_advance'];
 $formId = $args['form_id'];
 $lang = wicket_get_current_language();
 $is_wicket_theme = defined('WICKET_THEME');
@@ -1098,6 +1100,7 @@ if (defined('WICKET_WP_THEME_V2')) {
       searchOrgType: '<?php echo $searchOrgType; ?>',
       availableOrgTypes: <?php echo json_encode($available_org_types); ?>,
       disableCreateOrgUi: <?php echo $disable_create_org_ui ? 'true' : 'false'; ?>,
+      autoAdvance: <?php echo $autoAdvance ? 'true' : 'false'; ?>,
       disableSelectingOrgsWithActiveMembership: <?php echo $disable_selecting_orgs_with_active_membership ? 'true' : 'false'; ?>,
       showingActiveMembershipAlert: false,
       activeMembershipAlertAvailable: false,
@@ -1807,6 +1810,26 @@ if (defined('WICKET_WP_THEME_V2')) {
           gfFieldValues: Array.from(gfFields).map((field) => field.value),
         });
       },
+      autoAdvanceGfPage() {
+        // Only meaningful inside a Gravity Forms multi-page form. No-ops elsewhere.
+        const formId = <?php echo (int) $formId; ?>;
+        const form = formId ? document.getElementById('gform_' + formId) : null;
+        if (!form) {
+          wicketOrgssDebug.log('ORGSS: autoAdvanceGfPage — no GF form, skipping');
+          return;
+        }
+        const currentPage = this.$el.closest('.gform_page') || form;
+        if (currentPage !== form && currentPage.style.display === 'none') {
+          return;
+        }
+        const nextButton = currentPage.querySelector('.gform_next_button');
+        if (!nextButton) {
+          wicketOrgssDebug.log('ORGSS: autoAdvanceGfPage — no next button on current page, skipping');
+          return;
+        }
+        wicketOrgssDebug.log('ORGSS: autoAdvanceGfPage — clicking next button', { formId });
+        nextButton.click();
+      },
       hideGfNextButton() {
         const formId = <?php echo (int) $formId; ?>;
         const form = formId ? document.getElementById('gform_' + formId) : null;
@@ -2016,7 +2039,12 @@ if (defined('WICKET_WP_THEME_V2')) {
         this.selectOrg(orgUuid, event);
         this.showGfNextButton();
         this.$nextTick(() => {
-          window.requestAnimationFrame(() => this.showGfNextButton());
+          window.requestAnimationFrame(() => {
+            this.showGfNextButton();
+            if (this.autoAdvance) {
+              this.autoAdvanceGfPage();
+            }
+          });
         });
 
         this.searchBox = '';
