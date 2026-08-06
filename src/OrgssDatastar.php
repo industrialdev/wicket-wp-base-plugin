@@ -64,4 +64,77 @@ class OrgssDatastar
 
         return $options;
     }
+
+    /**
+     * Create a person-to-organization connection, or reopen an existing one.
+     *
+     * Session-scoped: the person is always the authenticated user, never a
+     * request-supplied UUID. Shared by the orgss-select and orgss-create-org
+     * templates so the connection logic lives in one place. Returns true on
+     * success, false on failure.
+     */
+    public static function createOrReopenConnection(string $person_uuid, string $org_uuid, string $connection_type, string $role): bool
+    {
+        if (!function_exists('wicket_find_person_org_connection')) {
+            return false;
+        }
+
+        $existing = wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $role, true);
+
+        if ($existing) {
+            $connection_id = $existing['id'] ?? '';
+            if ($connection_id === '' || !function_exists('wicket_update_connection_attributes')) {
+                return false;
+            }
+
+            $updated = wicket_update_connection_attributes($connection_id, [
+                'description' => null,
+                'ends_at'     => null,
+            ]);
+
+            return $updated !== false;
+        }
+
+        if (!function_exists('wicket_create_connection')) {
+            return false;
+        }
+
+        $starts_at = function_exists('wicket_time_get_current_iso8601_utc')
+            ? wicket_time_get_current_iso8601_utc()
+            : gmdate('c');
+
+        $payload = [
+            'data' => [
+                'type'       => 'connections',
+                'attributes' => [
+                    'connection_type' => $connection_type,
+                    'type'            => $role,
+                    'starts_at'       => $starts_at,
+                    'ends_at'         => null,
+                    'description'     => null,
+                    'tags'            => [],
+                ],
+                'relationships' => [
+                    'from' => [
+                        'data' => [
+                            'type' => 'people',
+                            'id'   => $person_uuid,
+                            'meta' => ['can_manage' => false, 'can_update' => false],
+                        ],
+                    ],
+                    'to' => [
+                        'data' => ['type' => 'organizations', 'id' => $org_uuid],
+                    ],
+                ],
+            ],
+        ];
+
+        try {
+            $created = wicket_create_connection($payload);
+
+            return !empty($created['data']['id']);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
 }

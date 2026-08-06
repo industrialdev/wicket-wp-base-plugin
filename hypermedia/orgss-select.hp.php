@@ -75,60 +75,9 @@ if ($connection_type === 'organization_parent') {
     return;
 }
 
-// Create or reopen the connection (mirrors Rest::create_or_update_relationship,
-// session-scoped here). Inline so the template reads top-to-bottom.
-$created_ok = false;
-if (function_exists('wicket_find_person_org_connection')) {
-    $existing = wicket_find_person_org_connection($person_uuid, $org_uuid, $connection_type, $connection_role, true);
-
-    if ($existing) {
-        $connection_id = $existing['id'] ?? '';
-        if ($connection_id !== '' && function_exists('wicket_update_connection_attributes')) {
-            $updated = wicket_update_connection_attributes($connection_id, [
-                'description' => null,
-                'ends_at'     => null,
-            ]);
-            $created_ok = ($updated !== false);
-        }
-    } elseif (function_exists('wicket_create_connection')) {
-        $starts_at = function_exists('wicket_time_get_current_iso8601_utc')
-            ? wicket_time_get_current_iso8601_utc()
-            : gmdate('c');
-
-        $payload = [
-            'data' => [
-                'type'       => 'connections',
-                'attributes' => [
-                    'connection_type' => $connection_type,
-                    'type'            => $connection_role,
-                    'starts_at'       => $starts_at,
-                    'ends_at'         => null,
-                    'description'     => null,
-                    'tags'            => [],
-                ],
-                'relationships' => [
-                    'from' => [
-                        'data' => [
-                            'type' => 'people',
-                            'id'   => $person_uuid,
-                            'meta' => ['can_manage' => false, 'can_update' => false],
-                        ],
-                    ],
-                    'to' => [
-                        'data' => ['type' => 'organizations', 'id' => $org_uuid],
-                    ],
-                ],
-            ],
-        ];
-
-        try {
-            $created = wicket_create_connection($payload);
-            $created_ok = !empty($created['data']['id']);
-        } catch (\Throwable $e) {
-            $created_ok = false;
-        }
-    }
-}
+// Create or reopen the connection (session-scoped). Shared helper, also used
+// by orgss-create-org.
+$created_ok = \WicketWP\OrgssDatastar::createOrReopenConnection($person_uuid, $org_uuid, $connection_type, $connection_role);
 
 if (!$created_ok) {
     $message(__('There was an error creating the connection. Please try again.', 'wicket'));
