@@ -64,6 +64,13 @@ class Main
     public $woo_email_blocker;
 
     /**
+     * Experimental Datastar SSE controller for org-search-select.
+     *
+     * @var OrgssDatastar|null
+     */
+    public $orgss_datastar;
+
+    /**
      * Instance of the Log class.
      *
      * @var Log
@@ -153,5 +160,10 @@ class Main
         // Initialize WooCommerce email blocker
         $this->woo_email_blocker = new WooCommerce\EmailBlocker();
         $this->woo_email_blocker->init();
+
+        // Experimental Datastar variant for org-search-select.
+        // No-op (registers nothing) unless 'wicket_orgss_variant' filter is 'datastar'.
+        $this->orgss_datastar = new OrgssDatastar();
+        $this->orgss_datastar->init();
     }
 }

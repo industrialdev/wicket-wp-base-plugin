@@ -82,10 +82,21 @@ function get_component($slug, array $args = [], $output = true)
 	<?php
     endif;
 
+    // Experimental variant switch for org-search-select.
+    // The filter defaults to 'alpine' (the shipped component). A child theme can
+    // return 'datastar' to load the experimental Datastar variant instead.
+    $effective_slug = $slug;
+    if ($slug === 'org-search-select') {
+        $variant = apply_filters('wicket_orgss_variant', 'alpine');
+        if ($variant === 'datastar') {
+            $effective_slug = 'org-search-select-datastar';
+        }
+    }
+
     // Try themes first in case an override or custom component was added to the child theme,
     // otherwise use the component file in the plugin if present
-    $theme_component_file = locate_template("components/{$slug}.php", false, false);
-    $plugin_component_file = __DIR__ . "/components/{$slug}.php";
+    $theme_component_file = locate_template("components/{$effective_slug}.php", false, false);
+    $plugin_component_file = __DIR__ . "/components/{$effective_slug}.php";
 
     if (file_exists($theme_component_file)) {
         require $theme_component_file;
