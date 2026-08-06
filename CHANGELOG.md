@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.3] - 2026-08-06
+
+### Added
+- **orgss:** wire up auto_advance to advance GF page after org select
+
+
 ## [2.5.2] - 2026-08-05
 
 ### Fixed
