@@ -34,6 +34,9 @@ $defaults = [
     'display_org_fields'              => 'name',
     'display_org_type'                => false,
     'org_term_singular'              => '',
+    'relationship_mode'              => 'person_to_organization',
+    'relationship_type_upon_org_creation' => 'employee',
+    'form_id'                         => 0,
 ];
 $args = wp_parse_args($args, $defaults);
 
@@ -44,6 +47,9 @@ $title            = $args['title'];
 $searchOrgType    = $args['search_org_type'];
 $displayOrgFields = $args['display_org_fields'];
 $displayOrgType   = (bool) $args['display_org_type'];
+$relationshipMode = $args['relationship_mode'];
+$connectionRole   = $args['relationship_type_upon_org_creation'];
+$formId           = (int) $args['form_id'];
 
 $ns   = 'orgss_' . $key;
 $lang = function_exists('wicket_get_current_language') ? wicket_get_current_language() : 'en';
@@ -71,6 +77,10 @@ $signals = [
         'searchQuery'     => '',
         'selectedOrgUuid' => '',
         'loading'         => false,
+        // Config travels with every @get/@post so endpoint templates can read it.
+        'connectionType'  => $relationshipMode,
+        'connectionRole'  => $connectionRole,
+        'formId'          => $formId,
     ],
 ];
 

@@ -108,7 +108,8 @@ if (empty($results)) {
         $name          = isset($result['name']) ? (string) $result['name'] : '';
         $type_name     = isset($result['type_name']) ? (string) $result['type_name'] : '';
         $subtitle      = $build_subtitle($result, $display);
-        $select_expr   = $ns . ".selectedOrgUuid = '" . esc_js($id) . "'";
+        $select_url    = hp_get_endpoint_url('wicket:orgss-select') . '?org_uuid=' . rawurlencode($id) . '&orgss_key=' . rawurlencode($key);
+        $select_expr   = "@post('" . $select_url . "')";
         $is_sel_expr   = $ns . ".selectedOrgUuid === '" . esc_js($id) . "'";
         $text_expr     = $is_sel_expr . " ? '\u2713 " . esc_js(__('Selected', 'wicket')) . "' : '" . esc_js(__('Select', 'wicket')) . "'";
         ?>
@@ -125,6 +126,7 @@ if (empty($results)) {
             <div class="component-org-search-select__matching-org-action">
                 <button type="button"
                         class="component-org-search-select__select-result-button"
+                        data-indicator="<?php echo esc_attr($ns); ?>.loading"
                         data-on:click="<?php echo esc_attr($select_expr); ?>"
                         data-text="<?php echo esc_attr($text_expr); ?>"
                         data-class:orgss_disabled_button="<?php echo esc_attr($is_sel_expr); ?>">
