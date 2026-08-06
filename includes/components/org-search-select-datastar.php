@@ -99,6 +99,28 @@ $signals = [
 $search_placeholder = $args['org_term_singular'] !== ''
     ? sprintf(__('Search by %s name', 'wicket'), strtolower($args['org_term_singular']))
     : __('Search by organization name', 'wicket');
+
+$terminate_url = add_query_arg(['orgss_key' => $key], hp_get_endpoint_url('wicket:orgss-terminate'));
+
+// Current person-to-org connections, rendered at page load so Remove works without a round trip.
+$current_connections = [];
+if (function_exists('wicket_get_person_connections') && $args['search_mode'] === 'org') {
+    $fetched = wicket_get_person_connections(['dedupe' => 'org_id']);
+    foreach (($fetched['data'] ?? []) as $c) {
+        $cid   = $c['id'] ?? '';
+        $ctype = $c['attributes']['connection_type'] ?? '';
+        if ($cid === '' || $ctype !== $relationshipMode) {
+            continue;
+        }
+        $org_id = $c['relationships']['organization']['data']['id'] ?? '';
+        $info   = function_exists('wicket_get_organization_basic_info') ? wicket_get_organization_basic_info($org_id) : [];
+        $current_connections[] = [
+            'connection_id' => $cid,
+            'org_id'        => $org_id,
+            'org_name'      => $info['org_name'] ?? '',
+        ];
+    }
+}
 ?>
 <div class="container component-org-search-select component-org-search-select--datastar <?php echo implode(' ', array_map('esc_attr', $classes)); ?>"
      data-signals="<?php echo esc_attr(wp_json_encode($signals)); ?>">
@@ -179,6 +201,31 @@ $search_placeholder = $args['org_term_singular'] !== ''
             </div>
             <div id="orgss-duplicate-<?php echo (int) $key; ?>"
                  class="component-org-search-select__duplicate-warning-region"></div>
+        </div>
+    <?php endif; ?>
+
+<?php if (!empty($current_connections)) : ?>
+        <div class="component-org-search-select__current-orgs mt-4">
+            <h2 class="component-org-search-select__current-orgs-title font-bold text-body-lg my-3"><?php esc_html_e('Your current Organization(s)', 'wicket'); ?></h2>
+            <div id="orgss-connections-<?php echo (int) $key; ?>" class="component-org-search-select__connections-list flex flex-col">
+                <?php foreach ($current_connections as $cc) :
+                    $cid             = $cc['connection_id'];
+                    $terminate_each  = $terminate_url . '&connection_id=' . rawurlencode($cid);
+                    $is_this_sel     = $ns . ".selectedOrgUuid === '" . esc_js($cc['org_id']) . "'";
+                ?>
+                    <div id="orgss-conn-<?php echo esc_attr($cid); ?>"
+                         class="component-org-search-select__card flex justify-between items-center px-1 py-3 border-b border-dark-100 border-opacity-5"
+                         data-class:component-org-search-select__card--selected="<?php echo esc_attr($is_this_sel); ?>">
+                        <div class="font-bold"><?php echo esc_html($cc['org_name']); ?></div>
+                        <button type="button"
+                                class="component-org-search-select__remove-button"
+                                data-indicator="<?php echo esc_attr($ns); ?>.loading"
+                                data-on:click="@post('<?php echo esc_js($terminate_each); ?>')">
+                            <?php esc_html_e('Remove', 'wicket'); ?>
+                        </button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     <?php endif; ?>
 
