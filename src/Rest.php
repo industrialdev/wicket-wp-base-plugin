@@ -622,6 +622,17 @@ class Rest
 
         do_action('wicket_component_' . $action_name, $action_data);
 
+        // Seats-available confirmations share the base "claim a seat" intent, so
+        // also fire the generic (suffix-stripped) hook. This lets handlers
+        // registered on the base button name run for the seats-available state
+        // without each client re-registering for every suffix. The
+        // seats-unavailable (blocked) state is intentionally excluded: it must
+        // not create a person-to-organization relationship.
+        if (str_ends_with($action_name, '_seats_available')) {
+            $base_action_name = substr($action_name, 0, -strlen('_seats_available'));
+            do_action('wicket_component_' . $base_action_name, $action_data);
+        }
+
         wp_send_json_success();
     }
 

@@ -520,7 +520,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'type'     => 'button',
                         'atts'  => [
                             $button_1_is_close_only
-                                ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');showingActiveMembershipAlert = false;"'
+                                ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dismissActiveMembershipAlert();"'
                                 : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
                         ],
                         'classes' => [
