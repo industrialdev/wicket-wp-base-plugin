@@ -2519,6 +2519,20 @@ function wicket_update_membership_external_id($membership_uuid, $membership_type
     try {
         $response = $client->patch("$membership_type/$membership_uuid", ['json' => $payload]);
     } catch (Exception $e) {
+        // external_id is what makes the MDP mark this membership as externally
+        // managed (WooCommerce badge + locked dates). A dropped PATCH leaves the
+        // membership silently unlinked, so log every failure here so no caller
+        // (importer, Woo checkout, admin transfer) can fail invisibly. The
+        // WP_Error is still returned so callers can react (e.g. retry).
+        Wicket()->log()->error(
+            'wicket_update_membership_external_id failed: ' . $e->getMessage(),
+            [
+                'source'          => 'wicket-base',
+                'membership_type' => $membership_type,
+                'membership_uuid' => $membership_uuid,
+                'external_id'     => $external_id,
+            ]
+        );
         $response = new WP_Error('wicket_api_error', $e->getMessage());
     }
 
