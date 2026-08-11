@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.5] - 2026-08-11
+
+### Added
+- **support:** add shared CsvExporter with formula-injection prevention
+
+
 ## [2.5.4] - 2026-08-11
 
 ### Fixed
