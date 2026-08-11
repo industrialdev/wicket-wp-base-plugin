@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.4] - 2026-08-11
+
+### Fixed
+- **helpers:** log failures in wicket_update_membership_external_id
+
+
 ## [2.5.3] - 2026-08-06
 
 ### Added
