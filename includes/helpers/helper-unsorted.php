@@ -1053,11 +1053,25 @@ function wicket_assign_person_to_org_membership($person_id, $membership_id, $org
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
-        // echo "<pre>";
-        // print_r($errors);
-        // echo "</pre>";
-        // die;
+        // Surface the API error to callers instead of silently returning null.
+        // DirectAssignmentStrategy::assignPersonToMembershipSeat() inspects the
+        // returned value (empty() / isset($result['errors'])) to detect failure,
+        // so a null return hid the real cause and forced a generic fallback
+        // message. Return a JSON:API-shaped errors array so the actual detail
+        // reaches the UI.
+        $errors = [];
+        $response = method_exists($e, 'getResponse') ? $e->getResponse() : null;
+        if ($response) {
+            $decoded = json_decode((string) $response->getBody(), true);
+            if (is_array($decoded) && !empty($decoded['errors'])) {
+                $errors = $decoded['errors'];
+            }
+        }
+        if (empty($errors)) {
+            $errors = [['detail' => $e->getMessage() !== '' ? $e->getMessage() : 'Failed to assign person to membership.']];
+        }
+
+        return ['errors' => $errors];
     }
 }
 
