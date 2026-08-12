@@ -984,7 +984,8 @@ if (empty($title)) : ?>
     </div>
     <div class="flex component-org-search-select__create-org-fields">
       <div
-        class="component-org-search-select__create-org-name-wrapper flex flex-col mr-2 w-5/12">
+        class="component-org-search-select__create-org-name-wrapper flex flex-col mr-2"
+        x-bind:class="hasSingleOrgType ? 'flex-1' : 'w-5/12'">
         <label
           class="component-org-search-select__create-org-label"><?php _e('Name of the', 'wicket') ?>
           <?php echo $orgTermSingularCap; ?>*</label>
@@ -992,7 +993,8 @@ if (empty($title)) : ?>
           name="company-name" class="component-org-search-select__create-org-name-input w-full" />
       </div>
       <div
-        class="component-org-search-select__create-org-type-wrapper flex flex-col w-5/12 mr-2">
+        class="component-org-search-select__create-org-type-wrapper flex flex-col w-5/12 mr-2"
+        x-show="!hasSingleOrgType">
         <label
           class="component-org-search-select__create-org-label"><?php _e('Type of', 'wicket') ?>
           <?php echo $orgTermSingularCap; ?>*</label>
@@ -1140,6 +1142,7 @@ if (defined('WICKET_WP_THEME_V2')) {
       searchBox: '',
       newOrgNameBox: '',
       newOrgTypeSelect: '',
+      hasSingleOrgType: false,
       showSearchMessage: false,
       results: [],
       apiUrl: "<?php echo get_rest_url(null, 'wicket-base/v1/'); ?>",
@@ -1225,6 +1228,24 @@ if (defined('WICKET_WP_THEME_V2')) {
           this.availableOrgTypes.data = this.availableOrgTypes.data.filter(orgType =>
             newOrgTypes.includes(orgType.attributes.slug)
           );
+        }
+
+        // Auto-select and hide the org-type selector when only one type is available.
+        // Runs after the newOrgTypeOverride filter above intentionally, so an override
+        // narrowed to a single slug also triggers the hide. With a single org type there
+        // is no meaningful choice (e.g. a client whose MDP returns one type), so showing
+        // a one-option dropdown is needless friction.
+        // Guard the entry shape: availableOrgTypes comes from wicket_get_resource_types(),
+        // which can return a degraded/partial payload. A throw here would abort init()
+        // and take down search clearing, UUID hydration, and GF footer logic for every
+        // client. Only hide when the slug resolves to a truthy value, else keep the
+        // selector visible so the user is not stuck on a dead-end form.
+        const onlyOrgType = Array.isArray(this.availableOrgTypes.data) && this.availableOrgTypes.data.length === 1
+          ? this.availableOrgTypes.data[0]
+          : null;
+        this.hasSingleOrgType = !!onlyOrgType?.attributes?.slug;
+        if (this.hasSingleOrgType) {
+          this.newOrgTypeSelect = onlyOrgType.attributes.slug;
         }
 
         this.$watch('searchBox', (value) => {
