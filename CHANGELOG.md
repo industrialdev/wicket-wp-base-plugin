@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.6] - 2026-08-13
+
+### Fixed
+- **helpers:** return errors from assign_person_to_org_membership
+
+
 ## [2.5.5] - 2026-08-11
 
 ### Added
