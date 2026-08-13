@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.5.7] - 2026-08-13
+
+### Added
+- **org-search-select:** auto-hide type field when only one org type
+
+
 ## [2.5.6] - 2026-08-13
 
 ### Fixed
