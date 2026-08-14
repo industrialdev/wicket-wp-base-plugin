@@ -24,6 +24,11 @@ class EmailBlocker
     public const OPTION_ALLOW_REFUNDS = 'wicket_admin_settings_woo_email_blocker_allow_refund_emails';
 
     /**
+     * Order meta key: per-order email block flag ('yes' blocks every email tied to the order).
+     */
+    public const META_BLOCK_ORDER_EMAILS = '_wicket_block_order_emails';
+
+    /**
      * Email IDs explicitly allowed for this request (resend, customer notes).
      *
      * @var array<string, bool>
@@ -45,16 +50,19 @@ class EmailBlocker
     public function init(): void
     {
         // Admin notice is registered unconditionally so it can self-check;
-        // the email-blocking hooks still require both the setting and WooCommerce.
+        // the remaining hooks require only WooCommerce. Per-order blocking works
+        // even when the global blocker setting is off; admin-update blocking
+        // inside maybe_block_email() is gated by the setting itself.
         add_action('admin_notices', [$this, 'render_order_edit_notice'], 1);
-
-        if (!$this->is_enabled()) {
-            return;
-        }
 
         if (!class_exists('WooCommerce')) {
             return;
         }
+
+        // Per-order blocking works independently of the global setting.
+        add_action('add_meta_boxes', [$this, 'register_order_metabox']);
+        add_action('woocommerce_process_shop_order_meta', [$this, 'save_order_metabox'], 10, 2);
+        add_filter('automatewoo_custom_validate_workflow', [$this, 'maybe_block_automatewoo_workflow'], 20, 2);
 
         // Hook every email via the woocommerce_email_classes filter, which fires
         // when WC_Emails initialises naturally — after all plugins (including
@@ -105,6 +113,130 @@ class EmailBlocker
 
         add_filter('woocommerce_email_enabled_' . $email->id, [$this, 'maybe_block_email'], 20, 3);
         $this->hooked_email_ids[$email->id] = true;
+    }
+
+    /**
+     * Register the per-order "block all emails" checkbox on order edit screens (HPOS + legacy).
+     *
+     * @return void
+     */
+    public function register_order_metabox(): void
+    {
+        if (!function_exists('wc_get_page_screen_id')) {
+            return;
+        }
+
+        $screens = array_filter([
+            wc_get_page_screen_id('shop-order'), // HPOS edit + new order screens.
+            'shop_order',                          // Legacy CPT edit screen.
+        ]);
+
+        foreach (array_unique($screens) as $screen) {
+            add_meta_box(
+                'wicket-order-email-block',
+                __('Wicket Email Blocking', 'wicket'),
+                [$this, 'render_order_metabox'],
+                $screen,
+                'side',
+                'default'
+            );
+        }
+    }
+
+    /**
+     * Render the per-order email block checkbox.
+     *
+     * @param mixed $post_or_order WP_Post or WC_Order passed by the metabox renderer.
+     * @return void
+     */
+    public function render_order_metabox($post_or_order = null): void
+    {
+        $order = $this->get_order_being_edited($post_or_order);
+        $checked = $order ? $this->order_blocks_emails($order) : false;
+
+        wp_nonce_field('wicket_block_order_emails', 'wicket_block_order_emails_nonce');
+        ?>
+        <p>
+            <label for="wicket_block_order_emails">
+                <input type="checkbox" name="wicket_block_order_emails" id="wicket_block_order_emails" value="1"<?php checked($checked); ?> />
+                <?php esc_html_e('Block all emails for this order', 'wicket'); ?>
+            </label>
+        </p>
+        <p class="description">
+            <?php esc_html_e('Suppresses WooCommerce order emails and AutomateWoo workflows tied to this order. Resends from Order actions still send.', 'wicket'); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * Save the per-order email block flag on order save (HPOS + legacy).
+     *
+     * @param int $order_id Order ID.
+     * @param mixed $order WC_Order or WP_Post depending on the storage engine.
+     * @return void
+     */
+    public function save_order_metabox($order_id, $order = null): void
+    {
+        $order = $order instanceof WC_Order ? $order : (function_exists('wc_get_order') ? wc_get_order((int) $order_id) : false);
+
+        if (!$order instanceof WC_Order) {
+            return;
+        }
+
+        if (empty($_POST['wicket_block_order_emails_nonce'])
+            || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['wicket_block_order_emails_nonce'])), 'wicket_block_order_emails')) {
+            return;
+        }
+
+        if (!$this->current_user_can_edit_order((int) $order->get_id())) {
+            return;
+        }
+
+        $block = !empty($_POST['wicket_block_order_emails']);
+        $order->update_meta_data(self::META_BLOCK_ORDER_EMAILS, $block ? 'yes' : 'no');
+        $order->save();
+    }
+
+    /**
+     * Resolve the order being edited on an order edit screen.
+     *
+     * @param mixed $post_or_order WP_Post or WC_Order passed by the metabox renderer.
+     * @return WC_Order|null
+     */
+    private function get_order_being_edited($post_or_order): ?WC_Order
+    {
+        if ($post_or_order instanceof WC_Order) {
+            return $post_or_order;
+        }
+
+        $order_id = 0;
+
+        if ($post_or_order instanceof WP_Post) {
+            $order_id = (int) $post_or_order->ID;
+        } elseif (!empty($_GET['id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $order_id = absint($_GET['id']); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        } elseif (!empty($_GET['post'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $order_id = absint($_GET['post']); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        }
+
+        if (!$order_id || !function_exists('wc_get_order')) {
+            return null;
+        }
+
+        $order = wc_get_order($order_id);
+
+        return $order instanceof WC_Order ? $order : null;
+    }
+
+    /**
+     * Check if the order carries the per-order email block flag.
+     *
+     * @param WC_Order $order Order object.
+     * @return bool
+     */
+    private function order_blocks_emails(WC_Order $order): bool
+    {
+        return 'yes' === $order->get_meta(self::META_BLOCK_ORDER_EMAILS);
     }
 
     /**
@@ -208,6 +340,19 @@ class EmailBlocker
             return $enabled;
         }
 
+        // Per-order flag: block every non-explicit email tied to this order
+        $order = $this->resolve_order($object);
+        if ($order && $this->order_blocks_emails($order)) {
+            $this->log_decision('block', 'order_email_block_flag', $email, $object);
+
+            return false;
+        }
+
+        // Global setting gates the admin-update block
+        if (!$this->is_enabled()) {
+            return $enabled;
+        }
+
         // Only block when the trigger is an admin action
         if (!$this->is_admin_order_context($object)) {
             return $enabled;
@@ -275,7 +420,7 @@ class EmailBlocker
             'wootickets', // Event Tickets Plus — WooCommerce ticket email.
         ];
 
-        /**
+        /*
          * Filters the WooCommerce email IDs the blocker always allows through.
          *
          * @param array<int, string> $ids Email IDs that bypass the admin-update block.
@@ -683,6 +828,100 @@ class EmailBlocker
         }
 
         return (bool) $value;
+    }
+
+    /**
+     * Block AutomateWoo workflows tied to an order when emails must not send.
+     *
+     * Runs at trigger-time validation, before a workflow is queued, so blocked
+     * workflows never enter the queue. Two block conditions:
+     *
+     * 1. The workflow's order carries the per-order email block flag.
+     * 2. The blocker setting is enabled and the trigger is an admin order action
+     *    (parity with the WooCommerce email blocking).
+     *
+     * @param bool $valid Current validation result.
+     * @param mixed $workflow AutomateWoo\Workflow instance.
+     * @return bool
+     */
+    public function maybe_block_automatewoo_workflow(bool $valid, $workflow): bool
+    {
+        if (!$valid || !is_object($workflow) || !method_exists($workflow, 'data_layer')) {
+            return $valid;
+        }
+
+        $order = null;
+
+        try {
+            $data_layer = $workflow->data_layer();
+            $order = $data_layer ? $data_layer->get_item('order') : null;
+        } catch (\Throwable $e) {
+            return $valid;
+        }
+
+        if (!$order instanceof WC_Order) {
+            return $valid;
+        }
+
+        if ($this->order_blocks_emails($order)) {
+            $this->log_automatewoo_decision('block', 'order_email_block_flag', $workflow, $order);
+
+            return false;
+        }
+
+        if ($this->is_enabled() && $this->is_admin_order_context($order)) {
+            $this->log_automatewoo_decision('block', 'admin_update', $workflow, $order);
+
+            return false;
+        }
+
+        return $valid;
+    }
+
+    /**
+     * Resolve an order object from the email context object or request data.
+     *
+     * @param mixed $object Email object context.
+     * @return WC_Order|null
+     */
+    private function resolve_order($object): ?WC_Order
+    {
+        if ($object instanceof WC_Order) {
+            return $object;
+        }
+
+        $order_id = $this->get_order_id_from_object_or_request($object);
+
+        if ($order_id && function_exists('wc_get_order')) {
+            $order = wc_get_order($order_id);
+
+            return $order instanceof WC_Order ? $order : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Log an AutomateWoo block decision.
+     *
+     * @param string $decision allow|block.
+     * @param string $reason Reason key.
+     * @param mixed $workflow AutomateWoo\Workflow instance.
+     * @param WC_Order $order Order object.
+     * @return void
+     */
+    private function log_automatewoo_decision(string $decision, string $reason, $workflow, WC_Order $order): void
+    {
+        $context = [
+            'decision' => $decision,
+            'reason' => $reason,
+            'order_id' => $order->get_id(),
+            'workflow_id' => is_object($workflow) && method_exists($workflow, 'get_id') ? $workflow->get_id() : null,
+            'workflow_title' => is_object($workflow) && method_exists($workflow, '__get') ? $workflow->title : null,
+            'source' => 'wicket-woo-email-blocker',
+        ];
+
+        \Wicket()->log()->info('AutomateWoo workflow block decision recorded.', $context);
     }
 
     /**
