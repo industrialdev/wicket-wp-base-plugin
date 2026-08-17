@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.0] - 2026-08-17
+
+### Added
+- **woo:** block emails per order and stop AutomateWoo workflows
+
+
 ## [2.5.7] - 2026-08-13
 
 ### Added
