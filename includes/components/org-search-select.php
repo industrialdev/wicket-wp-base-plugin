@@ -1047,9 +1047,11 @@ if (defined('WICKET_WP_THEME_V2')) {
     </div>
   </div> <!-- / .component-org-search-select__create-org-form -->
 
-  <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
-      echo $_POST[$selectedUuidHiddenFieldName];
+  <?php if ($selectedUuidHiddenFieldName !== '') : ?>
+  <input type="hidden" name="<?php echo esc_attr($selectedUuidHiddenFieldName); ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
+      echo esc_attr($_POST[$selectedUuidHiddenFieldName]);
   } ?>" />
+  <?php endif; ?>
 </div>
 
 <script>
