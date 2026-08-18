@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.1] - 2026-08-18
+
+### Added
+- **helpers:** add external_id pre-flight lookup for memberships
+
+
 ## [2.6.0] - 2026-08-17
 
 ### Added
