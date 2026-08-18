@@ -2306,15 +2306,31 @@ function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $st
 /**------------------------------------------------------------------
  * Assign individual membership to person
  ------------------------------------------------------------------*/
+/**
+ * Assign an individual membership to a person in the MDP.
+ *
+ * @param  string      $person_uuid                MDP person UUID.
+ * @param  string      $membership_uuid             MDP membership tier UUID.
+ * @param  string      $starts_at                   ISO 8601 start date; defaults to now.
+ * @param  string      $ends_at                     ISO 8601 end date; defaults to one year out.
+ * @param  int         $grace_period_days           Grace period in days; always sent.
+ * @param  string      $previous_membership_uuid    Prior person_membership UUID to link, if any.
+ * @param  bool|null   $is_autorenew                Whether this membership will auto-renew.
+ *                     `null` means "not provided" and omits the field entirely, since `false`
+ *                     is itself a real, meaningful value for this field (see
+ *                     `wicket_update_individual_membership_dates()` for the same pattern).
+ * @return array|WP_Error  The MDP API response, or a WP_Error on failure.
+ */
 function wicket_assign_individual_membership(
     $person_uuid,
     $membership_uuid,
     $starts_at = '',
     $ends_at = '',
     $grace_period_days = 0,
-    $previous_membership_uuid = ''
+    $previous_membership_uuid = '',
+    $is_autorenew = null
 ) {
-    $override = apply_filters('wicket_pre_assign_individual_membership', null, $person_uuid, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $previous_membership_uuid);
+    $override = apply_filters('wicket_pre_assign_individual_membership', null, $person_uuid, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $previous_membership_uuid, $is_autorenew);
 
     if ($override !== null) {
         return $override;
@@ -2362,6 +2378,10 @@ function wicket_assign_individual_membership(
         ];
     }
 
+    if ($is_autorenew !== null) {
+        $payload['data']['attributes']['is_auto_renew'] = $is_autorenew;
+    }
+
     try {
         $response = $client->post('person_memberships', ['json' => $payload]);
     } catch (Exception $e) {
@@ -2374,9 +2394,22 @@ function wicket_assign_individual_membership(
 /**------------------------------------------------------------------
  * Update individual membership dates
  ------------------------------------------------------------------*/
-function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false)
+/**
+ * Update an individual membership's dates in the MDP.
+ *
+ * @param  string      $membership_uuid    MDP person_membership UUID to update.
+ * @param  string      $starts_at          ISO 8601 start date; defaults to now.
+ * @param  string      $ends_at            ISO 8601 end date; defaults to one year out.
+ * @param  int|false   $grace_period_days  Grace period in days; `false` omits the field.
+ * @param  bool|null   $is_autorenew       Whether this membership will auto-renew. `null` means
+ *                     "not provided" and omits the field entirely, since `false` is itself a
+ *                     real, meaningful value for this field (unlike `$grace_period_days`, which
+ *                     uses `false` as its own "not provided" sentinel).
+ * @return array|WP_Error  The MDP API response, or a WP_Error on failure.
+ */
+function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false, $is_autorenew = null)
 {
-    $override = apply_filters('wicket_pre_update_individual_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $grace_period_days);
+    $override = apply_filters('wicket_pre_update_individual_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $is_autorenew);
 
     if ($override !== null) {
         return $override;
@@ -2404,6 +2437,10 @@ function wicket_update_individual_membership_dates($membership_uuid, $starts_at 
 
     if ($grace_period_days !== false) {
         $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
+    }
+
+    if ($is_autorenew !== null) {
+        $payload['data']['attributes']['is_auto_renew'] = $is_autorenew;
     }
 
     try {
