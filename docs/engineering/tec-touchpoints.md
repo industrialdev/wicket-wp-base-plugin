@@ -36,6 +36,9 @@ Purchases deliberately stay on the order hook. Event Tickets Plus generates WooC
 early as the `pending` status, so writing them from `event_ticket_woo_attendee_created` would record
 unpaid and abandoned orders.
 
+All three registration writers take their attendees from **attendee posts**, never from the order's
+`_tribe_tickets_meta`. See [Why not the order's `_tribe_tickets_meta`](#why-not-the-orders-_tribe_tickets_meta).
+
 ### Origin detection
 
 `wicket_tec_attendee_origin( int $attendee_id, $order = null, string $hint = '' )` returns
@@ -58,20 +61,55 @@ A front-end checkout creates one order covering every attendee in the basket.
 | Meta key | On | Purpose |
 |---|---|---|
 | `_wicket_touchpoint_registered` | attendee | unix timestamp; blocks a second registration touchpoint |
-| `_wicket_touchpoint_registered_origin` | attendee | `admin` or `import`; carried onto the removal touchpoint |
+| `_wicket_touchpoint_registered_origin` | attendee | `purchase`, `admin` or `import`; carried onto the removal touchpoint |
 | `_wicket_touchpoint_removed` | attendee | unix timestamp; makes trash then delete write once |
 | `_wicket_touchpoint_removal_skipped` | attendee | reason code; stops the same failure logging twice |
 
 Markers are written only after `write_touchpoint()` succeeds, so a transient Wicket failure can be
 retried.
 
-`external_event_id` for the new writers is `tec_{kind}_{site}_{attendee_id}`, derived only from the
-attendee ID so a repeat write produces the same identifier. The purchase writer keeps its original
-scheme (`{order_id}_{status}_{sha256(payload)}`), which changes whenever the payload changes.
+`external_event_id` for every attendee-based writer is `tec_{kind}_{site}_{attendee_id}`, derived only
+from the attendee ID so a repeat write produces the same identifier. Only the ticket-buyer touchpoint
+still uses the old `{order_id}_{status}_{sha256(payload)}` scheme, because the buyer has no attendee
+post to key on.
+
+Note for sites upgrading: registrations purchased before this change were written under the old
+payload-hash scheme and carry no `_wicket_touchpoint_registered` marker. Re-completing one of those
+old orders will therefore write one duplicate, once. Everything written since is protected by the
+marker.
 
 Removal is **not** conditional on a registration touchpoint existing. Attendees created before this
 feature shipped have no marker, and requiring one would ignore removals across the whole back
 catalogue.
+
+### Why not the order's `_tribe_tickets_meta`
+
+The purchase writer used to build its attendee list from the order's `_tribe_tickets_meta`, the copy
+Event Tickets Plus parks on the order. That field is a record of the answers that survived to
+checkout, not a list of who is on the order, and it loses entries three different ways:
+
+1. ETP holds in-progress answers in a transient that expires after **24 hours**
+   (`Tribe__Tickets_Plus__Meta__Storage::$ticket_meta_expire_time`, not filterable), keyed by a hash in
+   a browser-session cookie. A WooCommerce cart outlives both, indefinitely for a logged-in customer,
+   and abandoned-cart tooling actively invites people back days later. A cart assembled over more than
+   a day reaches checkout with only the most recently added ticket's answers.
+2. A ticket with **no attendee-information fields** configured never populates the field at all, so
+   those events never recorded a registration.
+3. `save_attendee_meta_to_order()` is hooked to *every* `woocommerce_order_status_changed`, rebuilding
+   the field from that transient, so it can go from complete to partial after the attendees exist.
+
+In all three cases the skipped registration was silent. Attendee posts have none of these problems:
+Event Tickets creates exactly one per ticket sold, whether or not any answers were collected.
+
+Two consequences worth knowing:
+
+- When answers were never collected, Event Tickets stamps the **purchaser's billing name and email**
+  onto the attendee. A ticket bought on behalf of someone else whose answers were lost is therefore
+  attributed to the purchaser: the attendee's own identity was never stored, so there is nothing
+  better to use.
+- `wicket_tec_order_registrations()` logs an `attendee_count_mismatch` error when an order sold more
+  tickets than it has attendee posts, so a shortfall surfaces instead of quietly writing fewer
+  touchpoints than tickets sold.
 
 ### Who did it
 
@@ -125,8 +163,11 @@ apply_filters( 'wicket_tec_registration_answers', array $answers, int $attendee_
 ```
 
 Label to value pairs about to be sent. Every answered field is included by default. `unset()` a
-label to leave one out, or return `[]` for none. `$attendee_id` is `0` when answers came from the
-order rather than from a saved attendee.
+label to leave one out, or return `[]` for none. Every registration writer now resolves answers from
+a saved attendee, so `$attendee_id` is always a real attendee post ID.
+
+`wicket_tec_registration_answers_from_raw()` still exists for callers that hold raw slug/value
+answers rather than an attendee post, but no writer uses it any more.
 
 ### `wicket_tec_ambiguous_person_strategy`
 
