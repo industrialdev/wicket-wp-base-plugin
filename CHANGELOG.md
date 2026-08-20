@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.2] - 2026-08-20
+
+### Fixed
+- keep requiredResources arrays intact in widget profile components
+
+### Documentation
+- add PR description template #norelease
+
+### Maintenance
+- remove duplicate pull_request_template.md
+
+
 ## [2.6.1] - 2026-08-18
 
 ### Added
