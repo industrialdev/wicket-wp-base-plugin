@@ -16,10 +16,14 @@ $args = wp_parse_args($args, $defaults);
 $classes = $args['classes'];
 $org_id = $args['org_id'];
 $org_required_resources_decoded = json_decode((string) $args['org_required_resources'], true);
-// JSON_FORCE_OBJECT: requiredResources is a map keyed by resource type, so an
-// empty input must round-trip to '{}', not '[]' — plain json_encode() can't
-// tell an empty object from an empty array once decoded into a PHP array.
-$org_required_resources = json_encode(is_array($org_required_resources_decoded) ? $org_required_resources_decoded : [], JSON_FORCE_OBJECT);
+// requiredResources is a map keyed by resource type, so an empty input must
+// emit '{}', not '[]' — but JSON_FORCE_OBJECT on the whole payload also
+// corrupts non-empty nested lists into objects ({"0":"work"}), which the MDP
+// widget then reports as incomplete required resources. Force an object only
+// for the empty case; encode everything else with nested lists intact.
+$org_required_resources = (is_array($org_required_resources_decoded) && $org_required_resources_decoded !== [])
+    ? json_encode($org_required_resources_decoded)
+    : '{}';
 $org_info_data_field_name = $args['org_info_data_field_name'];
 $validation_data_field_name = $args['validation_data_field_name'];
 $fields = $args['fields'];

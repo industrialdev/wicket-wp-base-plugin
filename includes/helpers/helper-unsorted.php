@@ -2590,6 +2590,61 @@ function wicket_update_membership_external_id($membership_uuid, $membership_type
     return $response;
 }
 
+/**
+ * Find the membership (person or organization) that currently owns a given
+ * external_id, if any. external_id is the WordPress membership post ID, and
+ * the MDP enforces a unique index on it per membership type where deleted_at
+ * IS NULL.
+ *
+ * Use this as a pre-flight before wicket_update_membership_external_id() so a
+ * collision is detected and reported with the owning record instead of failing
+ * the PATCH with an opaque 409 and leaving external_id silently unset.
+ *
+ * @param string|int $external_id The WordPress membership post ID.
+ * @param string     $membership_type 'organization_memberships' or 'person_memberships'.
+ * @return array|false|\WP_Error The owning membership record (with 'id'), false if
+ *                               unowned, or WP_Error on API failure.
+ */
+function wicket_get_membership_by_external_id($external_id, $membership_type)
+{
+    $override = apply_filters('wicket_pre_get_membership_by_external_id', null, $external_id, $membership_type);
+
+    if ($override !== null) {
+        return $override;
+    }
+
+    if (!in_array($membership_type, ['organization_memberships', 'person_memberships'], true)) {
+        return new WP_Error('wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )');
+    }
+
+    $client = wicket_api_client();
+
+    if (!$client) {
+        return new WP_Error('wicket_api_error', 'Wicket API client unavailable');
+    }
+
+    try {
+        $response = $client->get($membership_type . '?filter[external_id_eq]=' . urlencode((string) $external_id) . '&page[size]=1');
+
+        if (!empty($response['data'][0])) {
+            return $response['data'][0];
+        }
+
+        return false;
+    } catch (Exception $e) {
+        Wicket()->log()->error(
+            'wicket_get_membership_by_external_id failed: ' . $e->getMessage(),
+            [
+                'source'          => 'wicket-base',
+                'membership_type' => $membership_type,
+                'external_id'     => $external_id,
+            ]
+        );
+
+        return new WP_Error('wicket_api_error', $e->getMessage());
+    }
+}
+
 /**------------------------------------------------------------------
  * Gets the person memberships for a specified UUID
  * using the person membership entries endpoint
