@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.3] - 2026-08-20
+
+### Changed
+- default event data keys explicitly in the purchase payload builder
+
+### Fixed
+- match order attendees by postmeta, not the tickets data API
+- build TEC registration touchpoints from attendee posts
+
+
 ## [2.6.2] - 2026-08-20
 
 ### Fixed
