@@ -93,13 +93,18 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
 /**
  * List the registrations on an order, one entry per attendee post.
  *
- * tribe_tickets_get_attendees() resolves the provider itself and is the same helper
- * wicket_tec_attendee_identity() reads, so a provider this plugin does not know about still
- * works. Only its flat fields are used: attendee_meta is shaped differently per provider and
- * must not be trusted (see the gotchas in docs/engineering/tec-touchpoints.md).
+ * Attendees are matched by the order ID recorded in their own postmeta, which is exact and
+ * storage-agnostic.
  *
- * A direct postmeta lookup backs it up, because the Attendee CSV Importer and some older
- * providers create attendee posts without registering them with the data API.
+ * Deliberately does not use tribe_tickets_get_attendees(). That resolves the provider through
+ * Tribe__Tickets__Data_API::detect_by_id(), which calls get_post_type() on the raw integer. A
+ * High-Performance Order Storage order lives in its own table, not in wp_posts, so detection
+ * lands on whatever wp_posts row happens to share that numeric ID. An order ID colliding with
+ * an event, ticket product or attendee would return that post's attendees instead, and this
+ * writer would record registrations for people who were never on the order and mark their
+ * attendee posts as done, blocking their real registration from ever being written. Nor is a
+ * detection failure safe: a post type with no provider mapping still falls through to
+ * Tribe__Tickets__Tickets::get_event_attendees(), so the ID is never validated.
  *
  * @param WC_Order $order The order.
  * @return array<int, array{attendee_id: int, ticket_id: int, event_id: int}>
@@ -109,37 +114,15 @@ function wicket_tec_order_registrations(WC_Order $order): array
     $registrations = [];
     $seen = [];
 
-    $attendees = function_exists('tribe_tickets_get_attendees')
-        ? tribe_tickets_get_attendees($order->get_id())
-        : [];
-
-    foreach ((array) $attendees as $attendee) {
-        if (!is_array($attendee)) {
-            continue;
-        }
-
-        $attendee_id = (int) ($attendee['attendee_id'] ?? 0);
-
+    foreach (wicket_tec_attendee_ids_by_order((int) $order->get_id()) as $attendee_id) {
         if ($attendee_id <= 0 || isset($seen[$attendee_id])) {
             continue;
         }
 
         $seen[$attendee_id] = true;
-        $registrations[] = wicket_tec_registration_from_attendee(
-            $attendee_id,
-            (int) ($attendee['product_id'] ?? 0),
-            (int) ($attendee['event_id'] ?? 0)
-        );
-    }
 
-    // Fallback: attendee posts that point at this order but were not returned above.
-    foreach (wicket_tec_attendee_ids_by_order($order->get_id()) as $attendee_id) {
-        if (isset($seen[$attendee_id])) {
-            continue;
-        }
-
-        $seen[$attendee_id] = true;
-        $registrations[] = wicket_tec_registration_from_attendee($attendee_id, 0, 0);
+        // The ticket and event come from the attendee's own postmeta, for the same reason.
+        $registrations[] = wicket_tec_registration_from_attendee($attendee_id);
     }
 
     // A ticket sold with no attendee post behind it means someone gets no touchpoint. That
@@ -190,25 +173,68 @@ function wicket_tec_registration_from_attendee(int $attendee_id, int $ticket_id 
 }
 
 /**
+ * The attendee postmeta keys that record which WooCommerce order an attendee belongs to.
+ *
+ * Only WooCommerce keys belong here. This writer runs on woocommerce_order_status_completed,
+ * so the order is always a WooCommerce order, and other providers (RSVP, Tickets Commerce)
+ * have their own writers.
+ *
+ * @return string[] The meta keys.
+ */
+function wicket_tec_attendee_order_meta_keys(): array
+{
+    $keys = ['_tribe_wooticket_order'];
+
+    // Read the provider's own constant when it is available, so the key cannot drift.
+    if (class_exists('Tribe__Tickets_Plus__Commerce__WooCommerce__Main')
+        && defined('Tribe__Tickets_Plus__Commerce__WooCommerce__Main::ATTENDEE_ORDER_KEY')) {
+        $keys[] = (string) Tribe__Tickets_Plus__Commerce__WooCommerce__Main::ATTENDEE_ORDER_KEY;
+    }
+
+    /**
+     * Filter the attendee postmeta keys that link an attendee to a WooCommerce order.
+     *
+     * For a WooCommerce-backed ticket provider this plugin does not know about.
+     *
+     * @param string[] $keys The meta keys.
+     */
+    $keys = (array) apply_filters('wicket_tec_attendee_order_meta_keys', $keys);
+
+    return array_values(array_unique(array_filter(array_map('strval', $keys))));
+}
+
+/**
  * Find attendee posts belonging to a WooCommerce order, straight from postmeta.
+ *
+ * The attendee records the order ID itself, so this is exact and works the same whether the
+ * order is stored in wp_posts or in the High-Performance Order Storage tables.
  *
  * @param int $order_id The WooCommerce order ID.
  * @return int[] Attendee post IDs.
  */
 function wicket_tec_attendee_ids_by_order(int $order_id): array
 {
+    if ($order_id <= 0) {
+        return [];
+    }
+
+    $meta_query = ['relation' => 'OR'];
+
+    foreach (wicket_tec_attendee_order_meta_keys() as $key) {
+        $meta_query[] = [
+            'key' => $key,
+            'value' => $order_id,
+        ];
+    }
+
     $attendee_ids = get_posts([
         'post_type' => wicket_tec_attendee_post_types(),
         'post_status' => 'any',
         'posts_per_page' => -1,
         'fields' => 'ids',
         'no_found_rows' => true,
-        'meta_query' => [
-            [
-                'key' => '_tribe_wooticket_order',
-                'value' => $order_id,
-            ],
-        ],
+        'ignore_sticky_posts' => true,
+        'meta_query' => $meta_query,
     ]);
 
     return array_map('intval', (array) $attendee_ids);
