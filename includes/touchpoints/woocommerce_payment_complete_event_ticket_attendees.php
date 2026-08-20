@@ -441,13 +441,27 @@ function wicket_tec_maybe_write_ticket_buyer_touchpoint(WC_Order $order): bool
  */
 function wicket_tec_purchase_touchpoint_params(string $person_uuid, array $event_data, string $ticket_product_name, WC_Order $order, array $answers): array
 {
-    $details = 'Event ID: ' . $event_data['event_id'] . '<br />';
-    $details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
+    // wicket_tec_event_data() defines every key, but it passes through the
+    // wicket_tec_event_data filter and then wicket_tec_event_data_legacy_shape(), which copies
+    // only the keys that exist. A site filtering that data, or a theme calling this helper
+    // directly, can therefore hand over a partial array. Default explicitly rather than
+    // relying on an implicit null and an undefined-index warning.
+    $event_id = $event_data['event_id'] ?? '';
+    $event_name = $event_data['event_name'] ?? '';
+    $start = $event_data['start'] ?? '';
+    $end = $event_data['end'] ?? '';
+    $format = $event_data['format'] ?? '';
+    $event_type = $event_data['event_type'] ?? '';
+    $url = $event_data['url'] ?? '';
+    $location = $event_data['location'] ?? '';
+
+    $details = 'Event ID: ' . $event_id . '<br />';
+    $details .= 'Event Name: ' . $event_name . '<br />';
     $details .= 'Ticket Product Name: ' . $ticket_product_name . '<br />';
-    $details .= 'Start Date: ' . $event_data['start'] . '<br />';
-    $details .= 'End Date: ' . $event_data['end'] . '<br />';
-    $details .= 'Event Format: ' . $event_data['format'] . '<br />';
-    $details .= 'Event Type: ' . $event_data['event_type'] . '<br />';
+    $details .= 'Start Date: ' . $start . '<br />';
+    $details .= 'End Date: ' . $end . '<br />';
+    $details .= 'Event Format: ' . $format . '<br />';
+    $details .= 'Event Type: ' . $event_type . '<br />';
     $details .= wicket_tec_registration_answers_details($answers);
 
     $params = [
@@ -455,15 +469,15 @@ function wicket_tec_purchase_touchpoint_params(string $person_uuid, array $event
         'details' => $details,
         'person_id' => $person_uuid,
         'data' => [
-            'url' => $event_data['url'],
-            'end_date' => $event_data['end'],
-            'start_date' => $event_data['start'],
-            'event_title' => $event_data['event_name'],
+            'url' => $url,
+            'end_date' => $end,
+            'start_date' => $start,
+            'event_title' => $event_name,
             'ticket_product_name' => $ticket_product_name,
-            'event_type' => $event_data['event_type'],
+            'event_type' => $event_type,
             'order_date' => $order->get_date_created(),
-            'event_id' => $event_data['event_id'],
-            'location' => $event_data['location'],
+            'event_id' => $event_id,
+            'location' => $location,
             // Stays null when the event has no TEC custom fields, as it always has.
             'event_additional_fields' => $event_data['event_additional_fields'] ?? null,
         ],
