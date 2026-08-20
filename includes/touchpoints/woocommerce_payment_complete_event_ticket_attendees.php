@@ -1,12 +1,48 @@
 <?php
 
+// No direct access
+defined('ABSPATH') || exit;
+
 // ----------------------------------------------------------------------------------------
-// Add touchpoints to wicket person records that match event attendees when event purchase completes
-// Create the person records if they don't already exist, then write touchpoints on new records
-// I've noticed that sometimes woocommerce_payment_complete does not fire, so I've used woocommerce_order_status_completed in this case
+// Add touchpoints to wicket person records that match event attendees when an event purchase
+// completes. Create the person records if they don't already exist, then write touchpoints.
+//
+// I've noticed that sometimes woocommerce_payment_complete does not fire, so
+// woocommerce_order_status_completed is used instead.
+//
+// Attendees come from the attendee posts on the order, not from the order's
+// _tribe_tickets_meta
+// ----------------------------------------------------------------------
+// This writer used to build its attendee list from the order's _tribe_tickets_meta, which is
+// where Event Tickets Plus parks a copy of the registration form answers. That field is not a
+// reliable list of who is on the order:
+//
+//   1. ETP holds in-progress answers in a transient that expires after 24 hours, keyed by a
+//      hash in a browser-session cookie. A WooCommerce cart outlives both, indefinitely for a
+//      logged-in customer. A cart assembled over more than a day therefore reaches checkout
+//      with only the most recently added ticket's answers, and the order field is written from
+//      whatever survived. Every other ticket on the order was silently skipped.
+//   2. A ticket with no attendee-information fields configured never populates the field at
+//      all, so those events never recorded a registration.
+//   3. ETP rewrites the field on every order status change, so it can go from complete to
+//      partial after the attendees have already been created.
+//
+// Attendee posts have none of those problems: Event Tickets creates exactly one per ticket
+// sold, whether or not any answers were collected. Reading them also matches what the admin
+// and CSV-import writer in event_ticket_attendees_added_removed.php already does, so all three
+// registration paths now agree on where an attendee comes from.
+//
+// Purchases deliberately stay on this order-level hook rather than moving to
+// event_ticket_woo_attendee_created: ETP generates WooCommerce attendees as early as the
+// pending status, so writing from there would record unpaid and abandoned orders.
 // ----------------------------------------------------------------------------------------
 add_action('woocommerce_order_status_completed', 'woocommerce_payment_complete_event_ticket_attendees');
 
+/**
+ * Write registration touchpoints for every attendee on a completed order.
+ *
+ * @param int $order_id The WooCommerce order ID.
+ */
 function woocommerce_payment_complete_event_ticket_attendees($order_id)
 {
     $order = wc_get_order($order_id);
@@ -20,10 +56,8 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
     //
     // Adding an attendee from the admin Attendees screen, and importing attendees from CSV,
     // both create their own WooCommerce order and set it to completed, so this hook fires for
-    // them too. Those orders carry no order-level _tribe_tickets_meta, so the attendee loop
-    // below finds nothing and only the ticket-buyer fallback would run, attributing the
-    // registration to whoever happens to be the order's customer. Those two paths are handled
-    // per attendee instead, where the real attendee is known.
+    // them too. Those two paths are handled per attendee instead, in
+    // event_ticket_attendees_added_removed.php, where the acting user is known.
     //
     // created_via is 'checkout' for a front-end purchase, 'admin' for an admin-added attendee
     // and 'import' for the CSV importer. It is empty for orders created programmatically by
@@ -34,8 +68,8 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
     /**
      * Filter which WooCommerce created_via values this order-level writer handles.
      *
-     * @param array     $origins     Allowed created_via values.
-     * @param string    $created_via This order's created_via value.
+     * @param array    $origins     Allowed created_via values.
+     * @param string   $created_via This order's created_via value.
      * @param WC_Order $order       The order.
      */
     $origins = apply_filters('wicket_tec_touchpoint_order_hook_origins', ['checkout', ''], $created_via, $order);
@@ -44,41 +78,288 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
         return;
     }
 
-    // see these files in order to understand where this all came from (mostly in the admin backend for viewing woo order item):
-    // web\app\plugins\woocommerce\includes\admin\meta-boxes\views\html-order-items.php
-    // web\app\plugins\woocommerce\includes\admin\meta-boxes\views\html-order-item.php
-    // web\app\plugins\event-tickets-plus\src\Tribe\Commerce\WooCommerce\Enhanced_Templates\Service_Provider.php
-    // web\app\plugins\event-tickets-plus\src\Tribe\Commerce\WooCommerce\Enhanced_Templates\Hooks.php
-
-    // ----------------------------------------------------------------------------------------
-    // Get the attendees right off the order. The ticket meta is keyed by the woo product id
-    // This is important to know since the user might checkout with multiple events
-    // We'll use this product_id lower down to make sure we show the right event info for each attendee
-    // Make sure your event attendee fields contain a last name field. We usually rename the one that's there to just name (using another hook elsewhere), then add this as well
-    // ----------------------------------------------------------------------------------------
-    $attendees_per_event = $order->get_meta('_tribe_tickets_meta');
-
-    $attendees_arr = [];
-    if (!empty($attendees_per_event)) {
-        foreach ($attendees_per_event as $product_id => $event) {
-            // look at each event's attendees
-            foreach ($event as $attendee) {
-                $temp = [];
-                $temp['name'] = $attendee['tribe-tickets-plus-iac-name'] ?? '';
-                $temp['email'] = $attendee['tribe-tickets-plus-iac-email'] ?? '';
-                $temp['last-name'] = $attendee['last-name'] ?? '';
-                // The rest of this array is the attendee's registration form answers,
-                // keyed by field slug. Kept whole so they can be added to the touchpoint.
-                $temp['raw_answers'] = is_array($attendee) ? $attendee : [];
-                $attendees_arr[$product_id][] = $temp;
-            }
-        }
+    foreach (wicket_tec_order_registrations($order) as $registration) {
+        wicket_tec_write_purchase_registration_touchpoint(
+            $registration['attendee_id'],
+            $registration['event_id'],
+            $registration['ticket_id'],
+            $order
+        );
     }
 
-    // ----------------------------------------------------------------------------------------
-    // Load the items from the order and look for ticket products to get the event info
-    // ----------------------------------------------------------------------------------------
-    $event_info = [];
+    wicket_tec_maybe_write_ticket_buyer_touchpoint($order);
+}
+
+/**
+ * List the registrations on an order, one entry per attendee post.
+ *
+ * tribe_tickets_get_attendees() resolves the provider itself and is the same helper
+ * wicket_tec_attendee_identity() reads, so a provider this plugin does not know about still
+ * works. Only its flat fields are used: attendee_meta is shaped differently per provider and
+ * must not be trusted (see the gotchas in docs/engineering/tec-touchpoints.md).
+ *
+ * A direct postmeta lookup backs it up, because the Attendee CSV Importer and some older
+ * providers create attendee posts without registering them with the data API.
+ *
+ * @param WC_Order $order The order.
+ * @return array<int, array{attendee_id: int, ticket_id: int, event_id: int}>
+ */
+function wicket_tec_order_registrations(WC_Order $order): array
+{
+    $registrations = [];
+    $seen = [];
+
+    $attendees = function_exists('tribe_tickets_get_attendees')
+        ? tribe_tickets_get_attendees($order->get_id())
+        : [];
+
+    foreach ((array) $attendees as $attendee) {
+        if (!is_array($attendee)) {
+            continue;
+        }
+
+        $attendee_id = (int) ($attendee['attendee_id'] ?? 0);
+
+        if ($attendee_id <= 0 || isset($seen[$attendee_id])) {
+            continue;
+        }
+
+        $seen[$attendee_id] = true;
+        $registrations[] = wicket_tec_registration_from_attendee(
+            $attendee_id,
+            (int) ($attendee['product_id'] ?? 0),
+            (int) ($attendee['event_id'] ?? 0)
+        );
+    }
+
+    // Fallback: attendee posts that point at this order but were not returned above.
+    foreach (wicket_tec_attendee_ids_by_order($order->get_id()) as $attendee_id) {
+        if (isset($seen[$attendee_id])) {
+            continue;
+        }
+
+        $seen[$attendee_id] = true;
+        $registrations[] = wicket_tec_registration_from_attendee($attendee_id, 0, 0);
+    }
+
+    // A ticket sold with no attendee post behind it means someone gets no touchpoint. That
+    // used to happen silently, which is how the _tribe_tickets_meta gap went unnoticed for so
+    // long, so say something rather than quietly writing fewer touchpoints than tickets sold.
+    $expected = wicket_tec_order_ticket_quantity($order);
+
+    if ($expected > count($registrations)) {
+        wicket_tec_log_error('Event registration touchpoints: fewer attendees found than tickets sold on the order', [
+            'reason' => 'attendee_count_mismatch',
+            'order_id' => $order->get_id(),
+            'tickets_sold' => $expected,
+            'attendees_found' => count($registrations),
+        ]);
+    }
+
+    return $registrations;
+}
+
+/**
+ * Normalise one attendee into a registration, filling in whatever the caller did not supply.
+ *
+ * @param int $attendee_id The attendee post ID.
+ * @param int $ticket_id   The ticket product post ID, or 0 to look it up.
+ * @param int $event_id    The event post ID, or 0 to look it up.
+ * @return array{attendee_id: int, ticket_id: int, event_id: int}
+ */
+function wicket_tec_registration_from_attendee(int $attendee_id, int $ticket_id = 0, int $event_id = 0): array
+{
+    if ($ticket_id <= 0) {
+        $ticket_id = wicket_tec_attendee_ticket_id($attendee_id);
+    }
+
+    if ($event_id <= 0) {
+        $event_id = wicket_tec_attendee_event_id($attendee_id);
+    }
+
+    // Last resort: the ticket product records the event it belongs to.
+    if ($event_id <= 0) {
+        $event_id = wicket_tec_event_id_from_ticket($ticket_id);
+    }
+
+    return [
+        'attendee_id' => $attendee_id,
+        'ticket_id' => $ticket_id,
+        'event_id' => $event_id,
+    ];
+}
+
+/**
+ * Find attendee posts belonging to a WooCommerce order, straight from postmeta.
+ *
+ * @param int $order_id The WooCommerce order ID.
+ * @return int[] Attendee post IDs.
+ */
+function wicket_tec_attendee_ids_by_order(int $order_id): array
+{
+    $attendee_ids = get_posts([
+        'post_type' => wicket_tec_attendee_post_types(),
+        'post_status' => 'any',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'no_found_rows' => true,
+        'meta_query' => [
+            [
+                'key' => '_tribe_wooticket_order',
+                'value' => $order_id,
+            ],
+        ],
+    ]);
+
+    return array_map('intval', (array) $attendee_ids);
+}
+
+/**
+ * Count how many tickets an order sold, so the attendee count can be sanity checked.
+ *
+ * @param WC_Order $order The order.
+ * @return int The total ticket quantity on the order.
+ */
+function wicket_tec_order_ticket_quantity(WC_Order $order): int
+{
+    $quantity = 0;
+
+    foreach ($order->get_items() as $item) {
+        $product = $item->get_product();
+
+        if (!$product || !$product->get_meta('_tribe_wooticket_for_event')) {
+            continue;
+        }
+
+        $quantity += max(1, (int) $item->get_quantity());
+    }
+
+    return $quantity;
+}
+
+/**
+ * Write the "registered for an event" touchpoint for one purchased attendee.
+ *
+ * @param int      $attendee_id The attendee post ID.
+ * @param int      $event_id    The event post ID.
+ * @param int      $ticket_id   The ticket product post ID.
+ * @param WC_Order $order       The order the attendee hangs off.
+ * @return bool Whether a touchpoint was written.
+ */
+function wicket_tec_write_purchase_registration_touchpoint(int $attendee_id, int $event_id, int $ticket_id, WC_Order $order): bool
+{
+    // Idempotency: one attendee post is one registration, so never write twice for it. This
+    // also makes the writer safe to call again by hand to backfill an order that was missed.
+    if (get_post_meta($attendee_id, '_wicket_touchpoint_registered', true)) {
+        return false;
+    }
+
+    if ($event_id <= 0) {
+        wicket_tec_log_error('Skipped event registration touchpoint: could not resolve the event', [
+            'reason' => 'no_event',
+            'attendee_id' => $attendee_id,
+            'ticket_id' => $ticket_id,
+            'order_id' => $order->get_id(),
+        ]);
+
+        return false;
+    }
+
+    // Reads the attendee's own name and email, falling back to the order's billing details.
+    // Event Tickets stamps the purchaser's billing name and email onto an attendee whose
+    // registration answers were never collected, so for those the buyer is all there is.
+    $attendee = wicket_tec_attendee_identity($attendee_id, $ticket_id, $order);
+
+    // Make sure that if the email is empty we do not continue. This has happened for some odd
+    // reason in the past causing junk touchpoints, so stop it here.
+    if ($attendee['email'] === '') {
+        wicket_tec_log_error('Skipped event registration touchpoint: no email address on the attendee', [
+            'reason' => 'no_email',
+            'attendee_id' => $attendee_id,
+            'event_id' => $event_id,
+            'order_id' => $order->get_id(),
+        ]);
+
+        return false;
+    }
+
+    // Check to see if a record for this person already exists in wicket, creating one if not.
+    // Matches on the primary address first, then across every address on a record, so a
+    // returning attendee who used a secondary address is not duplicated.
+    $person = wicket_tec_resolve_attendee_person($attendee['email'], [
+        'first_name' => $attendee['first_name'],
+        'last_name' => $attendee['last_name'],
+    ]);
+
+    if ($person['uuid'] === '') {
+        wicket_tec_log_person_resolution_failure($person, [
+            'attendee_id' => $attendee_id,
+            'event_id' => $event_id,
+            'order_id' => $order->get_id(),
+            'action' => 'Registered for an event',
+        ]);
+
+        return false;
+    }
+
+    $event_data = wicket_touchpoint_get_event_data_from_event($event_id);
+    $ticket_product_name = $ticket_id > 0 ? (string) get_the_title($ticket_id) : '';
+
+    // Registration form answers, read from the attendee rather than from the order, so a
+    // ticket whose answers never reached the order still reports what was collected. Empty
+    // unless the setting is on and the ticket collects answers, so payloads without them are
+    // unchanged.
+    $answers = wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_answers') === '1'
+        ? wicket_tec_registration_answers($ticket_id, $attendee_id, $event_id)
+        : [];
+
+    $params = wicket_tec_purchase_touchpoint_params($person['uuid'], $event_data, $ticket_product_name, $order, $answers);
+
+    // One attendee post is one registration, so the attendee ID is the stable key. The old
+    // scheme hashed the payload, which meant any change to the event data produced a new
+    // identifier and the MDP could no longer recognise a repeat write.
+    $params['external_event_id'] = wicket_tec_external_event_id('reg', $attendee_id);
+
+    $written = write_touchpoint($params, get_create_touchpoint_service_id('Events Calendar', 'Events from the website'));
+
+    // Only mark on success, so a transient MDP failure can be retried.
+    if ($written) {
+        update_post_meta($attendee_id, '_wicket_touchpoint_registered', time());
+        update_post_meta($attendee_id, '_wicket_touchpoint_registered_origin', 'purchase');
+    }
+
+    return (bool) $written;
+}
+
+/**
+ * Also write a touchpoint for the person who bought the tickets.
+ *
+ * The buyer is not an attendee, so there is no attendee post and no answers to report. Kept
+ * exactly as it behaved before, including attributing the buyer to the last ticket on the
+ * order: on the common single-event order that is the only ticket, and changing it would
+ * silently start writing several touchpoints for sites that have this switched on.
+ *
+ * Turn it off with:
+ *   add_filter( 'wicket_include_tec_touchpoint_for_ticket_buyer', '__return_false' );
+ *
+ * @param WC_Order $order The order.
+ * @return bool Whether a touchpoint was written.
+ */
+function wicket_tec_maybe_write_ticket_buyer_touchpoint(WC_Order $order): bool
+{
+    /**
+     * Filter whether the ticket buyer also gets a registration touchpoint.
+     *
+     * @param bool $include Whether to include the buyer.
+     */
+    if (!apply_filters('wicket_include_tec_touchpoint_for_ticket_buyer', true)) {
+        return false;
+    }
+
+    $ticket_id = 0;
+    $event_id = 0;
+
+    // The last ticket line item whose event still exists, matching the previous behaviour.
     foreach ($order->get_items() as $item) {
         $product = $item->get_product();
 
@@ -86,151 +367,115 @@ function woocommerce_payment_complete_event_ticket_attendees($order_id)
             continue;
         }
 
-        // if this is a ticket product, we'll get back the event post id
-        $event_id = $product->get_meta('_tribe_wooticket_for_event');
+        $item_event_id = (int) $product->get_meta('_tribe_wooticket_for_event');
 
-        if ($event_id) {
-            $event_post = get_post($event_id);
-
-            if ($event_post) {
-                $event_info[$item->get_product_id()] = $event_post;
-            }
-        }
-    }
-
-    // ----------------------------------------------------------------------------------------
-    // Also add the person buying the ticket (not an attendee technically) to the attendees array
-    // so we can write a touchpoint for them as well.
-    // Add this to a theme: add_filter( 'wicket_include_tec_touchpoint_for_ticket_buyer', '__return_false' );
-    //
-    // The product id used here was previously whatever the loop above happened to leave behind,
-    // which on an order whose last line item was not a ticket pointed at a product with no entry
-    // in $event_info. Use the last ticket product explicitly: on the common single-event order
-    // that is the same product, without depending on line-item order.
-    // ----------------------------------------------------------------------------------------
-    if (apply_filters('wicket_include_tec_touchpoint_for_ticket_buyer', true) && !empty($event_info)) {
-        $order_user = get_user_by('id', $order->get_customer_id());
-
-        // Guest orders and deleted customers have no user to attribute the purchase to.
-        if ($order_user) {
-            $attendees_arr[array_key_last($event_info)][] = [
-                'name' => $order_user->first_name ?? '',
-                'email' => $order_user->user_email ?? '',
-                'last-name' => $order_user->last_name ?? '',
-            ];
-        }
-    }
-
-    // ----------------------------------------------------------------------------------------
-    // Write touchpoints to existing users, create if not exist
-    // ----------------------------------------------------------------------------------------
-    // The find-and-create branches used to be two near-identical copies of the payload
-    // build. They are one path now: resolve the person, then write.
-    foreach ($attendees_arr as $product_id => $attendees) {
-        // The buyer fallback and the order meta are keyed independently, so an entry can
-        // point at a product that is not a ticket on this order.
-        if (!isset($event_info[$product_id])) {
+        if ($item_event_id <= 0 || !get_post($item_event_id)) {
             continue;
         }
 
-        foreach ($attendees as $attendee) {
-
-            // make sure that for whatever reason, if email is empty, we do not continue. This has happened for some odd reason in the past causing junk touchpoints so let's try and stop it here
-            if (!isset($attendee['email']) || $attendee['email'] == '') {
-                continue;
-            }
-
-            // check to see if a record for this person already exists in wicket, creating one if not.
-            // Matches on the primary address first, then across every address on a record, so a
-            // returning attendee who used a secondary address is not duplicated.
-            $person = wicket_tec_resolve_attendee_person($attendee['email'], [
-                'first_name' => (string) ($attendee['name'] ?? ''),
-                'last_name' => (string) ($attendee['last-name'] ?? ''),
-            ]);
-
-            // Previously a failed wicket_create_person() returned a truthy ['errors' => ...]
-            // and the touchpoint went out with person_id => null. Skip instead.
-            if ($person['uuid'] === '') {
-                wicket_tec_log_error('Skipped event registration touchpoint: could not resolve a Wicket person', [
-                    'reason' => $person['code'],
-                    'email' => $attendee['email'],
-                    'order_id' => $order->get_id(),
-                    'product_id' => $product_id,
-                ]);
-
-                continue;
-            }
-
-            $event_data = wicket_touchpoint_get_event_data_from_event($event_info[$product_id]->ID);
-            $ticket_product_name = get_the_title($product_id);
-
-            // Registration form answers, taken from the order meta this writer already
-            // reads. Empty unless the setting is on and the ticket collects answers, so
-            // payloads without them are unchanged.
-            $answers = wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_answers') === '1'
-                ? wicket_tec_registration_answers_from_raw(
-                    (array) ($attendee['raw_answers'] ?? []),
-                    (int) $product_id,
-                    (int) $event_info[$product_id]->ID
-                )
-                : [];
-
-            $attendee_details = 'Event ID: ' . $event_data['event_id'] . '<br />';
-            $attendee_details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
-            $attendee_details .= 'Ticket Product Name: ' . $ticket_product_name . '<br />';
-            $attendee_details .= 'Start Date: ' . $event_data['start'] . '<br />';
-            $attendee_details .= 'End Date: ' . $event_data['end'] . '<br />';
-            $attendee_details .= 'Event Format: ' . $event_data['format'] . '<br />';
-            $attendee_details .= 'Event Type: ' . $event_data['event_type'] . '<br />';
-            $attendee_details .= wicket_tec_registration_answers_details($answers);
-
-            $action = 'Registered for an event';
-
-            $params = [
-                'action' => $action,
-                'details' => $attendee_details,
-                'person_id' => $person['uuid'],
-                'data' => [
-                    'url' => $event_data['url'],
-                    'end_date' => $event_data['end'],
-                    'start_date' => $event_data['start'],
-                    'event_title' => $event_data['event_name'],
-                    'ticket_product_name' => $ticket_product_name,
-                    'event_type' => $event_data['event_type'],
-                    'order_date' => $order->get_date_created(),
-                    'event_id' => $event_data['event_id'],
-                    'location' => $event_data['location'],
-                    // Stays null when the event has no TEC custom fields, as it always has.
-                    'event_additional_fields' => $event_data['event_additional_fields'] ?? null,
-                ],
-            ];
-
-            // Added last, and only when there are answers, so payloads without them keep
-            // exactly the key set and order they have always had.
-            if ($answers !== []) {
-                $params['data']['registration_answers'] = $answers;
-            }
-
-            // Build a predictable, hashable string
-            $hashInput = json_encode([
-                'data' => $params['data'],
-                'person_id' => $params['person_id'], // include per-attendee uniqueness
-                'action' => $params['action'],       // optional, for extra context
-            ], JSON_UNESCAPED_SLASHES);
-
-            // Compose final unique identifier
-            $externalEventIdParts = [
-                $order->get_id(),    // order ID
-                $order->get_status(), // order status
-                hash('sha256', $hashInput), // hash of structured, stable data
-            ];
-
-            $params['external_event_id'] = implode('_', $externalEventIdParts);
-
-            $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
-            write_touchpoint($params, $service_id);
-        }
+        $ticket_id = (int) $item->get_product_id();
+        $event_id = $item_event_id;
     }
+
+    if ($event_id <= 0) {
+        return false;
+    }
+
+    // Guest orders and deleted customers have no user to attribute the purchase to.
+    $buyer = get_user_by('id', $order->get_customer_id());
+
+    if (!$buyer || empty($buyer->user_email)) {
+        return false;
+    }
+
+    $person = wicket_tec_resolve_attendee_person((string) $buyer->user_email, [
+        'first_name' => (string) ($buyer->first_name ?? ''),
+        'last_name' => (string) ($buyer->last_name ?? ''),
+    ]);
+
+    if ($person['uuid'] === '') {
+        wicket_tec_log_person_resolution_failure($person, [
+            'order_id' => $order->get_id(),
+            'event_id' => $event_id,
+            'action' => 'Registered for an event',
+            'role' => 'ticket_buyer',
+        ]);
+
+        return false;
+    }
+
+    $event_data = wicket_touchpoint_get_event_data_from_event($event_id);
+    $ticket_product_name = $ticket_id > 0 ? (string) get_the_title($ticket_id) : '';
+
+    $params = wicket_tec_purchase_touchpoint_params($person['uuid'], $event_data, $ticket_product_name, $order, []);
+
+    // The buyer has no attendee post to key on, so this path keeps the original payload-hash
+    // scheme: the same order in the same status rebuilds the same identifier.
+    $hash_input = json_encode([
+        'data' => $params['data'],
+        'person_id' => $params['person_id'],
+        'action' => $params['action'],
+    ], JSON_UNESCAPED_SLASHES);
+
+    $params['external_event_id'] = implode('_', [
+        $order->get_id(),
+        $order->get_status(),
+        hash('sha256', (string) $hash_input),
+    ]);
+
+    return (bool) write_touchpoint($params, get_create_touchpoint_service_id('Events Calendar', 'Events from the website'));
+}
+
+/**
+ * Build the touchpoint payload shared by the attendee and ticket-buyer paths.
+ *
+ * The key set and ordering are deliberately unchanged from the original writer, so existing
+ * MDP reporting and segments keep working.
+ *
+ * @param string   $person_uuid         The MDP person UUID.
+ * @param array    $event_data          Event data from wicket_touchpoint_get_event_data_from_event().
+ * @param string   $ticket_product_name The ticket product title.
+ * @param WC_Order $order               The order.
+ * @param array    $answers             Registration answers, label to value. May be empty.
+ * @return array The touchpoint parameters, without external_event_id.
+ */
+function wicket_tec_purchase_touchpoint_params(string $person_uuid, array $event_data, string $ticket_product_name, WC_Order $order, array $answers): array
+{
+    $details = 'Event ID: ' . $event_data['event_id'] . '<br />';
+    $details .= 'Event Name: ' . $event_data['event_name'] . '<br />';
+    $details .= 'Ticket Product Name: ' . $ticket_product_name . '<br />';
+    $details .= 'Start Date: ' . $event_data['start'] . '<br />';
+    $details .= 'End Date: ' . $event_data['end'] . '<br />';
+    $details .= 'Event Format: ' . $event_data['format'] . '<br />';
+    $details .= 'Event Type: ' . $event_data['event_type'] . '<br />';
+    $details .= wicket_tec_registration_answers_details($answers);
+
+    $params = [
+        'action' => 'Registered for an event',
+        'details' => $details,
+        'person_id' => $person_uuid,
+        'data' => [
+            'url' => $event_data['url'],
+            'end_date' => $event_data['end'],
+            'start_date' => $event_data['start'],
+            'event_title' => $event_data['event_name'],
+            'ticket_product_name' => $ticket_product_name,
+            'event_type' => $event_data['event_type'],
+            'order_date' => $order->get_date_created(),
+            'event_id' => $event_data['event_id'],
+            'location' => $event_data['location'],
+            // Stays null when the event has no TEC custom fields, as it always has.
+            'event_additional_fields' => $event_data['event_additional_fields'] ?? null,
+        ],
+    ];
+
+    // Added last, and only when there are answers, so payloads without them keep exactly the
+    // key set and order they have always had.
+    if ($answers !== []) {
+        $params['data']['registration_answers'] = $answers;
+    }
+
+    return $params;
 }
 
 /**
