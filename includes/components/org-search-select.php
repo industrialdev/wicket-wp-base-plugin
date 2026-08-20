@@ -1047,9 +1047,15 @@ if (defined('WICKET_WP_THEME_V2')) {
     </div>
   </div> <!-- / .component-org-search-select__create-org-form -->
 
-  <input type="hidden" name="<?php echo $selectedUuidHiddenFieldName; ?>" value="<?php if (isset($_POST[$selectedUuidHiddenFieldName])) {
-      echo $_POST[$selectedUuidHiddenFieldName];
-  } ?>" />
+  <?php
+  // The Gravity Forms caller renders its own hidden input named 'input_' . $key.
+  // When the names collide, skip the component field so one owner holds the value (WWID-2255).
+  if ($selectedUuidHiddenFieldName !== '' && $selectedUuidHiddenFieldName !== 'input_' . $key) :
+      $submittedUuid = isset($_POST[$selectedUuidHiddenFieldName]) ? wp_unslash($_POST[$selectedUuidHiddenFieldName]) : '';
+      $submittedUuid = is_string($submittedUuid) ? $submittedUuid : '';
+  ?>
+  <input type="hidden" name="<?php echo esc_attr($selectedUuidHiddenFieldName); ?>" value="<?php echo esc_attr($submittedUuid); ?>" />
+  <?php endif; ?>
 </div>
 
 <script>
@@ -1625,13 +1631,13 @@ if (defined('WICKET_WP_THEME_V2')) {
           orgUuid,
           key: '<?php echo $key; ?>',
           fieldName: 'input_<?php echo $key; ?>',
-          componentFieldName: '<?php echo $selectedUuidHiddenFieldName; ?>'
+          componentFieldName: '<?php echo esc_js($selectedUuidHiddenFieldName); ?>'
         });
         // Update state
         this.selectedOrgUuid = orgUuid;
 
         // Update both hidden fields to ensure compatibility
-        const componentFields = document.querySelectorAll('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        const componentFields = document.querySelectorAll('input[name="<?php echo esc_js($selectedUuidHiddenFieldName); ?>"]');
         componentFields.forEach((field) => {
           field.value = orgUuid;
         });
@@ -1682,7 +1688,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         }
       },
       clearSelectedOrgHiddenFields() {
-        const componentFields = document.querySelectorAll('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        const componentFields = document.querySelectorAll('input[name="<?php echo esc_js($selectedUuidHiddenFieldName); ?>"]');
         componentFields.forEach((field) => {
           field.value = '';
         });
@@ -1735,7 +1741,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         window.dispatchEvent(newEvent);
       },
       hydrateSelectedOrgUuidFromHiddenFields() {
-        const componentField = document.querySelector('input[name="<?php echo $selectedUuidHiddenFieldName; ?>"]');
+        const componentField = document.querySelector('input[name="<?php echo esc_js($selectedUuidHiddenFieldName); ?>"]');
         const gfField = document.querySelector('input[name="input_<?php echo $key; ?>"]');
         const componentValue = componentField && typeof componentField.value === 'string' ? componentField.value.trim() : '';
         const gfValue = gfField && typeof gfField.value === 'string' ? gfField.value.trim() : '';
