@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.4] - 2026-08-20
+
+### Fixed
+- **orgss:** dedupe hidden field vs GF owner + harden POST echo (WWID-2255)
+- **orgss:** drop duplicate hidden input, escape POST echo
+
+
 ## [2.6.3] - 2026-08-20
 
 ### Changed
