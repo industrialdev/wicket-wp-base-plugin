@@ -2318,7 +2318,9 @@ function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $st
  * @param  bool|null   $is_autorenew                Whether this membership will auto-renew.
  *                     `null` means "not provided" and omits the field entirely, since `false`
  *                     is itself a real, meaningful value for this field (see
- *                     `wicket_update_individual_membership_dates()` for the same pattern).
+ *                     `wicket_update_individual_membership_dates()` for the same pattern). Typed
+ *                     `?bool` so PHP rejects truthy-but-wrong values (e.g. the string `'no'`) at
+ *                     the call boundary instead of forwarding them to the MDP as-is.
  * @return array|WP_Error  The MDP API response, or a WP_Error on failure.
  */
 function wicket_assign_individual_membership(
@@ -2328,7 +2330,7 @@ function wicket_assign_individual_membership(
     $ends_at = '',
     $grace_period_days = 0,
     $previous_membership_uuid = '',
-    $is_autorenew = null
+    ?bool $is_autorenew = null
 ) {
     $override = apply_filters('wicket_pre_assign_individual_membership', null, $person_uuid, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $previous_membership_uuid, $is_autorenew);
 
@@ -2404,10 +2406,12 @@ function wicket_assign_individual_membership(
  * @param  bool|null   $is_autorenew       Whether this membership will auto-renew. `null` means
  *                     "not provided" and omits the field entirely, since `false` is itself a
  *                     real, meaningful value for this field (unlike `$grace_period_days`, which
- *                     uses `false` as its own "not provided" sentinel).
+ *                     uses `false` as its own "not provided" sentinel). Typed `?bool` so PHP
+ *                     rejects truthy-but-wrong values (e.g. the string `'no'`) at the call
+ *                     boundary instead of forwarding them to the MDP as-is.
  * @return array|WP_Error  The MDP API response, or a WP_Error on failure.
  */
-function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false, $is_autorenew = null)
+function wicket_update_individual_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $grace_period_days = false, ?bool $is_autorenew = null)
 {
     $override = apply_filters('wicket_pre_update_individual_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $grace_period_days, $is_autorenew);
 
