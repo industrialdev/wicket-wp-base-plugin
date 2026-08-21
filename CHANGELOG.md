@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.5] - 2026-08-21
+
+### Fixed
+- **roles:** scope purchase role sync to buyer sessions only
+- **roles:** sync WP roles when a membership purchase completes
+
+
 ## [2.6.4] - 2026-08-20
 
 ### Fixed
