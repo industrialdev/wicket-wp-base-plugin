@@ -127,6 +127,18 @@ function sync_wicket_data_on_membership_created($membership_post_data)
         return;
     }
 
+    // Only sync when the buyer is the current user (self-purchase checkout
+    // session). The same action also fires for cron renewals and admin-created
+    // memberships, where there is no matching session: the tier-as-roles
+    // lookup inside the sync resolves against the current person, so syncing
+    // a different person there would first wipe their WP roles and then
+    // restore the wrong tier roles. Those contexts keep the pre-fix behavior
+    // (roles refresh at next login).
+    $current = wp_get_current_user();
+    if (!is_object($current) || $current->user_login !== $person_uuid) {
+        return;
+    }
+
     // The sync must never break the order-completion flow: an MDP hiccup
     // here leaves roles to the next login instead of failing checkout.
     try {
