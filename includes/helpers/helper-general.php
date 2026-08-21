@@ -124,6 +124,7 @@ function wicket_supports(string $feature): bool
         // Key format: '<package>.<subsystem>.<capability>'
         // package = qa/ slug (see package-config.json), e.g. base-plugin.
         'base-plugin.organization_membership.copy_previous_assignments' => true,
+        'base-plugin.person_membership.is_auto_renew' => true,
         // Add keys here in the release that ships each feature.
     ];
 
