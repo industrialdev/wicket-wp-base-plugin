@@ -110,6 +110,46 @@ function sync_wicket_data()
 add_action('wp_login', 'sync_wicket_data');
 
 /**------------------------------------------------------------------
+ * Re-sync Wicket roles when a membership purchase completes (WWID-2258)
+ *
+ * Roles granted by the MDP mid-session (org onboarding purchases grant
+ * membership_owner / membership_manager) are only mirrored into WordPress
+ * at login. Until the next login, role-gated UI such as the "Manage My
+ * Organization" account nav item stays hidden for the buyer.
+ *
+ * wicket-wp-memberships fires this action after the MDP membership record
+ * is created, so the person's role_names are already updated when we sync.
+ ------------------------------------------------------------------*/
+function sync_wicket_data_on_membership_created($membership_post_data)
+{
+    $person_uuid = is_array($membership_post_data) ? ($membership_post_data['membership_user_uuid'] ?? '') : '';
+    if (empty($person_uuid)) {
+        return;
+    }
+
+    // Only sync when the buyer is the current user (self-purchase checkout
+    // session). The same action also fires for cron renewals and admin-created
+    // memberships, where there is no matching session: the tier-as-roles
+    // lookup inside the sync resolves against the current person, so syncing
+    // a different person there would first wipe their WP roles and then
+    // restore the wrong tier roles. Those contexts keep the pre-fix behavior
+    // (roles refresh at next login).
+    $current = wp_get_current_user();
+    if (!is_object($current) || $current->user_login !== $person_uuid) {
+        return;
+    }
+
+    // The sync must never break the order-completion flow: an MDP hiccup
+    // here leaves roles to the next login instead of failing checkout.
+    try {
+        sync_wicket_data_for_person($person_uuid);
+    } catch (Throwable $e) {
+        error_log('wicket-cas-role-sync: post-purchase role sync failed for person ' . $person_uuid . ': ' . $e->getMessage());
+    }
+}
+add_action('wicket_membership_created_mdp', 'sync_wicket_data_on_membership_created', 10, 1);
+
+/**------------------------------------------------------------------
  * Sync data on a specific user at any given point
  ------------------------------------------------------------------*/
 function sync_wicket_data_for_person($person_uuid)
@@ -120,7 +160,21 @@ function sync_wicket_data_for_person($person_uuid)
 
     $person = wicket_get_person_by_id($person_uuid);
 
+    // Person fetch failed (invalid UUID, MDP down): nothing to sync. Never
+    // fatal here, callers such as the membership-purchase hook run inside
+    // the WooCommerce order flow.
+    if (!$person) {
+        return;
+    }
+
     $user = get_user_by('login', $person_uuid);
+
+    // No WordPress user for this person yet (guest checkout, unmirrored
+    // person): roles would land on null and fatal. Bail instead.
+    if (!($user instanceof WP_User)) {
+        return;
+    }
+
     // first remove all existing roles
     $user->set_role('');
 
@@ -130,6 +184,12 @@ function sync_wicket_data_for_person($person_uuid)
     }
 
     $roles = $person->role_names;
+
+    // Guard against a malformed person payload (missing role_names) so the
+    // foreach below cannot fatal inside the order flow.
+    if (!is_array($roles)) {
+        $roles = [];
+    }
 
     // Ignore certain security roles from being synced
     if (wicket_get_option('wicket_admin_settings_wpcassify_ignore_roles') != '') {
