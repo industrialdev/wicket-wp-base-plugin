@@ -293,21 +293,38 @@ class EmailBlocker
         }
 
         if (!$this->is_admin_order_context($order)) {
+            $this->log_audit('AutomateWoo admin-update marker skipped: request is not an admin order context.', array_merge([
+                'order_id' => $order->get_id(),
+                'from_status' => $from_status,
+                'to_status' => $to_status,
+                'source' => 'wicket-woo-email-blocker',
+            ], $this->audit_request_context()));
+
             return;
         }
 
+        $until = time() + $this->automatewoo_admin_block_window();
         $order->update_meta_data(
             self::META_AW_ADMIN_BLOCK_TRANSITION,
             wp_json_encode([
                 'from' => $from_status,
                 'to' => $to_status,
-                'until' => time() + $this->automatewoo_admin_block_window(),
+                'until' => $until,
             ])
         );
         // Safe inside the status-changed hook: WC_Order::save() clears the pending
         // status transition before woocommerce_order_status_changed fires, so this
         // nested save cannot re-enter the transition or this hook.
         $order->save();
+
+        $this->log_audit('AutomateWoo admin-update marker written.', [
+            'order_id' => $order->get_id(),
+            'from_status' => $from_status,
+            'to_status' => $to_status,
+            'until' => $until,
+            'setting_enabled' => true,
+            'source' => 'wicket-woo-email-blocker',
+        ]);
     }
 
     /**
@@ -332,16 +349,51 @@ class EmailBlocker
             return false;
         }
 
-        if (!is_object($workflow) || !method_exists($workflow, 'get_trigger')) {
-            return false;
-        }
-
         $trigger = $workflow->get_trigger();
         $target_status = is_object($trigger) && isset($trigger->target_status) && is_string($trigger->target_status)
             ? $trigger->target_status
             : '';
 
         return $target_status !== '' && $target_status === ($marker['to'] ?? '');
+    }
+
+    /**
+     * Request-context snapshot for audit logs.
+     *
+     * @return array<string, mixed>
+     */
+    private function audit_request_context(): array
+    {
+        return [
+            'is_admin' => is_admin(),
+            'doing_ajax' => wp_doing_ajax(),
+            'doing_rest' => defined('REST_REQUEST') && REST_REQUEST,
+            'doing_cron' => defined('DOING_CRON') && DOING_CRON,
+            'request_action' => isset($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            'has_wp_admin_referer' => strpos((string) wp_get_referer(), '/wp-admin/') !== false,
+            'user_id' => get_current_user_id(),
+        ];
+    }
+
+    /**
+     * Summary of the order's AutomateWoo admin-update marker, for audit logs.
+     *
+     * @param WC_Order $order Order object.
+     * @return array<string, mixed>
+     */
+    private function audit_marker_summary(WC_Order $order): array
+    {
+        $marker = json_decode((string) $order->get_meta(self::META_AW_ADMIN_BLOCK_TRANSITION), true);
+
+        if (!is_array($marker)) {
+            return ['marker' => null];
+        }
+
+        return [
+            'marker_from' => $marker['from'] ?? null,
+            'marker_to' => $marker['to'] ?? null,
+            'marker_until' => $marker['until'] ?? null,
+        ];
     }
 
     /**
@@ -470,6 +522,8 @@ class EmailBlocker
 
         // Only block when the trigger is an admin action
         if (!$this->is_admin_order_context($object)) {
+            $this->log_decision('allow', 'setting_on_not_admin_context', $email, $object);
+
             return $enabled;
         }
 
@@ -1000,6 +1054,8 @@ class EmailBlocker
             return false;
         }
 
+        $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order);
+
         return $valid;
     }
 
@@ -1037,16 +1093,26 @@ class EmailBlocker
      */
     private function log_automatewoo_decision(string $decision, string $reason, $workflow, WC_Order $order): void
     {
-        $context = [
+        $trigger_target = '';
+        if (is_object($workflow) && method_exists($workflow, 'get_trigger')) {
+            $trigger = $workflow->get_trigger();
+            if (is_object($trigger) && isset($trigger->target_status) && is_string($trigger->target_status)) {
+                $trigger_target = $trigger->target_status;
+            }
+        }
+
+        $context = array_merge([
             'decision' => $decision,
             'reason' => $reason,
             'order_id' => $order->get_id(),
             'workflow_id' => is_object($workflow) && method_exists($workflow, 'get_id') ? $workflow->get_id() : null,
             'workflow_title' => is_object($workflow) && method_exists($workflow, '__get') ? $workflow->title : null,
+            'trigger_target_status' => $trigger_target,
+            'setting_enabled' => $this->is_enabled(),
             'source' => 'wicket-woo-email-blocker',
-        ];
+        ], $this->audit_marker_summary($order), $this->audit_request_context());
 
-        \Wicket()->log()->info('AutomateWoo workflow block decision recorded.', $context);
+        $this->log_audit('AutomateWoo workflow block decision recorded.', $context);
     }
 
     /**
@@ -1074,6 +1140,18 @@ class EmailBlocker
             'source' => 'wicket-woo-email-blocker',
         ];
 
-        \Wicket()->log()->info('Woo email blocker decision recorded.', $context);
+        $this->log_audit('Woo email blocker decision recorded.', $context);
+    }
+
+    /**
+     * Write an audit log entry (persists without WP_DEBUG).
+     *
+     * @param string $message Message.
+     * @param array<string, mixed> $context Context.
+     * @return void
+     */
+    private function log_audit(string $message, array $context): void
+    {
+        \Wicket()->log()->audit($message, $context);
     }
 }
