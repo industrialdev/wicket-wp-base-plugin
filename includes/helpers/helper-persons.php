@@ -625,3 +625,44 @@ function wicket_resolve_person_create(string $email, array $args): array
         'code' => '',
     ];
 }
+
+/**
+ * Work out which MDP person a WooCommerce order belongs to.
+ *
+ * On a Wicket site the WordPress username is the person's UUID, so the customer's
+ * user_login is normally the answer and costs nothing to read. It is not always the
+ * answer though: anything that creates WordPress users outside of SSO can leave a
+ * username that is not a UUID. The Events Calendar's CSV attendee importer is one,
+ * it creates missing users with the email address as the username, so orders it
+ * generates would otherwise be written against a person id the MDP has never seen
+ * and every touchpoint on them fails with "Person not found".
+ *
+ * Falls back to resolving the person by the order's billing email, and deliberately
+ * does not create one: an order touchpoint should record a person, never invent one.
+ * The registration writers are the ones allowed to create.
+ *
+ * @param  WC_Order|WC_Abstract_Order $order The order.
+ * @return string                     The person UUID, or an empty string when there isn't one.
+ */
+function wicket_person_uuid_for_order($order): string
+{
+    if (!is_object($order) || !method_exists($order, 'get_user_id')) {
+        return '';
+    }
+
+    $user = get_user_by('id', $order->get_user_id());
+
+    if ($user instanceof WP_User && isValidUuid((string) $user->user_login)) {
+        return (string) $user->user_login;
+    }
+
+    $email = method_exists($order, 'get_billing_email') ? (string) $order->get_billing_email() : '';
+
+    if ($email === '' || !function_exists('wicket_resolve_person_by_email')) {
+        return '';
+    }
+
+    $person = wicket_resolve_person_by_email($email, ['create' => false]);
+
+    return (string) ($person['uuid'] ?? '');
+}
