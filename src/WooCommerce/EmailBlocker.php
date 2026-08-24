@@ -29,6 +29,24 @@ class EmailBlocker
     public const META_BLOCK_ORDER_EMAILS = '_wicket_block_order_emails';
 
     /**
+     * Order meta key: UTC timestamp until which AutomateWoo workflows tied to this
+     * order stay blocked because an admin updated the order while the global blocker
+     * setting was active. AutomateWoo validates order-status workflows in a separate
+     * Action Scheduler request, where the admin request context is gone, so the
+     * context is captured on the order at status-change time and consumed here.
+     *
+     * @see mark_admin_updated_order_for_automatewoo()
+     */
+    public const META_AW_ADMIN_BLOCK_UNTIL = '_wicket_aw_admin_block_until';
+
+    /**
+     * How long the AutomateWoo admin-update marker stays valid, in seconds.
+     * Action Scheduler normally validates within minutes; the window bounds the
+     * worst case where a later customer-triggered change must not stay blocked.
+     */
+    private const AW_ADMIN_BLOCK_WINDOW_SECONDS = 900;
+
+    /**
      * Email IDs explicitly allowed for this request (resend, customer notes).
      *
      * @var array<string, bool>
@@ -63,6 +81,11 @@ class EmailBlocker
         add_action('add_meta_boxes', [$this, 'register_order_metabox']);
         add_action('woocommerce_process_shop_order_meta', [$this, 'save_order_metabox'], 10, 2);
         add_filter('automatewoo_custom_validate_workflow', [$this, 'maybe_block_automatewoo_workflow'], 20, 2);
+
+        // AutomateWoo defers order-status triggers to an async Action Scheduler
+        // request, so the admin context must be captured on the order now, while
+        // the admin request is still running (see META_AW_ADMIN_BLOCK_UNTIL).
+        add_action('woocommerce_order_status_changed', [$this, 'mark_admin_updated_order_for_automatewoo'], 5, 4);
 
         // Hook every email via the woocommerce_email_classes filter, which fires
         // when WC_Emails initialises naturally — after all plugins (including
@@ -237,6 +260,65 @@ class EmailBlocker
     private function order_blocks_emails(WC_Order $order): bool
     {
         return 'yes' === $order->get_meta(self::META_BLOCK_ORDER_EMAILS);
+    }
+
+    /**
+     * Record on the order that this status change came from an admin update
+     * while the global blocker setting is active.
+     *
+     * AutomateWoo order-status triggers run their validation in a later Action
+     * Scheduler request that has no admin context. This runs synchronously in
+     * the admin request (priority 5, before AutomateWoo schedules its async
+     * event at 50) and writes a short-lived marker the AutomateWoo validation
+     * callback consumes later.
+     *
+     * @param int $order_id Order ID.
+     * @param string $from_status Old status.
+     * @param string $to_status New status.
+     * @param mixed $order WC_Order when the hook passes it, null otherwise.
+     * @return void
+     */
+    public function mark_admin_updated_order_for_automatewoo(int $order_id, string $from_status, string $to_status, $order = null): void
+    {
+        if (!$this->is_enabled()) {
+            return;
+        }
+
+        $order = $order instanceof WC_Order ? $order : (function_exists('wc_get_order') ? wc_get_order($order_id) : false);
+
+        if (!$order instanceof WC_Order) {
+            return;
+        }
+
+        if (!$this->is_admin_order_context($order)) {
+            return;
+        }
+
+        $order->update_meta_data(self::META_AW_ADMIN_BLOCK_UNTIL, time() + $this->automatewoo_admin_block_window());
+        $order->save();
+    }
+
+    /**
+     * Whether the order carries an unexpired AutomateWoo admin-update marker.
+     *
+     * @param WC_Order $order Order object.
+     * @return bool
+     */
+    private function order_has_fresh_admin_update_marker(WC_Order $order): bool
+    {
+        $until = (int) $order->get_meta(self::META_AW_ADMIN_BLOCK_UNTIL);
+
+        return $until > time();
+    }
+
+    /**
+     * AutomateWoo admin-update marker lifetime in seconds.
+     *
+     * @return int
+     */
+    private function automatewoo_admin_block_window(): int
+    {
+        return (int) apply_filters('wicket_woo_email_blocker_aw_admin_block_window', self::AW_ADMIN_BLOCK_WINDOW_SECONDS);
     }
 
     /**
@@ -834,11 +916,14 @@ class EmailBlocker
      * Block AutomateWoo workflows tied to an order when emails must not send.
      *
      * Runs at trigger-time validation, before a workflow is queued, so blocked
-     * workflows never enter the queue. Two block conditions:
+     * workflows never enter the queue. Three block conditions:
      *
      * 1. The workflow's order carries the per-order email block flag.
-     * 2. The blocker setting is enabled and the trigger is an admin order action
-     *    (parity with the WooCommerce email blocking).
+     * 2. The order carries an unexpired admin-update marker: the status change
+     *    came from an admin update while the blocker setting was active, and
+     *    AutomateWoo validates asynchronously (see mark_admin_updated_order_for_automatewoo()).
+     * 3. The blocker setting is enabled and validation happens synchronously
+     *    inside the admin order action itself (non-deferred triggers).
      *
      * @param bool $valid Current validation result.
      * @param mixed $workflow AutomateWoo\Workflow instance.
@@ -865,6 +950,12 @@ class EmailBlocker
 
         if ($this->order_blocks_emails($order)) {
             $this->log_automatewoo_decision('block', 'order_email_block_flag', $workflow, $order);
+
+            return false;
+        }
+
+        if ($this->order_has_fresh_admin_update_marker($order)) {
+            $this->log_automatewoo_decision('block', 'admin_update_async', $workflow, $order);
 
             return false;
         }
