@@ -293,12 +293,11 @@ class EmailBlocker
         }
 
         if (!$this->is_admin_order_context($order)) {
-            $this->log_audit('AutomateWoo admin-update marker skipped: request is not an admin order context.', array_merge([
-                'order_id' => $order->get_id(),
-                'from_status' => $from_status,
-                'to_status' => $to_status,
-                'source' => 'wicket-woo-email-blocker',
-            ], $this->audit_request_context()));
+            // Front-end status changes (checkout) hit this path constantly, so
+            // they log at info (WP_DEBUG-gated). Admin-ish requests that still
+            // fail the admin-context check are the interesting diagnostic cases.
+            $admin_ish = is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST);
+            $this->log_automatewoo_marker_skip($from_status, $to_status, $order, $admin_ish);
 
             return;
         }
@@ -328,14 +327,53 @@ class EmailBlocker
     }
 
     /**
+     * Log a skipped marker. Audit level for admin-ish requests, info otherwise.
+     *
+     * @param string $from_status Old status.
+     * @param string $to_status New status.
+     * @param WC_Order $order Order object.
+     * @param bool $admin_ish Whether the request carries admin signals.
+     * @return void
+     */
+    private function log_automatewoo_marker_skip(string $from_status, string $to_status, WC_Order $order, bool $admin_ish): void
+    {
+        $message = 'AutomateWoo admin-update marker skipped: request is not an admin order context.';
+        $context = array_merge([
+            'order_id' => $order->get_id(),
+            'from_status' => $from_status,
+            'to_status' => $to_status,
+            'source' => 'wicket-woo-email-blocker',
+        ], $this->audit_request_context());
+
+        if ($admin_ish) {
+            $this->log_audit($message, $context);
+
+            return;
+        }
+
+        \Wicket()->log()->info($message, $context);
+    }
+
+    /**
      * Whether an admin-update marker on this order blocks the given workflow.
      *
-     * The marker is blocked only while unexpired AND the workflow's trigger
-     * targets the same status the admin changed the order to. That keeps a
+     * The marker blocks only while unexpired AND the workflow's trigger
+     * targets the same transition the admin performed. That keeps a
      * customer-initiated transition on the same order (for example a later
      * payment webhook firing an order-paid workflow) sending normally.
-     * Triggers without a target status (generic "any status change" or
-     * order-paid triggers) are not blocked by the marker.
+     *
+     * Status-specific triggers (order_processing, order_completed, ...) match
+     * on their fixed target status. The generic "any status change" trigger
+     * (target_status false) matches on its configured order_status_to (and
+     * order_status_from when set), the same options AutomateWoo itself
+     * validates against. Triggers with no resolvable target are not
+     * marker-blocked.
+     *
+     * Residual, accepted trade-off: an independent later transition to the
+     * same target status within the marker window is also blocked. WC never
+     * fires same-status transitions, so this needs a round-trip through
+     * another status inside the window; the audit trail shows the block and
+     * the marker it used.
      *
      * @param WC_Order $order Order object.
      * @param mixed $workflow AutomateWoo\Workflow instance.
@@ -349,12 +387,28 @@ class EmailBlocker
             return false;
         }
 
-        $trigger = $workflow->get_trigger();
-        $target_status = is_object($trigger) && isset($trigger->target_status) && is_string($trigger->target_status)
-            ? $trigger->target_status
-            : '';
+        if (!is_object($workflow) || !method_exists($workflow, 'get_trigger')) {
+            return false;
+        }
 
-        return $target_status !== '' && $target_status === ($marker['to'] ?? '');
+        $trigger = $workflow->get_trigger();
+
+        if (is_object($trigger) && isset($trigger->target_status) && is_string($trigger->target_status) && $trigger->target_status !== '') {
+            return $trigger->target_status === ($marker['to'] ?? '');
+        }
+
+        // Generic "any status change" trigger: match its configured to (and from).
+        if (is_object($trigger) && method_exists($workflow, 'get_trigger_option')) {
+            $to = $workflow->get_trigger_option('order_status_to');
+
+            if (is_string($to) && $to !== '' && $to === ($marker['to'] ?? '')) {
+                $from = $workflow->get_trigger_option('order_status_from');
+
+                return !is_string($from) || $from === '' || $from === ($marker['from'] ?? '');
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -522,7 +576,7 @@ class EmailBlocker
 
         // Only block when the trigger is an admin action
         if (!$this->is_admin_order_context($object)) {
-            $this->log_decision('allow', 'setting_on_not_admin_context', $email, $object);
+            $this->log_decision('allow', 'setting_on_not_admin_context', $email, $object, false);
 
             return $enabled;
         }
@@ -1042,7 +1096,7 @@ class EmailBlocker
             return false;
         }
 
-        if ($this->admin_update_marker_blocks($order, $workflow)) {
+        if ($this->is_enabled() && $this->admin_update_marker_blocks($order, $workflow)) {
             $this->log_automatewoo_decision('block', 'admin_update_async', $workflow, $order);
 
             return false;
@@ -1054,7 +1108,7 @@ class EmailBlocker
             return false;
         }
 
-        $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order);
+        $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order, false);
 
         return $valid;
     }
@@ -1091,7 +1145,7 @@ class EmailBlocker
      * @param WC_Order $order Order object.
      * @return void
      */
-    private function log_automatewoo_decision(string $decision, string $reason, $workflow, WC_Order $order): void
+    private function log_automatewoo_decision(string $decision, string $reason, $workflow, WC_Order $order, bool $audit = true): void
     {
         $trigger_target = '';
         if (is_object($workflow) && method_exists($workflow, 'get_trigger')) {
@@ -1112,7 +1166,30 @@ class EmailBlocker
             'source' => 'wicket-woo-email-blocker',
         ], $this->audit_marker_summary($order), $this->audit_request_context());
 
-        $this->log_audit('AutomateWoo workflow block decision recorded.', $context);
+        $this->log_automatewoo_decision_entry('AutomateWoo workflow block decision recorded.', $context, $audit);
+    }
+
+    /**
+     * Write a workflow decision log entry at the requested tier.
+     *
+     * Block decisions are audit level (persist without WP_DEBUG); allow
+     * decisions are info level because they fire for every workflow validation,
+     * including ordinary front-end traffic.
+     *
+     * @param string $message Message.
+     * @param array<string, mixed> $context Context.
+     * @param bool $audit True for audit level, false for info level.
+     * @return void
+     */
+    private function log_automatewoo_decision_entry(string $message, array $context, bool $audit): void
+    {
+        if ($audit) {
+            $this->log_audit($message, $context);
+
+            return;
+        }
+
+        \Wicket()->log()->info($message, $context);
     }
 
     /**
@@ -1124,7 +1201,7 @@ class EmailBlocker
      * @param mixed $object Email object context.
      * @return void
      */
-    private function log_decision(string $decision, string $reason, WC_Email $email, $object): void
+    private function log_decision(string $decision, string $reason, WC_Email $email, $object, bool $audit = true): void
     {
         $order_id = null;
         if (is_object($object) && method_exists($object, 'get_id')) {
@@ -1140,7 +1217,13 @@ class EmailBlocker
             'source' => 'wicket-woo-email-blocker',
         ];
 
-        $this->log_audit('Woo email blocker decision recorded.', $context);
+        if ($audit) {
+            $this->log_audit('Woo email blocker decision recorded.', $context);
+
+            return;
+        }
+
+        \Wicket()->log()->info('Woo email blocker decision recorded.', $context);
     }
 
     /**
