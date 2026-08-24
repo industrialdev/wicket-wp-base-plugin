@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.6] - 2026-08-24
+
+### Fixed
+- resolve the MDP person for order touchpoints instead of trusting user_login
+- stop TEC's CSV importer re-importing a batch of rows
+
+
 ## [2.6.5] - 2026-08-21
 
 ### Fixed
