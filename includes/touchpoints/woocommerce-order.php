@@ -15,8 +15,15 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     // Also get the user attached to the order so we can write the touchpoint against them
     // ---------------------------------------------------------------------------------------
     $order ??= wc_get_order($order_id);
-    $order_user = get_user_by('id', $order->get_user_id());
-    $order_user_uuid = $order_user->user_login;
+
+    if (!$order) {
+        return;
+    }
+
+    // The person this order belongs to. Usually the customer's user_login, which on a
+    // Wicket site is their UUID, but not for users created outside SSO: see
+    // wicket_person_uuid_for_order(), which falls back to the billing email.
+    $order_user_uuid = wicket_person_uuid_for_order($order);
     $order_org_meta = get_post_meta($order->id, '_wc_org_uuid', true);
     $org_name = $order_org_meta['name'] ?? '';
 
@@ -26,6 +33,25 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     // for subscriptions, likely the woocommerce_new_order one?
     // ---------------------------------------------------------------------------------------
     if (get_class($order) == 'WC_Subscription') {
+        return;
+    }
+
+    // ---------------------------------------------------------------------------------------
+    // No person, no touchpoint. Posting anyway just earns a 404 "Person not found" from
+    // the MDP, which is what used to happen for guest orders and for customers whose
+    // WordPress username is not a UUID. Log it so the order can be reconciled by hand.
+    // ---------------------------------------------------------------------------------------
+    if ($order_user_uuid === '') {
+        Wicket()->log()->error(
+            sprintf(
+                'Skipped order touchpoint for order %d: no MDP person for customer %d (%s).',
+                (int) $order->get_id(),
+                (int) $order->get_user_id(),
+                $order->get_billing_email() ?: 'no billing email'
+            ),
+            ['source' => 'wicket-base']
+        );
+
         return;
     }
 
@@ -167,8 +193,29 @@ add_action('woocommerce_order_partially_refunded', 'woocommerce_order_partially_
 function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id)
 {
     $order = wc_get_order($order_id);
-    $order_user = get_user_by('id', $order->get_user_id());
-    $order_user_uuid = $order_user->user_login;
+
+    if (!$order) {
+        return;
+    }
+
+    // Same person lookup as the order touchpoint above: user_login is the UUID on an
+    // SSO-provisioned account, and the billing email is the fallback for anything else.
+    $order_user_uuid = wicket_person_uuid_for_order($order);
+
+    if ($order_user_uuid === '') {
+        Wicket()->log()->error(
+            sprintf(
+                'Skipped partial-refund touchpoint for order %d: no MDP person for customer %d (%s).',
+                (int) $order->get_id(),
+                (int) $order->get_user_id(),
+                $order->get_billing_email() ?: 'no billing email'
+            ),
+            ['source' => 'wicket-base']
+        );
+
+        return;
+    }
+
     $order_org_meta = $order->get_meta('_wc_org_uuid');
     $org_name = $order_org_meta['name'] ?? '';
     $net_payment_remaining = $order->get_remaining_refund_amount();

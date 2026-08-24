@@ -74,6 +74,13 @@ class Includes
         // Include Wicket MDP Schema Merge Tag Generator
         include_once WICKET_PLUGIN_DIR . 'includes/class-wicket-mdp-schema-merge-tag-generator.php';
 
+        // Work around The Events Calendar's CSV importer re-importing a batch of rows.
+        // Not gated on any touchpoint setting: the duplicate orders and attendees happen
+        // whether or not this site writes touchpoints.
+        if (is_plugin_active('the-events-calendar/the-events-calendar.php')) {
+            include_once WICKET_PLUGIN_DIR . 'includes/integrations/tec-csv-import-cursor.php';
+        }
+
         // Include event tickets attendee registered touchpoints
         if (wicket_get_option('wicket_admin_settings_tp_event_ticket_attendees_checkin') === '1') {
             include_once WICKET_PLUGIN_DIR . 'includes/touchpoints/event_ticket_attendees_checkin.php';
