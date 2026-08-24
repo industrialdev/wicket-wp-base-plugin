@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.7] - 2026-08-24
+
+### Added
+- register capability key for person_membership is_auto_renew
+- **memberships:** accept is_auto_renew on individual membership MDP calls
+
+### Fixed
+- type-hint is_autorenew as ?bool on individual membership MDP helpers
+
+
 ## [2.6.6] - 2026-08-24
 
 ### Fixed
