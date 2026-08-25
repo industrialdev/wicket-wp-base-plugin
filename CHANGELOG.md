@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.9] - 2026-08-25
+
+### Fixed
+- check for existing MDP bundle membership before creating one
+
+
 ## [2.6.8] - 2026-08-25
 
 ### Added
