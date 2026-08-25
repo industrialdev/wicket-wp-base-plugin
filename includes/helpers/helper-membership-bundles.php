@@ -259,6 +259,58 @@ function wicket_get_bundle_person_memberships(
 }
 
 /**
+ * Check whether a person already has a person_membership assignment under a
+ * membership bundle, for a given tier.
+ *
+ * Used by import to avoid creating a duplicate MDP record when a person is
+ * re-imported into a bundle they already belong to — mirrors
+ * wicket_get_person_membership_exists() for the non-bundle path.
+ *
+ * @param string $bundle_uuid          Bundle UUID.
+ * @param string $person_uuid          Person UUID.
+ * @param string $membership_tier_uuid MDP membership (tier) UUID.
+ *
+ * @return string|WP_Error|null Matching person_membership UUID, null if not found, or WP_Error on failure.
+ */
+function wicket_get_person_bundle_membership_exists(
+    string $bundle_uuid,
+    string $person_uuid,
+    string $membership_tier_uuid
+) {
+    $client = wicket_api_client();
+
+    $page_number = 1;
+    $page_size = 2000;
+
+    try {
+        do {
+            $query = http_build_query([
+                'include'      => 'person,membership',
+                'page[size]'   => $page_size,
+                'page[number]' => $page_number,
+            ]);
+
+            $response = $client->get("membership_bundles/$bundle_uuid/person_memberships?$query");
+
+            foreach ($response['data'] as $record) {
+                $record_person_id = $record['relationships']['person']['data']['id'] ?? null;
+                $record_membership_id = $record['relationships']['membership']['data']['id'] ?? null;
+
+                if ($record_person_id === $person_uuid && $record_membership_id === $membership_tier_uuid) {
+                    return $record['id'];
+                }
+            }
+
+            $page_number++;
+        } while (\count($response['data']) === $page_size);
+    } catch (Exception $e) {
+        return new WP_Error('wicket_api_error', $e->getMessage());
+    }
+
+    return null;
+}
+
+/**
  * Assign a person_membership to a membership bundle.
  *
  * Uses POST /person_memberships with a membership_bundle relationship instead
