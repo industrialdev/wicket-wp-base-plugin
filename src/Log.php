@@ -24,6 +24,14 @@ class Log
     public const LOG_LEVEL_ERROR = 'error';
     public const LOG_LEVEL_CRITICAL = 'critical';
 
+    /**
+     * Audit trail level: written regardless of WP_DEBUG.
+     *
+     * For low-volume decision records that must be inspectable on staging
+     * (where WP_DEBUG is off), for example email-blocker allow/block decisions.
+     */
+    public const LOG_LEVEL_AUDIT = 'audit';
+
     private static bool $logDirSetupDone = false;
     private static ?string $logBaseDir = null;
 
@@ -78,8 +86,14 @@ class Log
             return true;
         }
 
-        // Always log CRITICAL and ERROR. All other levels require WP_DEBUG.
-        if ($level !== self::LOG_LEVEL_CRITICAL && $level !== self::LOG_LEVEL_ERROR) {
+        // Always log CRITICAL and ERROR. Audit entries are a low-volume
+        // decision trail and are also written without WP_DEBUG. All other
+        // levels require WP_DEBUG.
+        if (
+            $level !== self::LOG_LEVEL_CRITICAL
+            && $level !== self::LOG_LEVEL_ERROR
+            && $level !== self::LOG_LEVEL_AUDIT
+        ) {
             if (!defined('WP_DEBUG') || !WP_DEBUG) {
                 return true;
             }
@@ -169,6 +183,15 @@ class Log
     public function debug(string $message, array $context = []): void
     {
         $this->log(self::LOG_LEVEL_DEBUG, $message, $context);
+    }
+
+    /**
+     * Write an audit entry: a low-volume decision record that persists even
+     * when WP_DEBUG is off.
+     */
+    public function audit(string $message, array $context = []): void
+    {
+        $this->log(self::LOG_LEVEL_AUDIT, $message, $context);
     }
 
     /**
