@@ -5,6 +5,20 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.8] - 2026-08-25
+
+### Added
+- **woo:** audit-level decision trail for the email blocker
+
+### Fixed
+- **woo:** cover generic triggers and tier blocker log levels
+- **woo:** scope AutomateWoo marker to the changed transition
+- **woo:** carry admin context into async AutomateWoo validation
+
+### Maintenance
+- remove tracked .DS_Store files
+
+
 ## [2.6.7] - 2026-08-24
 
 ### Added
