@@ -187,20 +187,34 @@ if (!empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_p
  * Updates the order meta with organization information when an admin
  * selects an organization from the order edit screen.
  *
+ * Guarded against re-entrancy: this function is hooked on woocommerce_update_order,
+ * and both WC_Order data stores (CPT and HPOS) fire that same action from their
+ * update() method whenever an order is saved. Since the admin order-edit screen
+ * always posts the hidden wicket_wc_org_select_uuid field, saving the order meta
+ * here would otherwise re-trigger this same callback indefinitely.
+ *
  * @since 1.0.0
  * @param int $order_id The WooCommerce order ID
  * @return void
  */
 function wicket_set_wc_org_uuid($order_id)
 {
+    static $running = false;
+
+    if ($running) {
+        return;
+    }
+
     if (isset($_REQUEST['wicket_wc_org_select_uuid']) && $_REQUEST['wicket_wc_org_select_uuid'] != '') {
         $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid']);
         $org['name'] = $wicket_org['data']['attributes']['legal_name'];
         $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
         $order = wc_get_order($order_id);
         if (!empty($order)) {
+            $running = true;
             $order->update_meta_data('_wc_org_uuid', $org);
-            $order->save();
+            $order->save_meta_data();
+            $running = false;
         }
     }
 }
@@ -246,7 +260,7 @@ function wicket_write_org_id_to_order($order_id)
 
         if (!empty($order)) {
             $order->update_meta_data('_wc_org_uuid', $org);
-            $order->save();
+            $order->save_meta_data();
         } else {
             update_post_meta($order_id, '_wc_org_uuid', $org);
         }

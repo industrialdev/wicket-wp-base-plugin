@@ -24,7 +24,7 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     // Wicket site is their UUID, but not for users created outside SSO: see
     // wicket_person_uuid_for_order(), which falls back to the billing email.
     $order_user_uuid = wicket_person_uuid_for_order($order);
-    $order_org_meta = get_post_meta($order->id, '_wc_org_uuid', true);
+    $order_org_meta = $order->get_meta('_wc_org_uuid');
     $org_name = $order_org_meta['name'] ?? '';
 
     // ---------------------------------------------------------------------------------------
