@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.11] - 2026-08-28
+
+### Fixed
+- prevent recursive save on org meta write, fix remaining HPOS read
+- let callers opt orders out of auto org assignment
+
+
 ## [2.6.10] - 2026-08-28
 
 ### Fixed
