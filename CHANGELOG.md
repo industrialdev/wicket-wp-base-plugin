@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.10] - 2026-08-28
+
+### Fixed
+- **orgss:** re-sync footer visibility after GF render passes
+
+
 ## [2.6.9] - 2026-08-25
 
 ### Fixed
