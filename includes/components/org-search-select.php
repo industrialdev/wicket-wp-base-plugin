@@ -1288,6 +1288,22 @@ if (defined('WICKET_WP_THEME_V2')) {
         // Do NOT schedule a separate hideGfNextButton() here — it runs after hydration completes
         // and would hide the button even when a previously-selected org UUID was just restored,
         // breaking the "Previous → return to ORGSS step" flow.
+
+        // GF renders pages (initial load, page flips, AJAX swaps) after Alpine can
+        // initialize. The init-time syncGfFooterVisibility() above can run while this
+        // field's page has no layout box yet (offsetParent null) and skip, leaving
+        // the next/submit buttons visible for the whole page load. Re-run the sync
+        // after every GF render pass, when the page state has settled. Namespaced
+        // and deduped: AJAX swaps re-execute this script and re-init the component,
+        // so each instance replaces the previous instance's binding.
+        if (window.jQuery) {
+          const renderEvent = 'gform_post_render.wicketOrgss_<?php echo (int) $formId; ?>_<?php echo (int) $key; ?>';
+          window.jQuery(document).off(renderEvent).on(renderEvent, () => {
+            this.$nextTick(() => {
+              this.syncGfFooterVisibility();
+            });
+          });
+        }
       },
       prepareSeatBasedActiveMembershipMessage(seatSummary = null) {
         // Reset to base state initially
@@ -1774,6 +1790,15 @@ if (defined('WICKET_WP_THEME_V2')) {
         return this.$el.offsetParent !== null;
       },
       syncGfFooterVisibility() {
+        // When the GF field prints the continue-without-org checkbox, the inline
+        // field script owns footer visibility: it is checkbox-aware, this method
+        // is not. Defer entirely so two writers never race on the same buttons.
+        const skipCheckbox = document.getElementById('orgss_allow_continue_without_org_' + <?php echo (int) $formId; ?> + '_' + <?php echo (int) $key; ?>);
+        if (skipCheckbox) {
+          wicketOrgssDebug.log('ORGSS: syncGfFooterVisibility deferred (continue-without-org checkbox owns visibility)');
+          return;
+        }
+
         if (!this.isOrgssVisibleOnActivePage()) {
           wicketOrgssDebug.log('ORGSS: syncGfFooterVisibility skipped (ORGSS not visible on active page)');
           return;
