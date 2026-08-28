@@ -187,20 +187,34 @@ if (!empty($person_to_org_types = wicket_get_option('wicket_admin_settings_woo_p
  * Updates the order meta with organization information when an admin
  * selects an organization from the order edit screen.
  *
+ * Guarded against re-entrancy: this function is hooked on woocommerce_update_order,
+ * and both WC_Order data stores (CPT and HPOS) fire that same action from their
+ * update() method whenever an order is saved. Since the admin order-edit screen
+ * always posts the hidden wicket_wc_org_select_uuid field, saving the order meta
+ * here would otherwise re-trigger this same callback indefinitely.
+ *
  * @since 1.0.0
  * @param int $order_id The WooCommerce order ID
  * @return void
  */
 function wicket_set_wc_org_uuid($order_id)
 {
+    static $running = false;
+
+    if ($running) {
+        return;
+    }
+
     if (isset($_REQUEST['wicket_wc_org_select_uuid']) && $_REQUEST['wicket_wc_org_select_uuid'] != '') {
         $wicket_org = wicket_get_organization($_REQUEST['wicket_wc_org_select_uuid']);
         $org['name'] = $wicket_org['data']['attributes']['legal_name'];
         $org['uuid'] = $_REQUEST['wicket_wc_org_select_uuid'];
-        update_post_meta($order_id, '_wc_org_uuid', $org);
         $order = wc_get_order($order_id);
         if (!empty($order)) {
+            $running = true;
             $order->update_meta_data('_wc_org_uuid', $org);
+            $order->save_meta_data();
+            $running = false;
         }
     }
 }
@@ -210,7 +224,10 @@ function wicket_set_wc_org_uuid($order_id)
  *
  * Automatically associates an organization with an order based on
  * the customer's organizational relationships. Only writes if no
- * organization is already associated.
+ * organization is already associated. Callers that resolve their own
+ * org assignment for an order they create — including deciding the
+ * order should have no org — can opt that order out entirely via the
+ * `wicket_skip_auto_org_assignment` filter, keyed by order ID.
  *
  * @since 1.0.0
  * @param int $order_id The WooCommerce order ID
@@ -219,7 +236,12 @@ function wicket_set_wc_org_uuid($order_id)
 function wicket_write_org_id_to_order($order_id)
 {
     $order = wc_get_order($order_id);
-    $org_meta_exists = get_post_meta($order_id, '_wc_org_uuid', true);
+
+    if (apply_filters('wicket_skip_auto_org_assignment', false, $order_id, $order)) {
+        return;
+    }
+
+    $org_meta_exists = $order ? $order->get_meta('_wc_org_uuid') : get_post_meta($order_id, '_wc_org_uuid', true);
     if (!empty($org_meta_exists['uuid']) && !empty($org_meta_exists['name'])) {
         return;
     }
@@ -233,16 +255,14 @@ function wicket_write_org_id_to_order($order_id)
         $org_uuid = key($organizations);
         $org_name = reset($organizations);
 
-        //file_put_contents('php://stdout', '----------------------------------------------------------------');
-        //file_put_contents('php://stdout', print_r($org_uuid, true));
-        //file_put_contents('php://stdout', '----------------------------------------------------------------');
-        //file_put_contents('php://stdout', print_r($org_name, true));
-
         $org['uuid'] = $org_uuid;
         $org['name'] = $org_name;
-        update_post_meta($order_id, '_wc_org_uuid', $org);
+
         if (!empty($order)) {
             $order->update_meta_data('_wc_org_uuid', $org);
+            $order->save_meta_data();
+        } else {
+            update_post_meta($order_id, '_wc_org_uuid', $org);
         }
     }
 }
@@ -262,7 +282,7 @@ function wicket_display_org_input_on_order($order)
 {
     //delete_post_meta( $order->get_id(), '_wc_org_uuid' );exit;
 
-    $org = get_post_meta($order->get_id(), '_wc_org_uuid', true);
+    $org = $order->get_meta('_wc_org_uuid');
     if (empty($org) || !is_array($org)) {
         $org = [
             'name' => '',
