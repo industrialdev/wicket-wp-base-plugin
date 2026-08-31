@@ -2219,7 +2219,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         if (data.relationshipType === 'organization_parent') {
           data.fromUuid =
-            '<?php echo $org_id; ?>';
+            '<?php echo esc_js($org_id ?? ""); ?>';
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
