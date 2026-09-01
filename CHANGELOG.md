@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.12] - 2026-09-01
+
+### Fixed
+- json-encode org_id into org-search-select inline script
+- default org-search-select org_id for zero-connection people
+
+
 ## [2.6.11] - 2026-08-28
 
 ### Fixed
