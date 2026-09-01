@@ -2218,8 +2218,9 @@ if (defined('WICKET_WP_THEME_V2')) {
         let endPointUrl = this.apiUrl + 'create-relationship';
 
         if (data.relationshipType === 'organization_parent') {
-          data.fromUuid =
-            '<?php echo $org_id; ?>';
+          // $org_id only exists when the person has current connections; a
+          // zero-connection person must not emit an Undefined variable notice.
+          data.fromUuid = '<?php echo $org_id ?? ''; ?>';
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
