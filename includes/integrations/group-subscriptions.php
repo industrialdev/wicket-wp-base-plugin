@@ -355,8 +355,8 @@ function wicket_group_membership_subscription_status_active($sub)
             $group_name = $group_info['data']['attributes']['name'];
             $wicket_api_response = wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date, $next_payment_date, true);
             if (is_wp_error($wicket_api_response)) {
-                $errors = $wicket_api_response->get_error_message('wicket_api_error');
-                $error = $errors[0]->title;
+                $errors = $wicket_api_response->get_error_data('wicket_api_error');
+                $error = is_array($errors) && isset($errors[0]->title) ? $errors[0]->title : 'unknown error';
                 $sub->add_order_note("Failed group subscription for $group_name. ($error)");
             } else {
                 add_post_meta($subscription_id, '_group_assigned_uuid', $group_id);
@@ -554,8 +554,17 @@ function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug,
     try {
         $response = $client->post('group_members', ['json' => $payload]);
     } catch (Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
-        $response = new WP_Error('wicket_api_error', $wicket_api_error);
+        // Match wicket_add_group_member(): string message, structured errors
+        // in get_error_data(). Array messages fatal typed string consumers.
+        $api_errors = null;
+        if ($e->hasResponse()) {
+            $api_errors = json_decode((string) $e->getResponse()->getBody())->errors ?? null;
+        }
+        $response = new WP_Error(
+            'wicket_api_error',
+            $api_errors[0]->detail ?? $api_errors[0]->title ?? 'Wicket API error.',
+            $api_errors
+        );
 
         // Log: API error when creating group member
         wicket_wc_log_group_sync([
@@ -564,7 +573,7 @@ function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug,
             'group_id' => $group_id,
             'group_role_slug' => $group_role_slug,
             'error_message' => $e->getMessage(),
-            'api_errors' => $wicket_api_error,
+            'api_errors' => $api_errors,
         ], 'error');
     }
 
