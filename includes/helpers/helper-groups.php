@@ -290,8 +290,18 @@ function wicket_add_group_member($person_id, $group_uuid, $group_role_slug, $arg
     try {
         $response = $client->post('group_members', ['json' => $payload]);
     } catch (Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
-        $response = new WP_Error('wicket_api_error', $wicket_api_error);
+        // WP_Error messages must be strings: typed string params downstream
+        // (e.g. DatastarSSE::renderError) fatal on array messages. The
+        // structured JSON:API errors stay available via get_error_data().
+        $api_errors = null;
+        if ($e->hasResponse()) {
+            $api_errors = json_decode((string) $e->getResponse()->getBody())->errors ?? null;
+        }
+        $response = new WP_Error(
+            'wicket_api_error',
+            $api_errors[0]->detail ?? $api_errors[0]->title ?? 'Wicket API error.',
+            $api_errors
+        );
     }
 
     return $response;
