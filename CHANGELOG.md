@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.13] - 2026-09-02
+
+### Performance
+- cache touchpoint service ID lookups
+
+
 ## [2.6.12] - 2026-09-01
 
 ### Fixed
