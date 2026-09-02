@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.14] - 2026-09-02
+
+### Fixed
+- **groups:** keep API error message a string, errors in data
+
+
 ## [2.6.13] - 2026-09-02
 
 ### Performance
