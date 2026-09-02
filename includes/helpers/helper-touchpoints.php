@@ -129,6 +129,16 @@ function build_touchpoint_payload($params, $wicket_service_id)
  * If the service does not exist, it creates a new service with the specified
  * name and description and returns the newly created service ID.
  *
+ * Resolved service IDs are cached in two layers to keep touchpoint writes from
+ * issuing a services lookup every time: a static in-request cache, and a
+ * transient for subsequent requests. Services change infrequently, so this
+ * cuts a large number of API calls (helping with rate limits) at the cost of
+ * picking up service changes only after the cache expires. Only successful
+ * lookups are cached, so a failed request is retried on the next call.
+ *
+ * Filter `wicket_touchpoint_service_id_cache_ttl` to change the cache lifetime,
+ * or return 0/false to disable the transient layer.
+ *
  * Example usage:
  * ```php
  * $service_id = get_create_touchpoint_service_id('Events Calendar', 'Events from the website');
@@ -141,6 +151,33 @@ function build_touchpoint_payload($params, $wicket_service_id)
  */
 function get_create_touchpoint_service_id($service_name, $service_description = 'Custom from WP', $integration_type = 'custom')
 {
+    // In-request cache, so repeated writes (for example one touchpoint per
+    // attendee) resolve the service only once per request.
+    static $resolved = [];
+
+    $cache_id = (string) $service_name;
+
+    if (isset($resolved[$cache_id])) {
+        return $resolved[$cache_id];
+    }
+
+    $cache_key = 'wicket_tp_service_id_' . md5($cache_id);
+    $cached_service_id = get_transient($cache_key);
+
+    if (!empty($cached_service_id)) {
+        $resolved[$cache_id] = $cached_service_id;
+
+        return $cached_service_id;
+    }
+
+    /**
+     * Filters how long a resolved touchpoint service ID is cached.
+     *
+     * @param int    $ttl          Cache lifetime in seconds. 0 or false disables the transient cache.
+     * @param string $service_name The name of the service being resolved.
+     */
+    $cache_ttl = apply_filters('wicket_touchpoint_service_id_cache_ttl', DAY_IN_SECONDS, $service_name);
+
     $client = wicket_api_client();
 
     // check for existing service, return service ID
@@ -148,6 +185,12 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
     $existing_service = isset($existing_services['data']) && !empty($existing_services['data']) ? $existing_services['data'][0]['id'] : '';
 
     if ($existing_service) {
+        $resolved[$cache_id] = $existing_service;
+
+        if ($cache_ttl) {
+            set_transient($cache_key, $existing_service, (int) $cache_ttl);
+        }
+
         return $existing_service;
     }
 
@@ -164,8 +207,15 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
 
     try {
         $service = $client->post('/services', ['json' => $payload]);
+        $new_service_id = $service['data']['id'];
 
-        return $service['data']['id'];
+        $resolved[$cache_id] = $new_service_id;
+
+        if ($cache_ttl) {
+            set_transient($cache_key, $new_service_id, (int) $cache_ttl);
+        }
+
+        return $new_service_id;
     } catch (Exception $e) {
         $errors = json_decode($e->getResponse()->getBody())->errors;
     }
