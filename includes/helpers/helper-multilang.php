@@ -207,3 +207,23 @@ function wicket_get_product_id_for_context($product_id, $context = 'original', $
 
     return $context === 'translated' ? $product_data['translated'] : $product_data['original'];
 }
+
+
+/**
+ * Get spoken languages resource list from the MDP API.
+ *
+ * Used in account center communication preferences.
+ *
+ * @return \Illuminate\Support\Collection Collection of language resource types.
+ */
+function get_spoken_languages_list()
+{
+    $client = wicket_api_client();
+    $resource_types = $client->resource_types->all()->toArray();
+    $resource_types = collect($resource_types);
+    $found = $resource_types->filter(function ($item) {
+        return $item->resource_type == 'shared_written_spoken_languages';
+    });
+
+    return $found;
+}

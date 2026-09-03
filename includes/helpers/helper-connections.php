@@ -877,3 +877,120 @@ function wicket_set_connection_start_end_dates($connection_id, $end_date = '', $
 
     return false;
 }
+
+
+/**
+ * Get all connections (relationships) of the current Wicket person.
+ *
+ * @param array $options {
+ *     Optional. Behavior flags.
+ *
+ *     @type bool|string $dedupe Remove duplicates. true = org/connection pairs, 'org_id' = org only. Default false.
+ * }
+ * @return array|null The connections response array or null if unavailable.
+ */
+function wicket_get_person_connections(array $options = [])
+{
+    $options = array_merge([
+        'dedupe' => false,
+    ], $options);
+
+    $person_id = wicket_current_person_uuid();
+    if (!$person_id) {
+        return [];
+    }
+
+    $client = wicket_api_client();
+    $person = $client->people->fetch($person_id);
+
+    static $connections = null;
+    // prepare and memoize all connections from Wicket
+    if (is_null($connections)) {
+        $url = 'people/' . $person->id . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at';
+        $connections = $client->get($url);
+    }
+    if ($connections) {
+        $dedupe_mode = $options['dedupe'];
+        if ($dedupe_mode === true) {
+            $dedupe_mode = 'pair';
+        }
+        if ($dedupe_mode && is_array($connections) && isset($connections['data']) && is_array($connections['data'])) {
+            $seen = [];
+            $filtered = [];
+            foreach ($connections['data'] as $connection) {
+                $org_id = $connection['relationships']['organization']['data']['id'] ?? '';
+                $conn_id = $connection['id'] ?? '';
+                $key = ($dedupe_mode === 'org_id')
+                    ? $org_id
+                    : $org_id . '|' . $conn_id;
+                if (isset($seen[$key])) {
+                    continue;
+                }
+                $seen[$key] = true;
+                $filtered[] = $connection;
+            }
+            $connections['data'] = $filtered;
+        }
+
+        return $connections;
+    }
+}
+
+/**
+ * Get all connections (relationships) of a Wicket person by person UUID.
+ *
+ * @param string $uuid Person UUID.
+ * @return array|null The connections response array or null if unavailable.
+ */
+function wicket_get_person_connections_by_id($uuid)
+{
+    $client = wicket_api_client();
+    static $connections = null;
+    // prepare and memoize all connections from Wicket
+    if (is_null($connections)) {
+        $connections = $client->get('people/' . $uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    }
+    if ($connections) {
+        return $connections;
+    }
+}
+
+/**
+ * Get all connections (relationships) of a Wicket organization by organization UUID.
+ *
+ * @param string $uuid Organization UUID.
+ * @return array|null The connections response array or null if unavailable.
+ */
+function wicket_get_org_connections_by_id($uuid)
+{
+    $client = wicket_api_client();
+    static $connections = null;
+    // prepare and memoize all connections from Wicket
+    if (is_null($connections)) {
+        $connections = $client->get('organizations/' . $uuid . '/connections?filter%5Bconnection_type_eq%5D=all&sort=-created_at');
+    }
+    if ($connections) {
+        return $connections;
+    }
+}
+
+/**
+ * Get the resource types for person-to-organization connections.
+ *
+ * Fetches all available resource types from Wicket and filters the list
+ * to those where `resource_type` equals `connection_person_to_organizations`.
+ *
+ * @since 1.0.0
+ * @return Illuminate\Support\Collection|array Filtered collection/array of matching resource types.
+ */
+function get_person_to_organizations_connection_types_list()
+{
+    $client = wicket_api_client();
+    $resource_types = $client->resource_types->all()->toArray();
+    $resource_types = collect($resource_types);
+    $found = $resource_types->filter(function ($item) {
+        return $item->resource_type == 'connection_person_to_organizations';
+    });
+
+    return $found;
+}
