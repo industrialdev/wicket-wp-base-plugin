@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.6.15] - 2026-09-03
+
+### Fixed
+- **orgss:** guard falsy api client, move helper out of unsorted
+- **orgss:** drop deleted organizations from org search results
+
+
 ## [2.6.14] - 2026-09-02
 
 ### Fixed
