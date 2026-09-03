@@ -479,6 +479,13 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             $return[] = $tmp;
         }
 
+        // Drop hits for organizations the search index still knows about but that have since
+        // been deleted or merged away in the MDP.
+        $existing_ids = array_flip(wicket_filter_existing_organization_ids(array_column($return, 'id')));
+        $return = array_values(array_filter($return, function ($result) use ($existing_ids) {
+            return isset($existing_ids[$result['id']]);
+        }));
+
         set_transient($cache_key, $return, 10 * MINUTE_IN_SECONDS);
 
         return $return;
@@ -536,7 +543,17 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         $results = [];
 
         if ($search_organizations['meta']['page']['total_items'] > 0) {
+            // Drop hits for organizations the search index still knows about but that have since
+            // been deleted or merged away in the MDP. Done before the loop below so we don't spend
+            // a membership lookup on records that are about to be discarded.
+            $result_ids = array_column($search_organizations['data'], 'id');
+            $existing_ids = array_flip(wicket_filter_existing_organization_ids($result_ids));
+
             foreach ($search_organizations['data'] as $result) {
+                if (!isset($existing_ids[$result['id']])) {
+                    continue;
+                }
+
                 $address1 = '';
                 $city = '';
                 $zip_code = '';

@@ -67,3 +67,72 @@ function wicket_search_organizations_with_membership_details($search_term, $sear
 
     return $base_results;
 }
+
+/**
+ * Reduce a list of organization UUIDs to the ones that still exist in the MDP.
+ *
+ * The MDP search index can hold on to documents for organizations that have since been
+ * deleted or merged away, so a search hit is not proof that the record still exists. Those
+ * stale hits are selectable in the front end but every follow-up call against them 404s.
+ *
+ * Existence is confirmed in bulk (one request per chunk of UUIDs) rather than fetching each
+ * organization individually. Every failure path fails open and keeps the UUIDs it could not
+ * verify, so a hiccup here degrades to the previous behaviour instead of emptying search
+ * results.
+ *
+ * @param array $org_ids Organization UUIDs to verify.
+ *
+ * @return array The subset of $org_ids that still resolve to an organization, original order kept.
+ */
+function wicket_filter_existing_organization_ids(array $org_ids): array
+{
+    $org_ids = array_values(array_unique(array_filter($org_ids)));
+
+    if (empty($org_ids)) {
+        return [];
+    }
+
+    $client = wicket_api_client();
+
+    if (!$client) {
+        // Fail open: cannot verify, keep all hits.
+        return $org_ids;
+    }
+
+    $existing = [];
+
+    foreach (array_chunk($org_ids, 50) as $chunk) {
+        $query = http_build_query([
+            'fields' => ['organizations' => 'legal_name'],
+            'page'   => ['size' => count($chunk)],
+            'filter' => ['uuid_in' => $chunk],
+        ]);
+        // Ruby doesn't like the numeric keys PHP adds to array params, e.g. filter[uuid_in][0].
+        $query = preg_replace('/\%5B\d+\%5D/', '%5B%5D', $query);
+
+        try {
+            $response = $client->get('organizations?' . $query);
+        } catch (Exception $e) {
+            Wicket()->log()->warning(
+                'wicket_filter_existing_organization_ids lookup failed, keeping unverified results: ' . $e->getMessage(),
+                ['source' => 'wicket-base']
+            );
+
+            // Fail open for this chunk.
+            $existing = array_merge($existing, $chunk);
+            continue;
+        }
+
+        foreach ($response['data'] ?? [] as $organization) {
+            if (!empty($organization['id'])) {
+                $existing[$organization['id']] = $organization['id'];
+            }
+        }
+    }
+
+    $existing = array_flip(array_values($existing));
+
+    return array_values(array_filter($org_ids, function ($org_id) use ($existing) {
+        return isset($existing[$org_id]);
+    }));
+}
