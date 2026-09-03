@@ -394,6 +394,73 @@ function wicket_get_resource_type_name_by_slug(string $slug): string|false
 }
 
 /**
+ * Reduce a list of organization UUIDs to the ones that still exist in the MDP.
+ *
+ * The MDP search index can hold on to documents for organizations that have since been
+ * deleted or merged away, so a search hit is not proof that the record still exists. Those
+ * stale hits are selectable in the front end but every follow-up call against them 404s.
+ *
+ * Existence is confirmed in bulk (one request per chunk of UUIDs) rather than fetching each
+ * organization individually. If the lookup itself fails we fail open and keep every UUID, so
+ * a hiccup on this call degrades to the previous behaviour instead of emptying search results.
+ *
+ * @param array $org_ids Organization UUIDs to verify.
+ *
+ * @return array The subset of $org_ids that still resolve to an organization, original order kept.
+ */
+function wicket_filter_existing_organization_ids(array $org_ids): array
+{
+    $org_ids = array_values(array_unique(array_filter($org_ids)));
+
+    if (empty($org_ids)) {
+        return [];
+    }
+
+    try {
+        $client = wicket_api_client();
+    } catch (Exception $e) {
+        return $org_ids;
+    }
+
+    $existing = [];
+
+    foreach (array_chunk($org_ids, 50) as $chunk) {
+        $query = http_build_query([
+            'fields' => ['organizations' => 'legal_name'],
+            'page'   => ['size' => count($chunk)],
+            'filter' => ['uuid_in' => $chunk],
+        ]);
+        // Ruby doesn't like the numeric keys PHP adds to array params, e.g. filter[uuid_in][0].
+        $query = preg_replace('/\%5B\d+\%5D/', '%5B%5D', $query);
+
+        try {
+            $response = $client->get('organizations?' . $query);
+        } catch (Exception $e) {
+            Wicket()->log()->warning(
+                'wicket_filter_existing_organization_ids lookup failed, keeping unverified results: ' . $e->getMessage(),
+                ['source' => 'wicket-base']
+            );
+
+            // Fail open for this chunk.
+            $existing = array_merge($existing, $chunk);
+            continue;
+        }
+
+        foreach ($response['data'] ?? [] as $organization) {
+            if (!empty($organization['id'])) {
+                $existing[$organization['id']] = $organization['id'];
+            }
+        }
+    }
+
+    $existing = array_flip(array_values($existing));
+
+    return array_values(array_filter($org_ids, function ($org_id) use ($existing) {
+        return isset($existing[$org_id]);
+    }));
+}
+
+/**
  * For searching organizations by a term when you don't have a specific UUID, likely to display
  * search results on the front end.
  *
@@ -479,6 +546,13 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
             $return[] = $tmp;
         }
 
+        // Drop hits for organizations the search index still knows about but that have since
+        // been deleted or merged away in the MDP.
+        $existing_ids = array_flip(wicket_filter_existing_organization_ids(array_column($return, 'id')));
+        $return = array_values(array_filter($return, function ($result) use ($existing_ids) {
+            return isset($existing_ids[$result['id']]);
+        }));
+
         set_transient($cache_key, $return, 10 * MINUTE_IN_SECONDS);
 
         return $return;
@@ -536,7 +610,17 @@ function wicket_search_organizations($search_term, $search_by = 'org_name', $org
         $results = [];
 
         if ($search_organizations['meta']['page']['total_items'] > 0) {
+            // Drop hits for organizations the search index still knows about but that have since
+            // been deleted or merged away in the MDP. Done before the loop below so we don't spend
+            // a membership lookup on records that are about to be discarded.
+            $result_ids = array_column($search_organizations['data'], 'id');
+            $existing_ids = array_flip(wicket_filter_existing_organization_ids($result_ids));
+
             foreach ($search_organizations['data'] as $result) {
+                if (!isset($existing_ids[$result['id']])) {
+                    continue;
+                }
+
                 $address1 = '';
                 $city = '';
                 $zip_code = '';
