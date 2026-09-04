@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.0] - 2026-09-04
+
+### Changed
+- **helpers:** sort unsorted helpers into domain files and delete helper-unsorted
+
+
 ## [2.6.15] - 2026-09-03
 
 ### Fixed
