@@ -130,3 +130,45 @@ function wicket_supports(string $feature): bool
 
     return (bool) apply_filters("wicket_supports_{$feature}", $features[$feature] ?? false);
 }
+
+
+/**
+ * Convert an object to a clean array and sanitize protected property keys.
+ *
+ * Removes special characters from property keys so properties are accessible.
+ * Used for converting Wicket SDK objects like the Person resource.
+ *
+ * @param object $object The object to convert.
+ * @return array Sanitized array representation of the object.
+ */
+function wicket_convert_obj_to_array($object)
+{
+    // Serialize and unserialize to access all properties
+    $array = (array) unserialize(serialize($object), ['allowed_classes' => false]);
+
+    $cleanArray = [];
+    foreach ($array as $key => $value) {
+        // Remove special characters from keys
+        $cleanKey = preg_replace('/^\x00(?:\*|[^\x00]+)\x00/', '', $key);
+        $cleanArray[$cleanKey] = $value;
+    }
+
+    return $cleanArray;
+}
+
+/**
+ * Filter null and blank string values from an array without removing zero values.
+ *
+ * Preserves zero values needed for payload submission to the MDP API.
+ *
+ * @param array $array The input array to filter.
+ * @return array The filtered array with null and empty string values removed.
+ */
+if (!function_exists('wicket_filter_null_and_blank')) {
+    function wicket_filter_null_and_blank($array)
+    {
+        return array_filter($array, static function ($var) {
+            return $var !== null && $var !== '';
+        });
+    }
+}

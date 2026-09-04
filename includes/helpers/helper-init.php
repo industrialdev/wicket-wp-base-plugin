@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
 $wicket_helpers = [
     'helper-general.php',
     'helper-time.php',
-    'helper-unsorted.php',
+    'helper-schemas.php',
     'helper-persons.php',
     'helper-person-preferences.php',
     'helper-organizations.php',

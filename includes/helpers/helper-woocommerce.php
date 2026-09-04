@@ -215,3 +215,18 @@ function wicket_cancel_duplicate_renewal_orders_on_payment($order_id, $old_statu
     }
 }
 add_action('woocommerce_order_status_changed', 'wicket_cancel_duplicate_renewal_orders_on_payment', 20, 4);
+
+
+/**
+ * Get an order by UUID from the MDP API.
+ *
+ * @param string $uuid The order UUID.
+ * @return object|false The order resource object.
+ */
+function wicket_get_order($uuid)
+{
+    $client = wicket_api_client();
+    $order = $client->orders->fetch($uuid); // uuid of the order
+
+    return $order;
+}
