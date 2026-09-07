@@ -8,6 +8,7 @@ $defaults = [
     'show_share'               => false,
     'show_date'                => false,
     'member_only'              => false,
+    'is_restricted'            => false,
     'text_alignment'           => 'left',
     'image'                    => '',
     'custom_image'             => '',
@@ -31,6 +32,7 @@ $show_post_type = $args['show_post_type'];
 $show_share = $args['show_share'];
 $show_date = $args['show_date'];
 $member_only = $args['member_only'];
+$is_restricted = $args['is_restricted'];
 $text_alignment = $args['text_alignment'];
 $image = $args['image'];
 $custom_image = $args['custom_image'];
@@ -210,7 +212,7 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 				<?php endif; ?>
 
 
-				<?php if ($show_share || $member_only) : ?>
+				<?php if ($show_share || $member_only || $is_restricted) : ?>
 					<div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-5">
 
 						<?php if ($show_share) {
@@ -222,6 +224,14 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 						<?php if ($member_only) {
 						    get_component('tag', [
 						        'label' => __('Members Only', 'wicket'),
+						        'icon'  => 'fa-regular fa-lock',
+						        'link'  => '',
+						    ]);
+						} ?>
+
+						<?php if ($is_restricted) {
+						    get_component('tag', [
+						        'label' => __('Restricted', 'wicket'),
 						        'icon'  => 'fa-regular fa-lock',
 						        'link'  => '',
 						    ]);

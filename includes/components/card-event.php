@@ -10,6 +10,7 @@ $defaults = [
     'hide_start_date_indicator'  => false,
     'hide_price'                 => false,
     'member_only'                => false,
+    'is_restricted'              => false,
     'cta'                        => null,
     'cta_label'                  => '',
     'remove_drop_shadow'         => false,
@@ -28,6 +29,7 @@ $hide_price = $args['hide_price'];
 $remove_drop_shadow = $args['remove_drop_shadow'];
 $cta = $args['cta'];
 $cta_label = $args['cta_label'];
+$is_restricted = $args['is_restricted'];
 $show_tags = $args['show_tags'];
 $tag_taxonomy = $args['tag_taxonomy'];
 
@@ -188,14 +190,24 @@ if (defined('WICKET_WP_THEME_V2')) {
 
 <div class="@container">
 	<div class="<?php echo implode(' ', $classes) ?>">
-		<?php if (!$remove_drop_shadow && $member_only) { ?>
+		<?php if (!$remove_drop_shadow) { ?>
 			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
-				<?php get_component('tag', [
-				    'label'   => __('Members Only', 'wicket'),
-				    'icon'    => 'fa-regular fa-lock',
-				    'link'    => '',
-				    'classes' => ['rounded-b-[0px] whitespace-nowrap'],
-				]); ?>
+				<?php if ($member_only) { ?>
+					<?php get_component('tag', [
+					    'label'   => __('Members Only', 'wicket'),
+					    'icon'    => 'fa-regular fa-lock',
+					    'link'    => '',
+					    'classes' => ['rounded-b-[0px] whitespace-nowrap'],
+					]); ?>
+				<?php } ?>
+				<?php if ($is_restricted) { ?>
+					<?php get_component('tag', [
+					    'label'   => __('Restricted', 'wicket'),
+					    'icon'    => 'fa-regular fa-lock',
+					    'link'    => '',
+					    'classes' => ['rounded-b-[0px] whitespace-nowrap'],
+					]); ?>
+				<?php } ?>
 			</div>
 		<?php } ?>
 
@@ -226,12 +238,12 @@ if (defined('WICKET_WP_THEME_V2')) {
 				<a href="<?php echo $link ?>" class="<?php echo implode(' ', $title_classes) ?>">
 					<?php echo $title; ?>
 
-					<?php if ($remove_drop_shadow && $member_only) { ?>
+					<?php if ($remove_drop_shadow && ($member_only || $is_restricted)) { ?>
 						<?php get_component('tag', [
-						    'label'   => '',
-						    'icon'    => 'fa-regular fa-lock',
-						    'link'    => '',
-						    'classes' => ['text-body-sm'],
+								'label'   => '',
+								'icon'    => 'fa-regular fa-lock',
+								'link'    => '',
+								'classes' => ['text-body-sm'],
 						]); ?>
 					<?php } ?>
 
