@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.2] - 2026-09-08
+
+### Added
+- add wicket_pre_create_bundle_membership override filter
+
+
 ## [2.7.1] - 2026-09-08
 
 ### Other
