@@ -27,6 +27,12 @@ function wicket_create_bundle_membership(
     string $name_fr = '',
     string $external_id = ''
 ) {
+    $override = apply_filters('wicket_pre_create_bundle_membership', null, $person_uuid, $org_uuid, $name_en, $starts_at, $ends_at, $grace_period_days, $name_fr, $external_id);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     if (empty($starts_at)) {
