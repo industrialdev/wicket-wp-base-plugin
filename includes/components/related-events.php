@@ -283,6 +283,11 @@ if ($highlight_featured_posts) {
 
 			        $date = tribe_get_start_date($post_id, false, $date_format);
 
+                    $is_restricted = false;
+                    if (function_exists('wicket_wppcp_is_post_restricted')) {
+                        $is_restricted = wicket_wppcp_is_post_restricted($post_id);
+                    }
+
 			        get_component('card-event', [
 			            'classes'                    => defined('WICKET_WP_THEME_V2') ? ["cols-{$column_count}"] : ['p-4'],
 			            'post_id'                    => $post_id,
@@ -298,6 +303,7 @@ if ($highlight_featured_posts) {
 			            'show_tags'                  => $show_tags,
 			            'tag_taxonomy'               => $tag_taxonomy,
 			            'hide_price'                 => $hide_price,
+                        'is_restricted'              => $is_restricted,
 			        ]);
 			    }
 wp_reset_postdata();
