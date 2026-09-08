@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.3] - 2026-09-08
+
+### Maintenance
+- **WWID-1939:** remove Zone.Identifier NTFS metadata files from FontAwesome assets
+
+
 ## [2.7.2] - 2026-09-08
 
 ### Added
