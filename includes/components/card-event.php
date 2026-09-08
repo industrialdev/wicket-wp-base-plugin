@@ -190,7 +190,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 
 <div class="@container">
 	<div class="<?php echo implode(' ', $classes) ?>">
-		<?php if (!$remove_drop_shadow) { ?>
+		<?php if (!$remove_drop_shadow && ($member_only || $is_restricted)) { ?>
 			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
 				<?php if ($member_only) { ?>
 					<?php get_component('tag', [

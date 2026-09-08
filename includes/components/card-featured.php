@@ -85,7 +85,7 @@ if ($image_aspect_ratio === '') {
 
 <div class="@container">
 	<div class="<?php echo implode(' ', $classes) ?>">
-		<?php if ($image_position === 'top') { ?>
+		<?php if ($image_position === 'top' && ($member_only || $is_restricted)) { ?>
 			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
 				<?php if ($member_only) { ?>
 					<?php get_component('tag', [
