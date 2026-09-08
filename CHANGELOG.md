@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.1] - 2026-09-08
+
+### Other
+- card-event.php and card-featured.php: wrapper loosened past the badge condition
+- card-listing.php: badge wrapper now renders on every listing card
+- related-events.php: second card-event call never gets the badge
+- Show the "restricted" badge in the specific components
+
+
 ## [2.7.0] - 2026-09-04
 
 ### Changed
