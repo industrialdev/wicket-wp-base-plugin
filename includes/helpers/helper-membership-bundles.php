@@ -283,6 +283,12 @@ function wicket_get_person_bundle_membership_exists(
     string $person_uuid,
     string $membership_tier_uuid
 ) {
+    $override = apply_filters('wicket_pre_get_person_bundle_membership_exists', null, $bundle_uuid, $person_uuid, $membership_tier_uuid);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     $page_number = 1;
@@ -343,6 +349,12 @@ function wicket_assign_person_to_bundle_membership(
     string $ends_at = '',
     int $grace_period_days = 0
 ) {
+    $override = apply_filters('wicket_pre_assign_person_to_bundle_membership', null, $person_uuid, $membership_tier_uuid, $bundle_uuid, $starts_at, $ends_at, $grace_period_days);
+
+    if ($override !== null) {
+        return $override;
+    }
+
     $client = wicket_api_client();
 
     $attributes = [
