@@ -65,27 +65,30 @@ if ($featured_image) {
 
 <div class="<?php echo implode(' ', $classes) ?>">
 	<div class="flex-auto component-card-listing__content">
-		<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex gap-2">
-			<?php if ($member_only) { ?>
-				<div class="component-card-listing__member-only">
-					<?php get_component('tag', [
-							'label' => __('Members Only', 'wicket'),
-							'icon'  => 'fa-regular fa-lock',
-							'link'  => '',
-					]); ?>
-				</div>
-			<?php } ?>
-			
-			<?php if ($is_restricted) { ?>
-				<div class="component-card-listing__restricted">
-					<?php get_component('tag', [
-							'label' => __('Restricted', 'wicket'),
-							'icon'  => 'fa-regular fa-lock',
-							'link'  => '',
-					]); ?>
-				</div>
-			<?php } ?>
-		</div>
+
+		<?php if ($member_only || $is_restricted) { ?>
+			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex gap-2">
+				<?php if ($member_only) { ?>
+					<div class="component-card-listing__member-only">
+						<?php get_component('tag', [
+								'label' => __('Members Only', 'wicket'),
+								'icon'  => 'fa-regular fa-lock',
+								'link'  => '',
+						]); ?>
+					</div>
+				<?php } ?>
+				
+				<?php if ($is_restricted) { ?>
+					<div class="component-card-listing__restricted">
+						<?php get_component('tag', [
+								'label' => __('Restricted', 'wicket'),
+								'icon'  => 'fa-regular fa-lock',
+								'link'  => '',
+						]); ?>
+					</div>
+				<?php } ?>
+			</div>
+		<?php } ?>
 
 		<?php if ($content_type) { ?>
 			<div class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-card-listing__content-type' : 'component-card-listing__content-type text-dark-070 uppercase font-bold mb-3' ?>">
