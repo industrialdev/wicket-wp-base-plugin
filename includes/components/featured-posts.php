@@ -56,6 +56,11 @@ if (empty($posts)) {
 	    $related_content_type = get_related_content_type(get_post_type($post_id));
 	    $content_type = !is_wp_error(get_the_terms($post_id, $related_content_type)) ? get_the_terms($post_id, $related_content_type) : [];
 	    $post_date = get_the_date($date_format, $post_id);
+			
+			$is_restricted = false;
+			if (function_exists('wicket_wppcp_is_post_restricted')) {
+				$is_restricted = wicket_wppcp_is_post_restricted($post_id);
+			}
 
 	    if (!$hide_featured_image) {
 	        $featured_image_id = get_post_thumbnail_id($post_id);
@@ -79,6 +84,7 @@ if (empty($posts)) {
 	        'content_type'   => !$hide_content_type ? $content_type[0]->name : '',
 	        'date'           => !$hide_date ? $post_date : '',
 	        'member_only'    => is_member_only($post_id),
+					'is_restricted'  => $is_restricted,
 	        'link'           => get_permalink($post_id),
 	    ]); ?>
 			</div>
@@ -94,6 +100,12 @@ if (empty($posts)) {
 	            $image = [];
 	            $related_content_type = get_related_content_type(get_post_type($post_id));
 	            $content_type = !is_wp_error(get_the_terms($post_id, $related_content_type)) ? get_the_terms($post_id, $related_content_type) : [];
+			
+							$is_restricted = false;
+							if (function_exists('wicket_wppcp_is_post_restricted')) {
+								$is_restricted = wicket_wppcp_is_post_restricted($post_id);
+							}
+
 	            if (!$hide_featured_image) {
 	                $featured_image_id = get_post_thumbnail_id($post_id);
 	                $featured_image_alt = get_post_meta($featured_image_id, '_wp_attachment_image_alt', true);
@@ -111,6 +123,7 @@ if (empty($posts)) {
 	                'content_type'   => !$hide_content_type ? $content_type[0]->name : '',
 	                'date'           => !$hide_date ? $post_date : '',
 	                'member_only'    => is_member_only($post_id),
+	                'is_restricted'  => $is_restricted,
 	                'link'           => get_permalink($post_id),
 	            ]);
 
@@ -143,6 +156,10 @@ if (empty($posts)) {
                         'alt' => $featured_image_alt,
                     ];
                 }
+								$is_restricted = false;
+								if (function_exists('wicket_wppcp_is_post_restricted')) {
+									$is_restricted = wicket_wppcp_is_post_restricted($post_id);
+								}
 
                 get_component('card-featured', [
                     'classes'      => defined('WICKET_WP_THEME_V2') ? [] : ['p-4'],
@@ -154,6 +171,7 @@ if (empty($posts)) {
                     'content_type' => (!$content_type['errors'] && !$hide_content_type) ? get_related_content_type_term($post_id) : '',
                     'date'         => !$hide_date ? $post_date : '',
                     'member_only'  => is_member_only($post_id),
+                    'is_restricted'  => $is_restricted,
                     'link'         => get_permalink($post_id),
                 ]);
             }

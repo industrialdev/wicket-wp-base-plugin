@@ -14,6 +14,7 @@ $defaults = [
     ],
     'link_type'                 => 'title',
     'member_only'               => false,
+		'is_restricted'             => false,
     'featured_image'            => '',
     'document'                  => '',
     'download_label'            => __('Download', 'wicket'),
@@ -32,6 +33,7 @@ $topics = $args['topics'];
 $link = $args['link'];
 $link_type = $args['link_type'];
 $member_only = $args['member_only'];
+$is_restricted = $args['is_restricted'];
 $featured_image = $args['featured_image'];
 $document = $args['document'];
 $image = '';
@@ -46,6 +48,10 @@ if (defined('WICKET_WP_THEME_V2')) {
     if ($member_only) {
         $classes[] = 'component-card-listing--member-only';
     }
+
+		if ($is_restricted) {
+				$classes[] = 'component-card-listing--restricted';
+		}
 } else {
     $classes[] = 'component-card-listing p-4 bg-white shadow-4 flex flex-col md:flex-row gap-4 relative';
 }
@@ -59,13 +65,28 @@ if ($featured_image) {
 
 <div class="<?php echo implode(' ', $classes) ?>">
 	<div class="flex-auto component-card-listing__content">
-		<?php if ($member_only) { ?>
-			<div class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-card-listing__member-only' : 'component-card-listing__member-only absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2' ?>">
-				<?php get_component('tag', [
-				    'label' => __('Members Only', 'wicket'),
-				    'icon'  => 'fa-regular fa-lock',
-				    'link'  => '',
-				]); ?>
+
+		<?php if ($member_only || $is_restricted) { ?>
+			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex gap-2">
+				<?php if ($member_only) { ?>
+					<div class="component-card-listing__member-only">
+						<?php get_component('tag', [
+								'label' => __('Members Only', 'wicket'),
+								'icon'  => 'fa-regular fa-lock',
+								'link'  => '',
+						]); ?>
+					</div>
+				<?php } ?>
+				
+				<?php if ($is_restricted) { ?>
+					<div class="component-card-listing__restricted">
+						<?php get_component('tag', [
+								'label' => __('Restricted', 'wicket'),
+								'icon'  => 'fa-regular fa-lock',
+								'link'  => '',
+						]); ?>
+					</div>
+				<?php } ?>
 			</div>
 		<?php } ?>
 

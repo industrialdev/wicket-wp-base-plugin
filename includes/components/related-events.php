@@ -221,6 +221,11 @@ if ($highlight_featured_posts) {
                     $featured_image_alt = get_post_meta($featured_image_id, '_wp_attachment_image_alt', true);
                     $date_format = apply_filters('wicket_general_date_format', 'F j, Y');
                     $date = get_the_date($date_format, $post_id);
+                    
+                    $is_restricted = false;
+                    if (function_exists('wicket_wppcp_is_post_restricted')) {
+                        $is_restricted = wicket_wppcp_is_post_restricted($post_id);
+                    }
 
                     if (!$hide_featured_image && $featured_image_id !== 0) {
                         $image = [
@@ -240,6 +245,7 @@ if ($highlight_featured_posts) {
                         'date'         => !$hide_date ? $date : '',
                         'image'        => $image,
                         'member_only'  => is_member_only($post_id),
+                        'is_restricted'  => $is_restricted,
                         'link'         => get_permalink($post_id),
                         'cta'          => $show_cta ? $cta_style : null,
                         'cta_label'    => $cta_label,
@@ -277,6 +283,11 @@ if ($highlight_featured_posts) {
 
 			        $date = tribe_get_start_date($post_id, false, $date_format);
 
+                    $is_restricted = false;
+                    if (function_exists('wicket_wppcp_is_post_restricted')) {
+                        $is_restricted = wicket_wppcp_is_post_restricted($post_id);
+                    }
+
 			        get_component('card-event', [
 			            'classes'                    => defined('WICKET_WP_THEME_V2') ? ["cols-{$column_count}"] : ['p-4'],
 			            'post_id'                    => $post_id,
@@ -292,6 +303,7 @@ if ($highlight_featured_posts) {
 			            'show_tags'                  => $show_tags,
 			            'tag_taxonomy'               => $tag_taxonomy,
 			            'hide_price'                 => $hide_price,
+                        'is_restricted'              => $is_restricted,
 			        ]);
 			    }
 wp_reset_postdata();

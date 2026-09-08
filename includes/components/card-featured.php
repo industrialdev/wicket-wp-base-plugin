@@ -12,6 +12,7 @@ $defaults = [
     'image_aspect_ratio' => '3/2',
     'image_position'  => 'top',
     'member_only'    => false,
+		'is_restricted'  => false,
     'cta'            => null,
     'cta_label'      => '',
 ];
@@ -28,6 +29,7 @@ $image = $args['image'];
 $image_aspect_ratio = $args['image_aspect_ratio']; // '' = original ratio
 $image_position = $args['image_position']; // top, left, right
 $member_only = $args['member_only'];
+$is_restricted = $args['is_restricted'];
 $cta = $args['cta'];
 $cta_label = $args['cta_label'];
 
@@ -83,14 +85,25 @@ if ($image_aspect_ratio === '') {
 
 <div class="@container">
 	<div class="<?php echo implode(' ', $classes) ?>">
-		<?php if ($member_only && $image_position === 'top') { ?>
+		<?php if ($image_position === 'top' && ($member_only || $is_restricted)) { ?>
 			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-				<?php get_component('tag', [
-				    'label'   => __('Members Only', 'wicket'),
-				    'icon'    => 'fa-regular fa-lock',
-				    'link'    => '',
-				    'classes' => ['rounded-b-[0px]'],
-				]); ?>
+				<?php if ($member_only) { ?>
+					<?php get_component('tag', [
+							'label'   => __('Members Only', 'wicket'),
+							'icon'    => 'fa-regular fa-lock',
+							'link'    => '',
+							'classes' => ['rounded-b-[0px]'],
+					]); ?>
+				<?php } ?>
+					
+				<?php if ($is_restricted) { ?>
+					<?php get_component('tag', [
+							'label'   => __('Restricted', 'wicket'),
+							'icon'    => 'fa-regular fa-lock',
+							'link'    => '',
+							'classes' => ['rounded-b-[0px]'],
+					]); ?>
+				<?php } ?>
 			</div>
 		<?php } ?>
 
@@ -116,7 +129,7 @@ if ($image_aspect_ratio === '') {
 				<a href="<?php echo $link ?>" class="<?php echo implode(' ', $title_classes) ?>">
 					<?php echo $title; ?>
 
-					<?php if ($member_only && ($image_position === 'left' || $image_position === 'right')) { ?>
+					<?php if (($member_only || $is_restricted) && ($image_position === 'left' || $image_position === 'right')) { ?>
 						<?php get_component('tag', [
 						    'label'   => '',
 						    'icon'    => 'fa-regular fa-lock',

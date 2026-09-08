@@ -7,7 +7,6 @@ $defaults = [
     'date'        => '',
     'link'        => '',
     'image'       => '',
-    'member_only' => false,
     'cta'         => null,
     'cta_label'   => '',
 ];
@@ -18,7 +17,6 @@ $content_type = $args['content_type'];
 $title = $args['title'];
 $link = $args['link'];
 $image = $args['image'];
-$member_only = $args['member_only'];
 $cta = $args['cta'];
 $cta_label = $args['cta_label'];
 $add_to_cart_url = '';
