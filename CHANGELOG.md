@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.4] - 2026-09-09
+
+### Added
+- add override filters for bundle-member MDP existence check and assign
+
+
 ## [2.7.3] - 2026-09-08
 
 ### Maintenance
