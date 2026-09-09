@@ -5,6 +5,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.5] - 2026-09-09
+
+### Fixed
+- close remaining strict_types boundaries
+- **helpers:** strict_types edge guards, arm helper-schemas
+- **helpers:** decode MDP error bodies safely under strict_types
+
+
 ## [2.7.4] - 2026-09-09
 
 ### Added
