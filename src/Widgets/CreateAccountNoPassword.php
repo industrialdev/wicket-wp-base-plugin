@@ -105,9 +105,15 @@ class CreateAccountNoPassword extends \WP_Widget
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $google_response = curl_exec($ch);
         curl_close($ch);
-        $google_response = json_decode($google_response)->success;
 
-        return $google_response;
+        // curl_exec returns false on transport failure; json_decode demands a string.
+        if (!is_string($google_response)) {
+            return false;
+        }
+
+        $decoded = json_decode($google_response);
+
+        return (bool) ($decoded->success ?? false);
     }
 
     /*

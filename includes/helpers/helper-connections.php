@@ -83,7 +83,7 @@ function wicket_update_connection_attributes(string $connection_id, array $attri
                     // Handle date formatting
                     if (!empty($value)) {
                         // If date is in YYYY-MM-DD format, convert to ISO 8601
-                        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value)) {
                             $merged_attributes[$key] = $value . 'T00:00:00Z';
                         } else {
                             $merged_attributes[$key] = strval($value);
