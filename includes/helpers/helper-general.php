@@ -149,7 +149,9 @@ function wicket_convert_obj_to_array($object)
     $cleanArray = [];
     foreach ($array as $key => $value) {
         // Remove special characters from keys
-        $cleanKey = preg_replace('/^\x00(?:\*|[^\x00]+)\x00/', '', $key);
+        // (string) cast: numeric array keys arrive as int and preg_replace
+        // demands a string subject under strict_types.
+        $cleanKey = preg_replace('/^\x00(?:\*|[^\x00]+)\x00/', '', (string) $key);
         $cleanArray[$cleanKey] = $value;
     }
 

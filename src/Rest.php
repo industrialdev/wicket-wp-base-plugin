@@ -167,7 +167,7 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['connectionId'])) {
+        if (!isset($params['connectionId']) || !is_string($params['connectionId']) || $params['connectionId'] === '') {
             wp_send_json_error('Connection ID not provided');
         }
 
@@ -232,16 +232,16 @@ class Rest
             'mdp_day_end_iso8601_utc' => function_exists('wicket_time_get_mdp_day_end_iso8601_utc') ? wicket_time_get_mdp_day_end_iso8601_utc() : null,
         ]);
 
-        if (!isset($params['fromUuid'])) {
+        if (!isset($params['fromUuid']) || !is_string($params['fromUuid']) || $params['fromUuid'] === '') {
             wp_send_json_error('fromUuid not provided');
         }
-        if (!isset($params['toUuid'])) {
+        if (!isset($params['toUuid']) || !is_string($params['toUuid']) || $params['toUuid'] === '') {
             wp_send_json_error('toUuid not provided');
         }
-        if (!isset($params['relationshipType'])) {
+        if (!isset($params['relationshipType']) || !is_string($params['relationshipType']) || $params['relationshipType'] === '') {
             wp_send_json_error('relationshipType not provided');
         }
-        if (!isset($params['userRoleInRelationship'])) {
+        if (!isset($params['userRoleInRelationship']) || !is_string($params['userRoleInRelationship']) || $params['userRoleInRelationship'] === '') {
             wp_send_json_error('userRoleInRelationship not provided');
         }
 

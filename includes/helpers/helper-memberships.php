@@ -288,7 +288,6 @@ function wicket_get_active_membership_seat_summary(array $org_memberships)
     return $fallback_active_summary ?? $summary;
 }
 
-
 /**
  * Get an interval resource by ID from the MDP API.
  *
@@ -400,7 +399,17 @@ function wicket_unassign_person_from_org_membership($person_membership_id)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -409,7 +418,7 @@ function wicket_unassign_person_from_org_membership($person_membership_id)
 /**
  * Send notification email to an existing user when assigned to an organization team membership.
  *
- * @param \WP_User $user The WordPress user object.
+ * @param WP_User $user The WordPress user object.
  * @param string $org_id Organization UUID.
  * @return void
  */
@@ -519,7 +528,7 @@ function send_approval_required_email($email, $membership_link)
  * @param string $previous_membership_uuid Optional. Prior organization_membership UUID.
  * @param bool $grant_owner_assignment Optional. Whether to grant owner assignment.
  * @param bool $copy_previous_assignments Optional. Whether to copy assignments from prior membership.
- * @return array|\WP_Error MDP API response array or WP_Error on failure.
+ * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
 function wicket_assign_organization_membership(
     $person_uuid,
@@ -617,7 +626,7 @@ function wicket_assign_organization_membership(
         // ConnectException (network) has no response; guard before reading the body.
         $overflow = false;
         $log_context = ['source' => 'wicket_assign_organization_membership'];
-        if ($e instanceof \GuzzleHttp\Exception\RequestException && $e->getResponse()) {
+        if ($e instanceof GuzzleHttp\Exception\RequestException && $e->getResponse()) {
             $log_context['status'] = $e->getResponse()->getStatusCode();
             $body = json_decode((string) $e->getResponse()->getBody(), true);
             if (is_array($body) && !empty($body['errors'])) {
@@ -660,7 +669,7 @@ function wicket_assign_organization_membership(
  *
  * @param string $org_membership_uuid Organization membership UUID.
  * @param string $person_uuid New owner person UUID.
- * @return array|\WP_Error API response array or WP_Error on failure.
+ * @return array|WP_Error API response array or WP_Error on failure.
  */
 function change_organization_membership_owner($org_membership_uuid, $person_uuid)
 {
@@ -697,7 +706,7 @@ function change_organization_membership_owner($org_membership_uuid, $person_uuid
  * @param string $membership_uuid MDP membership tier UUID.
  * @param string $starts_at Optional. Starts at date filter.
  * @param string $ends_at Optional. Ends at date filter.
- * @return string|null|\WP_Error Membership record ID if found, null otherwise, or WP_Error on failure.
+ * @return string|null|WP_Error Membership record ID if found, null otherwise, or WP_Error on failure.
  */
 function wicket_get_person_membership_exists($person_uuid, $membership_uuid, $starts_at = '', $ends_at = '')
 {
@@ -875,7 +884,7 @@ function wicket_update_individual_membership_dates($membership_uuid, $starts_at 
  * @param string $ends_at Optional. ISO 8601 end date. Defaults to one year out.
  * @param int|false $max_seats Optional. Maximum seat assignments. False omits the field.
  * @param int|false $grace_period_days Optional. Grace period in days. False omits the field.
- * @return array|\WP_Error MDP API response array or WP_Error on failure.
+ * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
 function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false)
 {
@@ -926,7 +935,7 @@ function wicket_update_organization_membership_dates($membership_uuid, $starts_a
  * Delete a person membership record by UUID.
  *
  * @param string $membership_uuid The person membership UUID.
- * @return array|\WP_Error MDP API response array or WP_Error on failure.
+ * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
 function wicket_delete_person_membership($membership_uuid)
 {
@@ -946,7 +955,7 @@ function wicket_delete_person_membership($membership_uuid)
  * Note: passing force_destroy=true clears all associated membership assignments.
  *
  * @param string $membership_uuid The organization membership UUID.
- * @return array|\WP_Error MDP API response array or WP_Error on failure.
+ * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
 function wicket_delete_organization_membership($membership_uuid)
 {
@@ -1027,7 +1036,7 @@ function wicket_update_membership_external_id($membership_uuid, $membership_type
  *
  * @param string|int $external_id The WordPress membership post ID.
  * @param string     $membership_type 'organization_memberships' or 'person_memberships'.
- * @return array|false|\WP_Error The owning membership record (with 'id'), false if
+ * @return array|false|WP_Error The owning membership record (with 'id'), false if
  *                               unowned, or WP_Error on API failure.
  */
 function wicket_get_membership_by_external_id($external_id, $membership_type)

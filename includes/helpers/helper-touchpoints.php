@@ -21,7 +21,17 @@ function wicket_get_current_user_touchpoints($service_id)
 
         return $touchpoints;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -217,7 +227,17 @@ function get_create_touchpoint_service_id($service_name, $service_description = 
 
         return $new_service_id;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
