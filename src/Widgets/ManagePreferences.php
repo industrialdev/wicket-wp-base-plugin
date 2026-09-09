@@ -97,7 +97,12 @@ class ManagePreferences extends \WP_Widget
             try {
                 $client->people->update($update_user);
             } catch (\Exception $e) {
-                $_SESSION['wicket_preferences_form_errors'] = json_decode($e->getResponse()->getBody())->errors;
+                // Transport failures (timeouts, DNS) carry no HTTP response.
+                $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+                    ? (string) $e->getResponse()->getBody()
+                    : '';
+                $decoded = json_decode($response_body);
+                $_SESSION['wicket_preferences_form_errors'] = $decoded->errors ?? null;
             }
             // redirect here if there was updates made to reload person info and prevent form re-submission
             if (empty($_SESSION['wicket_preferences_form_errors'])) {

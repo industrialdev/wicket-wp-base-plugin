@@ -667,7 +667,6 @@ function wicket_person_uuid_for_order($order): string
     return (string) ($person['uuid'] ?? '');
 }
 
-
 /**
  * Accepts a Wicket person object, like from wicket_current_person(),
  * and returns a clean array of the specified repeatable contact method.
@@ -966,7 +965,19 @@ function wicket_create_person($given_name, $family_name, $address = '', $passwor
 
         return $person;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+        $decoded = json_decode($response_body);
+        $errors = $decoded->errors ?? null;
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return ['errors' => $errors];
@@ -1679,7 +1690,17 @@ function wicket_assign_role($person_uuid, $role_name, $org_uuid = '')
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -1724,7 +1745,7 @@ function wicket_remove_role($person_uuid, $role_name, $org_id = '')
     $included_items = [];
     if (is_array($included_raw)) {
         $included_items = $included_raw;
-    } elseif ($included_raw instanceof \Traversable) {
+    } elseif ($included_raw instanceof Traversable) {
         foreach ($included_raw as $inc_item) {
             $included_items[] = $inc_item;
         }
@@ -1823,7 +1844,17 @@ function wicket_create_person_address($person_uuid, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -1845,7 +1876,17 @@ function wicket_create_person_phone($person_uuid, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;

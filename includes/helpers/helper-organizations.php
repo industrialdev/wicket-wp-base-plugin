@@ -18,7 +18,17 @@ function wicket_get_organization_addresses($org_id)
 
         return $org;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -136,7 +146,6 @@ function wicket_filter_existing_organization_ids(array $org_ids): array
         return isset($existing[$org_id]);
     }));
 }
-
 
 /**
  * Get all organizations from the MDP API.
@@ -586,7 +595,17 @@ function wicket_create_organization_address($org_id, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -608,7 +627,17 @@ function wicket_create_organization_email($org_id, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -630,7 +659,17 @@ function wicket_create_organization_phone($org_id, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -652,7 +691,17 @@ function wicket_create_organization_web_address($org_id, $payload)
 
         return true;
     } catch (Exception $e) {
-        $errors = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+
+        if (function_exists('Wicket')) {
+            Wicket()->log()->error(__FUNCTION__ . ': ' . $e->getMessage(), [
+                'source' => 'wicket-base',
+                'response' => $response_body,
+            ]);
+        }
     }
 
     return false;
@@ -799,7 +848,7 @@ function wicket_remove_tag_organization($org_uuid, $tags)
 /**
  * Get organizations resource list from the MDP API.
  *
- * @return \Illuminate\Support\Collection Collection of organization resource types.
+ * @return Illuminate\Support\Collection Collection of organization resource types.
  */
 function get_org_types_list()
 {

@@ -591,7 +591,13 @@ function wicket_wicket_get_group_info($group_uuid)
     try {
         $response = $client->get("/groups/$group_uuid");
     } catch (Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+        $decoded = json_decode($response_body, true);
+        $wicket_api_error = $decoded['errors'][0]['detail'] ?? $e->getMessage();
+        wicket_wc_log_group_sync(['error' => $e->getMessage(), 'response' => $response_body]);
         $response = new WP_Error('wicket_api_error', $wicket_api_error);
     }
 
@@ -611,7 +617,13 @@ function wicket_wicket_get_group_membership($person_uuid, $group_uuid, $args = [
     try {
         $response = $client->get("/groups/$group_uuid/people?filter[person_uuid_eq]=$person_uuid");
     } catch (Exception $e) {
-        $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
+        // Transport failures (timeouts, DNS) carry no HTTP response.
+        $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+            ? (string) $e->getResponse()->getBody()
+            : '';
+        $decoded = json_decode($response_body, true);
+        $wicket_api_error = $decoded['errors'][0]['detail'] ?? $e->getMessage();
+        wicket_wc_log_group_sync(['error' => $e->getMessage(), 'response' => $response_body]);
         $response = new WP_Error('wicket_api_error', $wicket_api_error);
     }
 
@@ -646,7 +658,13 @@ function wicket_wicket_update_group_membership($group_membership_uuid, $args = [
             try {
                 $response = $client->patch("/group_members/$group_membership_uuid", ['json' => $payload]);
             } catch (Exception $e) {
-                $wicket_api_error = json_decode($e->getResponse()->getBody())->errors;
+                // Transport failures (timeouts, DNS) carry no HTTP response.
+                $response_body = (method_exists($e, 'getResponse') && $e->getResponse())
+                    ? (string) $e->getResponse()->getBody()
+                    : '';
+                $decoded = json_decode($response_body, true);
+                $wicket_api_error = $decoded['errors'][0]['detail'] ?? $e->getMessage();
+                wicket_wc_log_group_sync(['error' => $e->getMessage(), 'response' => $response_body]);
                 $response = new WP_Error('wicket_api_error', $wicket_api_error);
             }
 
