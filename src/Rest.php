@@ -167,7 +167,7 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['connectionId'])) {
+        if (!isset($params['connectionId']) || !is_string($params['connectionId']) || $params['connectionId'] === '') {
             wp_send_json_error('Connection ID not provided');
         }
 
