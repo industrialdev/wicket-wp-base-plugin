@@ -528,6 +528,10 @@ function send_approval_required_email($email, $membership_link)
  * @param string $previous_membership_uuid Optional. Prior organization_membership UUID.
  * @param bool $grant_owner_assignment Optional. Whether to grant owner assignment.
  * @param bool $copy_previous_assignments Optional. Whether to copy assignments from prior membership.
+ * @param bool|null $is_autorenew Optional. Whether this membership will auto-renew. `null` means
+ *                   "not provided" and omits the field entirely, since `false` is itself a real,
+ *                   meaningful value for this field (see `wicket_update_organization_membership_dates()`
+ *                   for the same pattern).
  * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
 function wicket_assign_organization_membership(
@@ -540,7 +544,8 @@ function wicket_assign_organization_membership(
     $grace_period_days = 0,
     $previous_membership_uuid = '',
     $grant_owner_assignment = false,
-    $copy_previous_assignments = true
+    $copy_previous_assignments = true,
+    ?bool $is_autorenew = null
 ) {
     $override = apply_filters(
         'wicket_pre_assign_organization_membership',
@@ -554,7 +559,8 @@ function wicket_assign_organization_membership(
         $grace_period_days,
         $previous_membership_uuid,
         $grant_owner_assignment,
-        $copy_previous_assignments
+        $copy_previous_assignments,
+        $is_autorenew
     );
 
     if ($override !== null) {
@@ -613,6 +619,10 @@ function wicket_assign_organization_membership(
             'type' => 'organization_memberships',
             'id' => $previous_membership_uuid,
         ];
+    }
+
+    if ($is_autorenew !== null) {
+        $payload['data']['attributes']['is_auto_renew'] = $is_autorenew;
     }
 
     try {
@@ -884,11 +894,12 @@ function wicket_update_individual_membership_dates($membership_uuid, $starts_at 
  * @param string $ends_at Optional. ISO 8601 end date. Defaults to one year out.
  * @param int|false $max_seats Optional. Maximum seat assignments. False omits the field.
  * @param int|false $grace_period_days Optional. Grace period in days. False omits the field.
+ * @param bool|null $is_autorenew Optional. Autorenew status. Null omits the field.
  * @return array|WP_Error MDP API response array or WP_Error on failure.
  */
-function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false)
+function wicket_update_organization_membership_dates($membership_uuid, $starts_at = '', $ends_at = '', $max_seats = false, $grace_period_days = false, ?bool $is_autorenew = null)
 {
-    $override = apply_filters('wicket_pre_update_organization_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $max_seats, $grace_period_days);
+    $override = apply_filters('wicket_pre_update_organization_membership_dates', null, $membership_uuid, $starts_at, $ends_at, $max_seats, $grace_period_days, $is_autorenew);
 
     if ($override !== null) {
         return $override;
@@ -920,6 +931,10 @@ function wicket_update_organization_membership_dates($membership_uuid, $starts_a
 
     if ($grace_period_days !== false) {
         $payload['data']['attributes']['grace_period_days'] = $grace_period_days;
+    }
+
+    if ($is_autorenew !== null) {
+        $payload['data']['attributes']['is_auto_renew'] = $is_autorenew;
     }
 
     try {
