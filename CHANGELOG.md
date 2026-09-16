@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.6] - 2026-09-16
+
+### Added
+- **memberships:** support autorenew on organization membership updates
+
+
 ## [2.7.5] - 2026-09-09
 
 ### Fixed
