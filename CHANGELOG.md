@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.7] - 2026-09-21
+
+### Fixed
+- exempt AutomateWoo manual workflows from admin email blocker
+
+
 ## [2.7.6] - 2026-09-16
 
 ### Added
