@@ -1067,6 +1067,14 @@ class EmailBlocker
      * 3. The blocker setting is enabled and validation happens synchronously
      *    inside the admin order action itself (non-deferred triggers).
      *
+     * Manual workflows are exempt from conditions 2 and 3. An admin pressing
+     * Run is a deliberate send, the workflow-path equivalent of the explicit
+     * resend/customer-note carve-outs. Without the exemption the runner's REST
+     * validation (wp-admin referer + admin capabilities) looked like an admin
+     * order update, and every manual run matched zero orders (WWID-2493).
+     * Condition 1 still applies to manual workflows: the per-order flag is the
+     * more specific intent and keeps winning.
+     *
      * @param bool $valid Current validation result.
      * @param mixed $workflow AutomateWoo\Workflow instance.
      * @return bool
@@ -1096,6 +1104,13 @@ class EmailBlocker
             return false;
         }
 
+        // Manual runs are deliberate admin sends, not side effects of editing an
+        // order. Skip the marker and sync admin-context vetoes; the per-order
+        // flag above already had its chance to block (WWID-2493).
+        if ($this->is_manual_automatewoo_workflow($workflow)) {
+            return $valid;
+        }
+
         if ($this->is_enabled() && $this->admin_update_marker_blocks($order, $workflow)) {
             $this->log_automatewoo_decision('block', 'admin_update_async', $workflow, $order);
 
@@ -1111,6 +1126,21 @@ class EmailBlocker
         $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order, false);
 
         return $valid;
+    }
+
+    /**
+     * Whether the workflow is an AutomateWoo manual workflow.
+     *
+     * Manual workflows run from the wp-admin runner, which is a deliberate
+     * send, not a side effect of an order update. get_type() is an
+     * AutomateWoo 5.0+ API; the method_exists guard keeps older versions safe.
+     *
+     * @param mixed $workflow AutomateWoo\Workflow instance.
+     * @return bool
+     */
+    private function is_manual_automatewoo_workflow($workflow): bool
+    {
+        return method_exists($workflow, 'get_type') && 'manual' === $workflow->get_type();
     }
 
     /**
