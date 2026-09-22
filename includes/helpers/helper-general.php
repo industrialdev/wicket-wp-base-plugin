@@ -124,9 +124,10 @@ function wicket_supports(string $feature): bool
         // Key format: '<package>.<subsystem>.<capability>'
         // package = qa/ slug (see package-config.json), e.g. base-plugin.
         'base-plugin.organization_membership.copy_previous_assignments' => true,
-        'base-plugin.person_membership.is_auto_renew' => true,
-        'base-plugin.organization_membership.is_auto_renew' => true,
         // Add keys here in the release that ships each feature.
+        // is_auto_renew keys removed: declared without any wicket_supports()
+        // consumer (dead surface). Re-register when the WWID-1875 autorenew
+        // sync ships code that actually gates on them.
     ];
 
     return (bool) apply_filters("wicket_supports_{$feature}", $features[$feature] ?? false);
