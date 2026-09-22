@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.8] - 2026-09-22
+
+### Fixed
+- **org:** no current-user fallback on order-scoped lookups (WWID-2605)
+
+
 ## [2.7.7] - 2026-09-21
 
 ### Fixed
