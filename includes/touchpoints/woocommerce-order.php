@@ -24,8 +24,10 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     // Wicket site is their UUID, but not for users created outside SSO: see
     // wicket_person_uuid_for_order(), which falls back to the billing email.
     $order_user_uuid = wicket_person_uuid_for_order($order);
+    // _wc_org_uuid may be absent (customer-less orders get no org) or legacy
+    // string-shaped; guard before indexing (WWID-2605).
     $order_org_meta = $order->get_meta('_wc_org_uuid');
-    $org_name = $order_org_meta['name'] ?? '';
+    $org_name = is_array($order_org_meta) ? ($order_org_meta['name'] ?? '') : '';
 
     // ---------------------------------------------------------------------------------------
     // Do not run for subscriptions, which are also considered orders kinda.
@@ -217,7 +219,7 @@ function woocommerce_order_partially_refunded_touchpoint($order_id, $refund_id)
     }
 
     $order_org_meta = $order->get_meta('_wc_org_uuid');
-    $org_name = $order_org_meta['name'] ?? '';
+    $org_name = is_array($order_org_meta) ? ($order_org_meta['name'] ?? '') : '';
     $net_payment_remaining = $order->get_remaining_refund_amount();
     $refund = wc_get_order($refund_id);
     $amount_refunded = $refund->get_amount();

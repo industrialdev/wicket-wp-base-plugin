@@ -889,6 +889,11 @@ function wicket_get_org_types_list()
 /**
  * Get organizations based on person-to-organization types selected in settings.
  *
+ * With no $id_array, resolves against the current user. Order-scoped lookups
+ * never fall back to the current user: an order without a customer returns
+ * false, so a customer-less order can never inherit the processing session's
+ * organizations (WWID-2605).
+ *
  * @param array $id_array Optional array: ['user_id' => int] or ['order_id' => int]. Defaults to current user.
  * @return array|false Associative array of [org_id => legal_name], or false if none found.
  */
@@ -908,20 +913,37 @@ function get_organizations_based_on_certain_types($id_array = [])
         $current_person_uuid = wicket_current_person_uuid();
 
         if (!empty($id_array)) {
+            $order_scoped = false;
             if (!empty($id_array['user_id'])) {
                 $user = get_user_by('id', $id_array['user_id']);
             } elseif (!empty($id_array['order_id'])) {
+                $order_scoped = true;
                 $order = wc_get_order($id_array['order_id']);
-                $user = $order->get_user();
+                $user = $order ? $order->get_user() : false;
             }
             if (!empty($user->user_login)) {
                 $current_person_uuid = $user->user_login;
+            } elseif ($order_scoped) {
+                // WWID-2605: an order-scoped lookup for an order with no customer
+                // must never fall back to the current user. The old fallback let a
+                // customer-less order inherit the first active organization of
+                // whichever admin session happened to be processing the request.
+                return false;
             }
+        }
+
+        // An empty UUID would build a malformed people//connections URL. The API
+        // call would throw and fail closed anyway; skip the doomed round trip.
+        if (empty($current_person_uuid)) {
+            return false;
         }
 
         $types_filter = 'filter[resource_type_slug_in][]=' . implode('&filter[resource_type_slug_in][]=', $person_to_org_types);
         $url = "people/$current_person_uuid/connections?filter[to_type_eq]=Organization&$types_filter&filter[active_true]=true&sort=-ends_at,-starts_at,-created_at";
 
+        // Initialize: the catch below leaves this unset and the truthiness check
+        // after the try would emit an undefined-variable warning (WWID-2605).
+        $connections = null;
         try {
             $connections = $client->get($url);
         } catch (Exception $e) {
@@ -938,7 +960,9 @@ function get_organizations_based_on_certain_types($id_array = [])
                 }
             }
 
-            return $orgs;
+            // A truthy-but-empty payload leaves $orgs unset; honor the declared
+            // array|false contract instead of leaking null (WWID-2605 cleanup).
+            return $orgs ?? false;
         }
 
         return false;
