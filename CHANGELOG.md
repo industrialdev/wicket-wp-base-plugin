@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.9] - 2026-09-22
+
+### Fixed
+- drop orphan is_auto_renew capability keys from registry
+
+
 ## [2.7.8] - 2026-09-22
 
 ### Fixed
