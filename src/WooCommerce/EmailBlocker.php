@@ -1066,7 +1066,8 @@ class EmailBlocker
      *    asynchronously (see mark_admin_updated_order_for_automatewoo()). The
      *    marker vetoes email-sending workflows only (WWID-2627).
      * 3. The blocker setting is enabled and validation happens synchronously
-     *    inside the admin order action itself (non-deferred triggers).
+     *    inside the admin order action itself (non-deferred triggers). Same
+     *    scoping as condition 2: email-sending workflows only (WWID-2627).
      *
      * Manual workflows are exempt from conditions 2 and 3. An admin pressing
      * Run is a deliberate send, the workflow-path equivalent of the explicit
@@ -1127,9 +1128,16 @@ class EmailBlocker
         }
 
         if ($this->is_enabled() && $this->is_admin_order_context($order)) {
-            $this->log_automatewoo_decision('block', 'admin_update', $workflow, $order);
+            if ($this->workflow_sends_email($workflow)) {
+                $this->log_automatewoo_decision('block', 'admin_update', $workflow, $order);
 
-            return false;
+                return false;
+            }
+
+            // WWID-2627: same scoping as the marker veto. The sync
+            // admin-context veto suppresses customer-email side effects of
+            // editing an order; a status-only workflow must still run.
+            $this->log_automatewoo_decision('allow', 'admin_update_ignored_non_email', $workflow, $order);
         }
 
         $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order, false);
@@ -1173,16 +1181,23 @@ class EmailBlocker
             return false;
         }
 
-        $sends = false;
+        try {
+            $sends = false;
 
-        foreach ((array) $workflow->get_actions() as $action) {
-            if ($action instanceof \AutomateWoo\Action_Send_Email_Abstract) {
-                $sends = true;
-                break;
+            foreach ((array) $workflow->get_actions() as $action) {
+                if ($action instanceof \AutomateWoo\Action_Send_Email_Abstract) {
+                    $sends = true;
+                    break;
+                }
             }
-        }
 
-        return (bool) apply_filters('wicket_woo_email_blocker_workflow_sends_email', $sends, $workflow);
+            return (bool) apply_filters('wicket_woo_email_blocker_workflow_sends_email', $sends, $workflow);
+        } catch (\Throwable $e) {
+            // Fail open like the sibling data_layer() guard: a broken
+            // third-party get_actions() override or filter callback must not
+            // abort the whole Action Scheduler validation batch.
+            return false;
+        }
     }
 
     /**
