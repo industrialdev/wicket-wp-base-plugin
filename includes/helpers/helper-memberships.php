@@ -1107,11 +1107,16 @@ function wicket_get_membership_by_external_id($external_id, $membership_type)
  * @param string $membership_uuid The MDP membership UUID.
  * @return array|\WP_Error The membership record on success. On failure:
  *                         WP_Error with code 'wicket_membership_not_found'
- *                         (confirmed 404) or 'wicket_api_error' (client
- *                         unavailable, or any other MDP failure).
+ *                         (confirmed 404) or 'wicket_api_error' (empty
+ *                         UUID, client unavailable, or any other MDP failure).
  */
 function wicket_get_membership_by_uuid($membership_uuid)
 {
+    // An empty UUID would hit the collection route and return a list, not a record.
+    if (!is_string($membership_uuid) || '' === $membership_uuid) {
+        return new WP_Error('wicket_api_error', 'membership_uuid is required');
+    }
+
     $client = wicket_api_client();
 
     if (!$client) {
