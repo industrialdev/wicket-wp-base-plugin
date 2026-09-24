@@ -1002,8 +1002,11 @@ function wicket_update_membership_external_id($membership_uuid, $membership_type
 
     $client = wicket_api_client();
 
-    if (!in_array($membership_type, ['organization_memberships', 'person_memberships'])) {
-        new WP_Error('wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )');
+    // The WP_Error must be returned, not just constructed: a bare `new` is
+    // discarded, so an invalid type used to fall through to the PATCH and blow
+    // up inside the API call instead of failing closed here (WWID-2629).
+    if (!in_array($membership_type, ['organization_memberships', 'person_memberships'], true)) {
+        return new WP_Error('wicket_api_error', 'Unknown membership_type ( organization_memberships, person_memberships )');
     }
 
     // build membership payload
