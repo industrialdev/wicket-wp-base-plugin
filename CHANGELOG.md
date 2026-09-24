@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.10] - 2026-09-24
+
+### Added
+- add wicket_get_membership_by_uuid() to resolve a membership by MDP UUID
+
+### Fixed
+- **helpers:** guard empty UUID in wicket_get_membership_by_uuid()
+
+
 ## [2.7.9] - 2026-09-22
 
 ### Fixed
