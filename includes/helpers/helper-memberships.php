@@ -1095,6 +1095,64 @@ function wicket_get_membership_by_external_id($external_id, $membership_type)
 }
 
 /**
+ * Fetch a single "memberships" resource by its MDP UUID.
+ *
+ * Use this to verify a stored MDP membership UUID still resolves (e.g. before
+ * assigning a person to it), distinguishing a confirmed 404 (stale UUID) from
+ * a transient MDP failure (timeout, 5xx, rate limit) via the WP_Error code.
+ * Callers that only care whether the lookup succeeded can treat any WP_Error
+ * as failure; callers that need to react differently to "definitely stale"
+ * vs. "MDP unreachable right now" should branch on the error code.
+ *
+ * @param string $membership_uuid The MDP membership UUID.
+ * @return array|\WP_Error The membership record on success. On failure:
+ *                         WP_Error with code 'wicket_membership_not_found'
+ *                         (confirmed 404) or 'wicket_api_error' (empty
+ *                         UUID, client unavailable, or any other MDP failure).
+ */
+function wicket_get_membership_by_uuid($membership_uuid)
+{
+    // An empty UUID would hit the collection route and return a list, not a record.
+    if (!is_string($membership_uuid) || '' === $membership_uuid) {
+        return new WP_Error('wicket_api_error', 'membership_uuid is required');
+    }
+
+    $client = wicket_api_client();
+
+    if (!$client) {
+        return new WP_Error('wicket_api_error', 'Wicket API client unavailable');
+    }
+
+    try {
+        $response = $client->get('memberships/' . $membership_uuid);
+
+        return $response['data'] ?? $response;
+    } catch (Exception $e) {
+        // Duck-typed rather than an instanceof check against a Guzzle exception
+        // class: this file doesn't otherwise reference Guzzle's own types, only
+        // the exceptions the SDK client happens to throw.
+        $status_code = method_exists($e, 'getResponse') && $e->getResponse()
+            ? $e->getResponse()->getStatusCode()
+            : null;
+
+        Wicket()->log()->error(
+            'wicket_get_membership_by_uuid failed: ' . $e->getMessage(),
+            [
+                'source'          => 'wicket-base',
+                'membership_uuid' => $membership_uuid,
+                'status_code'     => $status_code,
+            ]
+        );
+
+        if (404 === $status_code) {
+            return new WP_Error('wicket_membership_not_found', $e->getMessage());
+        }
+
+        return new WP_Error('wicket_api_error', $e->getMessage());
+    }
+}
+
+/**
  * Get all membership entries for a specified person UUID from the MDP API.
  *
  * @param string $uuid The person UUID.
