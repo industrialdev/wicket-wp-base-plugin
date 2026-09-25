@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.11] - 2026-09-25
+
+### Fixed
+- **helpers:** return type-validation WP_Error before PATCH (WWID-2629)
+
+
 ## [2.7.10] - 2026-09-24
 
 ### Added
