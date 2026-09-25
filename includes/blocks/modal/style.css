@@ -71,6 +71,14 @@
 	box-shadow: var(--wicket-modal-shadow);
 }
 
+/* Title: the component's wt_text-* utilities only load inside account-centre CSS. */
+.wicket-modal-block h2 {
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin: 0 0 1rem;
+	padding-right: 2rem; /* clears the absolute close button */
+}
+
 /* Close button (mirrors the .orgman-modal__close contract, stack-neutral name). */
 .wicket-modal-block .modal__close {
 	position: absolute;

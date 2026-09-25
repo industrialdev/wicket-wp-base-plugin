@@ -171,6 +171,7 @@ $extra_atts = implode(' ', $formatted_atts);
     <?php echo $datastar_atts; ?>
     <?php echo $on_close_expr; ?>
     <?php echo $extra_atts; ?>
+    aria-labelledby="<?php echo esc_attr($id . '-title'); ?>"
 >
     <div class="wt_bg-white wt_p-6 wt_relative">
         <button
@@ -180,7 +181,7 @@ $extra_atts = implode(' ', $formatted_atts);
             aria-label="<?php echo esc_attr($close_label); ?>"
         >&times;</button>
 
-        <h2 class="wp-block-heading has-heading-sm-font-size wt_text-2xl wt_font-semibold wt_mb-4">
+        <h2 id="<?php echo esc_attr($id . '-title'); ?>" class="wp-block-heading has-heading-sm-font-size wt_text-2xl wt_font-semibold wt_mb-4">
             <?php echo esc_html($title); ?>
         </h2>
 

@@ -135,8 +135,19 @@ function render(array $block = []): void
 
     // Dialog id: block anchor when the editor set one, else a stable
     // per-render unique id so several modals coexist on one page.
+    // A repeated or malformed anchor falls back to a suffixed unique
+    // id; getElementById must never resolve to the wrong dialog.
+    static $used_ids = [];
     $anchor = is_array($block) ? ($block['anchor'] ?? '') : '';
-    $id = $anchor !== '' ? $anchor : (function_exists('wp_unique_id') ? wp_unique_id('wicket-modal-') : uniqid('wicket-modal-'));
+    if ($anchor !== '' && function_exists('sanitize_html_class')) {
+        $anchor = sanitize_html_class($anchor);
+    }
+    if ($anchor !== '' && !in_array($anchor, $used_ids, true)) {
+        $id = $anchor;
+    } else {
+        $id = function_exists('wp_unique_id') ? wp_unique_id($anchor !== '' ? $anchor . '-' : 'wicket-modal-') : uniqid('wicket-modal-');
+    }
+    $used_ids[] = $id;
 
     $width = in_array($fields['dialog_width'] ?? '', ['md', 'lg'], true) ? $fields['dialog_width'] : 'lg';
     $title = trim((string) ($fields['dialog_title'] ?? ''));
