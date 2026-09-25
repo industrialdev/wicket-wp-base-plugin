@@ -1,0 +1,126 @@
+/*
+ * Wicket Modal block styles.
+ *
+ * Self-contained on purpose: the modal component's wt_* utility classes
+ * only load inside account-centre CSS, and this block must look right
+ * on any page. Scoped to .wicket-modal-block (applied by the block
+ * renderer) so it never fights theme or orgman dialog styles.
+ *
+ * CSS variables carry theme fallbacks.
+ */
+
+.wicket-modal-block {
+	--wicket-modal-surface: var(--wicket-color-surface, #fff);
+	--wicket-modal-backdrop: rgba(0, 0, 0, 0.5);
+	--wicket-modal-radius: 0.375rem;
+	--wicket-modal-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+	--wicket-modal-text: var(--wicket-color-text, #111827);
+
+	/* Native dialog reset: the card look lives on the inner wrapper. */
+	border: 0;
+	padding: 0;
+	background: transparent;
+	color: var(--wicket-modal-text);
+	width: calc(100% - 2rem);
+	margin: auto;
+}
+
+.wicket-modal-block.max_wt_md {
+	max-width: 28rem;
+}
+
+.wicket-modal-block.max_wt_3xl {
+	max-width: 48rem;
+}
+
+.wicket-modal-block::backdrop {
+	background: var(--wicket-modal-backdrop);
+}
+
+.wicket-modal-block[open],
+.wicket-modal-block[open]::backdrop {
+	animation: wicket-modal-in 0.15s ease-out;
+}
+
+@keyframes wicket-modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(0.5rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.wicket-modal-block[open],
+	.wicket-modal-block[open]::backdrop {
+		animation: none;
+	}
+}
+
+/* Inner card. */
+.wicket-modal-block > .wt_bg-white,
+.wicket-modal-block > div {
+	background: var(--wicket-modal-surface);
+	padding: 1.5rem;
+	position: relative;
+	border-radius: var(--wicket-modal-radius);
+	box-shadow: var(--wicket-modal-shadow);
+}
+
+/* Close button (mirrors the .orgman-modal__close contract, stack-neutral name). */
+.wicket-modal-block .modal__close {
+	position: absolute;
+	top: 0.75rem;
+	right: 0.75rem;
+	width: 2rem;
+	height: 2rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 0;
+	border-radius: 9999px;
+	background: transparent;
+	color: inherit;
+	font-size: 1.125rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.wicket-modal-block .modal__close:hover,
+.wicket-modal-block .modal__close:focus {
+	background: rgba(0, 0, 0, 0.06);
+}
+
+.wicket-modal-block .modal__close:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+/* Trigger: base look with theme overrides in mind. */
+.wicket-modal-block__trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	border: 1px solid transparent;
+	border-radius: var(--wicket-modal-radius);
+	font: inherit;
+	cursor: pointer;
+	background: var(--wicket-color-secondary, #374151);
+	color: var(--wicket-color-secondary-contrast, #fff);
+}
+
+.wicket-modal-block__trigger.button--primary {
+	background: var(--wicket-color-primary, #111827);
+	color: var(--wicket-color-primary-contrast, #fff);
+}
+
+.wicket-modal-block__trigger.button--ghost {
+	background: transparent;
+	color: inherit;
+	border-color: currentColor;
+}

@@ -1,0 +1,28 @@
+{
+	"name": "wicket/modal",
+	"title": "Modal",
+	"description": "A button that opens a modal dialog with editable content, such as text or the Wicket Banner block.",
+	"style": "block-wicket-modal",
+	"category": "wicket",
+	"icon": "",
+	"apiVersion": 2,
+	"keywords": ["modal", "dialog", "popup"],
+	"acf": {
+		"mode": "preview",
+		"renderTemplate": "render.php"
+	},
+	"styles": [],
+	"supports": {
+		"align": false,
+		"anchor": true,
+		"alignContent": false,
+		"color": {
+			"text": false,
+			"background": false,
+			"link": false
+		},
+		"alignText": false,
+		"fullHeight": false,
+		"jsx": true
+	}
+}
