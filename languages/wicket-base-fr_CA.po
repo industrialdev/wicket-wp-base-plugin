@@ -1,0 +1,1402 @@
+# Canadian French (fr_CA) translation of Wicket Base.
+# Copyright (C) 2026 Wicket Inc.
+# This file is distributed under the same license as the Wicket Base package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Wicket Base 2.7.11\n"
+"Report-Msgid-Bugs-To: https://wicket.io\n"
+"POT-Creation-Date: 2026-09-29T20:48:31+00:00\n"
+"PO-Revision-Date: 2026-09-29 20:48+0000\n"
+"Last-Translator: Wicket Inc.\n"
+"Language-Team: French (Canada)\n"
+"Language: fr_CA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Domain: wicket-base\n"
+
+#. Plugin Name of the plugin
+msgid "Wicket Base"
+msgstr "Wicket Base"
+
+#. Plugin URI of the plugin
+msgid "http://wicket.io"
+msgstr "http://wicket.io"
+
+#. Description of the plugin
+msgid "This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation."
+msgstr "Cette extension officielle de Wicket comprend les fonctionnalités de base, des fonctions standards et des outils de développement pour intégrer la plateforme de données des membres Wicket à une installation WordPress."
+
+#. Author of the plugin
+msgid "Wicket Inc."
+msgstr "Wicket Inc."
+
+#. Author URI of the plugin
+msgid "https://wicket.io"
+msgstr "https://wicket.io"
+
+msgctxt "label"
+msgid "Wicket"
+msgstr "Wicket"
+
+msgctxt "label"
+msgid "Wicket Settings"
+msgstr "Paramètres Wicket"
+
+msgctxt "label"
+msgid "Settings"
+msgstr "Paramètres"
+
+msgctxt "label"
+msgid "General"
+msgstr "Général"
+
+msgctxt "label"
+msgid "Environments"
+msgstr "Environnements"
+
+msgctxt "label"
+msgid "Memberships"
+msgstr "Adhésions"
+
+msgctxt "label"
+msgid "Touchpoints"
+msgstr "Points de contact"
+
+msgctxt "label"
+msgid "Integrations"
+msgstr "Intégrations"
+
+msgctxt "label"
+msgid "Create Account Page"
+msgstr "Page de création de compte"
+
+msgid "Choose the create account page. This must contain the \"Create Account Form\" block."
+msgstr "Choisissez la page de création de compte. Elle doit contenir le bloc « Create Account Form »."
+
+msgctxt "label"
+msgid "New Account Redirect"
+msgstr "Redirection après la création du compte"
+
+msgid "Where users are directed once they complete the create account form. Default is /verify-account"
+msgstr "Page vers laquelle les utilisateurs sont dirigés une fois le formulaire de création de compte rempli. La valeur par défaut est /verify-account"
+
+msgctxt "label"
+msgid "Google Captcha"
+msgstr "Google Captcha"
+
+msgid "Enable Google Captcha on Create Account Form"
+msgstr "Activer Google Captcha sur le formulaire de création de compte"
+
+msgctxt "label"
+msgid "Google Captcha Key"
+msgstr "Clé Google Captcha"
+
+msgid "The key used to display Google reCAPTCHA. Obtain a key here <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+msgstr "Clé utilisée pour afficher Google reCAPTCHA. Obtenez une clé ici : <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+
+msgid "Google Captcha Secret Key"
+msgstr "Clé secrète Google Captcha"
+
+msgid "The secret key used to display Google reCAPTCHA. Obtain a key here <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+msgstr "Clé secrète utilisée pour afficher Google reCAPTCHA. Obtenez une clé ici : <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+
+msgctxt "label"
+msgid "Styles"
+msgstr "Styles"
+
+msgctxt "label"
+msgid "Disable Default Styling"
+msgstr "Désactiver le style par défaut"
+
+msgid "Disable Wicket default styling. Only for advanced users. If you enable this, no styling from this plugin will be loaded. Will be on you to add the necessary styles for all components and blocks."
+msgstr "Désactive le style par défaut de Wicket. Réservé aux utilisateurs avancés. Si vous activez cette option, aucun style de cette extension ne sera chargé. Vous devrez ajouter vous-même les styles nécessaires à tous les composants et blocs."
+
+msgid "Connect to Wicket Environments"
+msgstr "Se connecter aux environnements Wicket"
+
+msgid "Choose which environment to activate."
+msgstr "Choisissez l'environnement à activer."
+
+msgctxt "label"
+msgid "Wicket Environment"
+msgstr "Environnement Wicket"
+
+msgctxt "label"
+msgid "Staging"
+msgstr "Préproduction"
+
+msgctxt "label"
+msgid "Production"
+msgstr "Production"
+
+msgctxt "label"
+msgid "Wicket Production"
+msgstr "Wicket Production"
+
+msgid "Configure Wicket API setting, etc. for production"
+msgstr "Configurer les paramètres de l'API Wicket, etc. pour la production"
+
+msgctxt "label"
+msgid "API Endpoint"
+msgstr "Point de terminaison de l'API"
+
+msgid "The address of the API endpoint. Ex: https://[client]-api.wicketcloud.com"
+msgstr "Adresse du point de terminaison de l'API. Ex. : https://[client]-api.wicketcloud.com"
+
+msgctxt "label"
+msgid "JWT Secret Key"
+msgstr "Clé secrète JWT"
+
+msgid "Secret key from Wicket"
+msgstr "Clé secrète fournie par Wicket"
+
+msgctxt "label"
+msgid "Person ID"
+msgstr "ID de la personne"
+
+msgid "Person ID from Wicket"
+msgstr "ID de la personne dans Wicket"
+
+msgctxt "label"
+msgid "Parent Org"
+msgstr "Organisation mère"
+
+msgid "Top level organization used for creating new people on the create account form. This is the \"alternate name\" found in Wicket under \"Organizations\" for the top most organization."
+msgstr "Organisation de premier niveau utilisée pour créer de nouvelles personnes au moyen du formulaire de création de compte. Il s'agit de l'« autre nom » indiqué dans Wicket sous « Organisations » pour l'organisation de plus haut niveau."
+
+msgctxt "label"
+msgid "Wicket Admin"
+msgstr "Administration Wicket"
+
+msgid "The address of the admin interface. Ex: https://[client]-admin.wicketcloud.com"
+msgstr "Adresse de l'interface d'administration. Ex. : https://[client]-admin.wicketcloud.com"
+
+msgctxt "label"
+msgid "Wicket Staging"
+msgstr "Wicket Préproduction"
+
+msgid "Configure Wicket API setting, etc. for staging"
+msgstr "Configurer les paramètres de l'API Wicket, etc. pour la préproduction"
+
+msgctxt "label"
+msgid "Membership Configuration Overview"
+msgstr "Aperçu de la configuration des adhésions"
+
+msgid "The table below shows all Wicket Account Membership Tiers and corresponding WooCommerce Membership Plans. If you just applied changes to the Wicket Membership Tiers or changed Wicket Environments, please use the following button to renew the cached list below."
+msgstr "Le tableau ci-dessous présente tous les niveaux d'adhésion du compte Wicket et les forfaits d'adhésion WooCommerce correspondants. Si vous venez de modifier les niveaux d'adhésion Wicket ou de changer d'environnement Wicket, utilisez le bouton suivant pour actualiser la liste en cache ci-dessous."
+
+msgctxt "label"
+msgid "Membership Settings"
+msgstr "Paramètres des adhésions"
+
+msgid "Configure settings related to Memberships"
+msgstr "Configurer les paramètres liés aux adhésions"
+
+msgctxt "label"
+msgid "Membership Categories"
+msgstr "Catégories d'adhésion"
+
+msgid "Select which categories are used only for membership products. This is used by other settings or to help with custom development."
+msgstr "Sélectionnez les catégories utilisées uniquement pour les produits d'adhésion. Cette information sert à d'autres paramètres ou au développement personnalisé."
+
+msgid "Touchpoints write data back from WordPress user actions back to Wicket person profiles. Configure which default touchpoint should be used."
+msgstr "Les points de contact transmettent à Wicket les actions des utilisateurs WordPress, dans leur profil de personne. Configurez les points de contact par défaut à utiliser."
+
+msgctxt "label"
+msgid "WooCommerce Order"
+msgstr "Commande WooCommerce"
+
+msgid "Enable Order touchpoint and send details to Wicket MDP."
+msgstr "Activer le point de contact des commandes et envoyer les détails au MDP de Wicket."
+
+msgid "Event Tickets attendee registered for an event"
+msgstr "Participant Event Tickets inscrit à un événement"
+
+msgid "Enable a touchpoint to be written when attendees register for an event. <br><small>Touchpoint is written on order complete</small>"
+msgstr "Activer l'écriture d'un point de contact lorsque des participants s'inscrivent à un événement. <br><small>Le point de contact est écrit à la finalisation de la commande</small>"
+
+msgid "Event Tickets attendee check-in for an event"
+msgstr "Enregistrement de présence d'un participant Event Tickets à un événement"
+
+msgid "Enable a touchpoint to be written when attendees check-in for an event"
+msgstr "Activer l'écriture d'un point de contact lorsque des participants enregistrent leur présence à un événement"
+
+msgid "Event Tickets attendee RSVP for an event"
+msgstr "Réponse RSVP d'un participant Event Tickets à un événement"
+
+msgid "Enable a touchpoint to be written when attendees RSVP for an event"
+msgstr "Activer l'écriture d'un point de contact lorsque des participants répondent à l'invitation (RSVP) d'un événement"
+
+msgid "Event Tickets attendee added by an admin or CSV import"
+msgstr "Participant Event Tickets ajouté par un administrateur ou par importation CSV"
+
+msgid "Enable a touchpoint to be written when an attendee is added from the WordPress admin Attendees screen, or imported from CSV. Recorded as a registration, with the source noted on the touchpoint. <br><small>Imported attendees carry no registration form answers, because the CSV importer does not collect them.</small>"
+msgstr "Activer l'écriture d'un point de contact lorsqu'un participant est ajouté à partir de l'écran Participants de l'administration WordPress ou importé à partir d'un fichier CSV. Il est enregistré comme une inscription, et la source est indiquée dans le point de contact. <br><small>Les participants importés n'ont pas de réponses au formulaire d'inscription, car l'outil d'importation CSV ne les recueille pas.</small>"
+
+msgid "Event Tickets attendee removed from an event"
+msgstr "Participant Event Tickets retiré d'un événement"
+
+msgid "Enable a touchpoint to be written when an attendee is removed from an event. <br><small>Written once, whether the attendee is moved to the trash or deleted outright.</small>"
+msgstr "Activer l'écriture d'un point de contact lorsqu'un participant est retiré d'un événement. <br><small>Écrit une seule fois, que le participant soit mis à la corbeille ou supprimé définitivement.</small>"
+
+msgid "Include registration form answers"
+msgstr "Inclure les réponses au formulaire d'inscription"
+
+msgid "Include the attendee's registration form answers in event touchpoints, as label and value pairs. <br><small>Every answered field is sent. Use the wicket_tec_registration_answers filter to leave fields out.</small>"
+msgstr "Inclure les réponses du participant au formulaire d'inscription dans les points de contact des événements, sous forme de paires libellé-valeur. <br><small>Tous les champs remplis sont envoyés. Utilisez le filtre wicket_tec_registration_answers pour exclure des champs.</small>"
+
+msgctxt "label"
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+msgid "Configure settings for common customizations with default WooCommerce behaviour."
+msgstr "Configurer les paramètres des personnalisations courantes du comportement par défaut de WooCommerce."
+
+msgctxt "label"
+msgid "Sync Checkout Addresses"
+msgstr "Synchroniser les adresses de paiement"
+
+msgid "Billing and shipping addresses in WooCommerce checkout are pre-populated with the address from the Wicket person record."
+msgstr "Les adresses de facturation et de livraison de la page de paiement WooCommerce sont préremplies avec l'adresse du dossier de la personne dans Wicket."
+
+msgid "Remove product links from Cart & Checkout"
+msgstr "Retirer les liens vers les produits du panier et de la page de paiement"
+
+msgid "Remove links to product pages from the cart and checkout pages"
+msgstr "Retirer les liens vers les pages des produits dans le panier et la page de paiement"
+
+msgctxt "label"
+msgid "Hide membership categories"
+msgstr "Masquer les catégories d'adhésion"
+
+msgid "Hide membership categories and remove from search results. Membership categories are selected in the Membership setting tab."
+msgstr "Masquer les catégories d'adhésion et les retirer des résultats de recherche. Les catégories d'adhésion sont sélectionnées dans l'onglet Adhésions des paramètres."
+
+msgid "Hide membership product single pages"
+msgstr "Masquer les pages individuelles des produits d'adhésion"
+
+msgid "Products in the categories that are identified as Membership Categories in the Wicket Settings -> Memberships Tab will have their single page redirect to the homepage. These products can still be added to cart by other methods such as the onboarding form."
+msgstr "Les produits des catégories définies comme catégories d'adhésion dans Paramètres Wicket -> onglet Adhésions verront leur page individuelle redirigée vers la page d'accueil. Ces produits peuvent quand même être ajoutés au panier par d'autres moyens, comme le formulaire d'accueil."
+
+msgid "Remove product added to cart message"
+msgstr "Retirer le message d'ajout au panier"
+
+msgid "When redirected to a checkout disable the \"X added to cart, continue shopping?\" message."
+msgstr "Lors d'une redirection vers la page de paiement, désactiver le message « X ajouté au panier, continuer vos achats ? »."
+
+msgid "Block customer emails on admin updates"
+msgstr "Bloquer les courriels aux clients lors des mises à jour par l'administration"
+
+msgid "Stops customer emails when admins update orders unless the email is explicitly sent."
+msgstr "Empêche l'envoi de courriels aux clients lorsque les administrateurs mettent à jour des commandes, sauf si le courriel est envoyé explicitement."
+
+msgid "Allow refund emails from admin"
+msgstr "Permettre les courriels de remboursement envoyés par l'administration"
+
+msgid "Allow refund emails to customers when refunds are triggered by an admin."
+msgstr "Permettre l'envoi de courriels de remboursement aux clients lorsqu'un administrateur effectue un remboursement."
+
+msgid "Draft order retention (days)"
+msgstr "Conservation des commandes brouillons (jours)"
+
+msgid "Number of days a draft (checkout-draft) order is kept before being automatically deleted. Defaults to 60 days. Set to 0 to disable automatic deletion entirely. Set to 1 to match WooCommerce's built-in default behaviour. Note: this overrides WooCommerce's built-in behaviour, which deletes draft orders after just 1 day."
+msgstr "Nombre de jours pendant lesquels une commande brouillon (checkout-draft) est conservée avant d'être supprimée automatiquement. La valeur par défaut est de 60 jours. Entrez 0 pour désactiver complètement la suppression automatique. Entrez 1 pour reproduire le comportement par défaut de WooCommerce. Remarque : ce paramètre remplace le comportement intégré de WooCommerce, qui supprime les commandes brouillons après seulement 1 jour."
+
+msgid "Person to Organization Relationship Types"
+msgstr "Types de relations entre personne et organisation"
+
+msgid "This is needed to determine which person to organization relationship types we want to identify that are relevant for usage on the site. One example is within WooCommerce orders."
+msgstr "Ce paramètre permet de déterminer quels types de relations entre personne et organisation sont pertinents pour le site. Par exemple, dans les commandes WooCommerce."
+
+msgid "Assign people to groups on product purchase"
+msgstr "Attribuer des personnes à des groupes lors de l'achat d'un produit"
+
+msgid "When certain subscription products are purchased manage group assignments based on subscription dates."
+msgstr "Lorsque certains produits d'abonnement sont achetés, gérer les attributions aux groupes selon les dates de l'abonnement."
+
+msgid "Group Assignment Product Category"
+msgstr "Catégorie de produit pour l'attribution aux groupes"
+
+msgid "Choose the category of product that will show the Group Assignment Tab and Settings."
+msgstr "Choisissez la catégorie de produit qui affichera l'onglet et les paramètres d'attribution aux groupes."
+
+msgid "Group Role Entity Object Slug"
+msgstr "Slug de l'objet d'entité des rôles de groupe"
+
+msgid "Use <code>group-members</code> unless it isn't working and only if you understand why it should be different. This retrieves Group Role resource entity options from Wicket."
+msgstr "Utilisez <code>group-members</code>, sauf si cela ne fonctionne pas et seulement si vous comprenez pourquoi une autre valeur est nécessaire. Ce paramètre récupère les options d'entité de ressource des rôles de groupe dans Wicket."
+
+msgctxt "label"
+msgid "WP Cassify"
+msgstr "WP Cassify"
+
+msgctxt "label"
+msgid "Sync Security Roles"
+msgstr "Synchroniser les rôles de sécurité"
+
+msgid "Sync all roles found under profile -> security -> roles in the MDP for each user when they log in to WordPress - Requires WP-CASSIFY plugin."
+msgstr "Synchroniser tous les rôles indiqués sous profil -> sécurité -> rôles dans le MDP pour chaque utilisateur lorsqu'il ouvre une session dans WordPress - Nécessite l'extension WP-CASSIFY."
+
+msgid "Sync Memberships as Roles"
+msgstr "Synchroniser les adhésions comme rôles"
+
+msgid "Sync active user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called \"Student\" within the MDP, when they log in, a role will be created called \"Student\" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!</em></strong>"
+msgstr "Synchroniser les adhésions actives de l'utilisateur à partir du MDP lorsqu'il ouvre une session dans WordPress. Par exemple, s'il a une adhésion nommée « Étudiant » dans le MDP, un rôle nommé « Étudiant » sera créé à l'ouverture de session s'il n'existe pas encore, puis attribué à l'utilisateur. - REMARQUE : Nécessite l'extension WP-CASSIFY et <strong><em> que la case ci-dessus soit cochée !</em></strong>"
+
+msgid "Sync Tags as Roles"
+msgstr "Synchroniser les étiquettes comme rôles"
+
+msgid "Sync selected user tags from the MDP for a user when they log in to WordPress. Type the allowed tag(s) in this field. Values in field must match the tag in the MDP exactly. Multiple values must be comma separated."
+msgstr "Synchroniser les étiquettes d'utilisateur sélectionnées à partir du MDP lorsqu'il ouvre une session dans WordPress. Entrez les étiquettes permises dans ce champ. Les valeurs doivent correspondre exactement aux étiquettes du MDP. Séparez les valeurs multiples par des virgules."
+
+msgctxt "label"
+msgid "Ignore Roles"
+msgstr "Rôles ignorés"
+
+msgid "Ignore certain user roles from the MDP for a user when they log in to WordPress. Type the allowed role(s) in this field. Values in field must match the roles in the MDP exactly. Multiple values must be comma separated. - NOTE: This only applies to security roles found on the users profile in the MDP. It does not apply to derived roles such as the ones mentioned above for memberships, etc"
+msgstr "Ignorer certains rôles d'utilisateur du MDP lorsqu'il ouvre une session dans WordPress. Entrez les rôles permis dans ce champ. Les valeurs doivent correspondre exactement aux rôles du MDP. Séparez les valeurs multiples par des virgules. - REMARQUE : Ceci s'applique seulement aux rôles de sécurité indiqués dans le profil de l'utilisateur dans le MDP, et non aux rôles dérivés comme ceux des adhésions mentionnés ci-dessus."
+
+msgctxt "label"
+msgid "Mailtrap"
+msgstr "Mailtrap"
+
+msgid "Used to send all WordPress mail to mailtrap. Typically used on staging/local for testing and will only take effect when the Wicket environment is toggled to \"Staging\". <br> NOTE! Remember to disable any SMTP plugin(s) while using the stage environment. Otherwise these settings won't take effect."
+msgstr "Sert à envoyer tous les courriels de WordPress à Mailtrap. Habituellement utilisé en préproduction ou en local pour les tests ; prend effet seulement lorsque l'environnement Wicket est réglé à « Préproduction ». <br> REMARQUE : N'oubliez pas de désactiver toute extension SMTP lorsque vous utilisez l'environnement de préproduction. Sinon, ces paramètres ne prendront pas effet."
+
+msgctxt "label"
+msgid "Host"
+msgstr "Hôte"
+
+msgid "Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP"
+msgstr "Se trouve dans les paramètres SMTP de la boîte de réception -> Show Credentials -> sous SMTP"
+
+msgctxt "label"
+msgid "Port"
+msgstr "Port"
+
+msgid "This is usually 2525"
+msgstr "Il s'agit habituellement du port 2525"
+
+msgctxt "label"
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+msgctxt "label"
+msgid "Password"
+msgstr "Mot de passe"
+
+msgctxt "label"
+msgid "Status"
+msgstr "État"
+
+msgctxt "status"
+msgid "CONNECTED"
+msgstr "CONNECTÉ"
+
+msgctxt "status"
+msgid "NOT CONNECTED"
+msgstr "NON CONNECTÉ"
+
+msgctxt "button label"
+msgid "Refresh Wicket Memberships"
+msgstr "Actualiser les adhésions Wicket"
+
+#. translators: %s: number of membership tiers.
+#, php-format
+msgid "A total of %s Membership Tier was found in your Wicket account."
+msgid_plural "A total of %s Membership Tiers were found in your Wicket account."
+msgstr[0] "Au total, %s niveau d'adhésion a été trouvé dans votre compte Wicket."
+msgstr[1] "Au total, %s niveaux d'adhésion ont été trouvés dans votre compte Wicket."
+
+msgctxt "label"
+msgid "Wicket Membership Tier"
+msgstr "Niveau d'adhésion Wicket"
+
+msgctxt "label"
+msgid "Wicket Membership UUID"
+msgstr "UUID de l'adhésion Wicket"
+
+msgctxt "label"
+msgid "Type"
+msgstr "Type"
+
+msgctxt "label"
+msgid "WooCommerce Membership"
+msgstr "Adhésion WooCommerce"
+
+msgctxt "label"
+msgid "# Products"
+msgstr "Nbre de produits"
+
+msgctxt "label"
+msgid "# Teams"
+msgstr "Nbre d'équipes"
+
+msgctxt "label"
+msgid "# Members"
+msgstr "Nbre de membres"
+
+msgctxt "button label"
+msgid "View Members"
+msgstr "Voir les membres"
+
+msgid "REQUIRED PLUGINS: The following plugins are required to be installed and activated in order to use the Memberships settings. 1. WooCommerce (Installed) | 2. WooCommerce Memberships (Not Installed) | 3. WooCommerce Subscriptions (Not Installed) | 4. Teams for WooCommerce Memberships (Required for Organization Memberships) (Not Installed)"
+msgstr "EXTENSIONS REQUISES : les extensions suivantes doivent être installées et activées pour utiliser les paramètres des adhésions. 1. WooCommerce (installée) | 2. WooCommerce Memberships (non installée) | 3. WooCommerce Subscriptions (non installée) | 4. Teams for WooCommerce Memberships (requise pour les adhésions d'organisation) (non installée)"
+
+msgid "No accordion items found."
+msgstr "Aucun élément d'accordéon trouvé."
+
+msgid "Use the Block controls in edit mode or on the right to add accordion items."
+msgstr "Utilisez les contrôles du bloc en mode édition ou à droite pour ajouter des éléments d'accordéon."
+
+msgctxt "button label"
+msgid "Download"
+msgstr "Télécharger"
+
+msgctxt "button label"
+msgid "Back"
+msgstr "Retour"
+
+#. translators: %s: title of the page the link goes back to.
+#, php-format
+msgctxt "button label"
+msgid "Go back to %s"
+msgstr "Retourner à %s"
+
+msgid "(opens in new tab)"
+msgstr "(s'ouvre dans un nouvel onglet)"
+
+msgctxt "status"
+msgid "Members Only"
+msgstr "Réservé aux membres"
+
+msgctxt "status"
+msgid "Restricted"
+msgstr "Accès restreint"
+
+msgctxt "status"
+msgid "Virtual Event"
+msgstr "Événement virtuel"
+
+msgctxt "status"
+msgid "Hybrid Event"
+msgstr "Événement hybride"
+
+msgctxt "button label"
+msgid "Get Tickets"
+msgstr "Obtenir des billets"
+
+msgid "Log in to Purchase Ticket"
+msgstr "Ouvrir une session pour acheter un billet"
+
+msgctxt "button label"
+msgid "Read More"
+msgstr "Lire la suite"
+
+msgctxt "button label"
+msgid "View Page"
+msgstr "Voir la page"
+
+msgctxt "button label"
+msgid "Visit Page"
+msgstr "Visiter la page"
+
+msgctxt "label"
+msgid "Featured"
+msgstr "En vedette"
+
+msgctxt "label"
+msgid "Refine Results"
+msgstr "Affiner les résultats"
+
+msgctxt "accessibility label"
+msgid "Toggle filters"
+msgstr "Afficher ou masquer les filtres"
+
+msgctxt "label"
+msgid "Content Types"
+msgstr "Types de contenu"
+
+msgctxt "button label"
+msgid "See Less"
+msgstr "Voir moins"
+
+msgctxt "button label"
+msgid "See More"
+msgstr "Voir plus"
+
+msgctxt "label"
+msgid "Date Range"
+msgstr "Période"
+
+msgctxt "label"
+msgid "From:"
+msgstr "Du :"
+
+msgctxt "label"
+msgid "To:"
+msgstr "Au :"
+
+msgctxt "button label"
+msgid "Apply Filters"
+msgstr "Appliquer les filtres"
+
+msgctxt "button label"
+msgid "Clear All"
+msgstr "Tout effacer"
+
+msgid "Use the Block controls in edit mode or on the right to add icons."
+msgstr "Utilisez les contrôles du bloc en mode édition ou à droite pour ajouter des icônes."
+
+msgctxt "button label"
+msgid "Proceed"
+msgstr "Continuer"
+
+msgid "Seats available for this organization"
+msgstr "Places disponibles pour cette organisation"
+
+msgid "This organization has an active membership with open seats. You can proceed now or review the helpful links below."
+msgstr "Cette organisation a une adhésion active avec des places libres. Vous pouvez continuer maintenant ou consulter les liens utiles ci-dessous."
+
+msgid "No seats remaining for this organization"
+msgstr "Aucune place restante pour cette organisation"
+
+msgid "All seats for this organization are already assigned. Remove an existing assignment or contact support to continue."
+msgstr "Toutes les places de cette organisation sont déjà attribuées. Retirez une attribution existante ou communiquez avec le soutien technique pour continuer."
+
+msgid "Notify your account manager"
+msgstr "Aviser votre gestionnaire de compte"
+
+msgctxt "entity name"
+msgid "Organization"
+msgstr "Organisation"
+
+msgctxt "entity name"
+msgid "Group"
+msgstr "Groupe"
+
+msgctxt "entity name"
+msgid "Organizations"
+msgstr "Organisations"
+
+msgctxt "entity name"
+msgid "Groups"
+msgstr "Groupes"
+
+#. translators: %s: organization term, plural and lowercase, e.g. organizations.
+#, php-format
+msgid "Sorry, no %s match your search. Please try again."
+msgstr "Désolé, aucun résultat (%s) ne correspond à votre recherche. Veuillez réessayer."
+
+msgctxt "accessibility label"
+msgid "Dismiss message"
+msgstr "Fermer le message"
+
+msgctxt "button label"
+msgid "Close X"
+msgstr "Fermer X"
+
+#. translators: %s: organization name.
+#, php-format
+msgid "Please confirm: You'd like to remove your connection with %s?"
+msgstr "Veuillez confirmer : voulez-vous retirer votre lien avec %s ?"
+
+#. translators: %s: organization name.
+#, php-format
+msgid "This will remove all connections you have with %s, including membership."
+msgstr "Cela retirera tous vos liens avec %s, y compris l'adhésion."
+
+msgctxt "button label"
+msgid "Cancel"
+msgstr "Annuler"
+
+msgctxt "message"
+msgid "Sending..."
+msgstr "Envoi en cours…"
+
+#. translators: %s: organization term in lowercase, e.g. organization or group.
+#, php-format
+msgctxt "field placeholder"
+msgid "Search by %s name"
+msgstr "Rechercher par nom (%s)"
+
+msgctxt "button label"
+msgid "Search"
+msgstr "Rechercher"
+
+msgctxt "button label"
+msgid "Clear"
+msgstr "Effacer"
+
+msgctxt "label"
+msgid "Matching Organization(s)"
+msgstr "Organisations correspondantes"
+
+msgctxt "button label"
+msgid "Select"
+msgstr "Sélectionner"
+
+msgctxt "button label"
+msgid "Already Selected"
+msgstr "Déjà sélectionnée"
+
+msgid "This organization has an active membership and cannot be selected."
+msgstr "Cette organisation a une adhésion active et ne peut pas être sélectionnée."
+
+msgctxt "label"
+msgid "Selected Organization:"
+msgstr "Organisation sélectionnée :"
+
+msgid "Your current Organization(s)"
+msgstr "Vos organisations actuelles"
+
+msgctxt "button label"
+msgid "Clear Selection"
+msgstr "Effacer la sélection"
+
+msgctxt "status"
+msgid "Active Membership"
+msgstr "Adhésion active"
+
+msgctxt "status"
+msgid "Inactive Membership"
+msgstr "Adhésion inactive"
+
+msgctxt "button label"
+msgid "Selected"
+msgstr "Sélectionnée"
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "button label"
+msgid "Proceed with %s"
+msgstr "Continuer avec : %s"
+
+msgctxt "button label"
+msgid "Remove"
+msgstr "Retirer"
+
+#. translators: %s: organization term in lowercase, e.g. organization or group.
+#, php-format
+msgctxt "label"
+msgid "Can't find your %s?"
+msgstr "Vous ne trouvez pas votre %s ?"
+
+msgid "Create a new one:"
+msgstr "Créez-en une nouvelle :"
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "label"
+msgid "Name of the %s"
+msgstr "Nom (%s)"
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "label"
+msgid "Type of %s"
+msgstr "Type (%s)"
+
+msgctxt "label"
+msgid "Select one"
+msgstr "Sélectionnez une option"
+
+msgctxt "label"
+msgid "Org type"
+msgstr "Type d'organisation"
+
+msgctxt "button label"
+msgid "Add"
+msgstr "Ajouter"
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgid "%s you are trying to add already exists"
+msgstr "L'élément (%s) que vous tentez d'ajouter existe déjà"
+
+msgid "Please enter the name in the search field above to find the existing record."
+msgstr "Veuillez entrer le nom dans le champ de recherche ci-dessus pour trouver le dossier existant."
+
+msgid "Thanks, the organization owner has been notified."
+msgstr "Merci. Le titulaire de l'organisation a été avisé."
+
+msgid "The organization owner was already notified recently. Please wait before trying again."
+msgstr "Le titulaire de l'organisation a déjà été avisé récemment. Veuillez patienter avant de réessayer."
+
+msgid "We could not notify the organization owner. Please try again later."
+msgstr "Impossible d'aviser le titulaire de l'organisation. Veuillez réessayer plus tard."
+
+msgid "Please provide a search term"
+msgstr "Veuillez entrer un terme de recherche"
+
+msgid "Please enter an organization name."
+msgstr "Veuillez entrer le nom d'une organisation."
+
+msgid "Please select an organization type."
+msgstr "Veuillez sélectionner un type d'organisation."
+
+msgid "We could not verify active membership status right now. Please try again."
+msgstr "Impossible de vérifier l'état de l'adhésion active pour le moment. Veuillez réessayer."
+
+msgid "There was an error creating the connection. Please try again."
+msgstr "Une erreur s'est produite lors de la création du lien. Veuillez réessayer."
+
+msgctxt "message"
+msgid "Organization connected successfully"
+msgstr "Organisation liée"
+
+msgctxt "value placeholder"
+msgid "this organization"
+msgstr "cette organisation"
+
+msgctxt "value placeholder"
+msgid "Unknown relationship"
+msgstr "Relation inconnue"
+
+msgctxt "value placeholder"
+msgid "Not specified"
+msgstr "Non précisé"
+
+#. translators: %s: organization name.
+#, php-format
+msgid "We could not remove %s."
+msgstr "Impossible de retirer %s."
+
+msgid "Review the details below or contact support if this continues."
+msgstr "Vérifiez les détails ci-dessous ou communiquez avec le soutien technique si le problème persiste."
+
+#. translators: 1: relationship type this tool can remove, 2: relationship type of this record.
+#, php-format
+msgid "This tool is limited to removing \"%1$s\" links, but this record is \"%2$s\"."
+msgstr "Cet outil ne peut retirer que les liens de type « %1$s », mais ce dossier est de type « %2$s »."
+
+msgid "The MDP blocked ending this connection on the same day it was created. Try again tomorrow or contact support."
+msgstr "Le MDP a empêché de mettre fin à ce lien le jour même de sa création. Réessayez demain ou communiquez avec le soutien technique."
+
+msgctxt "label"
+msgid "Related Events"
+msgstr "Événements connexes"
+
+msgctxt "button label"
+msgid "View All"
+msgstr "Tout voir"
+
+msgid "No related posts found."
+msgstr "Aucune publication connexe trouvée."
+
+#. translators: %s: post type plural name, e.g. News.
+#, php-format
+msgctxt "label"
+msgid "Related %s"
+msgstr "Contenu connexe : %s"
+
+msgctxt "field placeholder"
+msgid "Search by Keyword"
+msgstr "Rechercher par mot-clé"
+
+msgctxt "accessibility label"
+msgid "Search"
+msgstr "Rechercher"
+
+msgctxt "button label"
+msgid "Share"
+msgstr "Partager"
+
+msgid "Share on Facebook (opens in a new tab)"
+msgstr "Partager sur Facebook (s'ouvre dans un nouvel onglet)"
+
+msgid "Share on Twitter (opens in a new tab)"
+msgstr "Partager sur Twitter (s'ouvre dans un nouvel onglet)"
+
+msgid "Share on LinkedIn (opens in a new tab)"
+msgstr "Partager sur LinkedIn (s'ouvre dans un nouvel onglet)"
+
+msgid "Share via Email (opens in email client)"
+msgstr "Partager par courriel (s'ouvre dans le logiciel de courriel)"
+
+msgid "Share on Bluesky (opens in a new tab)"
+msgstr "Partager sur Bluesky (s'ouvre dans un nouvel onglet)"
+
+msgid "Share on Threads (opens in a new tab)"
+msgstr "Partager sur Threads (s'ouvre dans un nouvel onglet)"
+
+msgid "Copy page URL to clipboard"
+msgstr "Copier l'URL de la page dans le presse-papiers"
+
+msgctxt "message"
+msgid "Copied!"
+msgstr "Copié !"
+
+#. translators: %d: tab number.
+#, php-format
+msgctxt "value placeholder"
+msgid "Tab %d"
+msgstr "Onglet %d"
+
+msgctxt "label"
+msgid "Additional Info"
+msgstr "Renseignements supplémentaires"
+
+msgctxt "label"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "label"
+msgid "Organization Profile"
+msgstr "Profil de l'organisation"
+
+msgid "identifiable_id and service_uuid are required."
+msgstr "identifiable_id et service_uuid sont obligatoires."
+
+#. translators: %s: comma-separated list of allowed identifiable types.
+#, php-format
+msgid "identifiable_type must be one of: %s."
+msgstr "identifiable_type doit être l'une des valeurs suivantes : %s."
+
+msgid "Wicket API client is not available."
+msgstr "Le client de l'API Wicket n'est pas disponible."
+
+msgid "MDP returned no service identity id."
+msgstr "Le MDP n'a retourné aucun ID d'identité de service."
+
+msgid "identity_uuid is required."
+msgstr "identity_uuid est obligatoire."
+
+msgid "No mutable attributes to update (external_id is immutable)."
+msgstr "Aucun attribut modifiable à mettre à jour (external_id ne peut pas être modifié)."
+
+msgid "MDP returned no service identity."
+msgstr "Le MDP n'a retourné aucune identité de service."
+
+#. translators: %s: name of the person who ran the CSV import.
+#, php-format
+msgctxt "value placeholder"
+msgid "%s (CSV import)"
+msgstr "%s (importation CSV)"
+
+msgctxt "value placeholder"
+msgid "CSV import"
+msgstr "Importation CSV"
+
+msgctxt "value placeholder"
+msgid "An administrator"
+msgstr "Un administrateur"
+
+#. translators: %s: order ID of the renewal order that was successfully paid
+#, php-format
+msgid "Cancelled automatically: renewal order #%s was paid for this subscription."
+msgstr "Annulé automatiquement : la commande de renouvellement n° %s a été payée pour cet abonnement."
+
+msgctxt "label"
+msgid "Group Product Assignment"
+msgstr "Attribution aux groupes par produit"
+
+msgctxt "label"
+msgid "None"
+msgstr "Aucun"
+
+msgctxt "label"
+msgid "Group Assigned"
+msgstr "Groupe attribué"
+
+msgid "Purchase of this product will assign person to the selected group."
+msgstr "L'achat de ce produit attribuera la personne au groupe sélectionné."
+
+msgctxt "label"
+msgid "Role Assigned"
+msgstr "Rôle attribué"
+
+msgid "Purchase of this product will assign person the selected role in the group."
+msgstr "L'achat de ce produit attribuera à la personne le rôle sélectionné dans le groupe."
+
+msgid "Unable to switch: The Wicket account no longer exists or the UUIDs do not match."
+msgstr "Changement impossible : le compte Wicket n'existe plus ou les UUID ne correspondent pas."
+
+msgid "This will look up the user in MDP by email and update the WP user_login to the MDP UUID. Proceed?"
+msgstr "L'utilisateur sera recherché dans le MDP par son adresse courriel, puis le user_login WordPress sera remplacé par l'UUID du MDP. Continuer ?"
+
+msgid "Attempt to fix WP<>MDP UUID mismatch."
+msgstr "Tenter de corriger l'écart d'UUID entre WordPress et le MDP."
+
+msgid "UUID mismatch repair failed: another account already uses this UUID as login. Resolve duplicate before retrying."
+msgstr "Échec de la correction de l'écart d'UUID : un autre compte utilise déjà cet UUID comme identifiant. Réglez le doublon avant de réessayer."
+
+msgid "UUID mismatch repaired: WP user_login updated to correct MDP user UUID matched by email."
+msgstr "Écart d'UUID corrigé : le user_login WordPress a été remplacé par l'UUID de l'utilisateur du MDP trouvé à l'aide de l'adresse courriel."
+
+msgid "UUID mismatch repair failed. Ensure the email is associated to a user in the MDP."
+msgstr "Échec de la correction de l'écart d'UUID. Assurez-vous que l'adresse courriel est associée à un utilisateur dans le MDP."
+
+msgctxt "label"
+msgid "Pre-populate Addresses"
+msgstr "Préremplir les adresses"
+
+msgctxt "label"
+msgid "-- Choose Address --"
+msgstr "-- Choisir une adresse --"
+
+msgctxt "label"
+msgid "Choose an Option"
+msgstr "Choisir une option"
+
+msgctxt "label"
+msgid "Address Type"
+msgstr "Type d'adresse"
+
+msgctxt "label"
+msgid "Save New Address"
+msgstr "Enregistrer la nouvelle adresse"
+
+msgctxt "label"
+msgid "Customer"
+msgstr "Client"
+
+msgctxt "value placeholder"
+msgid "Guest"
+msgstr "Invité"
+
+msgctxt "label"
+msgid "Wicket Team Settings"
+msgstr "Paramètres de l'équipe Wicket"
+
+msgctxt "label"
+msgid "Wicket Organization"
+msgstr "Organisation Wicket"
+
+msgid "Enter the organization UUID value from Wicket. This is required to establish a connection between this WooCommerce Membership Team and Wicket Organization."
+msgstr "Entrez l'UUID de l'organisation dans Wicket. Il est nécessaire pour établir le lien entre cette équipe d'adhésion WooCommerce et l'organisation Wicket."
+
+msgctxt "webhook topic"
+msgid "Membership Team Created"
+msgstr "Équipe d'adhésion créée"
+
+msgctxt "webhook topic"
+msgid "Membership Team Updated"
+msgstr "Équipe d'adhésion mise à jour"
+
+msgctxt "webhook topic"
+msgid "Membership Team Deleted"
+msgstr "Équipe d'adhésion supprimée"
+
+msgctxt "webhook topic"
+msgid "Membership Team Restored"
+msgstr "Équipe d'adhésion restaurée"
+
+msgctxt "label"
+msgid "First Name"
+msgstr "Prénom"
+
+msgctxt "label"
+msgid "Last Name"
+msgstr "Nom de famille"
+
+msgctxt "message"
+msgid "Organization not provided."
+msgstr "Organisation non fournie."
+
+msgctxt "value placeholder"
+msgid "A member"
+msgstr "Un membre"
+
+msgid "Organization membership not found."
+msgstr "Adhésion de l'organisation introuvable."
+
+msgid "Organization owner not found."
+msgstr "Titulaire de l'organisation introuvable."
+
+msgid "Organization owner email not found."
+msgstr "Adresse courriel du titulaire de l'organisation introuvable."
+
+msgctxt "email subject"
+msgid "Roster update requested"
+msgstr "Demande de mise à jour de la liste des membres"
+
+#. translators: %s: name of the person asking to join the roster.
+#, php-format
+msgid "%s would like to be added to the organization roster. Please update the roster to make room or contact support for more seats."
+msgstr "%s souhaite être ajouté à la liste des membres de l'organisation. Veuillez mettre à jour la liste pour libérer une place ou communiquer avec le soutien technique pour obtenir plus de places."
+
+msgid "Email delivery is not configured on this environment. Please try again later."
+msgstr "L'envoi de courriels n'est pas configuré dans cet environnement. Veuillez réessayer plus tard."
+
+msgctxt "email subject"
+msgid "Roster update notification"
+msgstr "Avis de mise à jour de la liste des membres"
+
+#. translators: %1$s: name of the person added to the roster.
+#, php-format
+msgid "%1$s has been added to your organization roster. No action is needed unless %1$s is not an employee. In that case, you can access the roster management tool and remove them. If %1$s is an employee, they can now access member benefits."
+msgstr "%1$s a été ajouté à la liste des membres de votre organisation. Aucune action n'est requise, sauf si %1$s n'est pas un employé. Dans ce cas, vous pouvez accéder à l'outil de gestion de la liste des membres pour le retirer. Si %1$s est un employé, il peut maintenant accéder aux avantages de membre."
+
+msgctxt "widget name"
+msgid "Wicket Create Account"
+msgstr "Wicket Créer un compte"
+
+msgctxt "label"
+msgid "Wicket Block Error:"
+msgstr "Erreur de bloc Wicket :"
+
+msgid "Wicket API credentials are not configured. Please define them in your configuration to enable this block."
+msgstr "Les identifiants de l'API Wicket ne sont pas configurés. Veuillez les définir dans votre configuration pour activer ce bloc."
+
+msgctxt "message"
+msgid "can't be blank"
+msgstr "ne peut pas être vide"
+
+msgid "must be a valid email address"
+msgstr "doit être une adresse courriel valide"
+
+msgid "must be a minimum of 8 characters"
+msgstr "doit comporter au moins 8 caractères"
+
+msgid "passwords do not match"
+msgstr "les mots de passe ne correspondent pas"
+
+msgid "please complete the captcha below"
+msgstr "veuillez remplir le captcha ci-dessous"
+
+#. translators: %s: number of errors in the form.
+#, php-format
+msgid "The form could not be submitted because %s error was found"
+msgid_plural "The form could not be submitted because %s errors were found"
+msgstr[0] "Le formulaire n'a pas pu être soumis, car %s erreur a été trouvée"
+msgstr[1] "Le formulaire n'a pas pu être soumis, car %s erreurs ont été trouvées"
+
+msgctxt "label"
+msgid "First name"
+msgstr "Prénom"
+
+msgctxt "label"
+msgid "Last name"
+msgstr "Nom de famille"
+
+msgctxt "label"
+msgid "Email"
+msgstr "Courriel"
+
+msgctxt "label"
+msgid "Confirm password"
+msgstr "Confirmer le mot de passe"
+
+msgctxt "label"
+msgid "Captcha"
+msgstr "Captcha"
+
+msgctxt "message"
+msgid "Successfully Created"
+msgstr "Compte créé"
+
+msgctxt "accessibility label"
+msgid "Required"
+msgstr "Obligatoire"
+
+msgid "Minimum of 8 characters"
+msgstr "Au moins 8 caractères"
+
+msgctxt "button label"
+msgid "Submit"
+msgstr "Soumettre"
+
+msgid "Wicket Create Account (No Password)"
+msgstr "Wicket Créer un compte (sans mot de passe)"
+
+#. translators: 1: form field name, 2: validation message for that field.
+#, php-format
+msgctxt "message"
+msgid "%1$s: %2$s"
+msgstr "%1$s : %2$s"
+
+#. translators: %d: error number in the list.
+#, php-format
+msgctxt "label"
+msgid "Error: %d"
+msgstr "Erreur : %d"
+
+msgctxt "widget name"
+msgid "Wicket Manage Preferences"
+msgstr "Wicket Gérer les préférences"
+
+msgctxt "message"
+msgid "Successfully Updated"
+msgstr "Mise à jour effectuée"
+
+msgctxt "label"
+msgid "Language"
+msgstr "Langue"
+
+msgctxt "label"
+msgid "English"
+msgstr "Anglais"
+
+msgctxt "label"
+msgid "French"
+msgstr "Français"
+
+msgctxt "label"
+msgid "Communications"
+msgstr "Communications"
+
+msgctxt "label"
+msgid "Yes, accept communications"
+msgstr "Oui, j'accepte de recevoir des communications"
+
+msgid "Yes, accept communications from 3rd party vendors"
+msgstr "Oui, j'accepte de recevoir des communications de fournisseurs tiers"
+
+msgctxt "button label"
+msgid "Update Preferences"
+msgstr "Mettre à jour les préférences"
+
+msgctxt "widget name"
+msgid "Wicket Update Password"
+msgstr "Wicket Mettre à jour le mot de passe"
+
+msgctxt "message"
+msgid "Request failed"
+msgstr "La demande a échoué"
+
+msgctxt "message"
+msgid "Unexpected error"
+msgstr "Erreur inattendue"
+
+msgctxt "label"
+msgid "Current password"
+msgstr "Mot de passe actuel"
+
+msgctxt "label"
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+msgctxt "label"
+msgid "Confirm new password"
+msgstr "Confirmer le nouveau mot de passe"
+
+msgctxt "button label"
+msgid "Change password"
+msgstr "Changer le mot de passe"
+
+msgctxt "label"
+msgid "Wicket Email Blocking"
+msgstr "Blocage des courriels Wicket"
+
+msgid "Block all emails for this order"
+msgstr "Bloquer tous les courriels de cette commande"
+
+msgid "Suppresses WooCommerce order emails and AutomateWoo workflows tied to this order. Resends from Order actions still send."
+msgstr "Supprime les courriels de commande WooCommerce et les flux de travail AutomateWoo liés à cette commande. Les renvois effectués à partir des actions de commande sont quand même envoyés."
+
+msgid "Refund emails are allowed."
+msgstr "Les courriels de remboursement sont permis."
+
+msgctxt "label"
+msgid "Email Blocker Active:"
+msgstr "Blocage des courriels actif :"
+
+msgid "No order emails will be sent when changing order status. Use Order actions or add a customer note to send emails explicitly."
+msgstr "Aucun courriel de commande ne sera envoyé lors d'un changement d'état de la commande. Utilisez les actions de commande ou ajoutez une note au client pour envoyer des courriels explicitement."
+
+msgctxt "block title"
+msgid "Create Account Form (No Password)"
+msgstr "Formulaire de création de compte (sans mot de passe)"
+
+msgctxt "block description"
+msgid "A Wicket block for Create Account Form without password entry"
+msgstr "Un bloc Wicket pour le formulaire de création de compte sans saisie de mot de passe"
+
+msgctxt "block title"
+msgid "Create Account Form"
+msgstr "Formulaire de création de compte"
+
+msgctxt "block description"
+msgid "A Wicket block for Create Account Form"
+msgstr "Un bloc Wicket pour le formulaire de création de compte"
+
+msgctxt "block title"
+msgid "Wicket Display Settings"
+msgstr "Paramètres d'affichage Wicket"
+
+msgctxt "block description"
+msgid "A Wicket block for displaying all settings, for debugging and development purposes."
+msgstr "Un bloc Wicket qui affiche tous les paramètres, à des fins de débogage et de développement."
+
+msgctxt "Color name"
+msgid "Primary"
+msgstr "Principale"
+
+msgctxt "Color name"
+msgid "Secondary"
+msgstr "Secondaire"
+
+msgctxt "Color name"
+msgid "Tertiary"
+msgstr "Tertiaire"
+
+msgctxt "Color name"
+msgid "Dark"
+msgstr "Foncée"
+
+msgctxt "Color name"
+msgid "Dark 060"
+msgstr "Foncée 060"
+
+msgctxt "Color name"
+msgid "Dark 080"
+msgstr "Foncée 080"
+
+msgctxt "Color name"
+msgid "Dark 090"
+msgstr "Foncée 090"
+
+msgctxt "Color name"
+msgid "Black"
+msgstr "Noir"
+
+msgctxt "Color name"
+msgid "White"
+msgstr "Blanc"
+
+msgctxt "Color name"
+msgid "Light"
+msgstr "Pâle"
+
+msgctxt "Color name"
+msgid "Light 020"
+msgstr "Pâle 020"
+
+msgctxt "Color name"
+msgid "Light 030"
+msgstr "Pâle 030"
+
+msgctxt "Color name"
+msgid "Accent A"
+msgstr "Accent A"
+
+msgctxt "Color name"
+msgid "Informational A"
+msgstr "Informative A"
+
+msgctxt "Color name"
+msgid "Informational A-020"
+msgstr "Informative A-020"
+
+msgctxt "Color name"
+msgid "Informational B"
+msgstr "Informative B"
+
+msgctxt "Color name"
+msgid "Informational B-020"
+msgstr "Informative B-020"
+
+msgctxt "Color name"
+msgid "Danger"
+msgstr "Danger"
+
+msgctxt "Color name"
+msgid "Warning"
+msgstr "Avertissement"
+
+msgctxt "Color name"
+msgid "Success"
+msgstr "Succès"
+
+msgctxt "Space size name"
+msgid "25 (2px)"
+msgstr "25 (2px)"
+
+msgctxt "Space size name"
+msgid "50 (4px)"
+msgstr "50 (4px)"
+
+msgctxt "Space size name"
+msgid "75 (6px)"
+msgstr "75 (6px)"
+
+msgctxt "Space size name"
+msgid "100 (8px)"
+msgstr "100 (8px)"
+
+msgctxt "Space size name"
+msgid "150 (12px)"
+msgstr "150 (12px)"
+
+msgctxt "Space size name"
+msgid "200 (16px)"
+msgstr "200 (16px)"
+
+msgctxt "Space size name"
+msgid "250 (20px)"
+msgstr "250 (20px)"
+
+msgctxt "Space size name"
+msgid "300 (24px)"
+msgstr "300 (24px)"
+
+msgctxt "Space size name"
+msgid "400 (32px)"
+msgstr "400 (32px)"
+
+msgctxt "Space size name"
+msgid "500 (40px)"
+msgstr "500 (40px)"
+
+msgctxt "Space size name"
+msgid "600 (48px)"
+msgstr "600 (48px)"
+
+msgctxt "Space size name"
+msgid "800 (64px)"
+msgstr "800 (64px)"
+
+msgctxt "Space size name"
+msgid "1000 (80px)"
+msgstr "1000 (80px)"
+
+msgctxt "Font family name"
+msgid "System Sans Serif"
+msgstr "Sans empattement système"
+
+msgctxt "Font family name"
+msgid "System Serif"
+msgstr "Avec empattement système"
+
+msgctxt "Font size name"
+msgid "Heading 3xl"
+msgstr "Titre 3xl"
+
+msgctxt "Font size name"
+msgid "Heading 2xl"
+msgstr "Titre 2xl"
+
+msgctxt "Font size name"
+msgid "Heading xl"
+msgstr "Titre xl"
+
+msgctxt "Font size name"
+msgid "Heading lg"
+msgstr "Titre lg"
+
+msgctxt "Font size name"
+msgid "Heading md"
+msgstr "Titre md"
+
+msgctxt "Font size name"
+msgid "Heading sm"
+msgstr "Titre sm"
+
+msgctxt "Font size name"
+msgid "Heading xs"
+msgstr "Titre xs"
+
+msgctxt "Font size name"
+msgid "Body lg"
+msgstr "Corps lg"
+
+msgctxt "Font size name"
+msgid "Body md"
+msgstr "Corps md"
+
+msgctxt "Font size name"
+msgid "Body sm"
+msgstr "Corps sm"
