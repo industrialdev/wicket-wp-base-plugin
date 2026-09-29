@@ -22,6 +22,13 @@ class Main
     private static $instance;
 
     /**
+     * Instance of the Language class.
+     *
+     * @var Language
+     */
+    public $language;
+
+    /**
      * Instance of the Assets class.
      *
      * @var Assets
@@ -131,6 +138,10 @@ class Main
     {
         // Initialize Log first so all subsequent classes can use it
         $this->_log = new Log();
+
+        // Initialize Language before anything registers strings
+        $this->language = new Language($this);
+        $this->language->init();
 
         // Initialize Assets class
         $this->assets = new Assets($this);

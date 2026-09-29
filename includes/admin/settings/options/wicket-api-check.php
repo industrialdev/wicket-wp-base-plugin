@@ -38,13 +38,13 @@ class WicketAPICheck extends OptionAbstract
         ?>
       <tr valign="top">
         <th scope="row" class="titledesc">
-          <?php echo __('Status', 'wicket'); ?>
+          <?php echo _x('Status', 'label', 'wicket-base'); ?>
         </th>
         <td class="forminp forminp-wicket-api-status">
           <?php if ($can_connect): ?>
-            <span class="wicket-api-status positive"><?php echo __('CONNECTED', 'wicket'); ?></span>
+            <span class="wicket-api-status positive"><?php echo _x('CONNECTED', 'status', 'wicket-base'); ?></span>
           <?php else: ?>
-            <span class="wicket-api-status negative"><?php echo __('NOT CONNECTED', 'wicket'); ?></span>
+            <span class="wicket-api-status negative"><?php echo _x('NOT CONNECTED', 'status', 'wicket-base'); ?></span>
           <?php endif; ?>
         </td>
       </tr>

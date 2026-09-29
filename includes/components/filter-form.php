@@ -39,14 +39,14 @@ if (!empty($pre_filter_categories)) {
 
             <span
                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__heading' : 'text-heading-xs font-bold' ?>">
-                <?php echo __('Refine Results', 'wicket'); ?>
+                <?php echo _x('Refine Results', 'label', 'wicket-base'); ?>
             </span>
         </span>
 
         <template x-if="!showFilters">
             <?php get_component('icon', [
                 'icon'    => 'fa-solid fa-plus',
-                'text'    => __('Toggle filters'),
+                'text'    => _x('Toggle filters', 'accessibility label', 'wicket-base'),
                 'classes' => ['lg:hidden text-[20px]'],
             ]); ?>
         </template>
@@ -54,7 +54,7 @@ if (!empty($pre_filter_categories)) {
         <template x-if="showFilters">
             <?php get_component('icon', [
                 'icon'    => 'fa-solid fa-minus',
-                'text'    => __('Toggle filters'),
+                'text'    => _x('Toggle filters', 'accessibility label', 'wicket-base'),
                 'classes' => ['lg:hidden text-[20px]'],
             ]); ?>
         </template>
@@ -71,7 +71,7 @@ if (!empty($pre_filter_categories)) {
                     class="flex w-full gap-3 items-center">
                     <span
                         class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-                        <?php _e('Content Types', 'wicket'); ?>
+                        <?php _ex('Content Types', 'label', 'wicket-base'); ?>
                     </span>
                     <span class="ml-auto">
                         <template x-if="selectedItemsCount">
@@ -124,12 +124,12 @@ if (!empty($pre_filter_categories)) {
                             type="button" @click="showAll = !showAll">
                             <template x-if="showAll">
                                 <span>
-                                    <?php echo __('See Less', 'wicket') ?>
+                                    <?php echo _x('See Less', 'button label', 'wicket-base') ?>
                                 </span>
                             </template>
                             <template x-if="!showAll">
                                 <span>
-                                    <?php echo __('See More', 'wicket') ?>
+                                    <?php echo _x('See More', 'button label', 'wicket-base') ?>
                                 </span>
                             </template>
                         </button>
@@ -290,12 +290,12 @@ if (!empty($pre_filter_categories)) {
                             type="button" @click="showAll = !showAll">
                             <template x-if="showAll">
                                 <span>
-                                    <?php echo __('See Less', 'wicket') ?>
+                                    <?php echo _x('See Less', 'button label', 'wicket-base') ?>
                                 </span>
                             </template>
                             <template x-if="!showAll">
                                 <span>
-                                    <?php echo __('See More', 'wicket') ?>
+                                    <?php echo _x('See More', 'button label', 'wicket-base') ?>
                                 </span>
                             </template>
                         </button>
@@ -313,7 +313,7 @@ if (!empty($pre_filter_categories)) {
                 <button @click="open = ! open" id="date-dropdown-toggle" type="button" class="flex w-full gap-3 items-center">
                     <span
                         class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__filter-section-label' : 'font-bold' ?>">
-                        <?php echo __('Date Range', 'wicket'); ?>
+                        <?php echo _x('Date Range', 'label', 'wicket-base'); ?>
                     </span>
                     <span class="ml-auto">
                         <template x-if="open">
@@ -333,7 +333,7 @@ if (!empty($pre_filter_categories)) {
                         <div class="group relative mb-3">
                             <label for="start_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
-                                <?php echo __('From:', 'wicket'); ?>
+                                <?php echo _x('From:', 'label', 'wicket-base'); ?>
                             </label>
                             <input id="start_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
@@ -342,7 +342,7 @@ if (!empty($pre_filter_categories)) {
                         <div class="group relative">
                             <label for="end_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-label' : 'font-normal mb-0 text-dark-070 absolute top-1/2 translate-y-[-50%] pl-4' ?>">
-                                <?php echo __('To:', 'wicket'); ?>
+                                <?php echo _x('To:', 'label', 'wicket-base'); ?>
                             </label>
                             <input id="end_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
@@ -356,7 +356,7 @@ if (!empty($pre_filter_categories)) {
         <?php
         get_component('button', [
             'variant'  => 'primary',
-            'label'    => __('Apply Filters', 'wicket'),
+            'label'    => _x('Apply Filters', 'button label', 'wicket-base'),
             'reversed' => $reversed,
             'type'     => 'submit',
             'classes'  => defined('WICKET_WP_THEME_V2') ? ['component-filter-form__submit'] : ['mt-4'],
@@ -374,7 +374,7 @@ if (isset($_GET['s'])) {
             <?php
 get_component('button', [
     'variant'     => 'ghost',
-    'label'       => __('Clear All', 'wicket'),
+    'label'       => _x('Clear All', 'button label', 'wicket-base'),
     'a_tag'       => true,
     'prefix_icon' => 'fa-solid fa-xmark',
     'link'        => $clear_all_url,

@@ -1,7 +1,7 @@
 <?php
 $defaults = [
     'classes'             => defined('WICKET_WP_THEME_V2') ? [] : ['px-4', 'lg:px-0'],
-    'title'               => __('Featured', 'wicket'),
+    'title'               => _x('Featured', 'label', 'wicket-base'),
     'title_color'         => '',
     'hide_block_title'    => false,
     'posts'               => [],
