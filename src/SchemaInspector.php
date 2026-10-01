@@ -1,117 +1,193 @@
 <?php
 
+/**
+ * Hidden browser for tenant MDP json_schemas.
+ *
+ * /?mdp_schemas                      HTML list grouped by resource type.
+ * /?mdp_schemas&schema=<uuid|slug|key>  One schema as pretty JSON.
+ * /?mdp_schemas&mdp_schemas_refresh=1   Bypass the transient cache.
+ *
+ * Gate: manage_options. Anyone else never enters this class, so the URL
+ * behaves like any other query var (normal page) and does not announce
+ * itself. Responses carry no-cache headers plus DONOTCACHEPAGE so page
+ * caches cannot store an admin view.
+ *
+ * Data comes straight from the MDP API with the site's service-person
+ * token: any WP admin reads schemas with that person's rights, not their
+ * own. On multisite every subsite admin passes manage_options.
+ */
+
 declare(strict_types=1);
 
 namespace WicketWP;
 
-// No direct access
 defined('ABSPATH') || exit;
 
 /**
- * Hidden dev tool: browser view of the MDP json_schemas for the connected tenant.
- *
- *   /?mdp_schemas                  HTML list of all schemas
- *   /?mdp_schemas&schema=<id>      raw JSON of one schema (uuid, slug, or key)
- *
- * Capability-gated to manage_options. Anyone else gets a 404 so the URL
- * neither works for them nor confirms its own existence.
+ * Renders the hidden MDP schema inspector.
  */
 class SchemaInspector
 {
-    private const QUERY_VAR = 'mdp_schemas';
-
-    private const SCHEMA_PARAM = 'schema';
+    /**
+     * Transient key holding the fetched schema list.
+     */
+    private const CACHE_KEY = 'wicket_mdp_schemas';
 
     /**
-     * Instance of the Main class.
-     *
-     * @var Main|null
+     * Cache lifetime in seconds.
      */
-    private $main;
+    private const CACHE_TTL = 300;
 
-    public function __construct(?Main $main = null)
-    {
-        $this->main = $main;
-    }
+    /**
+     * Page size for the paginated json_schemas fetch.
+     */
+    private const PAGE_SIZE = 100;
+
+    /**
+     * Hard cap on pages fetched per refresh.
+     */
+    private const MAX_PAGES = 10;
 
     /**
      * Register hooks.
      *
-     * @return void
+     * @return self
      */
-    public function init(): void
+    public function init(): self
     {
-        add_action('template_redirect', [$this, 'maybeRender']);
+        add_action('template_redirect', [$this, 'maybe_render']);
+
+        return $this;
     }
 
     /**
-     * Handle the inspector URL when present.
-     *
-     * Runs on template_redirect: fires on every permalink config, before any
-     * template output, with current_user_can() already reliable.
+     * Render the inspector when the query var is present and the user is an admin.
      *
      * @return void
      */
-    public function maybeRender(): void
+    public function maybe_render(): void
     {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only tool, capability-gated below
-        if (!isset($_GET[self::QUERY_VAR])) {
+        if (!isset($_GET['mdp_schemas']) || !is_string($_GET['mdp_schemas'])) {
             return;
         }
 
-        nocache_headers();
-
         if (!current_user_can('manage_options')) {
-            status_header(404);
+            // Render the normal page: no 404, no fingerprint.
+            return;
+        }
+
+        if (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true);
+        }
+        nocache_headers();
+        @header('Vary: Cookie');
+        @header('X-Robots-Tag: noindex, nofollow');
+
+        $identifier = $_GET['schema'] ?? null;
+        if (!is_string($identifier) || $identifier === '') {
+            $this->render_index();
             exit;
         }
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- see above
-        $identifier = isset($_GET[self::SCHEMA_PARAM]) ? sanitize_text_field(wp_unslash((string) $_GET[self::SCHEMA_PARAM])) : '';
-
-        if ($identifier !== '') {
-            $this->renderSchemaJson($identifier);
-        }
-
-        $this->renderIndex();
+        $this->render_single(wp_unslash($identifier));
+        exit;
     }
 
     /**
-     * All schema resources for the tenant, shape-normalized.
+     * Fetch and normalize the tenant schema list.
      *
-     * wicket_get_schemas() returns the {data: [...]} envelope from the MDP,
-     * but a bare resource list is accepted too (see atlas quirk
-     * mdp-json-schemas-field-enumeration.md).
-     *
-     * @return array<int, array>
+     * @return array|false Normalized resource list, or false when the API is unavailable.
      */
-    private function schemas(): array
+    private function schemas()
     {
-        $response = wicket_get_schemas();
+        $refresh = isset($_GET['mdp_schemas_refresh']) && is_string($_GET['mdp_schemas_refresh']);
+        if (!$refresh) {
+            $cached = get_transient(self::CACHE_KEY);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
 
-        $resources = $response['data'] ?? $response;
+        $raw = $this->fetch_all();
+        if ($raw === false) {
+            return false;
+        }
 
+        $resources = $raw['data'] ?? $raw;
         if (!is_array($resources)) {
-            return [];
+            \Wicket()->log('error', 'SchemaInspector: unexpected json_schemas payload shape.');
+
+            return false;
         }
 
-        return array_values(array_filter($resources, 'is_array'));
+        set_transient(self::CACHE_KEY, $resources, self::CACHE_TTL);
+
+        return $resources;
     }
 
     /**
-     * Find one schema by uuid, slug, or key.
+     * Fetch every page of json_schemas with a bounded timeout.
      *
-     * @param array<int, array> $schemas
-     * @param string            $identifier
-     * @return array|null
+     * @return array|false The raw API payload (envelope or list), or false on failure.
      */
-    private function findSchema(array $schemas, string $identifier): ?array
+    private function fetch_all()
     {
-        foreach ($schemas as $resource) {
+        $client = wicket_api_client();
+        if (!$client) {
+            \Wicket()->log('error', 'SchemaInspector: MDP API client unavailable.');
+
+            return false;
+        }
+
+        $resources = [];
+        try {
+            for ($page = 1; $page <= self::MAX_PAGES; $page++) {
+                $response = $client->get(
+                    'json_schemas',
+                    [
+                        'query'           => [
+                            'page[size]'   => self::PAGE_SIZE,
+                            'page[number]' => $page,
+                        ],
+                        'timeout'         => 15,
+                        'connect_timeout' => 5,
+                    ]
+                );
+
+                $rows = $response['data'] ?? (is_array($response) ? $response : []);
+                if (!is_array($rows)) {
+                    break;
+                }
+
+                $resources = array_merge($resources, $rows);
+                if (count($rows) < self::PAGE_SIZE) {
+                    break;
+                }
+            }
+        } catch (\Throwable $e) {
+            \Wicket()->log('error', 'SchemaInspector: json_schemas fetch failed: ' . $e->getMessage());
+
+            return false;
+        }
+
+        return ['data' => $resources];
+    }
+
+    /**
+     * Resolve one schema by UUID, slug, or key.
+     *
+     * @param string $identifier Lookup value.
+     *
+     * @return array|null The resource, or null when unmatched.
+     */
+    private function find_schema(string $identifier): ?array
+    {
+        foreach ($this->schemas() ?: [] as $resource) {
+            $attributes = $resource['attributes'] ?? [];
             if (
                 ($resource['id'] ?? null) === $identifier
-                || ($resource['attributes']['slug'] ?? null) === $identifier
-                || ($resource['attributes']['key'] ?? null) === $identifier
+                || ($attributes['slug'] ?? null) === $identifier
+                || ($attributes['key'] ?? null) === $identifier
             ) {
                 return $resource;
             }
@@ -121,78 +197,108 @@ class SchemaInspector
     }
 
     /**
-     * Output one schema as pretty JSON.
+     * Output the single-schema JSON view.
      *
-     * @param string $identifier
-     * @return never
+     * @param string $identifier Lookup value.
+     *
+     * @return void
      */
-    private function renderSchemaJson(string $identifier): void
+    private function render_single(string $identifier): void
     {
-        $resource = $this->findSchema($this->schemas(), $identifier);
+        @header('Content-Type: application/json; charset=utf-8');
+        @header('X-Content-Type-Options: nosniff');
 
-        header('Content-Type: application/json; charset=utf-8');
-
-        if ($resource === null) {
+        $schema = $this->find_schema($identifier);
+        if ($schema === null) {
             status_header(404);
-            echo wp_json_encode(['error' => 'schema_not_found', 'identifier' => $identifier]);
-
+            echo wp_json_encode(
+                ['error' => 'schema_not_found'],
+                JSON_UNESCAPED_SLASHES
+            );
             exit;
         }
 
-        echo wp_json_encode($resource, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $json = wp_json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            status_header(500);
+            echo wp_json_encode(['error' => 'encode_failed']);
+            exit;
+        }
 
+        status_header(200);
+        echo $json;
         exit;
     }
 
     /**
-     * Output the HTML index of all schemas, grouped by resource type.
+     * Output the index view: all schemas grouped by resource type.
      *
-     * @return never
+     * @return void
      */
-    private function renderIndex(): void
+    private function render_index(): void
     {
         $schemas = $this->schemas();
 
-        if ($schemas === []) {
-            \Wicket()->log('error', 'MDP schema inspector: no schemas returned by the API', ['source' => __CLASS__]);
-            wp_die('No MDP JSON schemas were returned by the API.');
+        $style = <<<'CSS'
+            body{font-family:monospace;margin:2rem}
+            h1{font-size:1.2rem}
+            h2{font-size:1rem;margin:1.5rem 0 .5rem}
+            table{border-collapse:collapse}
+            th,td{border:1px solid #ccc;padding:.3rem .6rem;text-align:left}
+            td.id{color:#888}
+            CSS;
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>MDP Schemas</title><style>' . $style . '</style></head><body>';
+
+        if ($schemas === false) {
+            echo '<h1>MDP Schemas</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> after fixing the cause. Details are in the plugin log.</p></body></html>';
+
+            return;
         }
 
-        // API index already sorts resource_type asc, weight asc; keep its order inside groups.
         $groups = [];
         foreach ($schemas as $resource) {
-            $groups[(string) ($resource['attributes']['resource_type'] ?? 'unknown')][] = $resource;
+            $type = $resource['attributes']['resource_type'] ?? null;
+            $type = is_string($type) && $type !== '' ? $type : 'unknown';
+            $groups[$type][] = $resource;
         }
         ksort($groups);
 
-        header('Content-Type: text/html; charset=utf-8');
+        $count = count($schemas);
+        echo '<h1>MDP JSON Schemas (' . esc_html((string) $count) . ')</h1>';
 
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>MDP Schemas</title><style>';
-        echo 'body{font-family:monospace;margin:2rem}h1{font-size:1.2rem}h2{font-size:1rem;margin:1.5rem 0 .5rem}';
-        echo 'table{border-collapse:collapse}th,td{border:1px solid #ccc;padding:.3rem .6rem;text-align:left}';
-        echo 'td.id{color:#888}</style></head><body>';
-        echo '<h1>MDP JSON Schemas (' . count($schemas) . ')</h1>';
+        if ($count === 0) {
+            echo '<p>No json_schemas exist for this tenant.</p></body></html>';
+
+            return;
+        }
 
         foreach ($groups as $type => $resources) {
-            echo '<h2>' . esc_html($type) . ' (' . count($resources) . ')</h2><table><tr><th>Slug</th><th>Title</th><th>UUID</th><th></th></tr>';
-
+            echo '<h2>' . esc_html($type) . ' (' . esc_html((string) count($resources)) . ')</h2>';
+            echo '<table><tr><th>Slug</th><th>Title</th><th>UUID</th><th></th></tr>';
             foreach ($resources as $resource) {
                 $attributes = $resource['attributes'] ?? [];
-                $slug = (string) ($attributes['slug'] ?? $attributes['key'] ?? '');
-                $title = (string) ($attributes['schema']['title'] ?? '');
-                $uuid = (string) ($resource['id'] ?? '');
-                $url = add_query_arg([self::QUERY_VAR => '1', self::SCHEMA_PARAM => $uuid], home_url('/'));
-
-                echo '<tr><td>' . esc_html($slug) . '</td><td>' . esc_html($title) . '</td>';
-                echo '<td class="id">' . esc_html($uuid) . '</td>';
-                echo '<td><a href="' . esc_url($url) . '">view JSON</a></td></tr>';
+                $slug = is_string($attributes['slug'] ?? null) ? $attributes['slug'] : '';
+                $title = is_string($attributes['title'] ?? null) ? $attributes['title'] : $slug;
+                $uuid = is_string($resource['id'] ?? null) ? $resource['id'] : '';
+                $url = add_query_arg(
+                    [
+                        'mdp_schemas' => '1',
+                        'schema'      => $uuid,
+                    ],
+                    home_url('/')
+                );
+                echo '<tr>'
+                    . '<td>' . esc_html($slug) . '</td>'
+                    . '<td>' . esc_html($title) . '</td>'
+                    . '<td class="id">' . esc_html($uuid) . '</td>'
+                    . '<td><a href="' . esc_url($url) . '">view JSON</a></td>'
+                    . '</tr>';
             }
-
             echo '</table>';
         }
 
+        echo '<p style="color:#888">Cached ' . esc_html((string) self::CACHE_TTL) . 's. '
+            . '<a href="' . esc_url(add_query_arg(['mdp_schemas' => '1', 'mdp_schemas_refresh' => '1'], home_url('/'))) . '">refresh from API</a></p>';
         echo '</body></html>';
-
-        exit;
     }
 }
