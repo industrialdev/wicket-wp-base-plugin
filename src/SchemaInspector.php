@@ -328,7 +328,7 @@ class SchemaInspector
         $host = wp_parse_url(home_url(), PHP_URL_HOST);
         $host = is_string($host) && $host !== '' ? $host : 'site';
         $style = <<<'CSS'
-            main.container{max-width:2020px}
+            main.container{max-width:1680px}
             h1{font-size:1.4rem}
             h2{font-size:1.05rem;margin-top:1.6rem}
             main{padding-bottom:3rem}
