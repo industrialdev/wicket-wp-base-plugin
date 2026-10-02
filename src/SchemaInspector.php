@@ -13,6 +13,9 @@
  *                                          endpoint with its served attribute names,
  *                                          value-shape types, and relationships.
  * /?mdp_schemas&mdp_api=people             One endpoint's full derived shape.
+ * /?mdp_schemas&mdp_api=1&format=json      The explorer metadata as one JSON download
+ *                                          (agent-feed friendly).
+ * /?mdp_schemas&mdp_api=1&format=csv       The explorer metadata as one CSV download.
  * /?mdp_schemas&format=csv                 All of the above slugs as one CSV download.
  * /?mdp_schemas&mdp_schemas_refresh=1      Bypass the transient caches.
  *
@@ -200,8 +203,24 @@ class SchemaInspector
         @header('X-Robots-Tag: noindex, nofollow');
 
         $format = $_GET['format'] ?? null;
-        if (is_string($format) && $format === 'csv') {
+        $format = is_string($format) ? $format : null;
+
+        if ($format === 'csv' && !isset($_GET['mdp_api'])) {
             $this->render_csv();
+            exit;
+        }
+
+        if (isset($_GET['mdp_api'])) {
+            $api = wp_unslash((string) $_GET['mdp_api']);
+            if ($format === 'csv') {
+                $this->render_explorer_download($api, 'csv');
+                exit;
+            }
+            if ($format === 'json') {
+                $this->render_explorer_download($api, 'json');
+                exit;
+            }
+            $this->render_explorer($api);
             exit;
         }
 
@@ -1192,7 +1211,9 @@ class SchemaInspector
 
         echo '<h1>MDP API Data</h1>';
         echo '<p>Every top-level v1 index endpoint with the shape this tenant serves. Metadata only: attribute names, value-shape types, and relationship targets. Record contents are never fetched into the page. Types are inferred from one sample record, so they describe what exists, not what must exist.</p>';
-        echo '<nav><a href="' . esc_url($this->url(['mdp_schemas' => '1'])) . '">back to index</a></nav>';
+        echo '<nav><a href="' . esc_url($this->url(['mdp_schemas' => '1'])) . '">back to index</a>'
+            . ' | ' . $this->explorer_download_links('1') . ' (all endpoints)'
+            . '</nav>';
 
         foreach (self::EXPLORER_ENDPOINTS as $group => $endpoints) {
             echo '<h2>' . esc_html($group) . '</h2>';
@@ -1216,9 +1237,10 @@ class SchemaInspector
                         : '<em>unavailable</em>',
                     esc_html((string) count($meta['relationships'])),
                     $meta['status'] === 'error' ? '<em>error</em>' : esc_html((string) $meta['count']),
+                    $this->explorer_download_links($path),
                 ];
             }
-            $this->table(['Resource', 'Endpoint', 'Attributes', 'Rels', 'Rows'], $rows);
+            $this->table(['Resource', 'Endpoint', 'Attributes', 'Rels', 'Rows', 'Download'], $rows);
         }
 
         echo '<p>Nested-only or param-required resources are not probed here: addresses, phones, emails, web_addresses, leaves (under people), comments, orders, touchpoints, messages, roles, connections, segment filters, membership entries and histories (under people and organizations), statements (under subscriptions), webhook attempts, group people (groups/&lt;id&gt;/people), and resource_facets (requires filter[id_eq]).</p>';
@@ -1239,6 +1261,7 @@ class SchemaInspector
     {
         echo '<h1>' . esc_html($path) . '</h1>';
         echo '<nav><a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">back to API data</a>'
+            . ' | ' . $this->explorer_download_links($path)
             . ' | <a href="' . esc_url($this->url(['mdp_api' => '1', 'mdp_schemas_refresh' => '1'])) . '">re-probe all endpoints</a></nav>';
 
         if (($meta['status'] ?? 'error') === 'error') {
@@ -1290,6 +1313,107 @@ class SchemaInspector
         }
 
         return null;
+    }
+
+    /**
+     * Download links for one explorer endpoint: JSON and CSV definitions.
+     *
+     * @param string $path API path.
+     *
+     * @return string HTML links.
+     */
+    private function explorer_download_links(string $path): string
+    {
+        return '<a href="' . esc_url($this->url(['mdp_api' => $path, 'format' => 'json'])) . '">json</a>'
+            . ' | '
+            . '<a href="' . esc_url($this->url(['mdp_api' => $path, 'format' => 'csv'])) . '">csv</a>';
+    }
+
+    /**
+     * Stream the explorer metadata for one endpoint (or the whole registry
+     * when the path is "1") as a JSON or CSV download, so Wicket staff can
+     * feed the tenant's served shape to agents. Metadata only; record
+     * contents never appear in the payload.
+     *
+     * @param string $path   API path, or "1" for every registered endpoint.
+     * @param string $format "json" or "csv".
+     *
+     * @return void Exits after streaming.
+     */
+    private function render_explorer_download(string $path, string $format): void
+    {
+        $scoped = $path !== '1';
+        if ($scoped && $this->endpoint_group($path) === null) {
+            status_header(404);
+            echo 'Unknown endpoint: ' . esc_html($path);
+            exit;
+        }
+
+        $map = $this->explorer_meta();
+
+        $entries = [];
+        foreach (self::EXPLORER_ENDPOINTS as $group => $endpoints) {
+            foreach ($endpoints as $endpoint => $label) {
+                if ($scoped && $endpoint !== $path) {
+                    continue;
+                }
+                $meta = $map[$endpoint] ?? ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+                $entries[] = [
+                    'group'         => $group,
+                    'path'          => $endpoint,
+                    'label'         => $label,
+                    'status'        => $meta['status'],
+                    'rows'          => $meta['count'],
+                    'attributes'    => $meta['attributes'],
+                    'relationships' => $meta['relationships'],
+                ];
+            }
+        }
+
+        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+        $host = is_string($host) && $host !== '' ? $host : 'site';
+        $prefix = 'mdp-api' . ($scoped ? '-' . $path : '');
+        $scope_label = $scoped ? 'endpoint ' . $path : 'all registered endpoints';
+
+        if ($format === 'json') {
+            $payload = [
+                'meta' => [
+                    'generated_at'    => gmdate('c'),
+                    'site'            => $host,
+                    'source'          => 'MDP API v1',
+                    'scope'           => $scope_label,
+                    'record_contents' => 'never included; metadata only',
+                    'note'            => 'Attribute and relationship names come from one sample record per endpoint, so they describe what exists on this tenant, not what must exist. Rows are payload meta totals when reported, otherwise 1+.',
+                ],
+                'endpoints' => array_map(function (array $entry): array {
+                    $entry['attributes'] = (object) $entry['attributes'];
+                    $entry['relationships'] = (object) $entry['relationships'];
+
+                    return $entry;
+                }, $entries),
+            ];
+
+            $filename = $prefix . '-' . $host . '.json';
+            @header('Content-Disposition: attachment; filename="' . sanitize_file_name($filename) . '"');
+            @header('Content-Type: application/json; charset=utf-8');
+            @header('X-Content-Type-Options: nosniff');
+            echo wp_json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        $rows = [['kind', 'group', 'path', 'name', 'detail']];
+        foreach ($entries as $entry) {
+            $detail = $entry['status'] === 'error' ? 'error' : $entry['status'] . '; ' . (string) $entry['rows'] . ' rows';
+            $rows[] = ['endpoint', $entry['group'], $entry['path'], $entry['label'], $detail];
+            foreach ($entry['attributes'] as $name => $type) {
+                $rows[] = ['attribute', $entry['group'], $entry['path'], (string) $name, (string) $type];
+            }
+            foreach ($entry['relationships'] as $name => $target) {
+                $rows[] = ['relationship', $entry['group'], $entry['path'], (string) $name, (string) $target];
+            }
+        }
+
+        (new \WicketWP\Support\CsvExporter())->download($prefix . '-' . $host . '.csv', $rows);
     }
 
     /**
