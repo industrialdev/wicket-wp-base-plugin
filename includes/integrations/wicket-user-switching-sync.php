@@ -40,7 +40,7 @@ function wicket_switch_to_user_sync($new_user_id, $old_user_id, $new_token = '',
     }
 
     if (!$sync_ok) {
-        $error_message = __('Unable to switch: The Wicket account no longer exists or the UUIDs do not match.', 'wicket');
+        $error_message = __('Unable to switch: The Wicket account no longer exists or the UUIDs do not match.', 'wicket-base');
 
         // --- BREEZE FIX START: Disable Breeze Hooks ---
         // https://wicket.zendesk.com/agent/tickets/6911
@@ -103,7 +103,7 @@ function wicket_switch_error_notice()
 
     if ($has_error && $message) {
         $fix_url = '';
-        $fix_alert = __('This will look up the user in MDP by email and update the WP user_login to the MDP UUID. Proceed?', 'wicket');
+        $fix_alert = __('This will look up the user in MDP by email and update the WP user_login to the MDP UUID. Proceed?', 'wicket-base');
         if ($target_user_id) {
             $fix_url = wp_nonce_url(
                 add_query_arg(
@@ -123,7 +123,7 @@ function wicket_switch_error_notice()
                 <?php echo esc_html($message); ?>
                 <?php if ($fix_url) : ?>
                     <a href="<?php echo esc_url($fix_url); ?>" style="margin-left: 8px; font-weight: 600;" onclick="return confirm('<?php echo esc_js($fix_alert); ?>');">
-                        <?php esc_html_e('Attempt to fix WP<>MDP UUID mismatch.', 'wicket'); ?>
+                        <?php esc_html_e('Attempt to fix WP<>MDP UUID mismatch.', 'wicket-base'); ?>
                     </a>
                 <?php endif; ?>
             </p>
@@ -241,11 +241,11 @@ function wicket_fix_uuid_mismatch_notice()
     $is_success = $result === 'success';
     $class = $is_success ? 'notice-success' : 'notice-error';
     if ($result === 'conflict') {
-        $message = __('UUID mismatch repair failed: another account already uses this UUID as login. Resolve duplicate before retrying.', 'wicket');
+        $message = __('UUID mismatch repair failed: another account already uses this UUID as login. Resolve duplicate before retrying.', 'wicket-base');
     } else {
         $message = $is_success
-            ? __('UUID mismatch repaired: WP user_login updated to correct MDP user UUID matched by email.', 'wicket')
-            : __('UUID mismatch repair failed. Ensure the email is associated to a user in the MDP.', 'wicket');
+            ? __('UUID mismatch repaired: WP user_login updated to correct MDP user UUID matched by email.', 'wicket-base')
+            : __('UUID mismatch repair failed. Ensure the email is associated to a user in the MDP.', 'wicket-base');
     }
     ?>
     <div class="notice <?php echo esc_attr($class); ?> is-dismissible">

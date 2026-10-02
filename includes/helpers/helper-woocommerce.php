@@ -206,7 +206,7 @@ function wicket_cancel_duplicate_renewal_orders_on_payment($order_id, $old_statu
                     'cancelled',
                     sprintf(
                         /* translators: %s: order ID of the renewal order that was successfully paid */
-                        __('Cancelled automatically: renewal order #%s was paid for this subscription.', 'wicket'),
+                        __('Cancelled automatically: renewal order #%s was paid for this subscription.', 'wicket-base'),
                         $order_id
                     )
                 );

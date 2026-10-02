@@ -33,7 +33,7 @@ foreach ($items as $item) : ?>
 				aria-controls="tabs__contents-single-<?php echo $id; ?>-<?php echo $title_index; ?>"
 				x-bind:aria-selected="activeTab == <?php echo $title_index ?> ? 'true' : 'false'"
 				x-on:click="activeTab = <?php echo $title_index ?>">
-				<?php echo $item['title'] ? $item['title'] : __('Tab ', 'wicket') . $title_index + 1 ?>
+				<?php /* translators: %d: tab number. */ echo $item['title'] ? $item['title'] : esc_html(sprintf(_x('Tab %d', 'value placeholder', 'wicket-base'), $title_index + 1)) ?>
 			</button>
 			<?php
     $title_index++;

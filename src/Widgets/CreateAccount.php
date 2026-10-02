@@ -27,7 +27,7 @@ class CreateAccount extends \WP_Widget
     {
         parent::__construct(
             'wicket_create_account',
-            __('Wicket Create Account', 'wicket'),
+            _x('Wicket Create Account', 'widget name', 'wicket-base'),
             [
                 'customize_selective_refresh' => true,
             ]
@@ -70,8 +70,8 @@ class CreateAccount extends \WP_Widget
             // If the API isn't up, display an error to admins.
 
             echo '<div class="alert alert-danger" role="alert">';
-            echo '<strong>' . __('Wicket Block Error:', 'wicket') . '</strong> ';
-            echo __('Wicket API credentials are not configured. Please define them in your configuration to enable this block.', 'wicket');
+            echo '<strong>' . _x('Wicket Block Error:', 'label', 'wicket-base') . '</strong> ';
+            echo __('Wicket API credentials are not configured. Please define them in your configuration to enable this block.', 'wicket-base');
             echo '</div>';
 
             return;
@@ -144,49 +144,49 @@ class CreateAccount extends \WP_Widget
             if ($first_name == '') {
                 $first_name_blank = new \stdClass();
                 $first_name_blank->meta = (object) ['field' => 'user.given_name'];
-                $first_name_blank->title = __("can't be blank", 'wicket');
+                $first_name_blank->title = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = $first_name_blank;
             }
             if ($last_name == '') {
                 $last_name_blank = new \stdClass();
                 $last_name_blank->meta = (object) ['field' => 'user.family_name'];
-                $last_name_blank->title = __("can't be blank", 'wicket');
+                $last_name_blank->title = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = $last_name_blank;
             }
             if ($email == '') {
                 $email_blank = new \stdClass();
                 $email_blank->meta = (object) ['field' => 'emails.address'];
-                $email_blank->title = __("can't be blank", 'wicket');
+                $email_blank->title = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = $email_blank;
             }
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $email_invalid = new \stdClass();
                 $email_invalid->meta = (object) ['field' => 'emails.address'];
-                $email_invalid->title = __('must be a valid email address', 'wicket');
+                $email_invalid->title = __('must be a valid email address', 'wicket-base');
                 $errors[] = $email_invalid;
             }
             if (strlen($password) < 8) {
                 $pass_blank = new \stdClass();
                 $pass_blank->meta = (object) ['field' => 'user.password'];
-                $pass_blank->title = __('must be a minimum of 8 characters', 'wicket');
+                $pass_blank->title = __('must be a minimum of 8 characters', 'wicket-base');
                 $errors[] = $pass_blank;
             }
             if ($password == '') {
                 $pass_blank = new \stdClass();
                 $pass_blank->meta = (object) ['field' => 'user.password'];
-                $pass_blank->title = __("can't be blank", 'wicket');
+                $pass_blank->title = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = $pass_blank;
             }
             if ($password_confirmation == '') {
                 $confirm_pass_blank = new \stdClass();
                 $confirm_pass_blank->meta = (object) ['field' => 'user.password_confirmation'];
-                $confirm_pass_blank->title = __("can't be blank", 'wicket');
+                $confirm_pass_blank->title = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = $confirm_pass_blank;
             }
             if ($password_confirmation != $password) {
                 $pass_blank = new \stdClass();
                 $pass_blank->meta = (object) ['field' => 'user.password'];
-                $pass_blank->title = __(' - Passwords do not match', 'wicket');
+                $pass_blank->title = __('passwords do not match', 'wicket-base');
                 $errors[] = $pass_blank;
             }
             $enable_google_captcha = wicket_get_option('wicket_admin_settings_google_captcha_enable');
@@ -194,7 +194,7 @@ class CreateAccount extends \WP_Widget
                 $passes_google_check = $this->wicket_check_google_captcha();
                 if (!$passes_google_check) {
                     $errors[] = (object) [
-                        'title' => __(' - Please validate using the captcha below'),
+                        'title' => __('please complete the captcha below', 'wicket-base'),
                         'meta' => (object) [
                             'field' => 'google',
                         ],
@@ -279,34 +279,22 @@ class CreateAccount extends \WP_Widget
         <script src='https://www.google.com/recaptcha/api.js?hl=en'></script>
         <?php if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) : ?>
             <div class='alert alert-danger' role="alert">
-                <p><?php printf(_n('The form could not be submitted because 1 error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_create_account_form_errors']), 'wicket'), number_format_i18n(count($_SESSION['wicket_create_account_form_errors']))); ?></p>
+                <p><?php /* translators: %s: number of errors in the form. */ printf(_n('The form could not be submitted because %s error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_create_account_form_errors']), 'wicket-base'), number_format_i18n(count($_SESSION['wicket_create_account_form_errors']))); ?></p>
                 <?php
-                        $counter = 1;
+                        $fields = [
+                'user.given_name' => ['given_name', _x('First name', 'label', 'wicket-base')],
+                'user.family_name' => ['family_name', _x('Last name', 'label', 'wicket-base')],
+                'emails.address' => ['address', _x('Email', 'label', 'wicket-base')],
+                'user.password' => ['password', _x('Password', 'label', 'wicket-base')],
+                'user.password_confirmation' => ['password_confirmation', _x('Confirm password', 'label', 'wicket-base')],
+                'google' => ['google', _x('Captcha', 'label', 'wicket-base')],
+            ];
+            $counter = 1;
             echo '<ul>';
-            foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
-                if ($error->meta->field == 'user.given_name') {
-                    $prefix = __('First тame', 'wicket') . ' ';
-                    printf(__("<li><a href='#given_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                }
-                if ($error->meta->field == 'user.family_name') {
-                    $prefix = __('Last name', 'wicket') . ' ';
-                    printf(__("<li><a href='#family_name'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                }
-                if ($error->meta->field == 'emails.address') {
-                    $prefix = __('Email', 'wicket') . ' - ';
-                    printf(__("<li><a href='#address'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                }
-                if ($error->meta->field == 'user.password') {
-                    $prefix = __('Password', 'wicket') . ' ';
-                    printf(__("<li><a href='#password'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                }
-                if ($error->meta->field == 'user.password_confirmation') {
-                    $prefix = __('Confirm password', 'wicket') . ' ';
-                    printf(__("<li><a href='#password_confirmation'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
-                }
-                if ($error->meta->field == 'google') {
-                    $prefix = __('Captcha', 'wicket') . ' ';
-                    printf(__("<li><a href='#google'><strong>%s</strong> %s</a></li>", 'wicket'), 'Error: ' . $counter, $prefix . $error->title);
+            foreach ($_SESSION['wicket_create_account_form_errors'] as $error) {
+                $field = $error->meta->field ?? '';
+                if (isset($fields[$field])) {
+                    echo FormErrors::list_item($fields[$field][0], $counter, $fields[$field][1], (string) $error->title);
                 }
                 $counter++;
             }
@@ -315,14 +303,14 @@ class CreateAccount extends \WP_Widget
             </div>
         <?php elseif (isset($_GET['success'])) : ?>
             <div class='alert alert--success'>
-                <p><?php _e('Successfully Created', 'wicket'); ?></p>
+                <p><?php _ex('Successfully Created', 'message', 'wicket-base'); ?></p>
             </div>
         <?php endif; ?>
 
         <form class='manage_password_form' method="post">
             <div class="form__group">
-                <label class="form__label" for="given_name"><?php _e('First name', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
+                <label class="form__label" for="given_name"><?php _ex('First name', 'label', 'wicket-base') ?>
+                    <span class="required" aria-label="<?php _ex('Required', 'accessibility label', 'wicket-base') ?>">*</span>
                     <?php
                 if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
                     foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
@@ -337,8 +325,8 @@ class CreateAccount extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="family_name"><?php _e('Last name', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
+                <label class="form__label" for="family_name"><?php _ex('Last name', 'label', 'wicket-base') ?>
+                    <span class="required" aria-label="<?php _ex('Required', 'accessibility label', 'wicket-base') ?>">*</span>
                     <?php
         if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
             foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
@@ -353,8 +341,8 @@ class CreateAccount extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="address"><?php _e('Email', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
+                <label class="form__label" for="address"><?php _ex('Email', 'label', 'wicket-base') ?>
+                    <span class="required" aria-label="<?php _ex('Required', 'accessibility label', 'wicket-base') ?>">*</span>
                     <?php
         if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
             foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
@@ -369,8 +357,8 @@ class CreateAccount extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="password"><?php _e('Password', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
+                <label class="form__label" for="password"><?php _ex('Password', 'label', 'wicket-base') ?>
+                    <span class="required" aria-label="<?php _ex('Required', 'accessibility label', 'wicket-base') ?>">*</span>
                     <?php
         if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
             foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
@@ -381,13 +369,13 @@ class CreateAccount extends \WP_Widget
         }
         ?>
                 </label>
-                <small id='create_account_form_minimum_char_message'><?php _e('Minimum of 8 characters', 'wicket') ?></small>
+                <small id='create_account_form_minimum_char_message'><?php _e('Minimum of 8 characters', 'wicket-base') ?></small>
                 <input class="form__input <?php echo isset($password_err) ? 'error_input' : '' ?>" required type="password" name="password" id="password" value="">
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="password_confirmation"><?php _e('Confirm password', 'wicket') ?>
-                    <span class="required" aria-label="<?php _e('Required', 'wicket') ?>">*</span>
+                <label class="form__label" for="password_confirmation"><?php _ex('Confirm password', 'label', 'wicket-base') ?>
+                    <span class="required" aria-label="<?php _ex('Required', 'accessibility label', 'wicket-base') ?>">*</span>
                     <?php
         if (isset($_SESSION['wicket_create_account_form_errors']) && !empty($_SESSION['wicket_create_account_form_errors'])) {
             foreach ($_SESSION['wicket_create_account_form_errors'] as $key => $error) {
@@ -413,7 +401,7 @@ class CreateAccount extends \WP_Widget
 
             <?php
                 get_component('button', [
-                    'label'    => __('Submit', 'wicket'),
+                    'label'    => _x('Submit', 'button label', 'wicket-base'),
                     'type'    => 'submit',
                     'variant' => 'primary',
                 ]);

@@ -7,7 +7,7 @@
  * Version: 2.7.12
  * Author: Wicket Inc.
  * Author URI: https://wicket.io
- * Text Domain: wicket
+ * Text Domain: wicket-base
  * Domain Path: /languages
  * Requires at least: 6.6
  * Requires PHP: 8.1

@@ -43,7 +43,7 @@ function wicket_base_product_data_tabs($tabs)
     $group_product_category = wicket_get_option('wicket_admin_settings_group_assignment_product_category');
     if (has_term($group_product_category, 'product_cat', $post->ID)) {
         $tabs['group_product_assignment_tab'] = [
-            'label' => __('Group Product Assignment', 'wicket-child'),
+            'label' => _x('Group Product Assignment', 'label', 'wicket-base'),
             'target' => 'group_assignment_product',
         ];
     }
@@ -63,8 +63,8 @@ function wicket_base_product_tab_content()
     }
     global $post;
     $product = wc_get_product($post->ID);
-    $group_options[''] = __('None', 'wicket-child');
-    $group_role_options[''] = __('None', 'wicket-child');
+    $group_options[''] = _x('None', 'label', 'wicket-base');
+    $group_role_options[''] = _x('None', 'label', 'wicket-base');
     $client = wicket_api_client();
 
     $group_product_category = wicket_get_option('wicket_admin_settings_group_assignment_product_category');
@@ -87,10 +87,10 @@ function wicket_base_product_tab_content()
         woocommerce_wp_select(
             [
                 'id' => '_group_assignment_uuid',
-                'label' => __('Group Assigned', 'wicket-child'),
+                'label' => _x('Group Assigned', 'label', 'wicket-base'),
                 'options' => $group_options,
                 'value'    => $assigned_group_uuid,
-                'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person to the selected group.', 'wicket-child')),
+                'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person to the selected group.', 'wicket-base')),
             ]
         );
         ?>
@@ -110,14 +110,14 @@ function wicket_base_product_tab_content()
                 $group_role_options[$grouprole['attributes']['slug']] = $grouprole['attributes']['name'];
             }
             $assigned_group_role_slug = get_post_meta($post->ID, '_group_role_assignment_slug', true);
-            $group_role_options[''] = __('None', 'wicket-child');
+            $group_role_options[''] = _x('None', 'label', 'wicket-base');
             woocommerce_wp_select(
                 [
                     'id' => '_group_role_assignment_slug',
-                    'label' => __('Role Assigned', 'wicket-child'),
+                    'label' => _x('Role Assigned', 'label', 'wicket-base'),
                     'options' => $group_role_options,
                     'value'    => $assigned_group_role_slug,
-                    'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person the selected role in the group.', 'wicket-child')),
+                    'description' => sprintf('<em>%s</em>', __('Purchase of this product will assign person the selected role in the group.', 'wicket-base')),
                 ]
             );
         }

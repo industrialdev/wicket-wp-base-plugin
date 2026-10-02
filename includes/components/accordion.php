@@ -31,7 +31,7 @@ if ($icon_type == 'carets') {
 }
 
 if (empty($items)) {
-    echo '<p>' . __('No accordion items found.', 'wicket') . '</p>';
+    echo '<p>' . __('No accordion items found.', 'wicket-base') . '</p>';
 
     return;
 }
@@ -62,7 +62,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 	>
 
 	<?php if (is_admin() && empty($items)): ?>
-	<p><?php _e('Use the Block controls in edit mode or on the right to add accordion items.', 'wicket'); ?>
+	<p><?php _e('Use the Block controls in edit mode or on the right to add accordion items.', 'wicket-base'); ?>
 	</p>
 	<?php endif; ?>
 

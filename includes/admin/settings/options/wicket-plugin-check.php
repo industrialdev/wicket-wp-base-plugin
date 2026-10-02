@@ -30,7 +30,7 @@ class WicketPluginCheck extends OptionAbstract
             // All is good. Do nothing.
         } else { ?>
             <div class="notice notice-warning">
-                <p><?php echo __('REQUIRED PLUGINS: The following plugins are required to be installed and activated in order to use the Memberships settings. 1. WooCommerce (Installed) | 2. WooCommerce Memberships (Not Installed) | 3. WooCommerce Subscriptions (Not Installed) | 4. Teams for WooCommerce Memberships (Required for Organization Memberships) (Not Installed)', 'wicket'); ?></p>
+                <p><?php echo __('REQUIRED PLUGINS: The following plugins are required to be installed and activated in order to use the Memberships settings. 1. WooCommerce (Installed) | 2. WooCommerce Memberships (Not Installed) | 3. WooCommerce Subscriptions (Not Installed) | 4. Teams for WooCommerce Memberships (Required for Organization Memberships) (Not Installed)', 'wicket-base'); ?></p>
             </div>
         <?php } ?> 
 

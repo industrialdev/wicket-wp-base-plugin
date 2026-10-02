@@ -21,7 +21,7 @@ class ManagePreferences extends \WP_Widget
     {
         parent::__construct(
             'wicket_preferences',
-            __('Wicket Manage Preferences', 'wicket'),
+            _x('Wicket Manage Preferences', 'widget name', 'wicket-base'),
             [
                 'customize_selective_refresh' => true,
             ]
@@ -128,28 +128,28 @@ class ManagePreferences extends \WP_Widget
         ?>
         <?php if (isset($_GET['success'])): ?>
             <div class='alert alert--success'>
-                <p><?php _e('Successfully Updated'); ?></p>
+                <p><?php _ex('Successfully Updated', 'message', 'wicket-base'); ?></p>
             </div>
         <?php endif; ?>
 
         <form class='manage_preferences_form' method="post">
 
             <div class="form__group">
-                <label class="form__label" for="language"><?php _e('Language') ?></label>
+                <label class="form__label" for="language"><?php _ex('Language', 'label', 'wicket-base') ?></label>
                 <select required id="language" name="language" class="form__input">
-                    <option <?php echo $person->language == 'en' ? 'selected' : '' ?> value="en"><?php _e('English') ?></option>
-                    <option <?php echo $person->language == 'fr' ? 'selected' : '' ?> value="fr"><?php _e('French') ?></option>
+                    <option <?php echo $person->language == 'en' ? 'selected' : '' ?> value="en"><?php _ex('English', 'label', 'wicket-base') ?></option>
+                    <option <?php echo $person->language == 'fr' ? 'selected' : '' ?> value="fr"><?php _ex('French', 'label', 'wicket-base') ?></option>
                 </select>
             </div>
 
-            <h2><?php _e('Communications'); ?></h2>
+            <h2><?php _ex('Communications', 'label', 'wicket-base'); ?></h2>
 
             <div class="row">
                 <div class="col_md-12">
                     <ul class="create_account_checkbox_list">
                         <li>
                             <input <?php echo $person->data['communications']['email'] == 1 ? 'checked' : '' ?> type="checkbox" name="email" id="email" value="1">
-                            <label class="form__label" for="email"><?php _e('Yes, accept communications') ?></label>
+                            <label class="form__label" for="email"><?php _ex('Yes, accept communications', 'label', 'wicket-base') ?></label>
                         </li>
                     </ul>
                 </div>
@@ -160,7 +160,7 @@ class ManagePreferences extends \WP_Widget
                     <ul class="create_account_checkbox_list">
                         <li>
                             <input <?php echo $person->data['communications']['sublists']['one'] == 1 ? 'checked' : '' ?> type="checkbox" id="email_third_party" name="email_third_party" value="1">
-                            <label class="form__label" for="email_third_party"><?php _e('Yes, accept communications from 3rd party vendors') ?></label>
+                            <label class="form__label" for="email_third_party"><?php _e('Yes, accept communications from 3rd party vendors', 'wicket-base') ?></label>
                         </li>
                     </ul>
                 </div>
@@ -170,7 +170,7 @@ class ManagePreferences extends \WP_Widget
 
             <?php
                 get_component('button', [
-                    'label'    => __('Update Preferences'),
+                    'label'    => _x('Update Preferences', 'button label', 'wicket-base'),
                     'type'    => 'submit',
                     'variant' => 'primary',
                 ]);
