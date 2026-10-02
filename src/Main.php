@@ -64,6 +64,13 @@ class Main
     public $woo_email_blocker;
 
     /**
+     * Instance of the MDP schema inspector.
+     *
+     * @var SchemaInspector|null
+     */
+    public $schema_inspector;
+
+    /**
      * Instance of the Log class.
      *
      * @var Log
@@ -153,5 +160,9 @@ class Main
         // Initialize WooCommerce email blocker
         $this->woo_email_blocker = new WooCommerce\EmailBlocker();
         $this->woo_email_blocker->init();
+
+        // Initialize MDP schema inspector (hidden dev tool)
+        $this->schema_inspector = new SchemaInspector($this);
+        $this->schema_inspector->init();
     }
 }
