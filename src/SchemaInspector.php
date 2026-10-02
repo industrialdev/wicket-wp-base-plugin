@@ -1760,8 +1760,9 @@ class SchemaInspector
 
         foreach ($resource_types ?: [] as $resource) {
             $attributes = $resource['attributes'] ?? [];
+            // Raw group code: machine consumers key on it; the views show human labels.
             $group = $attributes['resource_type'] ?? null;
-            $group = is_string($group) && $group !== '' ? str_replace('_', ' ', $group) : 'unknown';
+            $group = is_string($group) && $group !== '' ? $group : 'unknown';
             $rows[] = [
                 'resource_type',
                 $group,
@@ -1771,7 +1772,7 @@ class SchemaInspector
             ];
         }
 
-        $rows[] = ['comm', 'communications', 'Email Opt-in', 'email', ''];
+        $rows[] = ['comm', '', 'Email Opt-in', 'communications.email', ''];
         foreach ($communications ?: [] as $preference) {
             $attributes = $preference['attributes'] ?? [];
             $key = is_string($attributes['sublist_key'] ?? null) ? $attributes['sublist_key'] : '';
