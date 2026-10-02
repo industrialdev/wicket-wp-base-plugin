@@ -168,6 +168,48 @@ class SchemaInspector
     private const MAX_PAGES = 10;
 
     /**
+     * Human labels for known resource_type group codes. Groups outside this
+     * map fall back to their raw code; the code is always shown in
+     * parentheses so slugs stay copyable.
+     */
+    private const GROUP_LABELS = [
+        'addresses'                      => 'Address types',
+        'connection_person_to_organizations' => 'Person ↔ Organization connections',
+        'connection_person_to_people'    => 'Person ↔ Person connections',
+        'emails'                         => 'Email types',
+        'group_members'                  => 'Group member types',
+        'groups'                         => 'Group types',
+        'leaves'                         => 'Leave types',
+        'membership_tier_categories'     => 'Membership tier categories',
+        'organizations'                  => 'Organization types',
+        'phones'                         => 'Phone types',
+        'refunds'                        => 'Refund types',
+        'segment-categories'             => 'Segment categories',
+        'service_wicket_crms'            => 'Wicket CRM services',
+        'services'                       => 'Services',
+        'shared_degree_diplomas'         => 'Degrees & diplomas',
+        'shared_gender'                  => 'Gender',
+        'shared_job_function'            => 'Job functions',
+        'shared_job_level'               => 'Job levels',
+        'shared_language'                => 'Languages',
+        'shared_person_type'             => 'Person types',
+        'shared_preferred_pronoun'       => 'Preferred pronouns',
+        'shared_written_spoken_languages' => 'Written & spoken languages',
+        'web_addresses'                  => 'Web address types',
+    ];
+
+    /**
+     * Human scope labels for json_schema_resources resource_type keys.
+     */
+    private const SCOPE_LABELS = [
+        'people'       => 'Person',
+        'organizations' => 'Organization',
+        'orders'       => 'Order',
+        'groups'       => 'Group',
+        'group_members' => 'Group member',
+    ];
+
+    /**
      * Register hooks.
      *
      * @return self
@@ -272,7 +314,10 @@ class SchemaInspector
     }
 
     /**
-     * Shared CSS plus page head.
+     * Shared page head: Pico classless CSS from its CDN plus a small
+     * override block (machine identifiers stay monospace, badges, dim
+     * states, scrollable tables). No plugin assets; the framework is
+     * generic and cacheable.
      *
      * @param string $title Page title.
      *
@@ -280,30 +325,156 @@ class SchemaInspector
      */
     private function head(string $title): void
     {
+        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+        $host = is_string($host) && $host !== '' ? $host : 'site';
         $style = <<<'CSS'
-            body{font-family:monospace;margin:2rem}
-            h1{font-size:1.2rem}
-            h2{font-size:1rem;margin:1.5rem 0 .5rem}
-            table{border-collapse:collapse}
-            th,td{border:1px solid #ccc;padding:.3rem .6rem;text-align:left;vertical-align:top}
-            td.id{color:#888}
-            td.values{color:#444;max-width:52rem}
-            nav a{margin-right:1rem}
+            main.container{max-width:2020px}
+            h1{font-size:1.4rem}
+            h2{font-size:1.05rem;margin-top:1.6rem}
+            main{padding-bottom:3rem}
+            table{font-size:.84rem;display:block;overflow-x:auto;white-space:nowrap}
+            th,td{vertical-align:top;padding:.35rem .6rem}
+            th{position:sticky;top:0}
+            code{font-size:.8em}
+            .crumbs{font-size:.8rem;color:var(--pico-muted-color)}
+            .dim{opacity:.5}
+            .tag{display:inline-block;padding:.05rem .5rem;border-radius:1rem;font-size:.72rem;background:var(--pico-muted-color);color:var(--pico-muted-contrast);white-space:nowrap}
+            .tag-on{background:var(--pico-primary-background);color:var(--pico-primary-inverse)}
+            .tag-warn{background:#b58a00;color:#fff}
+            .copy{padding:.02rem .4rem;font-size:.68rem;display:inline-block;margin-left:.3rem;vertical-align:baseline}
+            .jump{font-size:.8rem;line-height:1.9}
+            .jump a{margin-right:.7rem}
             CSS;
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' . esc_html($title) . '</title><style>' . $style . '</style></head><body>';
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="color-scheme" content="light dark">'
+            . '<title>' . esc_html($title) . ' — ' . esc_html($host) . ' (MDP data)</title>'
+            . '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.classless.min.css">'
+            . '<style>' . $style . '</style>'
+            . '<script>(function(){try{var t=localStorage.getItem("mdp-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>'
+            . '</head><body><main class="container">';
     }
 
     /**
-     * Shared footer: cache note, refresh link, index link.
+     * Shared footer: cache note, refresh link, and the copy/filter script.
      *
      * @return void
      */
     private function foot(): void
     {
-        echo '<p style="color:#888">Cached ' . esc_html((string) self::CACHE_TTL) . 's. '
-            . '<a href="' . esc_url($this->url(['mdp_schemas_refresh' => '1'])) . '">refresh from API</a> | '
-            . '<a href="' . esc_url($this->url()) . '">back to index</a></p>';
-        echo '</body></html>';
+        echo '<p class="crumbs">Cached ' . esc_html((string) self::CACHE_TTL) . 's. '
+            . '<a href="' . esc_url($this->url(['mdp_schemas_refresh' => '1'])) . '">refresh from API</a></p>';
+        echo <<<'JS'
+            <script>
+            document.addEventListener('click',function(e){var b=e.target.closest('[data-copy]');if(!b)return;navigator.clipboard&&navigator.clipboard.writeText(b.dataset.copy);b.textContent='copied';setTimeout(function(){b.textContent='copy'},1200);});
+            document.querySelectorAll('input[data-filter]').forEach(function(i){i.addEventListener('input',function(){var box=document.getElementById(i.dataset.filter);if(!box)return;var q=i.value.toLowerCase();box.querySelectorAll('tbody tr').forEach(function(r){r.hidden=q!==''&&!r.textContent.toLowerCase().includes(q);});});});
+            (function(){var tg=document.getElementById('theme-toggle');if(!tg)return;var order=['auto','light','dark'];var apply=function(){var t=localStorage.getItem('mdp-theme')||'auto';tg.textContent='Theme: '+t.charAt(0).toUpperCase()+t.slice(1);};apply();tg.addEventListener('click',function(){var cur=localStorage.getItem('mdp-theme')||'auto';var next=order[(order.indexOf(cur)+1)%order.length];if(next==='auto'){localStorage.removeItem('mdp-theme');document.documentElement.removeAttribute('data-theme');}else{localStorage.setItem('mdp-theme',next);document.documentElement.setAttribute('data-theme',next);}apply();});})();
+            </script>
+            JS;
+        echo '</main></body></html>';
+    }
+
+    /**
+     * The shared tab bar shown on every view, plus an optional breadcrumb
+     * line. Counts come from the transients only, so rendering a view never
+     * triggers API fetches just to build the navigation.
+     *
+     * @param string   $active One of schemas, resource_types, memberships, communications, api.
+     * @param string[] $crumbs Breadcrumb trail after the tab name.
+     *
+     * @return void
+     */
+    private function nav(string $active, array $crumbs = []): void
+    {
+        $count = static function (string $key): ?int {
+            $value = get_transient($key);
+
+            return is_array($value) ? count($value) : null;
+        };
+        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+        $host = is_string($host) && $host !== '' ? $host : 'site';
+
+        $tabs = [
+            'schemas'        => ['Schemas', []],
+            'resource_types' => ['Resource types', ['resource_types' => '1']],
+            'memberships'    => ['Membership tiers', ['memberships' => '1']],
+            'communications' => ['Communications', ['communications' => '1']],
+            'api'            => ['API data', ['mdp_api' => '1']],
+        ];
+        $counts = [
+            'resource_types' => $count(self::RESOURCE_TYPE_CACHE_KEY),
+            'memberships'    => $count(self::MEMBERSHIP_CACHE_KEY),
+            'communications' => $count(self::COMMUNICATIONS_CACHE_KEY),
+        ];
+
+        echo '<nav><ul>';
+        foreach ($tabs as $key => [$label, $params]) {
+            $text = $label;
+            if (isset($counts[$key]) && $counts[$key] !== null) {
+                $text .= ' (' . (string) $counts[$key] . ')';
+            }
+            echo '<li><a href="' . esc_url($this->url($params)) . '"'
+                . ($key === $active ? ' aria-current="page"' : '') . '>' . esc_html($text) . '</a></li>';
+        }
+        echo '<li><a href="' . esc_url($this->url(['format' => 'csv'])) . '">Download slugs CSV</a></li>';
+        echo '</ul><ul>'
+            . '<li><small class="dim">' . esc_html($host) . '</small></li>'
+            . '<li><button class="copy outline" id="theme-toggle" type="button" aria-label="Switch color mode">Theme: Auto</button></li>'
+            . '</ul></nav>';
+
+        if ($crumbs !== []) {
+            echo '<p class="crumbs">'
+                . esc_html(implode(' › ', array_merge([$tabs[$active][0]], $crumbs)))
+                . '</p>';
+        }
+    }
+
+    /**
+     * A client-side filter box targeting the element with the given id.
+     *
+     * @param string $target_id  Element id whose tbody rows get filtered.
+     * @param string $placeholder Input placeholder.
+     *
+     * @return void
+     */
+    private function filter_box(string $target_id, string $placeholder = 'Type to filter rows…'): void
+    {
+        echo '<input type="search" data-filter="' . esc_attr($target_id) . '" placeholder="' . esc_attr($placeholder) . '" aria-label="Filter rows">';
+    }
+
+    /**
+     * Display label for a probe type token.
+     *
+     * @param string $type Machine type (string, integer, ..., null, mixed).
+     *
+     * @return string
+     */
+    private function type_label(string $type): string
+    {
+        return match ($type) {
+            'null'  => 'not set in sample',
+            'mixed' => 'mixed types',
+            default => $type,
+        };
+    }
+
+    /**
+     * Human label for a json_schema_resources scope key (or joined keys).
+     *
+     * @param string $scope Scope key or comma-joined keys.
+     *
+     * @return string
+     */
+    private function human_scope(string $scope): string
+    {
+        if ($scope === 'unknown') {
+            return 'Unassigned';
+        }
+        $parts = array_map('trim', explode(',', $scope));
+        $labels = array_map(
+            fn (string $part): string => self::SCOPE_LABELS[$part] ?? ucfirst(str_replace('_', ' ', $part)),
+            $parts
+        );
+
+        return implode(', ', $labels) . ' schemas';
     }
 
     /**
@@ -709,20 +880,22 @@ class SchemaInspector
     }
 
     /**
-     * Render an HTML table of rows.
+     * Render an HTML table with proper thead/tbody semantics.
      *
-     * @param list<string>      $headers Column headers.
-     * @param list<list<string>>$rows    Cell rows, already escaped by the caller.
+     * @param list<string>       $headers Column headers.
+     * @param list<list<string>> $rows    Cell rows, already escaped by the caller.
+     * @param string|null        $id      Optional table id (filter target).
      *
      * @return void
      */
-    private function table(array $headers, array $rows): void
+    private function table(array $headers, array $rows, ?string $id = null): void
     {
-        echo '<table><tr>';
+        echo '<table' . ($id !== null ? ' id="' . esc_attr($id) . '"' : '') . '>';
+        echo '<thead><tr>';
         foreach ($headers as $header) {
             echo '<th>' . esc_html($header) . '</th>';
         }
-        echo '</tr>';
+        echo '</tr></thead><tbody>';
         foreach ($rows as $row) {
             echo '<tr>';
             foreach ($row as $cell) {
@@ -730,7 +903,7 @@ class SchemaInspector
             }
             echo '</tr>';
         }
-        echo '</table>';
+        echo '</tbody></table>';
     }
 
     /**
@@ -746,28 +919,21 @@ class SchemaInspector
         $this->head('MDP Schemas');
 
         if ($schemas === false) {
-            echo '<h1>MDP Schemas</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> after fixing the cause. Details are in the plugin log.</p></body></html>';
+            $this->nav('schemas');
+            echo '<h1>MDP Schemas</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> to the URL after fixing the cause. Details are in the plugin log.</p>';
+            $this->foot();
 
             return;
         }
 
-        $resource_types = $this->resource_types();
-        $memberships = $this->memberships();
-        $communications = $this->communications();
+        unset($resource_types, $memberships, $communications); // Counts come from the transients inside nav().
+
+        $this->nav('schemas');
 
         echo '<h1>MDP JSON Schemas (' . esc_html((string) count($schemas)) . ')</h1>';
 
-        echo '<nav><a href="' . esc_url($this->url(['resource_types' => '1'])) . '">Resource types'
-            . (is_array($resource_types) ? ' (' . count($resource_types) . ')' : '') . '</a>'
-            . '<a href="' . esc_url($this->url(['memberships' => '1'])) . '">Membership tiers'
-            . (is_array($memberships) ? ' (' . count($memberships) . ')' : '') . '</a>'
-            . '<a href="' . esc_url($this->url(['communications' => '1'])) . '">Communications'
-            . (is_array($communications) ? ' (' . count($communications) . ')' : '') . '</a>'
-            . '<a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">API data</a>'
-            . '<a href="' . esc_url($this->url(['format' => 'csv'])) . '">Download slugs CSV</a>'
-            . '</nav>';
-
         if (count($schemas) === 0) {
+            echo '<p>No Additional Info schemas exist on this tenant yet. They appear here once MDP configuration creates them.</p>';
             $this->foot();
 
             return;
@@ -782,22 +948,22 @@ class SchemaInspector
         ksort($groups);
 
         foreach ($groups as $type => $resources) {
-            echo '<h2>' . esc_html($type) . ' (' . esc_html((string) count($resources)) . ')</h2>';
+            echo '<h2>' . esc_html($this->human_scope($type)) . ' (' . esc_html((string) count($resources)) . ')</h2>';
             $rows = [];
             foreach ($resources as $resource) {
                 $attributes = $resource['attributes'] ?? [];
                 $slug = is_string($attributes['slug'] ?? null) ? $attributes['slug'] : '';
-                $title = is_string($attributes['title'] ?? null) ? $attributes['title'] : $slug;
+                $title = is_string($attributes['title'] ?? null) && $attributes['title'] !== '' ? $attributes['title'] : $slug;
                 $uuid = is_string($resource['id'] ?? null) ? $resource['id'] : '';
                 $rows[] = [
-                    esc_html($slug),
-                    esc_html($title),
-                    '<span class="id">' . esc_html($uuid) . '</span>',
-                    '<a href="' . esc_url($this->url(['schema' => $uuid])) . '">view JSON</a> | '
-                        . '<a href="' . esc_url($this->url(['schema' => $uuid, 'view' => 'fields'])) . '">fields</a>',
+                    '<code>' . esc_html($slug) . '</code> <button class="copy outline" data-copy="' . esc_attr($slug) . '">copy</button>',
+                    $title === $slug ? '<span class="dim">same as slug</span>' : esc_html($title),
+                    '<span class="dim">' . esc_html($uuid) . '</span>',
+                    '<a href="' . esc_url($this->url(['schema' => $uuid, 'view' => 'fields'])) . '">fields</a> | '
+                        . '<a href="' . esc_url($this->url(['schema' => $uuid])) . '">JSON</a>',
                 ];
             }
-            $this->table(['Slug', 'Title', 'UUID', ''], $rows);
+            $this->table(['Slug', 'Title', 'UUID', 'Actions'], $rows);
         }
 
         $this->foot();
@@ -820,7 +986,8 @@ class SchemaInspector
 
         if ($schema === null) {
             status_header(404);
-            echo '<h1>MDP Schema Fields</h1><p>No schema matches <code>' . esc_html($identifier) . '</code>.</p>';
+            $this->nav('schemas');
+            echo '<h1>MDP Schema Fields</h1><p>No schema matches <code>' . esc_html($identifier) . '</code>. Pick one from the Schemas tab.</p>';
             $this->foot();
 
             return;
@@ -832,13 +999,15 @@ class SchemaInspector
         $fields = $this->mappable_fields($schema);
         $scopes = $this->schema_scope_names($schema);
 
+        $this->nav('schemas', [$slug, 'fields']);
+
         echo '<h1>' . esc_html($slug) . ' fields (' . esc_html((string) count($fields)) . ')</h1>';
-        echo '<p class="id">' . esc_html($uuid) . ' | '
-            . '<a href="' . esc_url($this->url(['schema' => $uuid])) . '">view raw JSON</a></p>';
-        echo '<p>Applies to: ' . esc_html($scopes !== [] ? implode(', ', $scopes) : 'unknown (no json_schema_resources binding)') . '</p>';
+        echo '<p><span class="dim">' . esc_html($uuid) . '</span> | <a href="' . esc_url($this->url(['schema' => $uuid])) . '">view raw JSON</a></p>';
+        echo '<p>Applies to: <strong>' . esc_html($scopes !== [] ? implode(', ', $scopes) : 'unknown (no json_schema_resources binding)') . '</strong>. '
+            . 'Mapping targets below feed Gravity Forms MDP feeds and Additional Info cards. Copy exact values; a typo breaks data mapping silently.</p>';
 
         if (count($fields) === 0) {
-            echo '<p>No GF-mappable fields: every property is a composite shape (repeater or nested object).</p>';
+            echo '<p>No GF-mappable fields: every property is a composite shape (repeater or nested object). Check the raw JSON for the full structure.</p>';
             $this->foot();
 
             return;
@@ -846,26 +1015,30 @@ class SchemaInspector
 
         $rows = [];
         foreach ($fields as $field) {
+            $target = 'data_field.' . $slug . '.' . $field['slug'];
             $values = [];
             foreach ($field['values'] as $index => $pair) {
-                if ($index >= 8) {
-                    $values[] = '+' . (string) (count($field['values']) - 8) . ' more';
-                    break;
+                if ($index === 8) {
+                    $values[] = '<details><summary class="dim">+' . esc_html((string) (count($field['values']) - 8)) . ' more options</summary>';
                 }
-                $text = $pair['value'];
+                $option = '<button class="copy outline" data-copy="' . esc_attr($pair['value']) . '">' . esc_html($pair['value']) . '</button>';
                 if ($pair['label'] !== '' && $pair['label'] !== $pair['value']) {
-                    $text .= ' = ' . $pair['label'];
+                    $option .= ' <span class="dim">(' . esc_html($pair['label']) . ')</span>';
                 }
-                $values[] = esc_html($text);
+                $values[] = $option;
+            }
+            if (count($field['values']) > 8) {
+                $values[] = '</details>';
             }
             $rows[] = [
-                esc_html($field['slug']),
+                '<code>' . esc_html($field['slug']) . '</code> <button class="copy outline" data-copy="' . esc_attr($field['slug']) . '">copy</button>',
                 esc_html($field['label']),
                 esc_html($field['type']),
+                '<code>' . esc_html($target) . '</code> <button class="copy outline" data-copy="' . esc_attr($target) . '">copy</button>',
                 '<span class="values">' . implode('<br>', $values) . '</span>',
             ];
         }
-        $this->table(['Property', 'Label', 'Type', 'Values'], $rows);
+        $this->table(['Property', 'Label', 'Type', 'GF mapping target', 'Values (click to copy)'], $rows);
 
         $this->foot();
     }
@@ -883,7 +1056,8 @@ class SchemaInspector
         $this->head('MDP Resource Types');
 
         if ($resource_types === false) {
-            echo '<h1>MDP Resource Types</h1><p>The MDP API is unavailable. Details are in the plugin log.</p>';
+            $this->nav('resource_types');
+            echo '<h1>MDP Resource Types</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> to the URL after fixing the cause. Details are in the plugin log.</p>';
             $this->foot();
 
             return;
@@ -898,21 +1072,48 @@ class SchemaInspector
         }
         ksort($groups);
 
-        echo '<h1>MDP Resource Types (' . esc_html((string) count($resource_types)) . ')</h1>';
+        $this->nav('resource_types');
 
+        echo '<h1>MDP Resource Types (' . esc_html((string) count($resource_types)) . ')</h1>';
+        echo '<p>Exact choice values a Gravity Forms select, radio, or checkbox must carry when the field syncs to MDP. Click a slug to copy it.</p>';
+
+        $anchor_id = 'resource-groups';
+        $this->filter_box($anchor_id, 'Filter values across all groups…');
+
+        $jump = [];
+        foreach ($groups as $group => $items) {
+            $jump[] = '<a href="#g-' . esc_attr(md5($group)) . '">'
+                . esc_html(self::GROUP_LABELS[$group] ?? $group) . ' (' . esc_html((string) count($items)) . ')</a>';
+        }
+        echo '<p class="jump">' . implode(' ', $jump) . '</p>';
+
+        echo '<div id="' . esc_attr($anchor_id) . '">';
         foreach ($groups as $group => $items) {
             usort($items, fn (array $a, array $b): int => strnatcasecmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? '')));
-            echo '<h2>' . esc_html($group) . ' (' . esc_html((string) count($items)) . ')</h2>';
+            $label = self::GROUP_LABELS[$group] ?? $group;
+            echo '<h2 id="g-' . esc_attr(md5($group)) . '">';
+            if ($label !== $group) {
+                echo esc_html($label) . ' <span class="dim">(' . esc_html($group) . ')</span>';
+            } else {
+                echo esc_html($group);
+            }
+            echo ' (' . esc_html((string) count($items)) . ')</h2>';
             $rows = [];
             foreach ($items as $attributes) {
+                $slug = is_string($attributes['slug'] ?? null) ? $attributes['slug'] : '';
                 $rows[] = [
                     esc_html(is_string($attributes['name'] ?? null) ? $attributes['name'] : ''),
-                    esc_html(is_string($attributes['slug'] ?? null) ? $attributes['slug'] : ''),
+                    '<code>' . esc_html($slug) . '</code> <button class="copy outline" data-copy="' . esc_attr($slug) . '">copy</button>',
                     esc_html(is_string($attributes['available_for_entity'] ?? null) ? $attributes['available_for_entity'] : ''),
-                    ($attributes['default'] ?? null) === true ? 'yes' : '',
+                    ($attributes['default'] ?? null) === true ? '<span class="tag tag-on">default</span>' : '',
                 ];
             }
             $this->table(['Name', 'Slug', 'For entities', 'Default'], $rows);
+        }
+        echo '</div>';
+
+        if (count($resource_types) === 0) {
+            echo '<p>No resource type values exist on this tenant yet. They are configured in the MDP admin.</p>';
         }
 
         $this->foot();
@@ -931,7 +1132,8 @@ class SchemaInspector
         $this->head('MDP Membership Tiers');
 
         if ($memberships === false) {
-            echo '<h1>MDP Membership Tiers</h1><p>The MDP API is unavailable. Details are in the plugin log.</p>';
+            $this->nav('memberships');
+            echo '<h1>MDP Membership Tiers</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> to the URL after fixing the cause. Details are in the plugin log.</p>';
             $this->foot();
 
             return;
@@ -953,26 +1155,61 @@ class SchemaInspector
             return strnatcasecmp((string) ($a_attributes['name'] ?? ''), (string) ($b_attributes['name'] ?? ''));
         });
 
-        echo '<h1>MDP Membership Tiers (' . esc_html((string) count($memberships)) . ')</h1>';
+        $this->nav('memberships');
 
-        $rows = [];
-        foreach ($memberships as $membership) {
-            $attributes = $membership['attributes'] ?? [];
-            $text = fn (string $key): string => esc_html(is_string($attributes[$key] ?? null) || is_numeric($attributes[$key] ?? null) ? (string) $attributes[$key] : '');
-            $rows[] = [
-                $text('name'),
-                $text('slug'),
-                $text('code'),
-                $text('type'),
-                $text('category'),
-                $text('renewable'),
-                $text('approval'),
-                $text('default_grace_period_days'),
-                $text('max_assignments'),
-                ($attributes['active'] ?? null) === false ? 'no' : 'yes',
-            ];
+        echo '<h1>MDP Membership Tiers (' . esc_html((string) count($memberships)) . ')</h1>';
+        echo '<p>Slug and code are what the memberships plugin, renewal forms, and imports key on. Click either to copy it.</p>';
+
+        if (count($memberships) === 0) {
+            echo '<p>No membership tiers exist on this tenant yet.</p>';
+            $this->foot();
+
+            return;
         }
-        $this->table(['Name', 'Slug', 'Code', 'Type', 'Category', 'Renewable', 'Approval', 'Grace days', 'Max', 'Active'], $rows);
+
+        $by_type = [];
+        foreach ($memberships as $membership) {
+            $type = (string) ($membership['attributes']['type'] ?? 'other');
+            $by_type[$type !== '' ? $type : 'other'][] = $membership;
+        }
+
+        $section_labels = ['individual' => 'Individual tiers', 'organization' => 'Organization tiers', 'other' => 'Other tiers'];
+        $this->filter_box('membership-sections', 'Filter tiers…');
+
+        echo '<div id="membership-sections">';
+        foreach ($section_labels as $type => $label) {
+            $tiers = $by_type[$type] ?? [];
+            if ($tiers === []) {
+                continue;
+            }
+            echo '<h2>' . esc_html($label) . ' (' . esc_html((string) count($tiers)) . ')</h2>';
+            $rows = [];
+            foreach ($tiers as $membership) {
+                $attributes = $membership['attributes'] ?? [];
+                $text = fn (string $key): string => esc_html(is_string($attributes[$key] ?? null) || is_numeric($attributes[$key] ?? null) ? (string) $attributes[$key] : '');
+                $slug = (string) ($attributes['slug'] ?? '');
+                $code = (string) ($attributes['code'] ?? '');
+                $approval = $text('approval');
+                $max = $text('max_assignments');
+                $rows[] = [
+                    $text('name'),
+                    '<code>' . esc_html($slug) . '</code> <button class="copy outline" data-copy="' . esc_attr($slug) . '">copy</button>',
+                    $code !== ''
+                        ? '<code>' . esc_html($code) . '</code> <button class="copy outline" data-copy="' . esc_attr($code) . '">copy</button>'
+                        : '<span class="dim">none</span>',
+                    esc_html((string) ($attributes['category'] ?? '')),
+                    $text('renewable') !== '' ? '<span class="tag">' . $text('renewable') . '</span>' : '',
+                    $approval !== ''
+                        ? (str_contains($approval, 'not_required') ? '<span class="tag">' . $approval . '</span>' : '<span class="tag tag-warn">' . $approval . '</span>')
+                        : '',
+                    $text('default_grace_period_days'),
+                    $max !== '' ? $max : '<span class="dim">unlimited</span>',
+                    ($attributes['active'] ?? null) === false ? '<span class="tag tag-warn">inactive</span>' : '<span class="tag tag-on">active</span>',
+                ];
+            }
+            $this->table(['Name', 'Slug', 'Code', 'Category', 'Renewal', 'Approval', 'Grace days', 'Max seats', 'Status'], $rows);
+        }
+        echo '</div>';
 
         $this->foot();
     }
@@ -1015,26 +1252,35 @@ class SchemaInspector
         $this->head('MDP Communications');
 
         if ($preferences === false) {
-            echo '<h1>MDP Communications</h1><p>The MDP API is unavailable. Details are in the plugin log.</p>';
+            $this->nav('communications');
+            echo '<h1>MDP Communications</h1><p>The MDP API is unavailable. Retry, or add <code>&amp;mdp_schemas_refresh=1</code> to the URL after fixing the cause. Details are in the plugin log.</p>';
             $this->foot();
 
             return;
         }
 
+        $this->nav('communications');
+
         echo '<h1>MDP Communications Preferences (' . esc_html((string) count($preferences)) . ')</h1>';
+        echo '<p>Mapping targets for form opt-ins. communications.email is the general opt-in flag; each sublist below is a tenant-specific preference.</p>';
+
+        if (count($preferences) === 0) {
+            echo '<p>No communication preferences are configured in MDP for this tenant. Sublist preferences can be added in the MDP admin; the general email opt-in below always exists.</p>';
+        }
 
         $rows = [
-            ['email', 'Email Opt-in', '', 'communications.email'],
+            ['email', 'Email Opt-in', '', '<code>communications.email</code> <button class="copy outline" data-copy="communications.email">copy</button>'],
         ];
         foreach ($preferences as $preference) {
             $attributes = $preference['attributes'] ?? [];
             $key = is_string($attributes['sublist_key'] ?? null) ? $attributes['sublist_key'] : '';
             $merge = is_string($attributes['merge_field_name'] ?? null) ? $attributes['merge_field_name'] : '';
+            $target = 'communications.sublists.' . $key;
             $rows[] = [
-                esc_html($key),
+                '<code>' . esc_html($key) . '</code>',
                 esc_html($this->communication_label($attributes)),
                 esc_html($merge),
-                esc_html('communications.sublists.' . $key),
+                '<code>' . esc_html($target) . '</code> <button class="copy outline" data-copy="' . esc_attr($target) . '">copy</button>',
             ];
         }
 
@@ -1049,10 +1295,13 @@ class SchemaInspector
      *
      * @param mixed $value Sample value.
      *
-     * @return string One of string, integer, number, boolean, array, object, mixed.
+     * @return string One of string, integer, number, boolean, array, object, mixed, null.
      */
     private function json_type_of($value): string
     {
+        if ($value === null) {
+            return 'null';
+        }
         if (is_int($value)) {
             return 'integer';
         }
@@ -1209,17 +1458,25 @@ class SchemaInspector
             return;
         }
 
-        echo '<h1>MDP API Data</h1>';
-        echo '<p>Every top-level v1 index endpoint with the shape this tenant serves. Metadata only: attribute names, value-shape types, and relationship targets. Record contents are never fetched into the page. Types are inferred from one sample record, so they describe what exists, not what must exist.</p>';
-        echo '<nav><a href="' . esc_url($this->url(['mdp_schemas' => '1'])) . '">back to index</a>'
-            . ' | ' . $this->explorer_download_links('1') . ' (all endpoints)'
-            . '</nav>';
+        $this->nav('api');
 
+        echo '<h1>MDP API Data</h1>';
+        echo '<p>Every top-level v1 index endpoint with the shape this tenant serves. Metadata only: attribute names, value-shape types, and relationship targets. Record contents are never fetched into the page. Types are inferred from one sample record, so they describe what exists, not what must exist. '
+            . '<span class="dim">Rows shows the total the API reports, or 1+ when the endpoint only returned a sample without a total.</span></p>';
+        echo '<nav><ul>'
+            . '<li>' . $this->explorer_download_links('1') . ' (all endpoints, one file)</li>'
+            . '<li><a href="' . esc_url($this->url(['mdp_api' => '1', 'mdp_schemas_refresh' => '1'])) . '">re-probe all endpoints</a></li>'
+            . '</ul></nav>';
+
+        $this->filter_box('explorer-groups', 'Filter endpoints…');
+
+        echo '<div id="explorer-groups">';
         foreach (self::EXPLORER_ENDPOINTS as $group => $endpoints) {
             echo '<h2>' . esc_html($group) . '</h2>';
             $rows = [];
             foreach ($endpoints as $path => $label) {
                 $meta = $map[$path] ?? ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+                $empty = $meta['status'] === 'empty';
                 $attr_names = array_keys($meta['attributes']);
                 $shown = [];
                 foreach ($attr_names as $index => $name) {
@@ -1231,19 +1488,20 @@ class SchemaInspector
                 }
                 $rows[] = [
                     '<a href="' . esc_url($this->url(['mdp_api' => $path])) . '">' . esc_html($label) . '</a>',
-                    '<span class="id">' . esc_html($path) . '</span>',
-                    $meta['status'] === 'ok' || $meta['status'] === 'empty'
-                        ? esc_html((string) count($attr_names)) . ' <span class="values">' . implode(', ', $shown) . '</span>'
+                    '<code>' . esc_html($path) . '</code>',
+                    $meta['status'] === 'ok' || $empty
+                        ? esc_html((string) count($attr_names)) . ' <span class="dim">' . implode(', ', $shown) . '</span>'
                         : '<em>unavailable</em>',
                     esc_html((string) count($meta['relationships'])),
                     $meta['status'] === 'error' ? '<em>error</em>' : esc_html((string) $meta['count']),
-                    $this->explorer_download_links($path),
+                    $empty ? '<span class="dim">no records</span>' : $this->explorer_download_links($path),
                 ];
             }
             $this->table(['Resource', 'Endpoint', 'Attributes', 'Rels', 'Rows', 'Download'], $rows);
         }
+        echo '</div>';
 
-        echo '<p>Nested-only or param-required resources are not probed here: addresses, phones, emails, web_addresses, leaves (under people), comments, orders, touchpoints, messages, roles, connections, segment filters, membership entries and histories (under people and organizations), statements (under subscriptions), webhook attempts, group people (groups/&lt;id&gt;/people), and resource_facets (requires filter[id_eq]).</p>';
+        echo '<p class="dim">Nested-only or param-required resources are not probed here: addresses, phones, emails, web_addresses, leaves (under people), comments, orders, touchpoints, messages, roles, connections, segment filters, membership entries and histories (under people and organizations), statements (under subscriptions), webhook attempts, group people (groups/&lt;id&gt;/people), and resource_facets (requires filter[id_eq]).</p>';
 
         $this->foot();
     }
@@ -1259,13 +1517,17 @@ class SchemaInspector
      */
     private function render_explorer_detail(string $path, array $meta): void
     {
-        echo '<h1>' . esc_html($path) . '</h1>';
-        echo '<nav><a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">back to API data</a>'
-            . ' | ' . $this->explorer_download_links($path)
-            . ' | <a href="' . esc_url($this->url(['mdp_api' => '1', 'mdp_schemas_refresh' => '1'])) . '">re-probe all endpoints</a></nav>';
+        $this->nav('api', [$path]);
+
+        echo '<h1><code>' . esc_html($path) . '</code></h1>';
+        echo '<nav><ul>'
+            . '<li><a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">back to API data</a></li>'
+            . '<li>' . $this->explorer_download_links($path) . '</li>'
+            . '<li><a href="' . esc_url($this->url(['mdp_api' => $path, 'mdp_schemas_refresh' => '1'])) . '">re-probe this endpoint</a></li>'
+            . '</ul></nav>';
 
         if (($meta['status'] ?? 'error') === 'error') {
-            echo '<p>The probe failed (endpoint unavailable for the service token, or the API is down). Details are in the plugin log.</p>';
+            echo '<p>The probe failed: the endpoint is unavailable for the service token (permission), the API is down, or the path needs a parameter. Details are in the plugin log. Try <code>&amp;mdp_schemas_refresh=1</code> after fixing the cause.</p>';
             $this->foot();
 
             return;
@@ -1280,7 +1542,11 @@ class SchemaInspector
         } else {
             $rows = [];
             foreach ($meta['attributes'] as $name => $type) {
-                $rows[] = [esc_html($name), esc_html($type)];
+                $type_text = $this->type_label((string) $type);
+                $rows[] = [
+                    '<code>' . esc_html((string) $name) . '</code>',
+                    $type_text === (string) $type ? esc_html($type_text) : '<span class="dim">' . esc_html($type_text) . '</span>',
+                ];
             }
             $this->table(['Attribute', 'Type'], $rows);
         }
@@ -1289,7 +1555,11 @@ class SchemaInspector
             echo '<h2>Relationships</h2>';
             $rows = [];
             foreach ($meta['relationships'] as $name => $target) {
-                $rows[] = [esc_html($name), esc_html($target)];
+                $target_text = (string) $target === 'unloaded' ? 'not loaded by the index probe' : (string) $target;
+                $rows[] = [
+                    '<code>' . esc_html((string) $name) . '</code>',
+                    $target_text === (string) $target ? esc_html($target_text) : '<span class="dim">' . esc_html($target_text) . '</span>',
+                ];
             }
             $this->table(['Relationship', 'Target type'], $rows);
         }
@@ -1419,7 +1689,10 @@ class SchemaInspector
     /**
      * Output every tenant slug as one CSV download, in the per-client slug
      * reference format (kind,list,name,slug,extra) that form building and
-     * MDP configuration work consume.
+     * MDP configuration work consume. Kinds: meta (site + generated-at
+     * provenance), json_schema (extra column carries the scope),
+     * json_schema_property, json_schema_choice (enum value/label pairs),
+     * membership, resource_type, comm, comm_sublist.
      *
      * @return void
      */
@@ -1455,6 +1728,9 @@ class SchemaInspector
 
         $rows = [['kind', 'list', 'name', 'slug', 'extra']];
 
+        $csv_host = wp_parse_url(home_url(), PHP_URL_HOST);
+        $rows[] = ['meta', 'provenance', 'site', is_string($csv_host) && $csv_host !== '' ? $csv_host : 'site', gmdate('c')];
+
         foreach ($schemas ?: [] as $resource) {
             $attributes = $resource['attributes'] ?? [];
             $slug = is_string($attributes['slug'] ?? null) ? $attributes['slug'] : (string) ($attributes['key'] ?? '');
@@ -1465,6 +1741,9 @@ class SchemaInspector
             $rows[] = ['json_schema', '', $title, $slug, implode(', ', $scopes)];
             foreach ($this->mappable_fields($resource) as $field) {
                 $rows[] = ['json_schema_property', $slug, $field['label'], $field['slug'], $field['type']];
+                foreach ($field['values'] as $pair) {
+                    $rows[] = ['json_schema_choice', $slug . '.' . $field['slug'], $pair['label'], $pair['value'], ''];
+                }
             }
         }
 
@@ -1502,7 +1781,6 @@ class SchemaInspector
 
         $host = wp_parse_url(home_url(), PHP_URL_HOST);
         $filename = 'mdp-slugs-' . ($host !== null && $host !== '' ? $host : 'site') . '.csv';
-
         (new \WicketWP\Support\CsvExporter())->download($filename, $rows);
     }
 }
