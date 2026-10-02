@@ -3,14 +3,24 @@
 /**
  * Hidden browser for tenant MDP data relevant to form building.
  *
- * /?mdp_schemas                            HTML index: json_schemas grouped by resource type.
+ * /?mdp_schemas                            HTML index: json_schemas grouped by scope (people, organizations, ...).
  * /?mdp_schemas&schema=<uuid|slug|key>     One schema as pretty JSON.
  * /?mdp_schemas&schema=<id>&view=fields    One schema's GF-mappable fields (slug, label, type, enums).
  * /?mdp_schemas&resource_types=1           Resource type list values (address/phone/web types, genders, ...).
  * /?mdp_schemas&memberships=1              Membership tier definitions (slug, code, category, flags).
  * /?mdp_schemas&communications=1           Communications preferences config (email + sublists).
+ * /?mdp_schemas&mdp_api=1                  API data explorer: every top-level v1 index
+ *                                          endpoint with its served attribute names,
+ *                                          value-shape types, and relationships.
+ * /?mdp_schemas&mdp_api=people             One endpoint's full derived shape.
  * /?mdp_schemas&format=csv                 All of the above slugs as one CSV download.
  * /?mdp_schemas&mdp_schemas_refresh=1      Bypass the transient caches.
+ *
+ * Scope: a schema's person/organization binding lives in its
+ * json_schema_resources relationship (resource_type people, organizations,
+ * orders, groups, connections...), not in schema attributes. The index groups
+ * by it, the fields view prints it, and the CSV puts it in the json_schema
+ * row's extra column.
  *
  * The CSV mirrors the per-client slug reference format (kind,list,name,slug,extra)
  * produced by MDP configuration work: json_schema, json_schema_property,
@@ -58,6 +68,86 @@ class SchemaInspector
      * Transient key holding the fetched communications config.
      */
     private const COMMUNICATIONS_CACHE_KEY = 'wicket_mdp_communications';
+
+    /**
+     * Transient key mapping schema UUID to its json_schema_resources
+     * resource_type keys (people, organizations, groups, ...).
+     */
+    private const SCOPES_CACHE_KEY = 'wicket_mdp_schema_scopes';
+
+    /**
+     * Transient key holding the API explorer metadata map
+     * (path => attributes/types/relationships/count).
+     */
+    private const EXPLORER_CACHE_KEY = 'wicket_mdp_api_explorer';
+
+    /**
+     * Top-level v1 index endpoints the explorer probes, grouped for the
+     * table. Paths are API paths; labels are human. Nested-only resources
+     * (addresses, phones, emails, web_addresses, leaves, per-record comments
+     * and orders, statements under subscriptions, webhook attempts) are
+     * listed as a note because their indexes need a parent id.
+     */
+    private const EXPLORER_ENDPOINTS = [
+        'Directory' => [
+            'people'            => 'People',
+            'organizations'     => 'Organizations',
+            'connections'       => 'Connections',
+            'groups'            => 'Groups',
+            'group_members'     => 'Group members',
+            'person_templates'  => 'Person templates',
+            'comments'          => 'Comments',
+            'todos'             => 'Todos',
+        ],
+        'Membership' => [
+            'memberships'                      => 'Membership tiers',
+            'person_memberships'               => 'Person memberships',
+            'organization_memberships'         => 'Organization memberships',
+            'membership_bundles'               => 'Membership bundles',
+            'person_member_histories'          => 'Person member histories',
+            'organization_membership_histories' => 'Organization member histories',
+            'intervals'                        => 'Intervals',
+        ],
+        'Billing' => [
+            'orders'              => 'Orders',
+            'variants'            => 'Variants',
+            'subscriptions'       => 'Subscriptions',
+            'fees'                => 'Fees',
+            'promotions'          => 'Promotions',
+            'donations'           => 'Donations',
+            'tax_rates'           => 'Tax rates',
+            'tax_categories'      => 'Tax categories',
+            'zones'               => 'Zones',
+            'payment_methods'     => 'Payment methods',
+            'payment_options'     => 'Payment options',
+            'payment_gateways'    => 'Payment gateways',
+            'insurance_options'    => 'Insurance options',
+            'insurance_forms'      => 'Insurance forms',
+            'insurance_submissions' => 'Insurance submissions',
+        ],
+        'Engagement' => [
+            'touchpoints'          => 'Touchpoints',
+            'touchpoints_stats'    => 'Touchpoint stats',
+            'messages'             => 'Messages',
+            'outreach_campaigns'   => 'Outreach campaigns',
+            'communication_preferences' => 'Communication preferences',
+            'automation_by_tags'   => 'Automation by tags',
+        ],
+        'Config & system' => [
+            'roles'             => 'Roles',
+            'role_summaries'    => 'Role summaries',
+            'entity_types'      => 'Entity types',
+            'resource_tags'     => 'Resource tags',
+            'pinned_tags'       => 'Pinned tags',
+            'import_jobs'       => 'Import jobs',
+            'versions'          => 'Record versions (audit trail)',
+            'role_audit_events' => 'Role audit events',
+            'service_identities' => 'Service identities',
+            'user_identities'   => 'User identities',
+            'countries'         => 'Countries',
+            'webhook/endpoints' => 'Webhook endpoints',
+        ],
+    ];
 
     /**
      * Cache lifetime in seconds.
@@ -127,6 +217,11 @@ class SchemaInspector
 
         if (isset($_GET['communications'])) {
             $this->render_communications();
+            exit;
+        }
+
+        if (isset($_GET['mdp_api'])) {
+            $this->render_explorer(wp_unslash((string) $_GET['mdp_api']));
             exit;
         }
 
@@ -237,6 +332,61 @@ class SchemaInspector
     }
 
     /**
+     * Map of schema UUID to the resource_type keys of its
+     * json_schema_resources records (people, organizations, groups, ...
+     * per JsonSchemaResource::RESOURCE_TYPE_MAPPING). This relationship, not
+     * a schema attribute, is where the MDP records what a schema profiles.
+     *
+     * @return array<string, array<string, true>> Empty array when the API is down.
+     */
+    private function schema_scopes(): array
+    {
+        if (!isset($_GET['mdp_schemas_refresh'])) {
+            $cached = get_transient(self::SCOPES_CACHE_KEY);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
+
+        $raw = $this->fetch_all('json_schemas', ['include' => 'json_schema_resources']);
+        if ($raw === false) {
+            return [];
+        }
+
+        $map = [];
+        foreach ($raw['included'] as $record) {
+            if (($record['type'] ?? '') !== 'json_schema_resources') {
+                continue;
+            }
+            $owner = $record['relationships']['json_schema']['data']['id'] ?? null;
+            $type = $record['attributes']['resource_type'] ?? null;
+            if (is_string($owner) && $owner !== '' && is_string($type) && $type !== '') {
+                $map[$owner][$type] = true;
+            }
+        }
+
+        set_transient(self::SCOPES_CACHE_KEY, $map, self::CACHE_TTL);
+
+        return $map;
+    }
+
+    /**
+     * Scope keys of one schema resource, sorted.
+     *
+     * @param array $resource A json_schemas resource.
+     *
+     * @return string[] Empty when the schema has no binding.
+     */
+    private function schema_scope_names(array $resource): array
+    {
+        $map = $this->schema_scopes();
+        $names = array_keys($map[$resource['id'] ?? null] ?? []);
+        sort($names);
+
+        return $names;
+    }
+
+    /**
      * The tenant resource type list values (address/phone/web types, genders, ...).
      *
      * @return array|false
@@ -270,11 +420,12 @@ class SchemaInspector
     /**
      * Fetch every page of a paginated endpoint with a bounded timeout.
      *
-     * @param string $path API path.
+     * @param string $path  API path.
+     * @param array  $query Extra query params merged under the pagination ones.
      *
      * @return array|false The raw API payload (envelope or list), or false on failure.
      */
-    private function fetch_all(string $path)
+    private function fetch_all(string $path, array $query = [])
     {
         $client = wicket_api_client();
         if (!$client) {
@@ -284,15 +435,16 @@ class SchemaInspector
         }
 
         $resources = [];
+        $included = [];
         try {
             for ($page = 1; $page <= self::MAX_PAGES; $page++) {
                 $response = $client->get(
                     $path,
                     [
-                        'query'           => [
+                        'query'           => array_merge($query, [
                             'page[size]'   => self::PAGE_SIZE,
                             'page[number]' => $page,
-                        ],
+                        ]),
                         'timeout'         => 15,
                         'connect_timeout' => 5,
                     ]
@@ -304,6 +456,9 @@ class SchemaInspector
                 }
 
                 $resources = array_merge($resources, $rows);
+                if (isset($response['included']) && is_array($response['included'])) {
+                    $included = array_merge($included, $response['included']);
+                }
                 if (count($rows) < self::PAGE_SIZE) {
                     break;
                 }
@@ -314,7 +469,7 @@ class SchemaInspector
             return false;
         }
 
-        return ['data' => $resources];
+        return ['data' => $resources, 'included' => $included];
     }
 
     /**
@@ -589,6 +744,7 @@ class SchemaInspector
             . (is_array($memberships) ? ' (' . count($memberships) . ')' : '') . '</a>'
             . '<a href="' . esc_url($this->url(['communications' => '1'])) . '">Communications'
             . (is_array($communications) ? ' (' . count($communications) . ')' : '') . '</a>'
+            . '<a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">API data</a>'
             . '<a href="' . esc_url($this->url(['format' => 'csv'])) . '">Download slugs CSV</a>'
             . '</nav>';
 
@@ -600,8 +756,8 @@ class SchemaInspector
 
         $groups = [];
         foreach ($schemas as $resource) {
-            $type = $resource['attributes']['resource_type'] ?? null;
-            $type = is_string($type) && $type !== '' ? $type : 'unknown';
+            $scopes = $this->schema_scope_names($resource);
+            $type = $scopes !== [] ? implode(', ', $scopes) : 'unknown';
             $groups[$type][] = $resource;
         }
         ksort($groups);
@@ -655,10 +811,12 @@ class SchemaInspector
         $slug = is_string($attributes['slug'] ?? null) ? $attributes['slug'] : '';
         $uuid = is_string($schema['id'] ?? null) ? $schema['id'] : '';
         $fields = $this->mappable_fields($schema);
+        $scopes = $this->schema_scope_names($schema);
 
         echo '<h1>' . esc_html($slug) . ' fields (' . esc_html((string) count($fields)) . ')</h1>';
         echo '<p class="id">' . esc_html($uuid) . ' | '
             . '<a href="' . esc_url($this->url(['schema' => $uuid])) . '">view raw JSON</a></p>';
+        echo '<p>Applies to: ' . esc_html($scopes !== [] ? implode(', ', $scopes) : 'unknown (no json_schema_resources binding)') . '</p>';
 
         if (count($fields) === 0) {
             echo '<p>No GF-mappable fields: every property is a composite shape (repeater or nested object).</p>';
@@ -867,6 +1025,274 @@ class SchemaInspector
     }
 
     /**
+     * Infer a JSON type name from one attribute value. Values are never
+     * rendered anywhere; only their shape becomes metadata.
+     *
+     * @param mixed $value Sample value.
+     *
+     * @return string One of string, integer, number, boolean, array, object, mixed.
+     */
+    private function json_type_of($value): string
+    {
+        if (is_int($value)) {
+            return 'integer';
+        }
+        if (is_float($value)) {
+            return 'number';
+        }
+        if (is_bool($value)) {
+            return 'boolean';
+        }
+        if (is_string($value)) {
+            return 'string';
+        }
+        if (is_array($value)) {
+            return array_values($value) === $value ? 'array' : 'object';
+        }
+
+        return 'mixed';
+    }
+
+    /**
+     * Probe one v1 index endpoint for page 1 of size 1 and derive its
+     * served shape: attribute names with value-shape types, relationship
+     * names with target types, and a row count when the payload reports one.
+     *
+     * @param string $path API path.
+     *
+     * @return array{status: string, count: int|string|null, attributes: array<string, string>, relationships: array<string, string>}
+     */
+    private function probe_endpoint(string $path): array
+    {
+        $client = wicket_api_client();
+        if (!$client) {
+            return ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+        }
+
+        try {
+            $response = $client->get(
+                $path,
+                [
+                    'query'           => ['page[size]' => 1],
+                    'timeout'         => 15,
+                    'connect_timeout' => 5,
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Wicket()->log('error', 'SchemaInspector: api explorer probe failed for ' . $path . ': ' . $e->getMessage());
+
+            return ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+        }
+
+        $rows = $response['data'] ?? null;
+        if (!is_array($rows)) {
+            return ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+        }
+
+        $first = $rows[0] ?? null;
+        $attributes = [];
+        $relationships = [];
+        if (is_array($first)) {
+            foreach ($first['attributes'] ?? [] as $name => $value) {
+                if (is_string($name) && $name !== '') {
+                    $attributes[$name] = $this->json_type_of($value);
+                }
+            }
+            foreach ($first['relationships'] ?? [] as $name => $rel) {
+                if (!is_string($name) || $name === '') {
+                    continue;
+                }
+                $data = $rel['data'] ?? null;
+                $target = null;
+                if (is_array($data)) {
+                    if (isset($data['type']) && is_string($data['type'])) {
+                        $target = $data['type'];
+                    } elseif (isset($data[0]['type']) && is_string($data[0]['type'])) {
+                        $target = $data[0]['type'];
+                    }
+                }
+                $relationships[$name] = $target !== null ? $target : 'unloaded';
+            }
+        }
+
+        $count = null;
+        foreach (['total_records', 'record_count', 'count', 'total'] as $key) {
+            $meta = $response['meta'][$key] ?? null;
+            if (is_numeric($meta)) {
+                $count = (int) $meta;
+                break;
+            }
+        }
+        if ($count === null) {
+            $count = $rows !== [] ? '1+' : 0;
+        }
+
+        return [
+            'status'        => $rows === [] ? 'empty' : 'ok',
+            'count'         => $count,
+            'attributes'    => $attributes,
+            'relationships' => $relationships,
+        ];
+    }
+
+    /**
+     * The explorer metadata map for every registered endpoint, cached as
+     * one transient. Probes run page[size]=1, so each costs one tiny read;
+     * failures are cached too so a down endpoint does not hammer the API.
+     *
+     * @return array<string, array>
+     */
+    private function explorer_meta(): array
+    {
+        if (!isset($_GET['mdp_schemas_refresh'])) {
+            $cached = get_transient(self::EXPLORER_CACHE_KEY);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
+
+        $map = [];
+        foreach (self::EXPLORER_ENDPOINTS as $endpoints) {
+            foreach ($endpoints as $path => $label) {
+                $map[$path] = $this->probe_endpoint($path);
+            }
+        }
+
+        set_transient(self::EXPLORER_CACHE_KEY, $map, self::CACHE_TTL);
+
+        return $map;
+    }
+
+    /**
+     * Output the API data explorer: every top-level v1 index endpoint with
+     * the attributes, types, and relationships the MDP serves for this
+     * tenant. Metadata only; record contents are never fetched into the
+     * output. A path argument renders one endpoint's full shape.
+     *
+     * @param string $detail Endpoint path for the detail view, or "1" for the table.
+     *
+     * @return void
+     */
+    private function render_explorer(string $detail): void
+    {
+        $known = $this->endpoint_group($detail) !== null;
+        if (!$known) {
+            $detail = '1';
+        }
+
+        $map = $this->explorer_meta();
+
+        $this->head('MDP API Data');
+
+        if ($detail !== '1') {
+            $this->render_explorer_detail($detail, $map[$detail] ?? ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []]);
+
+            return;
+        }
+
+        echo '<h1>MDP API Data</h1>';
+        echo '<p>Every top-level v1 index endpoint with the shape this tenant serves. Metadata only: attribute names, value-shape types, and relationship targets. Record contents are never fetched into the page. Types are inferred from one sample record, so they describe what exists, not what must exist.</p>';
+        echo '<nav><a href="' . esc_url($this->url(['mdp_schemas' => '1'])) . '">back to index</a></nav>';
+
+        foreach (self::EXPLORER_ENDPOINTS as $group => $endpoints) {
+            echo '<h2>' . esc_html($group) . '</h2>';
+            $rows = [];
+            foreach ($endpoints as $path => $label) {
+                $meta = $map[$path] ?? ['status' => 'error', 'count' => null, 'attributes' => [], 'relationships' => []];
+                $attr_names = array_keys($meta['attributes']);
+                $shown = [];
+                foreach ($attr_names as $index => $name) {
+                    if ($index >= 8) {
+                        $shown[] = '+' . (string) (count($attr_names) - 8) . ' more';
+                        break;
+                    }
+                    $shown[] = esc_html($name);
+                }
+                $rows[] = [
+                    '<a href="' . esc_url($this->url(['mdp_api' => $path])) . '">' . esc_html($label) . '</a>',
+                    '<span class="id">' . esc_html($path) . '</span>',
+                    $meta['status'] === 'ok' || $meta['status'] === 'empty'
+                        ? esc_html((string) count($attr_names)) . ' <span class="values">' . implode(', ', $shown) . '</span>'
+                        : '<em>unavailable</em>',
+                    esc_html((string) count($meta['relationships'])),
+                    $meta['status'] === 'error' ? '<em>error</em>' : esc_html((string) $meta['count']),
+                ];
+            }
+            $this->table(['Resource', 'Endpoint', 'Attributes', 'Rels', 'Rows'], $rows);
+        }
+
+        echo '<p>Nested-only or param-required resources are not probed here: addresses, phones, emails, web_addresses, leaves (under people), comments, orders, touchpoints, messages, roles, connections, segment filters, membership entries and histories (under people and organizations), statements (under subscriptions), webhook attempts, group people (groups/&lt;id&gt;/people), and resource_facets (requires filter[id_eq]).</p>';
+
+        $this->foot();
+    }
+
+    /**
+     * Output one endpoint's full derived shape: every attribute with its
+     * type and every relationship with its target type.
+     *
+     * @param string $path API path.
+     * @param array  $meta Cached probe result.
+     *
+     * @return void
+     */
+    private function render_explorer_detail(string $path, array $meta): void
+    {
+        echo '<h1>' . esc_html($path) . '</h1>';
+        echo '<nav><a href="' . esc_url($this->url(['mdp_api' => '1'])) . '">back to API data</a>'
+            . ' | <a href="' . esc_url($this->url(['mdp_api' => '1', 'mdp_schemas_refresh' => '1'])) . '">re-probe all endpoints</a></nav>';
+
+        if (($meta['status'] ?? 'error') === 'error') {
+            echo '<p>The probe failed (endpoint unavailable for the service token, or the API is down). Details are in the plugin log.</p>';
+            $this->foot();
+
+            return;
+        }
+
+        $count = $meta['count'];
+        echo '<p>' . esc_html((string) $count) . ' rows. ' . esc_html((string) count($meta['attributes'])) . ' attributes, '
+            . esc_html((string) count($meta['relationships'])) . ' relationships.</p>';
+
+        if ($meta['attributes'] === []) {
+            echo '<p>No records on this tenant, so the served shape is unknown until one exists.</p>';
+        } else {
+            $rows = [];
+            foreach ($meta['attributes'] as $name => $type) {
+                $rows[] = [esc_html($name), esc_html($type)];
+            }
+            $this->table(['Attribute', 'Type'], $rows);
+        }
+
+        if ($meta['relationships'] !== []) {
+            echo '<h2>Relationships</h2>';
+            $rows = [];
+            foreach ($meta['relationships'] as $name => $target) {
+                $rows[] = [esc_html($name), esc_html($target)];
+            }
+            $this->table(['Relationship', 'Target type'], $rows);
+        }
+
+        $this->foot();
+    }
+
+    /**
+     * Group name containing one endpoint path, for cheap membership checks.
+     *
+     * @param string $path API path.
+     *
+     * @return string|null
+     */
+    private function endpoint_group(string $path): ?string
+    {
+        foreach (self::EXPLORER_ENDPOINTS as $group => $endpoints) {
+            if (isset($endpoints[$path])) {
+                return $group;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Output every tenant slug as one CSV download, in the per-client slug
      * reference format (kind,list,name,slug,extra) that form building and
      * MDP configuration work consume.
@@ -911,7 +1337,8 @@ class SchemaInspector
             $title = is_string($attributes['title'] ?? null) && $attributes['title'] !== ''
                 ? $attributes['title']
                 : $slug;
-            $rows[] = ['json_schema', '', $title, $slug, ''];
+            $scopes = $this->schema_scope_names($resource);
+            $rows[] = ['json_schema', '', $title, $slug, implode(', ', $scopes)];
             foreach ($this->mappable_fields($resource) as $field) {
                 $rows[] = ['json_schema_property', $slug, $field['label'], $field['slug'], $field['type']];
             }
