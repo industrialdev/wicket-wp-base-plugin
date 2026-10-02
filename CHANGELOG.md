@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.12] - 2026-10-02
+
+### Added
+- hidden MDP schema inspector at ?mdp_schemas (WWID-2663)
+
+### Fixed
+- harden schema inspector gate, fetch, and caching (WWID-2663)
+
+### Maintenance
+- **ci:** fail closed when main moves before release push
+
+
 ## [2.7.11] - 2026-09-25
 
 ### Fixed
