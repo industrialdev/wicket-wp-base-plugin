@@ -5,6 +5,21 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.7.13] - 2026-10-05
+
+### Added
+- rework inspector UX for implementators (WWID-2663)
+- add json and csv downloads to API data explorer (WWID-2663)
+- add MDP API data explorer and schema scopes to inspector (WWID-2663)
+- extend schema inspector with tenant data views, slug CSV (WWID-2663)
+
+### Fixed
+- align slugs CSV comm and resource_type rows with the documented contract (WWID-2663)
+
+### Maintenance
+- cap inspector container at 1680px (WWID-2663)
+
+
 ## [2.7.12] - 2026-10-02
 
 ### Added
