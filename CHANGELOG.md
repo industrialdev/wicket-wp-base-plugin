@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.8.0] - 2026-10-07
+
+### Added
+- **blocks:** add wicket/modal ACF block (WWID-2576)
+
+### Fixed
+- **modal:** wire aria-labelledby, style title, de-dupe anchor ids (WWID-2576)
+
+
 ## [2.7.13] - 2026-10-05
 
 ### Added
