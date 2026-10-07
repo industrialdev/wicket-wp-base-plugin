@@ -39,21 +39,21 @@ class WicketMembershipOverview extends OptionAbstract
             ?>
 
 			<br />
-			<input type="submit" value="<?php echo __('Refresh Wicket Memberships', 'wicket'); ?>" class="button wicket-sync-memberships">
+			<input type="submit" value="<?php echo _x('Refresh Wicket Memberships', 'button label', 'wicket-base'); ?>" class="button wicket-sync-memberships">
 
-			<p><?php echo sprintf(__('A total of %s Membership Tier(s) were found in your Wicket account.', 'wicket'), $amount_memberships); ?></p>
+			<p><?php /* translators: %s: number of membership tiers. */ echo esc_html(sprintf(_n('A total of %s Membership Tier was found in your Wicket account.', 'A total of %s Membership Tiers were found in your Wicket account.', (int) $amount_memberships, 'wicket-base'), $amount_memberships)); ?></p>
 
 			<table class="widefat striped" id="wicket-memebership-overview">
 				<thead>
 					<tr>
-						<th><?php echo __('Wicket Membership Tier', 'wicket'); ?></th>
-						<th><?php echo __('Wicket Membership UUID', 'wicket'); ?></th>
-						<th><?php echo __('Status', 'wicket'); ?></th>
-						<th><?php echo __('Type', 'wicket'); ?></th>
-						<th><?php echo __('WooCommerce Membership', 'wicket'); ?></th>
-						<th><?php echo __('# Products', 'wicket'); ?></th>
-						<th><?php echo __('# Teams', 'wicket'); ?></th>
-						<th><?php echo __('# Members', 'wicket'); ?></th>
+						<th><?php echo _x('Wicket Membership Tier', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('Wicket Membership UUID', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('Status', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('Type', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('WooCommerce Membership', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('# Products', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('# Teams', 'label', 'wicket-base'); ?></th>
+						<th><?php echo _x('# Members', 'label', 'wicket-base'); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -82,7 +82,7 @@ class WicketMembershipOverview extends OptionAbstract
 								<?php
 					    if ($membership['membership_plan_id']) {
 					        $view_members = admin_url("edit.php?post_type=wc_user_membership&action=-1&post_parent={$membership['membership_plan_id']}");
-					        echo '<a href="' . esc_url($view_members) . '" title="' . esc_html__('View Members', 'woocommerce-memberships') . '">';
+					        echo '<a href="' . esc_url($view_members) . '" title="' . esc_html_x('View Members', 'button label', 'wicket-base') . '">';
 					        echo $membership_plan->get_memberships_count();
 					        echo '</a>';
 					    }

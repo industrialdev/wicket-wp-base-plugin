@@ -55,7 +55,7 @@ $wicket_settings = get_wicket_settings();
 
 <div class="wicket-section <?php implode(' ', $classes); ?>"
   role="complementary">
-  <!-- <h2><?php _e('Profile', 'wicket'); ?></h2> -->
+  <!-- <h2><?php _ex('Profile', 'label', 'wicket-base'); ?></h2> -->
   <div id="profile-<?php echo $unique_widget_id; ?>"></div>
   <input type="hidden"
     name="<?php echo $user_info_data_field_name; ?>" />

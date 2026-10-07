@@ -21,7 +21,7 @@ $defaults = [
     'disable_selecting_orgs_with_active_membership' => false,
     'active_membership_alert_title'                 => '',
     'active_membership_alert_body'                  => '',
-    'active_membership_alert_button_1_text'         => __('Proceed', 'wicket'),
+    'active_membership_alert_button_1_text'         => _x('Proceed', 'button label', 'wicket-base'),
     'active_membership_alert_button_1_url'          => 'PROCEED', // non URLs can be PROCEED, and BUTTON for a dummy press devs will do something with
     'active_membership_alert_button_1_style'        => 'primary',
     'active_membership_alert_button_1_new_tab'      => false,
@@ -30,8 +30,8 @@ $defaults = [
     'active_membership_alert_button_2_style'        => 'secondary',
     'active_membership_alert_button_2_new_tab'      => false,
     'active_membership_seat_messaging_enabled'      => false,
-    'active_membership_seat_available_alert_title'  => __('Seats available for this organization', 'wicket'),
-    'active_membership_seat_available_alert_body'   => __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket'),
+    'active_membership_seat_available_alert_title'  => __('Seats available for this organization', 'wicket-base'),
+    'active_membership_seat_available_alert_body'   => __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket-base'),
     'active_membership_seat_available_alert_button_1_text' => '',
     'active_membership_seat_available_alert_button_1_url'  => '',
     'active_membership_seat_available_alert_button_1_style' => 'primary',
@@ -40,8 +40,8 @@ $defaults = [
     'active_membership_seat_available_alert_button_2_url'  => '',
     'active_membership_seat_available_alert_button_2_style' => 'secondary',
     'active_membership_seat_available_alert_button_2_new_tab' => false,
-    'active_membership_seat_unavailable_alert_title'  => __('No seats remaining for this organization', 'wicket'),
-    'active_membership_seat_unavailable_alert_body'   => __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket'),
+    'active_membership_seat_unavailable_alert_title'  => __('No seats remaining for this organization', 'wicket-base'),
+    'active_membership_seat_unavailable_alert_body'   => __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket-base'),
     'active_membership_seat_unavailable_alert_button_1_text' => '',
     'active_membership_seat_unavailable_alert_button_1_url'  => '',
     'active_membership_seat_unavailable_alert_button_1_style' => 'primary',
@@ -143,16 +143,16 @@ $lang = wicket_get_current_language();
 $is_wicket_theme = defined('WICKET_THEME');
 
 if (trim((string) $active_membership_seat_available_alert_title) === '') {
-    $active_membership_seat_available_alert_title = __('Seats available for this organization', 'wicket');
+    $active_membership_seat_available_alert_title = __('Seats available for this organization', 'wicket-base');
 }
 if (trim((string) $active_membership_seat_available_alert_body) === '') {
-    $active_membership_seat_available_alert_body = __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket');
+    $active_membership_seat_available_alert_body = __('This organization has an active membership with open seats. You can proceed now or review the helpful links below.', 'wicket-base');
 }
 if (trim((string) $active_membership_seat_unavailable_alert_title) === '') {
-    $active_membership_seat_unavailable_alert_title = __('No seats remaining for this organization', 'wicket');
+    $active_membership_seat_unavailable_alert_title = __('No seats remaining for this organization', 'wicket-base');
 }
 if (trim((string) $active_membership_seat_unavailable_alert_body) === '') {
-    $active_membership_seat_unavailable_alert_body = __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket');
+    $active_membership_seat_unavailable_alert_body = __('All seats for this organization are already assigned. Remove an existing assignment or contact support to continue.', 'wicket-base');
 }
 
 if (trim((string) $active_membership_seat_available_alert_button_1_text) !== '') {
@@ -180,7 +180,7 @@ $seat_unavailable_message_configured = (bool) array_filter([
 
 if ($active_membership_seat_unavailable_notify_enabled) {
     if (trim((string) $active_membership_seat_unavailable_alert_button_2_text) === '') {
-        $active_membership_seat_unavailable_alert_button_2_text = __('Notify your account manager', 'wicket');
+        $active_membership_seat_unavailable_alert_button_2_text = __('Notify your account manager', 'wicket-base');
     }
     if (trim((string) $active_membership_seat_unavailable_alert_button_2_style) === '') {
         $active_membership_seat_unavailable_alert_button_2_style = 'secondary';
@@ -190,13 +190,13 @@ if ($active_membership_seat_unavailable_notify_enabled) {
 }
 
 if (!empty($orgTermSingular)) {
-    $orgTermSingular = __($orgTermSingular, 'wicket');
+    $orgTermSingular = __($orgTermSingular, 'wicket-base');
 } else {
     if ($searchMode == 'org') {
-        $orgTermSingular = __('Organization', 'wicket');
+        $orgTermSingular = _x('Organization', 'entity name', 'wicket-base');
     }
     if ($searchMode == 'groups') {
-        $orgTermSingular = __('Group', 'wicket');
+        $orgTermSingular = _x('Group', 'entity name', 'wicket-base');
     }
 }
 
@@ -204,22 +204,23 @@ $orgTermSingularCap = ucfirst(strtolower($orgTermSingular));
 $orgTermSingularLower = strtolower($orgTermSingular);
 
 if (!empty($orgTermPlural)) {
-    $orgTermPlural = __($orgTermPlural, 'wicket');
+    $orgTermPlural = __($orgTermPlural, 'wicket-base');
 } else {
     if ($searchMode == 'org') {
-        $orgTermPlural = __('Organizations', 'wicket');
+        $orgTermPlural = _x('Organizations', 'entity name', 'wicket-base');
     }
     if ($searchMode == 'groups') {
-        $orgTermPlural = __('Groups', 'wicket');
+        $orgTermPlural = _x('Groups', 'entity name', 'wicket-base');
     }
 }
 
 $orgTermPluralCap = ucfirst(strtolower($orgTermPlural));
 $orgTermPluralLower = strtolower($orgTermPlural);
 if (empty($noResultsFoundMessage)) {
-    $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.', 'wicket'), $orgTermPluralLower);
+    /* translators: %s: organization term, plural and lowercase, e.g. organizations. */
+    $noResultsFoundMessage = sprintf(__('Sorry, no %s match your search. Please try again.', 'wicket-base'), $orgTermPluralLower);
 } else {
-    $noResultsFoundMessage = __($noResultsFoundMessage, 'wicket');
+    $noResultsFoundMessage = __($noResultsFoundMessage, 'wicket-base');
 }
 
 $current_person_uuid = wicket_current_person_uuid();
@@ -293,10 +294,10 @@ if ($searchMode == 'org') {
                 'org_id'            => $org_id,
                 'org_name'          => $org_info['org_name'],
                 'org_description'   => $org_info['org_description'],
-                'org_type_pretty'   => __($org_info['org_type_pretty'], 'wicket'),
+                'org_type_pretty'   => __($org_info['org_type_pretty'], 'wicket-base'),
                 'org_type'          => $org_info['org_type'],
                 'org_type_slug'     => $org_info['org_type_slug'],
-                'org_type_name'     => __($org_info['org_type_name'], 'wicket'),
+                'org_type_name'     => __($org_info['org_type_name'], 'wicket-base'),
                 'org_status'        => $org_info['org_status'],
                 'org_parent_id'     => $org_info['org_parent_id'],
                 'org_parent_name'   => $org_info['org_parent_name'],
@@ -385,7 +386,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         <pre class="mt-3 whitespace-pre-wrap break-words bg-white/80 rounded-50 p-3 text-[13px]" x-text="removalErrorDetail"></pre>
       </template>
       <button type="button" class="mt-3 text-[var(--interactive,#0044C1)] underline" x-on:click="clearRemovalError()">
-        <?php _e('Dismiss message', 'wicket'); ?>
+        <?php _ex('Dismiss message', 'accessibility label', 'wicket-base'); ?>
       </button>
     </div>
   </div>
@@ -399,19 +400,19 @@ $available_org_types = wicket_get_resource_types('organizations');
       class="component-org-search-select__confirmation-popup-content rounded-150 bg-white border flex items-center flex-col p-5">
       <div class="component-org-search-select__confirmation-popup-header flex w-full justify-end mb-4">
         <button x-on:click.prevent="showingRemoveConfirmation = false"
-          class="component-org-search-select__confirmation-popup-close-button font-semibold"><?php _e('Close X', 'wicket') ?></button>
+          class="component-org-search-select__confirmation-popup-close-button font-semibold"><?php _ex('Close X', 'button label', 'wicket-base') ?></button>
       </div>
       <div class="component-org-search-select__confirmation-popup-title font-semibold">
-        <span x-text="'<?php echo esc_js(__('Please confirm: You\'d like to remove your connection with %s?', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
+        <span x-text="'<?php /* translators: %s: organization name. */ echo esc_js(__('Please confirm: You\'d like to remove your connection with %s?', 'wicket-base')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
       </div>
       <div class="component-org-search-select__confirmation-popup-body mt-4 mb-6">
-        <span x-text="'<?php echo esc_js(__('This will remove all connections you have with %s, including membership.', 'wicket')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
+        <span x-text="'<?php /* translators: %s: organization name. */ echo esc_js(__('This will remove all connections you have with %s, including membership.', 'wicket-base')); ?>'.replace('%s', removeConfirmationOrgName)"></span>
       </div>
       <div class="component-org-search-select__confirmation-popup-actions flex w-full justify-evenly">
         <?php get_component('button', [
             'variant'  => 'secondary',
             'reversed' => false,
-            'label'    => __('Cancel', 'wicket'),
+            'label'    => _x('Cancel', 'button label', 'wicket-base'),
             'type'     => 'button',
             'atts'  => [
                 'x-on:click.prevent="showingRemoveConfirmation = false"',
@@ -452,7 +453,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         style="margin-bottom: var(--space-400);">
         <button x-on:click.prevent="dismissActiveMembershipAlert()"
           class="component-org-search-select__active-membership-alert-close-button"
-          style="color: var(--interactive); background: none; border: none; cursor: pointer;"><?php _e('Close X', 'wicket') ?></button>
+          style="color: var(--interactive); background: none; border: none; cursor: pointer;"><?php _ex('Close X', 'button label', 'wicket-base') ?></button>
       </div>
       <div x-html="activeMembershipAlertTitle"
         class="component-org-search-select__active-membership-alert-title"
@@ -468,7 +469,7 @@ $available_org_types = wicket_get_resource_types('organizations');
         class="component-org-search-select__active-membership-alert-note"
         style="margin-bottom: var(--space-400); display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-        <span><?php _e('Sending...', 'wicket'); ?></span>
+        <span><?php _ex('Sending...', 'message', 'wicket-base'); ?></span>
       </div>
       <div class="component-org-search-select__active-membership-alert-actions flex w-full justify-evenly">
         <?php
@@ -710,7 +711,7 @@ $render_alert_buttons(
       <div class="flex-grow w-full">
         <input x-model="searchBox" @keydown.enter.prevent.stop="handleSearch()" type="text"
           class="orgss-search-box component-org-search-select__search-input w-full"
-          placeholder="<?php _e('Search by ' . $orgTermSingularLower . ' name', 'wicket') ?>" />
+          placeholder="<?php /* translators: %s: organization term in lowercase, e.g. organization or group. */ echo esc_attr(sprintf(_x('Search by %s name', 'field placeholder', 'wicket-base'), $orgTermSingularLower)); ?>" />
       </div>
       <div class="sm:flex-shrink-0" x-show="!firstSearchSubmitted">
         <?php
@@ -721,7 +722,7 @@ if (!$is_wicket_theme) {
 } ?>
         <?php get_component('button', [
             'variant'  => 'primary',
-            'label'    => __('Search', 'wicket'),
+            'label'    => _x('Search', 'button label', 'wicket-base'),
             'type'     => 'button',
             'classes'  => $buttonClasses,
             'atts'  => ['x-on:click.prevent="handleSearch()"'],
@@ -730,7 +731,7 @@ if (!$is_wicket_theme) {
       <div class="sm:flex-shrink-0" x-show="firstSearchSubmitted" x-cloak>
         <?php get_component('button', [
             'variant'  => 'primary',
-            'label'    => __('Clear', 'wicket'),
+            'label'    => _x('Clear', 'button label', 'wicket-base'),
             'type'     => 'button',
             'classes'  => ['component-org-search-select__clear-button', 'w-full', 'sm:w-auto'],
             'atts'  => ['x-on:click.prevent="searchBox = \'\'"'],
@@ -741,7 +742,7 @@ if (!$is_wicket_theme) {
       x-show="showSearchMessage"></div>
     <div class="component-org-search-select__matching-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 mb-1' ?>"
       x-show="(firstSearchSubmitted || isLoading) && !justCreatedNewOrg" x-cloak>
-      <?php _e('Matching Organization(s)', 'wicket') ?>
+      <?php _ex('Matching Organization(s)', 'label', 'wicket-base') ?>
     </div>
     <div class="orgss-results component-org-search-select__results"
       x-bind:class="results.length == 0 ? '' : 'orgss-results--has-results' "
@@ -774,7 +775,7 @@ if (!$is_wicket_theme) {
               <?php get_component('button', [
                   'variant'  => 'secondary',
                   'reversed' => false,
-                  'label'    => __('Select', 'wicket'),
+                  'label'    => _x('Select', 'button label', 'wicket-base'),
                   'type'     => 'button',
                   'classes'  => ['component-org-search-select__select-result-button'],
                   'atts'     => [
@@ -788,13 +789,13 @@ if (!$is_wicket_theme) {
                       'x-bind:aria-disabled="(isOrgAlreadyASelectableConnection(result.id)
                 || (disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled)) ? \'true\' : \'false\'"',
                       'x-bind:tabindex="(disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled) ? \'-1\' : \'0\'"',
-                      'x-text="isOrgAlreadyASelectableConnection(result.id) ? \'✓ ' . esc_js(__('Already Selected', 'wicket')) . '\' : \'' . esc_js(__('Select', 'wicket')) . '\'"',
+                      'x-text="isOrgAlreadyASelectableConnection(result.id) ? \'✓ ' . esc_js(_x('Already Selected', 'button label', 'wicket-base')) . '\' : \'' . esc_js(_x('Select', 'button label', 'wicket-base')) . '\'"',
                   ],
               ]); ?>
               <div class="component-org-search-select__active-membership-inline-message"
                 x-show="disableSelectingOrgsWithActiveMembership && result.active_membership && !activeMembershipSeatMessagingEnabled"
                 x-cloak
-                x-html="activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>'"></div>
+                x-html="activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket-base')); ?>'"></div>
             </div>
           </div>
         </template>
@@ -807,19 +808,19 @@ if (!$is_wicket_theme) {
 if (empty($title)) : ?>
           <h2
             class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"
-            x-text="selectedOrgUuid ? '<?php _e('Selected Organization:', 'wicket') ?>' : '<?php _e('Your current Organization(s)', 'wicket') ?>'">
+            x-text="selectedOrgUuid ? '<?php _ex('Selected Organization:', 'label', 'wicket-base') ?>' : '<?php _e('Your current Organization(s)', 'wicket-base') ?>'">
           </h2>
         <?php else: ?>
           <h2
             class="component-org-search-select__current-orgs-title <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-lg my-3 orgss-search-form__title' ?>"
-            x-text="selectedOrgUuid ? '<?php _e('Selected Organization:', 'wicket') ?>' : '<?php esc_html_e($title, 'wicket'); ?>'">
+            x-text="selectedOrgUuid ? '<?php _ex('Selected Organization:', 'label', 'wicket-base') ?>' : '<?php esc_html_e($title, 'wicket-base'); ?>'">
           </h2>
         <?php endif; ?>
 
         <div x-show="selectedOrgUuid" x-cloak>
           <?php get_component('button', [
               'variant'  => 'secondary',
-              'label'    => __('Clear Selection', 'wicket'),
+              'label'    => _x('Clear Selection', 'button label', 'wicket-base'),
               'type'     => 'button',
               'classes'  => ['component-org-search-select__clear-selection-button'],
               'atts'     => [
@@ -878,7 +879,7 @@ if (empty($title)) : ?>
                     <i
                       class="fa-solid fa-circle <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-[#08d608]' ?>"></i>
                     <span
-                      class="<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-body-xs' ?>"><?php _e('Active Membership', 'wicket') ?></span>
+                      class="<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-body-xs' ?>"><?php _ex('Active Membership', 'status', 'wicket-base') ?></span>
                   </div>
                 </template>
                 <template x-if="! connection.active_membership">
@@ -887,7 +888,7 @@ if (empty($title)) : ?>
                     <i
                       class="fa-solid fa-circle <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-[#A1A1A1]' ?>"></i>
                     <span
-                      class="<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-body-xs' ?>"><?php _e('Inactive Membership', 'wicket') ?></span>
+                      class="<?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-body-xs' ?>"><?php _ex('Inactive Membership', 'status', 'wicket-base') ?></span>
                   </div>
                 </template>
               </div>
@@ -914,7 +915,7 @@ if (empty($title)) : ?>
               <?php get_component('button', [
                   'variant'  => 'secondary',
                   'reversed' => false,
-                  'label'    => '✓ ' . __('Selected', 'wicket'),
+                  'label'    => '✓ ' . _x('Selected', 'button label', 'wicket-base'),
                   'type'     => 'button',
                   'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                   'atts'     => [
@@ -926,7 +927,8 @@ if (empty($title)) : ?>
               <?php get_component('button', [
                   'variant'  => 'secondary',
                   'reversed' => false,
-                  'label'    => sprintf(__('Proceed with %s', 'wicket'), $orgTermSingularCap),
+                  /* translators: %s: organization term, e.g. Organization. */
+                  'label'    => sprintf(_x('Proceed with %s', 'button label', 'wicket-base'), $orgTermSingularCap),
                   'type'     => 'button',
                   'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap'],
                   'atts'     => [
@@ -944,7 +946,7 @@ if (empty($title)) : ?>
               <?php get_component('button', [
                   'variant'  => 'secondary',
                   'reversed' => false,
-                  'label'    => '✓ ' . __('Selected', 'wicket'),
+                  'label'    => '✓ ' . _x('Selected', 'button label', 'wicket-base'),
                   'type'     => 'button',
                   'classes'  => ['component-org-search-select__select-button', 'whitespace-nowrap', 'orgss_disabled_button'],
                   'atts'     => [
@@ -954,7 +956,7 @@ if (empty($title)) : ?>
             </template>
             <?php get_component('button', [
                 'variant'  => 'ghost',
-                'label'    => __('Remove', 'wicket'),
+                'label'    => _x('Remove', 'button label', 'wicket-base'),
                 'suffix_icon' => 'fa-regular fa-trash',
                 'type'     => 'button',
                 'classes'  => ['component-org-search-select__remove-button', 'whitespace-nowrap'],
@@ -979,16 +981,16 @@ if (empty($title)) : ?>
     class="orgss-create-org-form component-org-search-select__create-org-form <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'mt-4 flex flex-col bg-dark-100 bg-opacity-5 rounded-100 p-3' ?>">
     <div
       class="component-org-search-select__cant-find-org-title font-extralight <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-body-md mb-2' ?>">
-      <?php _e('Can\'t find your', 'wicket') ?>
-      <?php echo $orgTermSingularLower; ?>?<br /><span class="font-bold"><?php _e('Create a new one:', 'wicket') ?></span>
+      <?php /* translators: %s: organization term in lowercase, e.g. organization or group. */ echo esc_html(sprintf(_x('Can\'t find your %s?', 'label', 'wicket-base'), $orgTermSingularLower)); ?><br />
+
+      <span class="font-bold"><?php _e('Create a new one:', 'wicket-base') ?></span>
     </div>
     <div class="flex component-org-search-select__create-org-fields">
       <div
         class="component-org-search-select__create-org-name-wrapper flex flex-col mr-2"
         x-bind:class="hasSingleOrgType ? 'flex-1' : 'w-5/12'">
         <label
-          class="component-org-search-select__create-org-label"><?php _e('Name of the', 'wicket') ?>
-          <?php echo $orgTermSingularCap; ?>*</label>
+          class="component-org-search-select__create-org-label"><?php /* translators: %s: organization term, e.g. Organization. */ echo esc_html(sprintf(_x('Name of the %s', 'label', 'wicket-base'), $orgTermSingularCap)); ?>*</label>
         <input x-model="newOrgNameBox" @keyup.enter.prevent.stop="handleOrgCreate($event)" type="text"
           name="company-name" class="component-org-search-select__create-org-name-input w-full" />
       </div>
@@ -996,14 +998,13 @@ if (empty($title)) : ?>
         class="component-org-search-select__create-org-type-wrapper flex flex-col w-5/12 mr-2"
         x-show="!hasSingleOrgType">
         <label
-          class="component-org-search-select__create-org-label"><?php _e('Type of', 'wicket') ?>
-          <?php echo $orgTermSingularCap; ?>*</label>
+          class="component-org-search-select__create-org-label"><?php /* translators: %s: organization term, e.g. Organization. */ echo esc_html(sprintf(_x('Type of %s', 'label', 'wicket-base'), $orgTermSingularCap)); ?>*</label>
         <select x-model="newOrgTypeSelect" x-on:change="newOrgTypeSelect = $el.value;" class="component-org-search-select__create-org-type-select w-full">
-          <option value=""><?php _e('Select one', 'wicket') ?></option>
+          <option value=""><?php _ex('Select one', 'label', 'wicket-base') ?></option>
           <template x-for="(orgType, index) in availableOrgTypes.data">
             <option x-bind:class="'orgss_org_type_' + orgType.attributes.slug"
               x-bind:value="orgType.attributes.slug" x-text="orgType['attributes']['name_' + lang]">
-              <?php _e('Org type', 'wicket') ?>
+              <?php _ex('Org type', 'label', 'wicket-base') ?>
             </option>
           </template>
         </select>
@@ -1012,7 +1013,7 @@ if (empty($title)) : ?>
         class="component-org-search-select__create-org-button-wrapper flex flex-col w-2/12 items-center justify-end">
         <?php get_component('button', [
             'variant'  => 'primary',
-            'label'    => __('Add', 'wicket'),
+            'label'    => _x('Add', 'button label', 'wicket-base'),
             'type'     => 'button',
             'classes'  => ['component-org-search-select__create-org-button', 'w-full', 'justify-center'],
             'atts'  => ['x-on:click.prevent="handleOrgCreate($event)"'],
@@ -1038,10 +1039,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       </div>
       <div class="text-col component-org-search-select__duplicate-warning-text-col">
         <div class="component-org-search-select__duplicate-warning-title font-bold text-body-lg">
-          <?php echo sprintf(__('%s you are trying to add already exists', 'wicket'), $orgTermSingularCap); ?>
+          <?php /* translators: %s: organization term, e.g. Organization. */ echo esc_html(sprintf(__('%s you are trying to add already exists', 'wicket-base'), $orgTermSingularCap)); ?>
         </div>
         <div class="component-org-search-select__duplicate-warning-body">
-          <?php _e('Please enter the name in the search field above to find the existing record.', 'wicket'); ?>
+          <?php _e('Please enter the name in the search field above to find the existing record.', 'wicket-base'); ?>
         </div>
       </div>
     </div>
@@ -1140,9 +1141,9 @@ if (defined('WICKET_WP_THEME_V2')) {
       notifyOwnerMessage: '',
       notifyOwnerStatus: '',
       notifyOwnerIsLoading: false,
-      notifyOwnerSuccessMessage: <?php echo json_encode(__('Thanks, the organization owner has been notified.', 'wicket')); ?>,
-      notifyOwnerThrottleMessage: <?php echo json_encode(__('The organization owner was already notified recently. Please wait before trying again.', 'wicket')); ?>,
-      notifyOwnerErrorMessage: <?php echo json_encode(__('We could not notify the organization owner. Please try again later.', 'wicket')); ?>,
+      notifyOwnerSuccessMessage: <?php echo json_encode(__('Thanks, the organization owner has been notified.', 'wicket-base')); ?>,
+      notifyOwnerThrottleMessage: <?php echo json_encode(__('The organization owner was already notified recently. Please wait before trying again.', 'wicket-base')); ?>,
+      notifyOwnerErrorMessage: <?php echo json_encode(__('We could not notify the organization owner. Please try again later.', 'wicket-base')); ?>,
       activeMembershipSeatMessageState: 'base',
       selectedOrgUuid: '',
       searchBox: '',
@@ -1372,7 +1373,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         if (this.searchBox.length < 1) {
           this.setSearchMessage(
-            '<?php _e('Please provide a search term', 'wicket') ?>'
+            '<?php _e('Please provide a search term', 'wicket-base') ?>'
           );
           return;
         } else {
@@ -1399,14 +1400,14 @@ if (defined('WICKET_WP_THEME_V2')) {
           let newOrgName = this.newOrgNameBox;
 
           if (!newOrgName.trim()) {
-            alert('<?php _e('Please enter an organization name.', 'wicket') ?>');
+            alert('<?php _e('Please enter an organization name.', 'wicket-base') ?>');
             return;
           }
 
           let newOrgType = this.newOrgTypeSelect;
 
           if (!newOrgType) {
-            alert('<?php _e('Please select an organization type.', 'wicket') ?>');
+            alert('<?php _e('Please select an organization type.', 'wicket-base') ?>');
             return;
           }
 
@@ -1421,7 +1422,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         return parser.textContent || parser.innerText || '';
       },
       getActiveMembershipBlockingMessage() {
-        return this.activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>';
+        return this.activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket-base')); ?>';
       },
       setSearchMessage(message) {
         const searchMessage = document.getElementById('orgss_search_message');
@@ -1579,7 +1580,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         if (shouldFetchSummary) {
           const seatData = await this.fetchSeatSummary(orgUuid);
           if (seatData.checkFailed) {
-            this.setSearchMessage('<?php echo esc_js(__('We could not verify active membership status right now. Please try again.', 'wicket')); ?>');
+            this.setSearchMessage('<?php echo esc_js(__('We could not verify active membership status right now. Please try again.', 'wicket-base')); ?>');
             return;
           }
 
@@ -1640,7 +1641,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           return;
         }
 
-        this.setSearchMessage('<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>');
+        this.setSearchMessage('<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket-base')); ?>');
       },
       selectOrg(orgUuid, incomingEvent = null, dispatchEvent = true) {
         wicketOrgssDebug.log('ORGSS: selectOrg called', {
@@ -2249,7 +2250,7 @@ if (defined('WICKET_WP_THEME_V2')) {
                   this.firstSearchSubmitted = false;
 
                   let responseText =
-                    '<?php esc_attr_e('Organization connected successfully', 'wicket'); ?>';
+                    '<?php echo esc_attr_x('Organization connected successfully', 'message', 'wicket-base'); ?>';
 
                   <?php if ($responseMessage) : ?>
                     let newOrgEvent = new CustomEvent("new-org-connected", {
@@ -2297,7 +2298,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.currentConnections.forEach((connection) => {
               if (connection.connection_id == connectionId) {
                 this.removeConfirmationOrgName = connection.org_name;
-                this.removeButtonLabel = '<?php _e('Remove', 'wicket') ?> ' + connection.org_name;
+                this.removeButtonLabel = '<?php _ex('Remove', 'button label', 'wicket-base') ?> ' + connection.org_name;
               }
             });
             this.showingRemoveConfirmation = true;
@@ -2507,20 +2508,21 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       showRemovalError(connectionId = '', serverMessage = '') {
         const connection = this.getConnectionById(connectionId) || {};
-        const orgName = connection.org_name || '<?php echo esc_js(__('this organization', 'wicket')); ?>';
-        const connectionType = connection.relationship_type || '<?php echo esc_js(__('Unknown relationship', 'wicket')); ?>';
-        const configuredType = this.relationshipTypeUponOrgCreation || '<?php echo esc_js(__('Not specified', 'wicket')); ?>';
+        const orgName = connection.org_name || '<?php echo esc_js(_x('this organization', 'value placeholder', 'wicket-base')); ?>';
+        const connectionType = connection.relationship_type || '<?php echo esc_js(_x('Unknown relationship', 'value placeholder', 'wicket-base')); ?>';
+        const configuredType = this.relationshipTypeUponOrgCreation || '<?php echo esc_js(_x('Not specified', 'value placeholder', 'wicket-base')); ?>';
 
-        let friendlyMessage = '<?php echo esc_js(__('We could not remove %s.', 'wicket')); ?>'.replace('%s', orgName);
-        let friendlyHint = '<?php echo esc_js(__('Review the details below or contact support if this continues.', 'wicket')); ?>';
+        <?php /* translators: %s: organization name. */ ?>
+        let friendlyMessage = '<?php echo esc_js(__('We could not remove %s.', 'wicket-base')); ?>'.replace('%s', orgName);
+        let friendlyHint = '<?php echo esc_js(__('Review the details below or contact support if this continues.', 'wicket-base')); ?>';
         const normalized = (serverMessage || '').toLowerCase();
 
         if (normalized.indexOf('relationships do not match') !== -1) {
-          friendlyHint = '<?php echo esc_js(__('This tool is limited to removing "%1$s" links, but this record is "%2$s".', 'wicket')); ?>'
+          friendlyHint = '<?php /* translators: 1: relationship type this tool can remove, 2: relationship type of this record. */ echo esc_js(__('This tool is limited to removing "%1$s" links, but this record is "%2$s".', 'wicket-base')); ?>'
             .replace('%1$s', configuredType)
             .replace('%2$s', connectionType);
         } else if (normalized.indexOf('wrong setting the end date of the connection') !== -1) {
-          friendlyHint = "<?php echo esc_js(__('The MDP blocked ending this connection on the same day it was created. Try again tomorrow or contact support.', 'wicket')); ?>";
+          friendlyHint = "<?php echo esc_js(__('The MDP blocked ending this connection on the same day it was created. Try again tomorrow or contact support.', 'wicket-base')); ?>";
         } else if (serverMessage) {
           friendlyHint = serverMessage;
         }

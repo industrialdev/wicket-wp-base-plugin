@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: regenerates languages/<text-domain>.pot from the staged files.
+# Install: composer setup-hooks
+# Uses `wp` on PATH, or downloads a pinned WP-CLI into the user cache on first use.
+# The hook never blocks a commit: on any failure it warns and skips the .pot update.
+#
+# Manual and CI use:
+#   --force   Regenerate even when no translatable files are staged.
+#   --strict  Exit 1 on failure instead of skipping (for CI).
+#
+
+set -uo pipefail
+
+EXCLUDE="node_modules,vendor,tests,.ci,docs,dist,build"
+BUGS_URL="https://wicket.io"
+TRIGGER='\.(php|js)$|(^|/)(block|theme)\.json$|(^|/)style\.css$'
+
+WP_CLI_VERSION="2.12.0"
+WP_CLI_SHA512="be928f6b8ca1e8dfb9d2f4b75a13aa4aee0896f8a9a0a1c45cd5d2c98605e6172e6d014dda2e27f88c98befc16c040cbb2bd1bfa121510ea5cdf5f6a30fe8832"
+WP_CLI_URL="https://github.com/wp-cli/wp-cli/releases/download/v${WP_CLI_VERSION}/wp-cli-${WP_CLI_VERSION}.phar"
+WP_CLI_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/wicket/wp-cli-${WP_CLI_VERSION}.phar"
+
+FORCE=0
+STRICT=0
+for arg in "$@"; do
+    case "$arg" in
+        --force) FORCE=1 ;;
+        --strict) STRICT=1 ;;
+    esac
+done
+
+skip() {
+    echo "pre-commit: $1 Skipping .pot update." >&2
+    exit "$STRICT"
+}
+
+cd "$(git rev-parse --show-toplevel)" || skip "Not in a git repository."
+
+if [ "$FORCE" -eq 0 ] && ! git diff --cached --name-only --diff-filter=ACMRD | grep -Eq "$TRIGGER"; then
+    exit 0
+fi
+
+sha512_of() {
+    if command -v sha512sum >/dev/null 2>&1; then
+        sha512sum "$1" | cut -d' ' -f1
+    else
+        shasum -a 512 "$1" | cut -d' ' -f1
+    fi
+}
+
+fetch_wp_cli() {
+    local part="${WP_CLI_CACHE}.part"
+    mkdir -p "$(dirname "$WP_CLI_CACHE")" || return 1
+    if command -v curl >/dev/null 2>&1; then
+        echo "pre-commit: downloading WP-CLI ${WP_CLI_VERSION} to ${WP_CLI_CACHE}" >&2
+        curl -fsSL --max-time 60 -o "$part" "$WP_CLI_URL" || return 1
+    elif command -v wget >/dev/null 2>&1; then
+        echo "pre-commit: downloading WP-CLI ${WP_CLI_VERSION} to ${WP_CLI_CACHE}" >&2
+        wget -q -T 60 -O "$part" "$WP_CLI_URL" || return 1
+    else
+        return 1
+    fi
+    if [ "$(sha512_of "$part")" != "$WP_CLI_SHA512" ]; then
+        rm -f "$part"
+        echo "pre-commit: WP-CLI download failed its checksum." >&2
+        return 1
+    fi
+    mv "$part" "$WP_CLI_CACHE"
+}
+
+if command -v wp >/dev/null 2>&1; then
+    WP=(wp)
+else
+    command -v php >/dev/null 2>&1 || skip "PHP not found."
+    if [ ! -f "$WP_CLI_CACHE" ] || [ "$(sha512_of "$WP_CLI_CACHE")" != "$WP_CLI_SHA512" ]; then
+        fetch_wp_cli || skip "Could not download WP-CLI."
+    fi
+    WP=(php "$WP_CLI_CACHE")
+fi
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+# Optional package-specific excludes: comma-separated paths in .ci/pot-exclude.
+if [ -f .ci/pot-exclude ]; then
+    extra="$(tr -d '[:space:]' < .ci/pot-exclude)"
+    [ -n "$extra" ] && EXCLUDE="${EXCLUDE},${extra}"
+fi
+
+# Generate from the staged snapshot, so unstaged edits stay out of the .pot.
+# Excluded paths are left out of the snapshot, so large folders are not copied.
+pathspec=()
+IFS=',' read -ra excluded <<< "$EXCLUDE"
+for path in "${excluded[@]}"; do
+    pathspec+=(":(exclude)${path}")
+done
+git ls-files -z -- . "${pathspec[@]}" | git checkout-index -z --stdin --prefix="$tmp/src/"
+
+text_domain="$(grep -hm1 -E 'Text Domain:' "$tmp"/src/*.php "$tmp"/src/style.css 2>/dev/null \
+    | head -1 | sed -E 's/.*Text Domain:[[:space:]]*//; s/[[:space:]]*$//')"
+
+if [ -z "$text_domain" ]; then
+    skip "No Text Domain header found."
+fi
+
+pot_file="languages/${text_domain}.pot"
+
+if ! "${WP[@]}" i18n make-pot "$tmp/src" "$tmp/new.pot" \
+    --slug="$(basename "$PWD")" \
+    --domain="$text_domain" \
+    --exclude="$EXCLUDE" \
+    --no-location \
+    --headers="{\"Report-Msgid-Bugs-To\":\"${BUGS_URL}\"}" \
+    --quiet; then
+    skip "wp i18n make-pot failed."
+fi
+
+# Compare without the header block: it holds dates and tool versions that change on every run.
+strip_header() { sed '1,/^$/d' "$1"; }
+
+if [ -f "$pot_file" ] && git ls-files --error-unmatch "$pot_file" >/dev/null 2>&1 \
+    && diff -q <(strip_header "$pot_file") <(strip_header "$tmp/new.pot") >/dev/null; then
+    exit 0
+fi
+
+mkdir -p languages
+cp "$tmp/new.pot" "$pot_file"
+git add "$pot_file"
+echo "pre-commit: updated ${pot_file}"

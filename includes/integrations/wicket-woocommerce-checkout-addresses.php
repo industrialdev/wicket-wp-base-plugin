@@ -48,13 +48,13 @@ function wicket_prepopulate_addresses()
     if ($addresses) {
         echo '<div class="wicket__pre-populate-address" >';
         do_action('wicket_before_prepopulate_address');
-        echo '<h3>' . __('Pre-populate Addresses', 'woocommerce') . '</h3>';
+        echo '<h3>' . _x('Pre-populate Addresses', 'label', 'wicket-base') . '</h3>';
         do_action('wicket_after_prepopulate_address_title');
         echo "<div class='row'>";
         echo '<form action="" method="post" class="wicket__address-form col-lg-6">';
         echo "<label class='form__label'>" . __('Billing Address', 'woocommerce') . ':</label>';
         echo "<select class='form__select' name='prepopulate_billing_address'>";
-        echo "<option value=''>" . __('-- Choose Address --', 'woocommerce') . '</option>';
+        echo "<option value=''>" . _x('-- Choose Address --', 'label', 'wicket-base') . '</option>';
         foreach ($addresses as $address) {
             echo "<option value='" . $address['id'] . "'>" . $address['attributes']['formatted_address_label'] . '</option>';
         }
@@ -68,7 +68,7 @@ function wicket_prepopulate_addresses()
 
             echo "<label class='form__label'>" . __('Shipping Address', 'woocommerce') . ':</label>';
             echo "<select class='form__select' name='prepopulate_shipping_address'>";
-            echo "<option value=''>" . __('-- Choose Address --', 'woocommerce') . '</option>';
+            echo "<option value=''>" . _x('-- Choose Address --', 'label', 'wicket-base') . '</option>';
             foreach ($addresses as $address) {
                 echo "<option value='" . $address['id'] . "'>" . $address['attributes']['formatted_address_label'] . '</option>';
             }
@@ -257,7 +257,7 @@ function add_checkout_fields($fields)
         && $val['attributes']['resource_type'] == 'addresses';
     });
 
-    $address_type_options = ['' => __('Choose an Option', 'woocommerce')];
+    $address_type_options = ['' => _x('Choose an Option', 'label', 'wicket-base')];
     $locale = defined('ICL_LANGUAGE_CODE') && ICL_LANGUAGE_CODE == 'fr' ? 'fr' : 'en';
     foreach ($address_types as $address_type) {
         $address_type_options[$address_type['attributes']['slug']] = $address_type['attributes']['name_' . $locale];
@@ -265,7 +265,7 @@ function add_checkout_fields($fields)
 
     // add address type so we can store in wicket
     $fields['billing']['billing_address_address_type'] = [
-        'label'     => __('Address Type', 'woocommerce'),
+        'label'     => _x('Address Type', 'label', 'wicket-base'),
         'required'  => false,
         'type' => 'select',
         'class'     => ['form-row-wide'],
@@ -274,7 +274,7 @@ function add_checkout_fields($fields)
     ];
     // add field to billing address asking to save this to wicket
     $fields['billing']['billing_save_address_to_wicket'] = [
-        'label'     => __('Save New Address', 'woocommerce'),
+        'label'     => _x('Save New Address', 'label', 'wicket-base'),
         'required'  => false,
         'type' => 'checkbox',
         'class'     => ['form-row-wide'],
@@ -283,7 +283,7 @@ function add_checkout_fields($fields)
 
     // add address type so we can store in wicket
     $fields['shipping']['shipping_address_address_type'] = [
-        'label'     => __('Address Type', 'woocommerce'),
+        'label'     => _x('Address Type', 'label', 'wicket-base'),
         'required'  => false,
         'type' => 'select',
         'class'     => ['form-row-wide'],
@@ -292,7 +292,7 @@ function add_checkout_fields($fields)
     ];
     // add field to shipping address asking to save this to wicket
     $fields['shipping']['shipping_save_address_to_wicket'] = [
-        'label'     => __('Save New Address', 'woocommerce'),
+        'label'     => _x('Save New Address', 'label', 'wicket-base'),
         'required'  => false,
         'type' => 'checkbox',
         'class'     => ['form-row-wide'],
