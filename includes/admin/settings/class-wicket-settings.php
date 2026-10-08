@@ -384,7 +384,19 @@ if (!class_exists('Wicket_Settings')) {
             $section->add_option('select-multiple', [
                 'name' => 'wicket_admin_settings_membership_categories',
                 'label' => __('Membership Categories', 'wicket'),
-                'description' => __('Select which categories are used only for membership products. This is used by other settings or to help with custom development.', 'wicket'),
+                'description' => sprintf(
+                    '<span class="attention"><span class="dashicons dashicons-warning"></span> %s %s</span><br>%s',
+                    esc_html__('Deprecated.', 'wicket'),
+                    // Only link to the Wicket Memberships settings page when that plugin is active; legacy sites don't have it.
+                    defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids')
+                        ? sprintf(
+                            /* translators: %s: link to the Wicket Memberships settings page. */
+                            __('Superseded by the Membership Categories setting on the %s page. This setting is only used on legacy sites that still run WooCommerce Memberships.', 'wicket'),
+                            '<a href="' . esc_url(admin_url('options-general.php?page=wicket-membership-settings')) . '">' . esc_html__('Wicket Memberships settings', 'wicket') . '</a>'
+                        )
+                        : esc_html__('Superseded by the Membership Categories setting in the Wicket Memberships plugin. This setting is only used on legacy sites that still run WooCommerce Memberships.', 'wicket'),
+                    esc_html__('Select which categories are used only for membership products. This is used by other settings or to help with custom development.', 'wicket')
+                ),
                 'options' => $this->get_product_categories(),
                 'css' => [
                     'input_class' => 'wicket-membership-categories wicket-admin-select2',
@@ -468,16 +480,30 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('Remove product links from Cart & Checkout', 'wicket'),
                 'description' => __('Remove links to product pages from the cart and checkout pages', 'wicket'),
             ]);
-            $section->add_option('checkbox', [
-                'name' => 'wicket_admin_settings_woo_remove_membership_categories',
-                'label' => __('Hide membership categories', 'wicket'),
-                'description' => __('Hide membership categories and remove from search results. Membership categories are selected in the Membership setting tab.', 'wicket'),
-            ]);
-            $section->add_option('checkbox', [
-                'name' => 'wicket_admin_settings_woo_remove_membership_product_single',
-                'label' => __('Hide membership product single pages', 'wicket'),
-                'description' => __('Products in the categories that are identified as Membership Categories in the Wicket Settings -> Memberships Tab will have their single page redirect to the homepage. These products can still be added to cart by other methods such as the onboarding form.', 'wicket'),
-            ]);
+            // These read Wicket Memberships' Membership Categories, so only offer them when it is active.
+            // Hidden options keep their saved value, and the redirects fall back to the legacy setting.
+            if (defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids')) {
+                $membership_settings_link = '<a href="' . esc_url(admin_url('options-general.php?page=wicket-membership-settings')) . '">' . esc_html__('Wicket Memberships settings', 'wicket') . '</a>';
+
+                $section->add_option('checkbox', [
+                    'name' => 'wicket_admin_settings_woo_remove_membership_categories',
+                    'label' => __('Hide membership categories', 'wicket'),
+                    'description' => sprintf(
+                        /* translators: %s: link to the Wicket Memberships settings page. */
+                        __('Hide membership categories and remove from search results. Membership Categories are selected on the %s page; until they are saved there, the legacy Membership Categories on the Memberships tab apply.', 'wicket'),
+                        $membership_settings_link
+                    ),
+                ]);
+                $section->add_option('checkbox', [
+                    'name' => 'wicket_admin_settings_woo_remove_membership_product_single',
+                    'label' => __('Hide membership product single pages', 'wicket'),
+                    'description' => sprintf(
+                        /* translators: %s: link to the Wicket Memberships settings page. */
+                        __('Products in the Membership Categories selected on the %s page will have their single page redirect to the shop page; until they are saved there, the legacy Membership Categories on the Memberships tab apply. These products can still be added to cart by other methods such as the onboarding form.', 'wicket'),
+                        $membership_settings_link
+                    ),
+                ]);
+            }
             $section->add_option('checkbox', [
                 'name' => 'wicket_admin_settings_woo_remove_added_to_cart_message',
                 'label' => __('Remove product added to cart message', 'wicket'),

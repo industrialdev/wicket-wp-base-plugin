@@ -6,6 +6,41 @@
  *
  */
 
+/**
+ * Whether Wicket Memberships provides the membership product categories.
+ *
+ * Older Wicket Memberships versions lack the getter, so they are treated as unavailable.
+ *
+ * @return bool
+ */
+function wicket_memberships_categories_available()
+{
+    return defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids');
+}
+
+/**
+ * Get the product category IDs treated as membership categories.
+ *
+ * Uses Wicket Memberships' Membership Categories once a site has saved them there,
+ * otherwise the deprecated base plugin setting so existing sites keep their current
+ * behaviour until they opt in.
+ *
+ * @return array Product category term IDs.
+ */
+function wicket_get_membership_product_category_ids()
+{
+    if (
+        wicket_memberships_categories_available()
+        && method_exists('\\Wicket_Memberships\\Helper', 'has_saved_membership_categories')
+        && \Wicket_Memberships\Helper::has_saved_membership_categories()
+    ) {
+        return \Wicket_Memberships\Helper::get_membership_category_ids();
+    }
+
+    // Fallback: Wicket Memberships unavailable or its Membership Categories not saved yet, so use the deprecated base plugin setting.
+    return array_values(array_filter(array_map('absint', (array) wicket_get_option('wicket_admin_settings_membership_categories', []))));
+}
+
 /*
  * Redirect Membership Categories To Shop
  */
@@ -14,9 +49,10 @@ function wicket_redirect_membership_cats()
 {
 
     if (!is_admin() && wicket_get_option('wicket_admin_settings_woo_remove_membership_categories') === '1') {
-        $membership_categories = wicket_get_option('wicket_admin_settings_membership_categories');
+        $membership_categories = wicket_get_membership_product_category_ids();
 
-        if (is_product_category($membership_categories)) {
+        // An empty list would make is_product_category() match every category archive.
+        if ($membership_categories && is_product_category($membership_categories)) {
             wp_safe_redirect(wc_get_page_permalink('shop'));
             exit;
         }
@@ -26,14 +62,14 @@ function wicket_redirect_membership_cats()
 
 /*
  * Redirect single products from Membership categories to shop page
- * Membership Categories that are used to redirect here can be configured under Wicket -> Memberships
+ * Membership Categories come from Wicket Memberships settings, or the legacy Wicket -> Memberships tab.
  */
 add_action('wp', 'wicket_redirect_membership_cat_product_pages', 99);
 function wicket_redirect_membership_cat_product_pages()
 {
 
     if (!is_admin() && wicket_get_option('wicket_admin_settings_woo_remove_membership_product_single') === '1') {
-        $membership_categories = wicket_get_option('wicket_admin_settings_membership_categories');
+        $membership_categories = wicket_get_membership_product_category_ids();
         if ($membership_categories && is_product() && has_term($membership_categories, 'product_cat')) {
             wp_safe_redirect(wc_get_page_permalink('shop'));
             exit;
