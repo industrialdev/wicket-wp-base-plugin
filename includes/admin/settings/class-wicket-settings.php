@@ -391,10 +391,10 @@ if (!class_exists('Wicket_Settings')) {
                     defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids')
                         ? sprintf(
                             /* translators: %s: link to the Wicket Memberships settings page. */
-                            __('Superseded by the Membership Categories setting on the %s page. This setting is only used on legacy sites that still run WooCommerce Memberships.', 'wicket'),
+                            __('Superseded by the Membership Categories setting on the %s page. This list still applies until Membership Categories is saved there, and on legacy sites that still run WooCommerce Memberships.', 'wicket'),
                             '<a href="' . esc_url(admin_url('options-general.php?page=wicket-membership-settings')) . '">' . esc_html__('Wicket Memberships settings', 'wicket') . '</a>'
                         )
-                        : esc_html__('Superseded by the Membership Categories setting in the Wicket Memberships plugin. This setting is only used on legacy sites that still run WooCommerce Memberships.', 'wicket'),
+                        : esc_html__('Superseded by the Membership Categories setting in the Wicket Memberships plugin. This list still applies until Membership Categories is saved there, and on legacy sites that still run WooCommerce Memberships.', 'wicket'),
                     esc_html__('Select which categories are used only for membership products. This is used by other settings or to help with custom development.', 'wicket')
                 ),
                 'options' => $this->get_product_categories(),
