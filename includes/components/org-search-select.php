@@ -61,6 +61,8 @@ $defaults = [
     'grant_org_editor_on_purchase'                  => false, // Grants org_editor role for selected org on next payment_complete hook
     'hide_remove_buttons'                           => false,
     'hide_select_buttons'                           => false,
+    'hide_membership_status'                        => false, // Hides the Active/Inactive Membership badge on current-org cards
+    'hide_org_type'                                 => false, // Hides the org type label on current-org cards (search results stay governed by display_org_type)
     'display_removal_alert_message'                 => false,
     'title'                                         => '',
     'response_message'                              => '', // class name of the container where the response message will be displayed
@@ -130,6 +132,8 @@ $grant_org_editor_on_select = $args['grant_org_editor_on_select'];
 $grant_org_editor_on_purchase = $args['grant_org_editor_on_purchase'];
 $hide_remove_buttons = $args['hide_remove_buttons'];
 $hide_select_buttons = $args['hide_select_buttons'];
+$hide_membership_status = (bool) $args['hide_membership_status'];
+$hide_org_type = (bool) $args['hide_org_type'];
 $display_removal_alert_message = $args['display_removal_alert_message'];
 $title = $args['title'];
 $responseMessage = $args['response_message'];
@@ -864,13 +868,16 @@ if (empty($title)) : ?>
             }
           }
         }">
+            <?php if (!$hide_org_type) : ?>
             <div class="component-org-search-select__org-type <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-xs' ?>"
               x-text="connection.org_type_name"></div>
+            <?php endif; ?>
             <div
               class="component-org-search-select__card-top-header <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'flex flex-col sm:flex-row mb-2 sm:items-center' ?>">
               <div x-text="connection.org_name"
                 class="component-org-search-select__org-name <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'font-bold text-body-sm sm:mr-5' ?>">
               </div>
+              <?php if (!$hide_membership_status) : ?>
               <div>
                 <template x-if="connection.active_membership">
                   <div
@@ -891,6 +898,7 @@ if (empty($title)) : ?>
                   </div>
                 </template>
               </div>
+              <?php endif; ?>
             </div>
             <div class="component-org-search-select__org-subtitle"
               <?php if ($display_org_fields === 'name_location') : ?>
