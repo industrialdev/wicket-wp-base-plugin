@@ -205,6 +205,11 @@ function render(array $block = [], bool $is_preview = false): void
     }
     $used_ids[] = $id;
 
+    // Standard block wrapper: every Wicket block renders inside
+    // get_block_wrapper_attributes() so the content column and any
+    // width/alignment containers constrain it. A bare trigger button
+    // escapes the column and lands at the viewport edge.
+    echo '<div ' . get_block_wrapper_attributes() . '>';
     get_modal_pair([
         'id'          => $id,
         'title'       => $title,
@@ -219,6 +224,7 @@ function render(array $block = [], bool $is_preview = false): void
             'classes' => ['wicket-modal-block__trigger'],
         ],
     ]);
+    echo '</div>';
 }
 
 register_fields();
