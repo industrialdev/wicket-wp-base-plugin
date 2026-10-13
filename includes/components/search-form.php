@@ -1,7 +1,7 @@
 <?php
 $defaults = [
     'classes'         => ['flex', 'gap-2', 'w-full'],
-    'placeholder'     => __('Search by Keyword', 'wicket'),
+    'placeholder'     => _x('Search by Keyword', 'field placeholder', 'wicket-base'),
     'url-param'       => 'keyword',
     'button_reversed' => false,
 ];
@@ -19,7 +19,7 @@ $button_variant = apply_filters('wicket_search_form_button_variant', 'primary');
 	<div class="relative w-full">
 		<?php get_component('icon', [
 		    'icon'    => 'fa fa-search',
-		    'text'    => __('Search'),
+		    'text'    => _x('Search', 'accessibility label', 'wicket-base'),
 		    'classes' => [
 		        'absolute',
 		        'left-4',
@@ -36,7 +36,7 @@ $button_variant = apply_filters('wicket_search_form_button_variant', 'primary');
 
 	<?php
         get_component('button', [
-            'label'    => __('Search', 'wicket'),
+            'label'    => _x('Search', 'button label', 'wicket-base'),
             'variant'  => $button_variant,
             'reversed' => $button_reversed,
             'classes'  => ['button--clear'],

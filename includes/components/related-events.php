@@ -59,7 +59,7 @@ $show_tags = $args['show_tags'];
 $tag_taxonomy = $args['tag_taxonomy'];
 
 if ($title == '') {
-    $title = __('Related Events', 'wicket');
+    $title = _x('Related Events', 'label', 'wicket-base');
 }
 
 // WP_Query arguments
@@ -194,13 +194,13 @@ if ($highlight_featured_posts) {
 								<?php get_component('link', [
 								    'classes'            => ['component-related-events__view-all'],
 								    'default_link_style' => true,
-								    'text'               => __('View All', 'wicket'),
+								    'text'               => _x('View All', 'button label', 'wicket-base'),
 								    'url'                => $post_type_archive_link,
 								]) ?>
 							<?php else : ?>
 								<a href="<?php echo $post_type_archive_link ?>"
 									class="component-related-events__view-all underline ml-4 pl-4 border-l border-dark-070 hover:no-underline">
-									<?php echo __('View All', 'wicket') ?>
+									<?php echo _x('View All', 'button label', 'wicket-base') ?>
 								</a>
 							<?php endif; ?>
 						<?php endif; ?>
@@ -316,7 +316,7 @@ wp_reset_postdata();
 	<div class="container">
 		<?php
         get_component('alert', [
-            'content' => __('No related posts found.', 'wicket'),
+            'content' => __('No related posts found.', 'wicket-base'),
         ]);
     ?>
 	</div>

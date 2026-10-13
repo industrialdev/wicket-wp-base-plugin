@@ -26,7 +26,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 			class="font-bold <?php echo $reversed ? 'text-white' : '' ?>"
 		<?php endif; ?>
 	>
-		<?php _e('Share', 'wicket') ?>
+		<?php _ex('Share', 'button label', 'wicket-base') ?>
 	</li>
 	<li>
 		<?php get_component('button', [
@@ -40,7 +40,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'https://www.facebook.com/sharer/sharer.php?u=' . get_the_permalink(),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share on Facebook (opens in a new tab)', 'wicket'),
+		    'screen_reader_text' => __('Share on Facebook (opens in a new tab)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -55,7 +55,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'https://twitter.com/intent/tweet?url=' . get_the_permalink() . '&amp;text=' . urlencode(get_the_title()) . '%20-%20' . urlencode(get_the_excerpt()),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share on Twitter (opens in a new tab)', 'wicket'),
+		    'screen_reader_text' => __('Share on Twitter (opens in a new tab)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -70,7 +70,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'https://www.linkedin.com/shareArticle?mini=true&amp;url=' . get_the_permalink() . '&amp;title=' . urlencode(get_the_title()),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share on LinkedIn (opens in a new tab)', 'wicket'),
+		    'screen_reader_text' => __('Share on LinkedIn (opens in a new tab)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -85,7 +85,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'mailto:?subject=' . urlencode(get_the_title()) . '&body=' . get_the_permalink(),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share via Email (opens in email client)', 'wicket'),
+		    'screen_reader_text' => __('Share via Email (opens in email client)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -100,7 +100,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'https://bsky.app/intent/compose?text=' . urlencode(get_the_title() . ' - ' . get_the_permalink()),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share on Bluesky (opens in a new tab)', 'wicket'),
+		    'screen_reader_text' => __('Share on Bluesky (opens in a new tab)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -115,7 +115,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => true,
 		    'link'               => 'https://www.threads.net/intent/post?text=' . urlencode(get_the_title() . ' - ' . get_the_permalink()),
 		    'link_target'        => '_blank',
-		    'screen_reader_text' => __('Share on Threads (opens in a new tab)', 'wicket'),
+		    'screen_reader_text' => __('Share on Threads (opens in a new tab)', 'wicket-base'),
 		]) ?>
 	</li>
 	<li>
@@ -130,9 +130,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 		    'a_tag'              => false,
 		    'atts'               => [
 		        'data-copy-url' => get_the_permalink(),
-		        'title' => __('Copy page URL to clipboard', 'wicket'),
+		        'title' => __('Copy page URL to clipboard', 'wicket-base'),
 		    ],
-		    'screen_reader_text' => __('Copy page URL to clipboard', 'wicket'),
+		    'screen_reader_text' => __('Copy page URL to clipboard', 'wicket-base'),
 		]) ?>
 	</li>
 </ul>
@@ -180,7 +180,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 		var tip = document.createElement('span');
 		tip.className = 'component-social-sharing__copied-tip';
 		tip.setAttribute('aria-live', 'polite');
-		tip.textContent = '<?php echo esc_js(__('Copied!', 'wicket')); ?>';
+		tip.textContent = '<?php echo esc_js(_x('Copied!', 'message', 'wicket-base')); ?>';
 		btn.appendChild(tip);
 
 		var hideTimer;

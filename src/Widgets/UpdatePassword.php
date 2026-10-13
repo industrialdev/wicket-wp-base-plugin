@@ -21,7 +21,7 @@ class UpdatePassword extends \WP_Widget
     {
         parent::__construct(
             'wicket_update_password',
-            __('Wicket Update Password', 'wicket'),
+            _x('Wicket Update Password', 'widget name', 'wicket-base'),
             [
                 'customize_selective_refresh' => true,
             ]
@@ -88,25 +88,25 @@ class UpdatePassword extends \WP_Widget
             if ($current_password == '') {
                 $current_pass_blank = [];
                 $current_pass_blank['meta'] = (object) ['field' => 'user.current_password'];
-                $current_pass_blank['title'] = __("can't be blank");
+                $current_pass_blank['title'] = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = (object) $current_pass_blank;
             }
             if ($password == '') {
                 $pass_blank = [];
                 $pass_blank['meta'] = (object) ['field' => 'user.password'];
-                $pass_blank['title'] = __("can't be blank");
+                $pass_blank['title'] = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = (object) $pass_blank;
             }
             if ($password_confirmation == '') {
                 $confirm_pass_blank = [];
                 $confirm_pass_blank['meta'] = (object) ['field' => 'user.password_confirmation'];
-                $confirm_pass_blank['title'] = __("can't be blank");
+                $confirm_pass_blank['title'] = _x("can't be blank", 'message', 'wicket-base');
                 $errors[] = (object) $confirm_pass_blank;
             }
             if ($password_confirmation != $password) {
                 $pass_blank = [];
                 $pass_blank['meta'] = (object) ['field' => 'user.password'];
-                $pass_blank['title'] = __(' - Passwords do not match');
+                $pass_blank['title'] = __('passwords do not match', 'wicket-base');
                 $errors[] = (object) $pass_blank;
             }
             $_SESSION['wicket_password_form_errors'] = $errors;
@@ -130,10 +130,10 @@ class UpdatePassword extends \WP_Widget
                     if ($response !== null) {
                         $_SESSION['wicket_password_form_errors'] = json_decode($response->getBody()->getContents())->errors ?? [];
                     } else {
-                        $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => __('Request failed', 'wicket')]];
+                        $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => _x('Request failed', 'message', 'wicket-base')]];
                     }
                 } catch (\Throwable $e) {
-                    $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => __('Unexpected error', 'wicket')]];
+                    $_SESSION['wicket_password_form_errors'] = [(object) ['meta' => (object) ['field' => 'user.current_password'], 'title' => _x('Unexpected error', 'message', 'wicket-base')]];
                 }
                 // redirect here if there was updates made to reload person info and prevent form re-submission
                 if (empty($_SESSION['wicket_password_form_errors'])) {
@@ -157,22 +157,19 @@ class UpdatePassword extends \WP_Widget
         ?>
         <?php if (isset($_SESSION['wicket_password_form_errors']) && !empty($_SESSION['wicket_password_form_errors'])):?>
         <div class='alert alert-danger' role="alert">
-            <p><?php printf(_n('The form could not be submitted because 1 error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_password_form_errors']), 'sassquatch'), number_format_i18n(count($_SESSION['wicket_password_form_errors']))); ?></p>
+            <p><?php /* translators: %s: number of errors in the form. */ printf(_n('The form could not be submitted because %s error was found', 'The form could not be submitted because %s errors were found', count($_SESSION['wicket_password_form_errors']), 'wicket-base'), number_format_i18n(count($_SESSION['wicket_password_form_errors']))); ?></p>
             <?php
+            $fields = [
+                'user.current_password' => ['current_password', _x('Current password', 'label', 'wicket-base')],
+                'user.password' => ['password', _x('New password', 'label', 'wicket-base')],
+                'user.password_confirmation' => ['password_confirmation', _x('Confirm password', 'label', 'wicket-base')],
+            ];
             $counter = 1;
             echo '<ul>';
-            foreach ($_SESSION['wicket_password_form_errors'] as $key => $error) {
-                if ($error->meta->field == 'user.current_password') {
-                    $prefix = __('Current Password') . ' ';
-                    printf(__("<li><a href='#current_password'><strong>%s</strong> %s</a></li>", 'sassquatch'), 'Error: ' . $counter, $prefix . __($error->title));
-                }
-                if ($error->meta->field == 'user.password') {
-                    $prefix = __('New Password') . ' ';
-                    printf(__("<li><a href='#password'><strong>%s</strong> %s</a></li>", 'sassquatch'), 'Error: ' . $counter, $prefix . __($error->title));
-                }
-                if ($error->meta->field == 'user.password_confirmation') {
-                    $prefix = __('Confirm Password') . ' ';
-                    printf(__("<li><a href='#password_confirmation'><strong>%s</strong> %s</a></li>", 'sassquatch'), 'Error: ' . $counter, $prefix . __($error->title));
+            foreach ($_SESSION['wicket_password_form_errors'] as $error) {
+                $field = $error->meta->field ?? '';
+                if (isset($fields[$field])) {
+                    echo FormErrors::list_item($fields[$field][0], $counter, $fields[$field][1], (string) $error->title);
                 }
                 $counter++;
             }
@@ -181,19 +178,19 @@ class UpdatePassword extends \WP_Widget
         </div>
         <?php elseif (isset($_GET['success'])): ?>
             <div class='alert alert-success' role="alert">
-                <p><?php _e('Successfully Updated'); ?></p>
+                <p><?php _ex('Successfully Updated', 'message', 'wicket-base'); ?></p>
             </div>
         <?php endif; ?>
 
         <form class='manage_password_form' method="post">
             <div class="form__group">
-                <label class="form__label" for="current_password"><?php _e('Current password') ?>
+                <label class="form__label" for="current_password"><?php _ex('Current password', 'label', 'wicket-base') ?>
                     <span class="required">*</span>
                     <?php
                     if (isset($_SESSION['wicket_password_form_errors']) && !empty($_SESSION['wicket_password_form_errors'])) {
                         foreach ($_SESSION['wicket_password_form_errors'] as $key => $error) {
                             if (isset($error->meta->field) && $error->meta->field == 'user.current_password') {
-                                echo "<span class='error'>" . __('Current password') . ' ' . __($error->title) . '</span>';
+                                echo "<span class='error'>" . esc_html(FormErrors::field_message(_x('Current password', 'label', 'wicket-base'), (string) $error->title)) . '</span>';
                                 $current_password_err = true;
                             }
                         }
@@ -204,13 +201,13 @@ class UpdatePassword extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="password"><?php _e('New password') ?>
+                <label class="form__label" for="password"><?php _ex('New password', 'label', 'wicket-base') ?>
                     <span class="required">*</span>
                     <?php
         if (isset($_SESSION['wicket_password_form_errors']) && !empty($_SESSION['wicket_password_form_errors'])) {
             foreach ($_SESSION['wicket_password_form_errors'] as $key => $error) {
                 if (isset($error->meta->field) && $error->meta->field == 'user.password') {
-                    echo "<span class='error'>" . __('New password') . ' ' . __($error->title) . '</span>';
+                    echo "<span class='error'>" . esc_html(FormErrors::field_message(_x('New password', 'label', 'wicket-base'), (string) $error->title)) . '</span>';
                     $password_err = true;
                 }
             }
@@ -222,13 +219,13 @@ class UpdatePassword extends \WP_Widget
             </div>
 
             <div class="form__group">
-                <label class="form__label" for="password_confirmation"><?php _e('Confirm new password') ?>
+                <label class="form__label" for="password_confirmation"><?php _ex('Confirm new password', 'label', 'wicket-base') ?>
                     <span class="required">*</span>
                     <?php
         if (isset($_SESSION['wicket_password_form_errors']) && !empty($_SESSION['wicket_password_form_errors'])) {
             foreach ($_SESSION['wicket_password_form_errors'] as $key => $error) {
                 if (isset($error->meta->field) && $error->meta->field == 'user.password_confirmation') {
-                    echo "<span class='error'>" . __('Confirm password') . ' ' . __($error->title) . '</span>';
+                    echo "<span class='error'>" . esc_html(FormErrors::field_message(_x('Confirm password', 'label', 'wicket-base'), (string) $error->title)) . '</span>';
                     $password_confirm_err = true;
                 }
             }
@@ -242,7 +239,7 @@ class UpdatePassword extends \WP_Widget
 
             <?php
                 get_component('button', [
-                    'label'    => __('Change password'),
+                    'label'    => _x('Change password', 'button label', 'wicket-base'),
                     'type'    => 'submit',
                     'variant' => 'primary',
                 ]);

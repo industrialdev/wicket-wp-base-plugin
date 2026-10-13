@@ -194,7 +194,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 			<div class="absolute left-1/2 top-[-16px] -translate-x-1/2 -translate-y-1/2">
 				<?php if ($member_only) { ?>
 					<?php get_component('tag', [
-					    'label'   => __('Members Only', 'wicket'),
+					    'label'   => _x('Members Only', 'status', 'wicket-base'),
 					    'icon'    => 'fa-regular fa-lock',
 					    'link'    => '',
 					    'classes' => ['rounded-b-[0px] whitespace-nowrap'],
@@ -202,7 +202,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 				<?php } ?>
 				<?php if ($is_restricted) { ?>
 					<?php get_component('tag', [
-					    'label'   => __('Restricted', 'wicket'),
+					    'label'   => _x('Restricted', 'status', 'wicket-base'),
 					    'icon'    => 'fa-regular fa-lock',
 					    'link'    => '',
 					    'classes' => ['rounded-b-[0px] whitespace-nowrap'],
@@ -262,9 +262,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 					<div
 						class="component-card-event__venue-name <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-dark-070' ?>">
 						<?php if ($is_virtual && !$is_hybrid) { ?>
-							<span class="font-bold"><?php echo __('Virtual Event', 'wicket'); ?></span>
+							<span class="font-bold"><?php echo _x('Virtual Event', 'status', 'wicket-base'); ?></span>
 						<?php } elseif ($is_hybrid) { ?>
-							<span class="font-bold"><?php echo __('Hybrid Event', 'wicket'); ?></span>
+							<span class="font-bold"><?php echo _x('Hybrid Event', 'status', 'wicket-base'); ?></span>
 						<?php } elseif ($venue_name) { ?>
 							<span class="font-bold"><?php echo $venue_name; ?></span>
 							<?php if ($venue_address) { ?>
@@ -287,7 +287,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             if ($ticket_price && !$hide_price) : ?>
 				<div
 					class="component-card-event__ticket-price <?php echo defined('WICKET_WP_THEME_V2') ? '' : 'text-dark-070' ?>">
-					<span class="font-bold"><?php echo __('Get Tickets', 'wicket'); ?></span>
+					<span class="font-bold"><?php echo _x('Get Tickets', 'button label', 'wicket-base'); ?></span>
 					<span class="component-card-event__ticket-price-display">
 						<?php echo wp_kses_post($ticket_price); ?>
 					</span>
@@ -300,7 +300,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 			        [
 			            'default_link_style' => true,
 			            'url'                => get_login_url(),
-			            'text'               => __('Login to Purchase Ticket', 'woocommerce'),
+			            'text'               => __('Log in to Purchase Ticket', 'wicket-base'),
 			            'icon_end'           => [
 			                'icon' => 'fa-solid fa-arrow-up-right-from-square',
 			            ],
@@ -311,7 +311,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 			<?php if ($cta && $link) {
 			    get_component('button', [
 			        'variant' => $cta,
-			        'label'   => $cta_label ?: __('Read More', 'wicket'),
+			        'label'   => $cta_label ?: _x('Read More', 'button label', 'wicket-base'),
 			        'a_tag'   => true,
 			        'link'    => $link,
 			        'classes' => ['component-card-event__cta'],

@@ -17,8 +17,8 @@ $defaults = [
 		'is_restricted'             => false,
     'featured_image'            => '',
     'document'                  => '',
-    'download_label'            => __('Download', 'wicket'),
-    'link_label'                => __('View Page', 'wicket'),
+    'download_label'            => _x('Download', 'button label', 'wicket-base'),
+    'link_label'                => _x('View Page', 'button label', 'wicket-base'),
     'helper_link'               => [],
     'hide_document_format_icon' => false,
 ];
@@ -71,7 +71,7 @@ if ($featured_image) {
 				<?php if ($member_only) { ?>
 					<div class="component-card-listing__member-only">
 						<?php get_component('tag', [
-								'label' => __('Members Only', 'wicket'),
+								'label' => _x('Members Only', 'status', 'wicket-base'),
 								'icon'  => 'fa-regular fa-lock',
 								'link'  => '',
 						]); ?>
@@ -81,7 +81,7 @@ if ($featured_image) {
 				<?php if ($is_restricted) { ?>
 					<div class="component-card-listing__restricted">
 						<?php get_component('tag', [
-								'label' => __('Restricted', 'wicket'),
+								'label' => _x('Restricted', 'status', 'wicket-base'),
 								'icon'  => 'fa-regular fa-lock',
 								'link'  => '',
 						]); ?>
@@ -127,7 +127,7 @@ if ($featured_image) {
 		        'a_tag'              => true,
 		        'link'               => $helper_link['url'],
 		        'link_target'        => $helper_link['target'],
-		        'screen_reader_text' => $helper_link['target'] === '_blank' ? __('(opens in new tab)', 'wicket') : '',
+		        'screen_reader_text' => $helper_link['target'] === '_blank' ? __('(opens in new tab)', 'wicket-base') : '',
 		        'classes'            => ['max-md:w-full max-md:justify-center mb-4 mr-2'],
 		    ]);
 		} ?>

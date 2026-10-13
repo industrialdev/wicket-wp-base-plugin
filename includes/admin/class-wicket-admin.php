@@ -61,8 +61,8 @@ if (!class_exists('Wicket_Admin')) {
         public function wicket_admin_menu()
         {
             add_menu_page(
-                esc_html__('Wicket', 'wicket'), /* Page title */
-                esc_html__('Wicket', 'wicket'), /* Menu title */
+                esc_html_x('Wicket', 'label', 'wicket-base'), /* Page title */
+                esc_html_x('Wicket', 'label', 'wicket-base'), /* Menu title */
                 'manage_options', /* Capability */
                 'wicket-settings', /* Unique Menu slug */
                 '', /* Callback */

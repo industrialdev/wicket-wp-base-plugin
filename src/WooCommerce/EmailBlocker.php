@@ -159,7 +159,7 @@ class EmailBlocker
         foreach (array_unique($screens) as $screen) {
             add_meta_box(
                 'wicket-order-email-block',
-                __('Wicket Email Blocking', 'wicket'),
+                _x('Wicket Email Blocking', 'label', 'wicket-base'),
                 [$this, 'render_order_metabox'],
                 $screen,
                 'side',
@@ -184,11 +184,11 @@ class EmailBlocker
         <p>
             <label for="wicket_block_order_emails">
                 <input type="checkbox" name="wicket_block_order_emails" id="wicket_block_order_emails" value="1"<?php checked($checked); ?> />
-                <?php esc_html_e('Block all emails for this order', 'wicket'); ?>
+                <?php esc_html_e('Block all emails for this order', 'wicket-base'); ?>
             </label>
         </p>
         <p class="description">
-            <?php esc_html_e('Suppresses WooCommerce order emails and AutomateWoo workflows tied to this order. Resends from Order actions still send.', 'wicket'); ?>
+            <?php esc_html_e('Suppresses WooCommerce order emails and AutomateWoo workflows tied to this order. Resends from Order actions still send.', 'wicket-base'); ?>
         </p>
         <?php
     }
@@ -495,13 +495,13 @@ class EmailBlocker
         }
 
         $refund_note = $this->allow_refund_emails()
-            ? ' ' . __('Refund emails are allowed.', 'wicket')
+            ? ' ' . __('Refund emails are allowed.', 'wicket-base')
             : '';
 
         printf(
             '<div class="notice notice-warning"><p><strong>%s</strong> %s%s</p></div>',
-            esc_html__('Email Blocker Active:', 'wicket'),
-            esc_html__('No order emails will be sent when changing order status. Use Order actions or add a customer note to send emails explicitly.', 'wicket'),
+            esc_html_x('Email Blocker Active:', 'label', 'wicket-base'),
+            esc_html__('No order emails will be sent when changing order status. Use Order actions or add a customer note to send emails explicitly.', 'wicket-base'),
             esc_html($refund_note)
         );
     }

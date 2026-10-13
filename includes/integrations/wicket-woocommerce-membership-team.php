@@ -175,10 +175,10 @@ function add_topics(array $topics)
 {
 
     $membership_team_topics = [
-        'membership_team.created' => __('Membership Team Created', 'woocommerce-memberships-teams'),
-        'membership_team.updated' => __('Membership Team Updated', 'woocommerce-memberships-teams'),
-        'membership_team.deleted' => __('Membership Team Deleted', 'woocommerce-memberships-teams'),
-        'membership_team.restored' => __('Membership Team Restored', 'woocommerce-memberships-teams'),
+        'membership_team.created' => _x('Membership Team Created', 'webhook topic', 'wicket-base'),
+        'membership_team.updated' => _x('Membership Team Updated', 'webhook topic', 'wicket-base'),
+        'membership_team.deleted' => _x('Membership Team Deleted', 'webhook topic', 'wicket-base'),
+        'membership_team.restored' => _x('Membership Team Restored', 'webhook topic', 'wicket-base'),
     ];
 
     return array_merge($topics, $membership_team_topics);

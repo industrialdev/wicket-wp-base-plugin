@@ -1,7 +1,7 @@
 <?php
 $defaults = [
     'classes'  => [],
-    'label'    => __('Members Only', 'wicket'),
+    'label'    => _x('Members Only', 'status', 'wicket-base'),
     'icon'     => '',
     'reversed' => false,
     'link'     => '',

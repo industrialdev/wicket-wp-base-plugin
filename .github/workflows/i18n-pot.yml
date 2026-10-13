@@ -1,0 +1,33 @@
+name: Translation template check
+
+# Fails the PR when languages/<text-domain>.pot does not match the source.
+# Uses the same script as the pre-commit hook, so both generate the same file.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Regenerate the .pot
+        run: bash .ci/hooks/pre-commit --force --strict
+
+      - name: Fail when the committed .pot is out of date
+        run: |
+          if ! git diff --cached --quiet -- languages/; then
+            echo "::error::languages/*.pot is out of date. Commit through the pre-commit hook (composer setup-hooks), or run: bash .ci/hooks/pre-commit --force"
+            git diff --cached --stat -- languages/
+            exit 1
+          fi

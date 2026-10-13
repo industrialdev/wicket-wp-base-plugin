@@ -547,11 +547,12 @@ function wicket_tec_added_by_label(string $origin, int $user_id): string
 
     if ($origin === 'import') {
         return $name !== ''
-            ? sprintf(__('%s (CSV import)', 'wicket'), $name)
-            : __('CSV import', 'wicket');
+            /* translators: %s: name of the person who ran the CSV import. */
+            ? sprintf(_x('%s (CSV import)', 'value placeholder', 'wicket-base'), $name)
+            : _x('CSV import', 'value placeholder', 'wicket-base');
     }
 
-    return $name !== '' ? $name : __('An administrator', 'wicket');
+    return $name !== '' ? $name : _x('An administrator', 'value placeholder', 'wicket-base');
 }
 
 /**

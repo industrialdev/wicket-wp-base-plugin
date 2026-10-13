@@ -89,7 +89,7 @@ if ($image_aspect_ratio === '') {
 			<div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
 				<?php if ($member_only) { ?>
 					<?php get_component('tag', [
-							'label'   => __('Members Only', 'wicket'),
+							'label'   => _x('Members Only', 'status', 'wicket-base'),
 							'icon'    => 'fa-regular fa-lock',
 							'link'    => '',
 							'classes' => ['rounded-b-[0px]'],
@@ -98,7 +98,7 @@ if ($image_aspect_ratio === '') {
 					
 				<?php if ($is_restricted) { ?>
 					<?php get_component('tag', [
-							'label'   => __('Restricted', 'wicket'),
+							'label'   => _x('Restricted', 'status', 'wicket-base'),
 							'icon'    => 'fa-regular fa-lock',
 							'link'    => '',
 							'classes' => ['rounded-b-[0px]'],
@@ -157,7 +157,7 @@ if ($image_aspect_ratio === '') {
 			<?php if ($cta && $link) {
 			    get_component('button', [
 			        'variant' => $cta,
-			        'label'   => $cta_label ?: __('Read More', 'wicket'),
+			        'label'   => $cta_label ?: _x('Read More', 'button label', 'wicket-base'),
 			        'a_tag'   => true,
 			        'link'    => $link,
 			        'classes' => ['component-card-featured__cta'],

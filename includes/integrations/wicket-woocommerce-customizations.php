@@ -260,13 +260,13 @@ function wicket_wc_add_customer_column($columns)
         $new_columns[$key] = $label;
 
         if (in_array($key, ['order_status', 'status'], true)) {
-            $new_columns['wicket_customer'] = __('Customer', 'wicket');
+            $new_columns['wicket_customer'] = _x('Customer', 'label', 'wicket-base');
             $inserted = true;
         }
     }
 
     if (!$inserted) {
-        $new_columns['wicket_customer'] = __('Customer', 'wicket');
+        $new_columns['wicket_customer'] = _x('Customer', 'label', 'wicket-base');
     }
 
     return $new_columns;
@@ -357,7 +357,7 @@ function wicket_wc_get_customer_column_html($order)
     }
 
     if ('' === $customer_name) {
-        $customer_name = __('Guest', 'wicket');
+        $customer_name = _x('Guest', 'value placeholder', 'wicket-base');
     }
 
     if ($customer_id > 0) {

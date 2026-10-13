@@ -42,7 +42,7 @@ $background_image = $args['background_image'];
 $back_link = $args['back_link'];
 $download_file = $args['download_file'];
 $download_button_style = $args['download_button_style'];
-$download_button_label = $args['download_button_label'] == '' ? __('Download', 'wicket') : $args['download_button_label'];
+$download_button_label = $args['download_button_label'] == '' ? _x('Download', 'button label', 'wicket-base') : $args['download_button_label'];
 $helper_link = $args['helper_link'];
 $helper_link_button_style = $args['helper_link_button_style'];
 
@@ -120,11 +120,12 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 				<?php if ($back_link) {
 				    get_component('link', [
 				        'url'        => $back_link,
-				        'text'       => __('Back', 'wicket'),
+				        'text'       => _x('Back', 'button label', 'wicket-base'),
 				        'reversed'   => $reversed,
 				        'icon_start' => [
 				            'icon' => 'fa-solid fa-arrow-left',
-				            'text' => __('Go back to ', 'wicket') . $back_link,
+				            /* translators: %s: title of the page the link goes back to. */
+				            'text' => sprintf(_x('Go back to %s', 'button label', 'wicket-base'), $back_link),
 				        ],
 				    ]);
 				} ?>
@@ -203,7 +204,7 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 				            'link'               => $helper_link['url'],
 				            'link_target'        => $helper_link['target'],
 				            'reversed'           => $reversed,
-				            'screen_reader_text' => $helper_link['target'] === '_blank' ? __('(opens in new tab)', 'wicket') : '',
+				            'screen_reader_text' => $helper_link['target'] === '_blank' ? __('(opens in new tab)', 'wicket-base') : '',
 				        ]);
 				    }
 
@@ -223,7 +224,7 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 
 						<?php if ($member_only) {
 						    get_component('tag', [
-						        'label' => __('Members Only', 'wicket'),
+						        'label' => _x('Members Only', 'status', 'wicket-base'),
 						        'icon'  => 'fa-regular fa-lock',
 						        'link'  => '',
 						    ]);
@@ -231,7 +232,7 @@ if ($image === 'featured-image' && has_post_thumbnail()) {
 
 						<?php if ($is_restricted) {
 						    get_component('tag', [
-						        'label' => __('Restricted', 'wicket'),
+						        'label' => _x('Restricted', 'status', 'wicket-base'),
 						        'icon'  => 'fa-regular fa-lock',
 						        'link'  => '',
 						    ]);

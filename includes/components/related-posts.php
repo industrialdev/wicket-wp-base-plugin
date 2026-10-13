@@ -46,8 +46,8 @@ $current_post_id = $args['current_post_id'];
 if ($title == '') {
     $post_type_object = get_post_type_object($post_type['post_type']);
     $post_type_label = $post_type_object->labels->name;
-    $title = __('Related ', 'wicket');
-    $title .= $post_type_label;
+    /* translators: %s: post type plural name, e.g. News. */
+    $title = sprintf(_x('Related %s', 'label', 'wicket-base'), $post_type_label);
 }
 
 // WP_Query arguments
@@ -143,7 +143,7 @@ if ($highlight_featured_posts) {
 						<?php else : ?>
 							<?php get_component('link', [
 							    'url'        => $post_type_archive_link,
-							    'text'       => __('View All', 'wicket'),
+							    'text'       => _x('View All', 'button label', 'wicket-base'),
 							    'default_link_style' => true,
 							    'classes'	   => defined('WICKET_WP_THEME_V2') ? ['component-related-posts__view-all'] : ['component-related-posts__view-all', 'underline', 'hover:no-underline', 'ml-4', 'pl-4', 'border-l', 'border-dark-070'],
 							]); ?>
@@ -272,7 +272,7 @@ wp_reset_postdata();
 	<div class="container">
 		<?php
         get_component('alert', [
-            'content' => __('No related posts found.', 'wicket'),
+            'content' => __('No related posts found.', 'wicket-base'),
         ]);
     ?>
 	</div>

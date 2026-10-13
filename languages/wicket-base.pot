@@ -1,0 +1,1400 @@
+# Copyright (C) 2026 Wicket Inc.
+# This file is distributed under the same license as the Wicket Base plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Wicket Base 2.7.11\n"
+"Report-Msgid-Bugs-To: https://wicket.io\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-29T20:48:31+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: wicket-base\n"
+
+#. Plugin Name of the plugin
+msgid "Wicket Base"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "http://wicket.io"
+msgstr ""
+
+#. Description of the plugin
+msgid "This official Wicket plugin includes core functionality, standard features and developer tools for integrating the Wicket member data platform into a WordPress installation."
+msgstr ""
+
+#. Author of the plugin
+msgid "Wicket Inc."
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://wicket.io"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Settings"
+msgstr ""
+
+msgctxt "label"
+msgid "Settings"
+msgstr ""
+
+msgctxt "label"
+msgid "General"
+msgstr ""
+
+msgctxt "label"
+msgid "Environments"
+msgstr ""
+
+msgctxt "label"
+msgid "Memberships"
+msgstr ""
+
+msgctxt "label"
+msgid "Touchpoints"
+msgstr ""
+
+msgctxt "label"
+msgid "Integrations"
+msgstr ""
+
+msgctxt "label"
+msgid "Create Account Page"
+msgstr ""
+
+msgid "Choose the create account page. This must contain the \"Create Account Form\" block."
+msgstr ""
+
+msgctxt "label"
+msgid "New Account Redirect"
+msgstr ""
+
+msgid "Where users are directed once they complete the create account form. Default is /verify-account"
+msgstr ""
+
+msgctxt "label"
+msgid "Google Captcha"
+msgstr ""
+
+msgid "Enable Google Captcha on Create Account Form"
+msgstr ""
+
+msgctxt "label"
+msgid "Google Captcha Key"
+msgstr ""
+
+msgid "The key used to display Google reCAPTCHA. Obtain a key here <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+msgstr ""
+
+msgid "Google Captcha Secret Key"
+msgstr ""
+
+msgid "The secret key used to display Google reCAPTCHA. Obtain a key here <a href=\"https://www.google.com/recaptcha\" target=\"_blank\"> https://www.google.com/recaptcha</a>"
+msgstr ""
+
+msgctxt "label"
+msgid "Styles"
+msgstr ""
+
+msgctxt "label"
+msgid "Disable Default Styling"
+msgstr ""
+
+msgid "Disable Wicket default styling. Only for advanced users. If you enable this, no styling from this plugin will be loaded. Will be on you to add the necessary styles for all components and blocks."
+msgstr ""
+
+msgid "Connect to Wicket Environments"
+msgstr ""
+
+msgid "Choose which environment to activate."
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Environment"
+msgstr ""
+
+msgctxt "label"
+msgid "Staging"
+msgstr ""
+
+msgctxt "label"
+msgid "Production"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Production"
+msgstr ""
+
+msgid "Configure Wicket API setting, etc. for production"
+msgstr ""
+
+msgctxt "label"
+msgid "API Endpoint"
+msgstr ""
+
+msgid "The address of the API endpoint. Ex: https://[client]-api.wicketcloud.com"
+msgstr ""
+
+msgctxt "label"
+msgid "JWT Secret Key"
+msgstr ""
+
+msgid "Secret key from Wicket"
+msgstr ""
+
+msgctxt "label"
+msgid "Person ID"
+msgstr ""
+
+msgid "Person ID from Wicket"
+msgstr ""
+
+msgctxt "label"
+msgid "Parent Org"
+msgstr ""
+
+msgid "Top level organization used for creating new people on the create account form. This is the \"alternate name\" found in Wicket under \"Organizations\" for the top most organization."
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Admin"
+msgstr ""
+
+msgid "The address of the admin interface. Ex: https://[client]-admin.wicketcloud.com"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Staging"
+msgstr ""
+
+msgid "Configure Wicket API setting, etc. for staging"
+msgstr ""
+
+msgctxt "label"
+msgid "Membership Configuration Overview"
+msgstr ""
+
+msgid "The table below shows all Wicket Account Membership Tiers and corresponding WooCommerce Membership Plans. If you just applied changes to the Wicket Membership Tiers or changed Wicket Environments, please use the following button to renew the cached list below."
+msgstr ""
+
+msgctxt "label"
+msgid "Membership Settings"
+msgstr ""
+
+msgid "Configure settings related to Memberships"
+msgstr ""
+
+msgctxt "label"
+msgid "Membership Categories"
+msgstr ""
+
+msgid "Select which categories are used only for membership products. This is used by other settings or to help with custom development."
+msgstr ""
+
+msgid "Touchpoints write data back from WordPress user actions back to Wicket person profiles. Configure which default touchpoint should be used."
+msgstr ""
+
+msgctxt "label"
+msgid "WooCommerce Order"
+msgstr ""
+
+msgid "Enable Order touchpoint and send details to Wicket MDP."
+msgstr ""
+
+msgid "Event Tickets attendee registered for an event"
+msgstr ""
+
+msgid "Enable a touchpoint to be written when attendees register for an event. <br><small>Touchpoint is written on order complete</small>"
+msgstr ""
+
+msgid "Event Tickets attendee check-in for an event"
+msgstr ""
+
+msgid "Enable a touchpoint to be written when attendees check-in for an event"
+msgstr ""
+
+msgid "Event Tickets attendee RSVP for an event"
+msgstr ""
+
+msgid "Enable a touchpoint to be written when attendees RSVP for an event"
+msgstr ""
+
+msgid "Event Tickets attendee added by an admin or CSV import"
+msgstr ""
+
+msgid "Enable a touchpoint to be written when an attendee is added from the WordPress admin Attendees screen, or imported from CSV. Recorded as a registration, with the source noted on the touchpoint. <br><small>Imported attendees carry no registration form answers, because the CSV importer does not collect them.</small>"
+msgstr ""
+
+msgid "Event Tickets attendee removed from an event"
+msgstr ""
+
+msgid "Enable a touchpoint to be written when an attendee is removed from an event. <br><small>Written once, whether the attendee is moved to the trash or deleted outright.</small>"
+msgstr ""
+
+msgid "Include registration form answers"
+msgstr ""
+
+msgid "Include the attendee's registration form answers in event touchpoints, as label and value pairs. <br><small>Every answered field is sent. Use the wicket_tec_registration_answers filter to leave fields out.</small>"
+msgstr ""
+
+msgctxt "label"
+msgid "WooCommerce"
+msgstr ""
+
+msgid "Configure settings for common customizations with default WooCommerce behaviour."
+msgstr ""
+
+msgctxt "label"
+msgid "Sync Checkout Addresses"
+msgstr ""
+
+msgid "Billing and shipping addresses in WooCommerce checkout are pre-populated with the address from the Wicket person record."
+msgstr ""
+
+msgid "Remove product links from Cart & Checkout"
+msgstr ""
+
+msgid "Remove links to product pages from the cart and checkout pages"
+msgstr ""
+
+msgctxt "label"
+msgid "Hide membership categories"
+msgstr ""
+
+msgid "Hide membership categories and remove from search results. Membership categories are selected in the Membership setting tab."
+msgstr ""
+
+msgid "Hide membership product single pages"
+msgstr ""
+
+msgid "Products in the categories that are identified as Membership Categories in the Wicket Settings -> Memberships Tab will have their single page redirect to the homepage. These products can still be added to cart by other methods such as the onboarding form."
+msgstr ""
+
+msgid "Remove product added to cart message"
+msgstr ""
+
+msgid "When redirected to a checkout disable the \"X added to cart, continue shopping?\" message."
+msgstr ""
+
+msgid "Block customer emails on admin updates"
+msgstr ""
+
+msgid "Stops customer emails when admins update orders unless the email is explicitly sent."
+msgstr ""
+
+msgid "Allow refund emails from admin"
+msgstr ""
+
+msgid "Allow refund emails to customers when refunds are triggered by an admin."
+msgstr ""
+
+msgid "Draft order retention (days)"
+msgstr ""
+
+msgid "Number of days a draft (checkout-draft) order is kept before being automatically deleted. Defaults to 60 days. Set to 0 to disable automatic deletion entirely. Set to 1 to match WooCommerce's built-in default behaviour. Note: this overrides WooCommerce's built-in behaviour, which deletes draft orders after just 1 day."
+msgstr ""
+
+msgid "Person to Organization Relationship Types"
+msgstr ""
+
+msgid "This is needed to determine which person to organization relationship types we want to identify that are relevant for usage on the site. One example is within WooCommerce orders."
+msgstr ""
+
+msgid "Assign people to groups on product purchase"
+msgstr ""
+
+msgid "When certain subscription products are purchased manage group assignments based on subscription dates."
+msgstr ""
+
+msgid "Group Assignment Product Category"
+msgstr ""
+
+msgid "Choose the category of product that will show the Group Assignment Tab and Settings."
+msgstr ""
+
+msgid "Group Role Entity Object Slug"
+msgstr ""
+
+msgid "Use <code>group-members</code> unless it isn't working and only if you understand why it should be different. This retrieves Group Role resource entity options from Wicket."
+msgstr ""
+
+msgctxt "label"
+msgid "WP Cassify"
+msgstr ""
+
+msgctxt "label"
+msgid "Sync Security Roles"
+msgstr ""
+
+msgid "Sync all roles found under profile -> security -> roles in the MDP for each user when they log in to WordPress - Requires WP-CASSIFY plugin."
+msgstr ""
+
+msgid "Sync Memberships as Roles"
+msgstr ""
+
+msgid "Sync active user memberships from the MDP for a user when they log in to WordPress. For example, if they have a membership called \"Student\" within the MDP, when they log in, a role will be created called \"Student\" if it does not yet exist and assign that role to the user. - NOTE: Requires WP-CASSIFY plugin and <strong><em> the checkbox above to be selected!</em></strong>"
+msgstr ""
+
+msgid "Sync Tags as Roles"
+msgstr ""
+
+msgid "Sync selected user tags from the MDP for a user when they log in to WordPress. Type the allowed tag(s) in this field. Values in field must match the tag in the MDP exactly. Multiple values must be comma separated."
+msgstr ""
+
+msgctxt "label"
+msgid "Ignore Roles"
+msgstr ""
+
+msgid "Ignore certain user roles from the MDP for a user when they log in to WordPress. Type the allowed role(s) in this field. Values in field must match the roles in the MDP exactly. Multiple values must be comma separated. - NOTE: This only applies to security roles found on the users profile in the MDP. It does not apply to derived roles such as the ones mentioned above for memberships, etc"
+msgstr ""
+
+msgctxt "label"
+msgid "Mailtrap"
+msgstr ""
+
+msgid "Used to send all WordPress mail to mailtrap. Typically used on staging/local for testing and will only take effect when the Wicket environment is toggled to \"Staging\". <br> NOTE! Remember to disable any SMTP plugin(s) while using the stage environment. Otherwise these settings won't take effect."
+msgstr ""
+
+msgctxt "label"
+msgid "Host"
+msgstr ""
+
+msgid "Can be found under SMTP settings within the inbox -> Show Credentials -> Under SMTP"
+msgstr ""
+
+msgctxt "label"
+msgid "Port"
+msgstr ""
+
+msgid "This is usually 2525"
+msgstr ""
+
+msgctxt "label"
+msgid "Username"
+msgstr ""
+
+msgctxt "label"
+msgid "Password"
+msgstr ""
+
+msgctxt "label"
+msgid "Status"
+msgstr ""
+
+msgctxt "status"
+msgid "CONNECTED"
+msgstr ""
+
+msgctxt "status"
+msgid "NOT CONNECTED"
+msgstr ""
+
+msgctxt "button label"
+msgid "Refresh Wicket Memberships"
+msgstr ""
+
+#. translators: %s: number of membership tiers.
+#, php-format
+msgid "A total of %s Membership Tier was found in your Wicket account."
+msgid_plural "A total of %s Membership Tiers were found in your Wicket account."
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "label"
+msgid "Wicket Membership Tier"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Membership UUID"
+msgstr ""
+
+msgctxt "label"
+msgid "Type"
+msgstr ""
+
+msgctxt "label"
+msgid "WooCommerce Membership"
+msgstr ""
+
+msgctxt "label"
+msgid "# Products"
+msgstr ""
+
+msgctxt "label"
+msgid "# Teams"
+msgstr ""
+
+msgctxt "label"
+msgid "# Members"
+msgstr ""
+
+msgctxt "button label"
+msgid "View Members"
+msgstr ""
+
+msgid "REQUIRED PLUGINS: The following plugins are required to be installed and activated in order to use the Memberships settings. 1. WooCommerce (Installed) | 2. WooCommerce Memberships (Not Installed) | 3. WooCommerce Subscriptions (Not Installed) | 4. Teams for WooCommerce Memberships (Required for Organization Memberships) (Not Installed)"
+msgstr ""
+
+msgid "No accordion items found."
+msgstr ""
+
+msgid "Use the Block controls in edit mode or on the right to add accordion items."
+msgstr ""
+
+msgctxt "button label"
+msgid "Download"
+msgstr ""
+
+msgctxt "button label"
+msgid "Back"
+msgstr ""
+
+#. translators: %s: title of the page the link goes back to.
+#, php-format
+msgctxt "button label"
+msgid "Go back to %s"
+msgstr ""
+
+msgid "(opens in new tab)"
+msgstr ""
+
+msgctxt "status"
+msgid "Members Only"
+msgstr ""
+
+msgctxt "status"
+msgid "Restricted"
+msgstr ""
+
+msgctxt "status"
+msgid "Virtual Event"
+msgstr ""
+
+msgctxt "status"
+msgid "Hybrid Event"
+msgstr ""
+
+msgctxt "button label"
+msgid "Get Tickets"
+msgstr ""
+
+msgid "Log in to Purchase Ticket"
+msgstr ""
+
+msgctxt "button label"
+msgid "Read More"
+msgstr ""
+
+msgctxt "button label"
+msgid "View Page"
+msgstr ""
+
+msgctxt "button label"
+msgid "Visit Page"
+msgstr ""
+
+msgctxt "label"
+msgid "Featured"
+msgstr ""
+
+msgctxt "label"
+msgid "Refine Results"
+msgstr ""
+
+msgctxt "accessibility label"
+msgid "Toggle filters"
+msgstr ""
+
+msgctxt "label"
+msgid "Content Types"
+msgstr ""
+
+msgctxt "button label"
+msgid "See Less"
+msgstr ""
+
+msgctxt "button label"
+msgid "See More"
+msgstr ""
+
+msgctxt "label"
+msgid "Date Range"
+msgstr ""
+
+msgctxt "label"
+msgid "From:"
+msgstr ""
+
+msgctxt "label"
+msgid "To:"
+msgstr ""
+
+msgctxt "button label"
+msgid "Apply Filters"
+msgstr ""
+
+msgctxt "button label"
+msgid "Clear All"
+msgstr ""
+
+msgid "Use the Block controls in edit mode or on the right to add icons."
+msgstr ""
+
+msgctxt "button label"
+msgid "Proceed"
+msgstr ""
+
+msgid "Seats available for this organization"
+msgstr ""
+
+msgid "This organization has an active membership with open seats. You can proceed now or review the helpful links below."
+msgstr ""
+
+msgid "No seats remaining for this organization"
+msgstr ""
+
+msgid "All seats for this organization are already assigned. Remove an existing assignment or contact support to continue."
+msgstr ""
+
+msgid "Notify your account manager"
+msgstr ""
+
+msgctxt "entity name"
+msgid "Organization"
+msgstr ""
+
+msgctxt "entity name"
+msgid "Group"
+msgstr ""
+
+msgctxt "entity name"
+msgid "Organizations"
+msgstr ""
+
+msgctxt "entity name"
+msgid "Groups"
+msgstr ""
+
+#. translators: %s: organization term, plural and lowercase, e.g. organizations.
+#, php-format
+msgid "Sorry, no %s match your search. Please try again."
+msgstr ""
+
+msgctxt "accessibility label"
+msgid "Dismiss message"
+msgstr ""
+
+msgctxt "button label"
+msgid "Close X"
+msgstr ""
+
+#. translators: %s: organization name.
+#, php-format
+msgid "Please confirm: You'd like to remove your connection with %s?"
+msgstr ""
+
+#. translators: %s: organization name.
+#, php-format
+msgid "This will remove all connections you have with %s, including membership."
+msgstr ""
+
+msgctxt "button label"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "message"
+msgid "Sending..."
+msgstr ""
+
+#. translators: %s: organization term in lowercase, e.g. organization or group.
+#, php-format
+msgctxt "field placeholder"
+msgid "Search by %s name"
+msgstr ""
+
+msgctxt "button label"
+msgid "Search"
+msgstr ""
+
+msgctxt "button label"
+msgid "Clear"
+msgstr ""
+
+msgctxt "label"
+msgid "Matching Organization(s)"
+msgstr ""
+
+msgctxt "button label"
+msgid "Select"
+msgstr ""
+
+msgctxt "button label"
+msgid "Already Selected"
+msgstr ""
+
+msgid "This organization has an active membership and cannot be selected."
+msgstr ""
+
+msgctxt "label"
+msgid "Selected Organization:"
+msgstr ""
+
+msgid "Your current Organization(s)"
+msgstr ""
+
+msgctxt "button label"
+msgid "Clear Selection"
+msgstr ""
+
+msgctxt "status"
+msgid "Active Membership"
+msgstr ""
+
+msgctxt "status"
+msgid "Inactive Membership"
+msgstr ""
+
+msgctxt "button label"
+msgid "Selected"
+msgstr ""
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "button label"
+msgid "Proceed with %s"
+msgstr ""
+
+msgctxt "button label"
+msgid "Remove"
+msgstr ""
+
+#. translators: %s: organization term in lowercase, e.g. organization or group.
+#, php-format
+msgctxt "label"
+msgid "Can't find your %s?"
+msgstr ""
+
+msgid "Create a new one:"
+msgstr ""
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "label"
+msgid "Name of the %s"
+msgstr ""
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgctxt "label"
+msgid "Type of %s"
+msgstr ""
+
+msgctxt "label"
+msgid "Select one"
+msgstr ""
+
+msgctxt "label"
+msgid "Org type"
+msgstr ""
+
+msgctxt "button label"
+msgid "Add"
+msgstr ""
+
+#. translators: %s: organization term, e.g. Organization.
+#, php-format
+msgid "%s you are trying to add already exists"
+msgstr ""
+
+msgid "Please enter the name in the search field above to find the existing record."
+msgstr ""
+
+msgid "Thanks, the organization owner has been notified."
+msgstr ""
+
+msgid "The organization owner was already notified recently. Please wait before trying again."
+msgstr ""
+
+msgid "We could not notify the organization owner. Please try again later."
+msgstr ""
+
+msgid "Please provide a search term"
+msgstr ""
+
+msgid "Please enter an organization name."
+msgstr ""
+
+msgid "Please select an organization type."
+msgstr ""
+
+msgid "We could not verify active membership status right now. Please try again."
+msgstr ""
+
+msgid "There was an error creating the connection. Please try again."
+msgstr ""
+
+msgctxt "message"
+msgid "Organization connected successfully"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "this organization"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "Unknown relationship"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "Not specified"
+msgstr ""
+
+#. translators: %s: organization name.
+#, php-format
+msgid "We could not remove %s."
+msgstr ""
+
+msgid "Review the details below or contact support if this continues."
+msgstr ""
+
+#. translators: 1: relationship type this tool can remove, 2: relationship type of this record.
+#, php-format
+msgid "This tool is limited to removing \"%1$s\" links, but this record is \"%2$s\"."
+msgstr ""
+
+msgid "The MDP blocked ending this connection on the same day it was created. Try again tomorrow or contact support."
+msgstr ""
+
+msgctxt "label"
+msgid "Related Events"
+msgstr ""
+
+msgctxt "button label"
+msgid "View All"
+msgstr ""
+
+msgid "No related posts found."
+msgstr ""
+
+#. translators: %s: post type plural name, e.g. News.
+#, php-format
+msgctxt "label"
+msgid "Related %s"
+msgstr ""
+
+msgctxt "field placeholder"
+msgid "Search by Keyword"
+msgstr ""
+
+msgctxt "accessibility label"
+msgid "Search"
+msgstr ""
+
+msgctxt "button label"
+msgid "Share"
+msgstr ""
+
+msgid "Share on Facebook (opens in a new tab)"
+msgstr ""
+
+msgid "Share on Twitter (opens in a new tab)"
+msgstr ""
+
+msgid "Share on LinkedIn (opens in a new tab)"
+msgstr ""
+
+msgid "Share via Email (opens in email client)"
+msgstr ""
+
+msgid "Share on Bluesky (opens in a new tab)"
+msgstr ""
+
+msgid "Share on Threads (opens in a new tab)"
+msgstr ""
+
+msgid "Copy page URL to clipboard"
+msgstr ""
+
+msgctxt "message"
+msgid "Copied!"
+msgstr ""
+
+#. translators: %d: tab number.
+#, php-format
+msgctxt "value placeholder"
+msgid "Tab %d"
+msgstr ""
+
+msgctxt "label"
+msgid "Additional Info"
+msgstr ""
+
+msgctxt "label"
+msgid "Profile"
+msgstr ""
+
+msgctxt "label"
+msgid "Organization Profile"
+msgstr ""
+
+msgid "identifiable_id and service_uuid are required."
+msgstr ""
+
+#. translators: %s: comma-separated list of allowed identifiable types.
+#, php-format
+msgid "identifiable_type must be one of: %s."
+msgstr ""
+
+msgid "Wicket API client is not available."
+msgstr ""
+
+msgid "MDP returned no service identity id."
+msgstr ""
+
+msgid "identity_uuid is required."
+msgstr ""
+
+msgid "No mutable attributes to update (external_id is immutable)."
+msgstr ""
+
+msgid "MDP returned no service identity."
+msgstr ""
+
+#. translators: %s: name of the person who ran the CSV import.
+#, php-format
+msgctxt "value placeholder"
+msgid "%s (CSV import)"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "CSV import"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "An administrator"
+msgstr ""
+
+#. translators: %s: order ID of the renewal order that was successfully paid
+#, php-format
+msgid "Cancelled automatically: renewal order #%s was paid for this subscription."
+msgstr ""
+
+msgctxt "label"
+msgid "Group Product Assignment"
+msgstr ""
+
+msgctxt "label"
+msgid "None"
+msgstr ""
+
+msgctxt "label"
+msgid "Group Assigned"
+msgstr ""
+
+msgid "Purchase of this product will assign person to the selected group."
+msgstr ""
+
+msgctxt "label"
+msgid "Role Assigned"
+msgstr ""
+
+msgid "Purchase of this product will assign person the selected role in the group."
+msgstr ""
+
+msgid "Unable to switch: The Wicket account no longer exists or the UUIDs do not match."
+msgstr ""
+
+msgid "This will look up the user in MDP by email and update the WP user_login to the MDP UUID. Proceed?"
+msgstr ""
+
+msgid "Attempt to fix WP<>MDP UUID mismatch."
+msgstr ""
+
+msgid "UUID mismatch repair failed: another account already uses this UUID as login. Resolve duplicate before retrying."
+msgstr ""
+
+msgid "UUID mismatch repaired: WP user_login updated to correct MDP user UUID matched by email."
+msgstr ""
+
+msgid "UUID mismatch repair failed. Ensure the email is associated to a user in the MDP."
+msgstr ""
+
+msgctxt "label"
+msgid "Pre-populate Addresses"
+msgstr ""
+
+msgctxt "label"
+msgid "-- Choose Address --"
+msgstr ""
+
+msgctxt "label"
+msgid "Choose an Option"
+msgstr ""
+
+msgctxt "label"
+msgid "Address Type"
+msgstr ""
+
+msgctxt "label"
+msgid "Save New Address"
+msgstr ""
+
+msgctxt "label"
+msgid "Customer"
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "Guest"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Team Settings"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Organization"
+msgstr ""
+
+msgid "Enter the organization UUID value from Wicket. This is required to establish a connection between this WooCommerce Membership Team and Wicket Organization."
+msgstr ""
+
+msgctxt "webhook topic"
+msgid "Membership Team Created"
+msgstr ""
+
+msgctxt "webhook topic"
+msgid "Membership Team Updated"
+msgstr ""
+
+msgctxt "webhook topic"
+msgid "Membership Team Deleted"
+msgstr ""
+
+msgctxt "webhook topic"
+msgid "Membership Team Restored"
+msgstr ""
+
+msgctxt "label"
+msgid "First Name"
+msgstr ""
+
+msgctxt "label"
+msgid "Last Name"
+msgstr ""
+
+msgctxt "message"
+msgid "Organization not provided."
+msgstr ""
+
+msgctxt "value placeholder"
+msgid "A member"
+msgstr ""
+
+msgid "Organization membership not found."
+msgstr ""
+
+msgid "Organization owner not found."
+msgstr ""
+
+msgid "Organization owner email not found."
+msgstr ""
+
+msgctxt "email subject"
+msgid "Roster update requested"
+msgstr ""
+
+#. translators: %s: name of the person asking to join the roster.
+#, php-format
+msgid "%s would like to be added to the organization roster. Please update the roster to make room or contact support for more seats."
+msgstr ""
+
+msgid "Email delivery is not configured on this environment. Please try again later."
+msgstr ""
+
+msgctxt "email subject"
+msgid "Roster update notification"
+msgstr ""
+
+#. translators: %1$s: name of the person added to the roster.
+#, php-format
+msgid "%1$s has been added to your organization roster. No action is needed unless %1$s is not an employee. In that case, you can access the roster management tool and remove them. If %1$s is an employee, they can now access member benefits."
+msgstr ""
+
+msgctxt "widget name"
+msgid "Wicket Create Account"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Block Error:"
+msgstr ""
+
+msgid "Wicket API credentials are not configured. Please define them in your configuration to enable this block."
+msgstr ""
+
+msgctxt "message"
+msgid "can't be blank"
+msgstr ""
+
+msgid "must be a valid email address"
+msgstr ""
+
+msgid "must be a minimum of 8 characters"
+msgstr ""
+
+msgid "passwords do not match"
+msgstr ""
+
+msgid "please complete the captcha below"
+msgstr ""
+
+#. translators: %s: number of errors in the form.
+#, php-format
+msgid "The form could not be submitted because %s error was found"
+msgid_plural "The form could not be submitted because %s errors were found"
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "label"
+msgid "First name"
+msgstr ""
+
+msgctxt "label"
+msgid "Last name"
+msgstr ""
+
+msgctxt "label"
+msgid "Email"
+msgstr ""
+
+msgctxt "label"
+msgid "Confirm password"
+msgstr ""
+
+msgctxt "label"
+msgid "Captcha"
+msgstr ""
+
+msgctxt "message"
+msgid "Successfully Created"
+msgstr ""
+
+msgctxt "accessibility label"
+msgid "Required"
+msgstr ""
+
+msgid "Minimum of 8 characters"
+msgstr ""
+
+msgctxt "button label"
+msgid "Submit"
+msgstr ""
+
+msgid "Wicket Create Account (No Password)"
+msgstr ""
+
+#. translators: 1: form field name, 2: validation message for that field.
+#, php-format
+msgctxt "message"
+msgid "%1$s: %2$s"
+msgstr ""
+
+#. translators: %d: error number in the list.
+#, php-format
+msgctxt "label"
+msgid "Error: %d"
+msgstr ""
+
+msgctxt "widget name"
+msgid "Wicket Manage Preferences"
+msgstr ""
+
+msgctxt "message"
+msgid "Successfully Updated"
+msgstr ""
+
+msgctxt "label"
+msgid "Language"
+msgstr ""
+
+msgctxt "label"
+msgid "English"
+msgstr ""
+
+msgctxt "label"
+msgid "French"
+msgstr ""
+
+msgctxt "label"
+msgid "Communications"
+msgstr ""
+
+msgctxt "label"
+msgid "Yes, accept communications"
+msgstr ""
+
+msgid "Yes, accept communications from 3rd party vendors"
+msgstr ""
+
+msgctxt "button label"
+msgid "Update Preferences"
+msgstr ""
+
+msgctxt "widget name"
+msgid "Wicket Update Password"
+msgstr ""
+
+msgctxt "message"
+msgid "Request failed"
+msgstr ""
+
+msgctxt "message"
+msgid "Unexpected error"
+msgstr ""
+
+msgctxt "label"
+msgid "Current password"
+msgstr ""
+
+msgctxt "label"
+msgid "New password"
+msgstr ""
+
+msgctxt "label"
+msgid "Confirm new password"
+msgstr ""
+
+msgctxt "button label"
+msgid "Change password"
+msgstr ""
+
+msgctxt "label"
+msgid "Wicket Email Blocking"
+msgstr ""
+
+msgid "Block all emails for this order"
+msgstr ""
+
+msgid "Suppresses WooCommerce order emails and AutomateWoo workflows tied to this order. Resends from Order actions still send."
+msgstr ""
+
+msgid "Refund emails are allowed."
+msgstr ""
+
+msgctxt "label"
+msgid "Email Blocker Active:"
+msgstr ""
+
+msgid "No order emails will be sent when changing order status. Use Order actions or add a customer note to send emails explicitly."
+msgstr ""
+
+msgctxt "block title"
+msgid "Create Account Form (No Password)"
+msgstr ""
+
+msgctxt "block description"
+msgid "A Wicket block for Create Account Form without password entry"
+msgstr ""
+
+msgctxt "block title"
+msgid "Create Account Form"
+msgstr ""
+
+msgctxt "block description"
+msgid "A Wicket block for Create Account Form"
+msgstr ""
+
+msgctxt "block title"
+msgid "Wicket Display Settings"
+msgstr ""
+
+msgctxt "block description"
+msgid "A Wicket block for displaying all settings, for debugging and development purposes."
+msgstr ""
+
+msgctxt "Color name"
+msgid "Primary"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Secondary"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Tertiary"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Dark"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Dark 060"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Dark 080"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Dark 090"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Black"
+msgstr ""
+
+msgctxt "Color name"
+msgid "White"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Light"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Light 020"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Light 030"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Accent A"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Informational A"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Informational A-020"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Informational B"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Informational B-020"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Danger"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Warning"
+msgstr ""
+
+msgctxt "Color name"
+msgid "Success"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "25 (2px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "50 (4px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "75 (6px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "100 (8px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "150 (12px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "200 (16px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "250 (20px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "300 (24px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "400 (32px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "500 (40px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "600 (48px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "800 (64px)"
+msgstr ""
+
+msgctxt "Space size name"
+msgid "1000 (80px)"
+msgstr ""
+
+msgctxt "Font family name"
+msgid "System Sans Serif"
+msgstr ""
+
+msgctxt "Font family name"
+msgid "System Serif"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading 3xl"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading 2xl"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading xl"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading lg"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading md"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading sm"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Heading xs"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Body lg"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Body md"
+msgstr ""
+
+msgctxt "Font size name"
+msgid "Body sm"
+msgstr ""

@@ -65,7 +65,7 @@ if (defined('WICKET_WP_THEME_V2')) {
 			        'link'               => $link['link']['url'],
 			        'link_target'        => $link['link']['target'],
 			        'classes'            => ['justify-center'],
-			        'screen_reader_text' => __('(opens in new tab)', 'wicket'),
+			        'screen_reader_text' => __('(opens in new tab)', 'wicket-base'),
 			    ]);
 			} ?>
 		</div>

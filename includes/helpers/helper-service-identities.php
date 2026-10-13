@@ -61,18 +61,19 @@ function wicket_service_identity_identifiable_types(): array
 function wicket_create_service_identity(string $identifiable_type, string $identifiable_id, string $service_uuid, ?string $external_id = null): array|WP_Error
 {
     if ($identifiable_id === '' || $service_uuid === '') {
-        return new WP_Error('wicket_service_identity_missing_args', __('identifiable_id and service_uuid are required.', 'wicket'));
+        return new WP_Error('wicket_service_identity_missing_args', __('identifiable_id and service_uuid are required.', 'wicket-base'));
     }
     if (! in_array($identifiable_type, wicket_service_identity_identifiable_types(), true)) {
         return new WP_Error(
             'wicket_service_identity_bad_type',
-            sprintf(__('identifiable_type must be one of: %s.', 'wicket'), implode(', ', wicket_service_identity_identifiable_types()))
+            /* translators: %s: comma-separated list of allowed identifiable types. */
+            sprintf(__('identifiable_type must be one of: %s.', 'wicket-base'), implode(', ', wicket_service_identity_identifiable_types()))
         );
     }
 
     $client = wicket_api_client();
     if ($client === false) {
-        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket'));
+        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket-base'));
     }
 
     $attributes = [];
@@ -111,7 +112,7 @@ function wicket_create_service_identity(string $identifiable_type, string $ident
 
     $entry = wicket_service_identity_unwrap($response);
     if ($entry === null || empty($entry['id'])) {
-        return new WP_Error('wicket_service_identity_no_id', __('MDP returned no service identity id.', 'wicket'));
+        return new WP_Error('wicket_service_identity_no_id', __('MDP returned no service identity id.', 'wicket-base'));
     }
 
     return $entry;
@@ -166,18 +167,18 @@ function wicket_get_service_identity(string $identity_uuid): ?array
 function wicket_update_service_identity(string $identity_uuid, array $attributes): array|WP_Error
 {
     if ($identity_uuid === '') {
-        return new WP_Error('wicket_service_identity_missing_args', __('identity_uuid is required.', 'wicket'));
+        return new WP_Error('wicket_service_identity_missing_args', __('identity_uuid is required.', 'wicket-base'));
     }
 
     // external_id is set-once/immutable; never send it on update.
     unset($attributes['external_id']);
     if ($attributes === []) {
-        return new WP_Error('wicket_service_identity_no_attrs', __('No mutable attributes to update (external_id is immutable).', 'wicket'));
+        return new WP_Error('wicket_service_identity_no_attrs', __('No mutable attributes to update (external_id is immutable).', 'wicket-base'));
     }
 
     $client = wicket_api_client();
     if ($client === false) {
-        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket'));
+        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket-base'));
     }
 
     $payload = [
@@ -201,7 +202,7 @@ function wicket_update_service_identity(string $identity_uuid, array $attributes
 
     $entry = wicket_service_identity_unwrap($response);
     if ($entry === null || empty($entry['id'])) {
-        return new WP_Error('wicket_service_identity_no_entry', __('MDP returned no service identity.', 'wicket'));
+        return new WP_Error('wicket_service_identity_no_entry', __('MDP returned no service identity.', 'wicket-base'));
     }
 
     return $entry;
@@ -220,12 +221,12 @@ function wicket_update_service_identity(string $identity_uuid, array $attributes
 function wicket_delete_service_identity(string $identity_uuid): bool|WP_Error
 {
     if ($identity_uuid === '') {
-        return new WP_Error('wicket_service_identity_missing_args', __('identity_uuid is required.', 'wicket'));
+        return new WP_Error('wicket_service_identity_missing_args', __('identity_uuid is required.', 'wicket-base'));
     }
 
     $client = wicket_api_client();
     if ($client === false) {
-        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket'));
+        return new WP_Error('wicket_client_unavailable', __('Wicket API client is not available.', 'wicket-base'));
     }
 
     try {

@@ -48,7 +48,7 @@ if (!class_exists('Wicket_Woo_Team_Metabox')) {
         {
             add_meta_box(
                 'wc-memberships-for-teams-wicket', // $id
-                __('Wicket Team Settings', 'wicket'), // $title which will be shown at top of metabox.
+                _x('Wicket Team Settings', 'label', 'wicket-base'), // $title which will be shown at top of metabox.
                 [$this, 'wicket_team_metabox_cb'], // callback function name.
                 'wc_memberships_team', // The screen or screens on which to show the box (such as a post type, 'link', or 'comment').
                 'normal', // $context
@@ -79,7 +79,7 @@ if (!class_exists('Wicket_Woo_Team_Metabox')) {
 
                             <h3>
 
-                                <?php esc_html_e('Wicket Organization', 'wicket'); ?>
+                                <?php echo esc_html_x('Wicket Organization', 'label', 'wicket-base'); ?>
 
                             </h3>
 
@@ -91,7 +91,7 @@ if (!class_exists('Wicket_Woo_Team_Metabox')) {
 
                         <input type="text" class="wicket_input width-60" name="wicket_team_uuid_fld" id="wicket_team_uuid_fld" value="<?php echo esc_attr($wicket_team_uuid) ? esc_attr($wicket_team_uuid) : ''; ?>" />
                         <br>
-                        <p><?php esc_html_e('Enter the organization UUID value from Wicket. This is require to establish a connection between this WooCommerce Membership Team and Wicket Organization.', 'wicket'); ?></p>
+                        <p><?php esc_html_e('Enter the organization UUID value from Wicket. This is required to establish a connection between this WooCommerce Membership Team and Wicket Organization.', 'wicket-base'); ?></p>
                     </td>
 
                 </tr>

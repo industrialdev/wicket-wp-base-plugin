@@ -30,7 +30,7 @@ $placeholder_styles = 'style="min-height: 40px;border: 1px solid var(--wp--prese
 >
 
 	<?php if (is_admin() && empty($icons) && empty($title)): ?>
-  <p><?php _e('Use the Block controls in edit mode or on the right to add icons.', 'wicket'); ?></p>
+  <p><?php _e('Use the Block controls in edit mode or on the right to add icons.', 'wicket-base'); ?></p>
   <?php endif; ?>
 
 	<?php if (!empty($title)) : ?>
