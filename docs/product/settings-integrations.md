@@ -86,6 +86,18 @@ Works alongside the **Block Customer Emails** option above. When enabled, refund
 | PHP access | `get_option('wicket_admin_settings_woo_email_blocker_allow_refund_emails')` |
 | Default | `Off` |
 
+### Show Subscription Information in Order Emails
+
+When enabled, order emails linked to a subscription include the WooCommerce Subscriptions "Subscription information" table (subscription number, start date, end date, recurring total). It is hidden by default because renewal order emails are often sent before membership processing updates the subscription dates, so the table can show the previous term and confuse members. Only turn it on if members need to see subscription dates in their order emails.
+
+This reverses the WooCommerce Subscriptions default: when the option is off or has never been saved, the table is hidden, including on existing sites after a plugin update. It applies to both customer and admin order emails. Subscription reminder emails (upcoming renewal, trial ending, subscription expiring) are not affected.
+
+| | |
+|---|---|
+| Option key | `wicket_admin_settings_woo_email_show_subscription_info` |
+| PHP access | `wicket_get_option('wicket_admin_settings_woo_email_show_subscription_info')` |
+| Default | `Off` |
+
 ### Draft Order Retention (days)
 
 Controls how long draft (checkout-draft) orders are kept before being automatically deleted. The default is 60 days, which overrides WooCommerce's built-in behaviour of deleting draft orders after just 1 day. Set to `0` to keep draft orders indefinitely and disable automatic deletion entirely.
