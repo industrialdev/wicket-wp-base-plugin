@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.9.0] - 2026-10-13
+
+### Added
+- **orgss:** add org card display toggles (WWID-2710)
+
+
 ## [2.8.0] - 2026-10-07
 
 ### Added
