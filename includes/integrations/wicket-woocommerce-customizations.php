@@ -6,39 +6,29 @@
  *
  */
 
-/**
- * Whether Wicket Memberships provides the membership product categories.
- *
- * Older Wicket Memberships versions lack the getter, so they are treated as unavailable.
- *
- * @return bool
- */
-function wicket_memberships_categories_available()
-{
-    return defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids');
-}
+if (!function_exists('wicket_get_membership_product_category_ids')) {
+    /**
+     * Get the product category IDs treated as membership categories.
+     *
+     * Uses Wicket Memberships' Membership Categories once a site has saved them there,
+     * otherwise the deprecated base plugin setting so existing sites keep their current
+     * behaviour until they opt in.
+     *
+     * @return array Product category term IDs.
+     */
+    function wicket_get_membership_product_category_ids()
+    {
+        if (
+            wicket_memberships_categories_available()
+            && method_exists('\\Wicket_Memberships\\Helper', 'has_saved_membership_categories')
+            && \Wicket_Memberships\Helper::has_saved_membership_categories()
+        ) {
+            return \Wicket_Memberships\Helper::get_membership_category_ids();
+        }
 
-/**
- * Get the product category IDs treated as membership categories.
- *
- * Uses Wicket Memberships' Membership Categories once a site has saved them there,
- * otherwise the deprecated base plugin setting so existing sites keep their current
- * behaviour until they opt in.
- *
- * @return array Product category term IDs.
- */
-function wicket_get_membership_product_category_ids()
-{
-    if (
-        wicket_memberships_categories_available()
-        && method_exists('\\Wicket_Memberships\\Helper', 'has_saved_membership_categories')
-        && \Wicket_Memberships\Helper::has_saved_membership_categories()
-    ) {
-        return \Wicket_Memberships\Helper::get_membership_category_ids();
+        // Fallback: Wicket Memberships unavailable or its Membership Categories not saved yet, so use the deprecated base plugin setting.
+        return array_values(array_filter(array_map('absint', (array) wicket_get_option('wicket_admin_settings_membership_categories', []))));
     }
-
-    // Fallback: Wicket Memberships unavailable or its Membership Categories not saved yet, so use the deprecated base plugin setting.
-    return array_values(array_filter(array_map('absint', (array) wicket_get_option('wicket_admin_settings_membership_categories', []))));
 }
 
 /*
