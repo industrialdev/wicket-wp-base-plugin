@@ -1360,3 +1360,29 @@ function get_individual_memberships($id = '')
 
     return $search_organizations;
 }
+
+if (!function_exists('wicket_memberships_categories_available')) {
+    /**
+     * Whether Wicket Memberships provides the membership product categories.
+     *
+     * Older Wicket Memberships versions lack the getter, so they are treated as unavailable.
+     *
+     * @return bool
+     */
+    function wicket_memberships_categories_available()
+    {
+        return defined('WICKET_MEMBERSHIP_PLUGIN_FILE') && method_exists('\\Wicket_Memberships\\Helper', 'get_membership_category_ids');
+    }
+}
+
+if (!function_exists('wicket_memberships_settings_link')) {
+    /**
+     * Get an escaped link to the Wicket Memberships settings page.
+     *
+     * @return string Anchor HTML.
+     */
+    function wicket_memberships_settings_link()
+    {
+        return '<a href="' . esc_url(admin_url('options-general.php?page=wicket-membership-settings')) . '">' . esc_html__('Wicket Memberships settings', 'wicket') . '</a>';
+    }
+}
