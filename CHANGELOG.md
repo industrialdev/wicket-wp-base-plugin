@@ -5,6 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.9.1] - 2026-10-15
+
+### Fixed
+- **blocks:** wrap frontend output in the block wrapper (WWID-2576)
+- **blocks:** show modal content below the trigger in the editor
+
+
 ## [2.9.0] - 2026-10-13
 
 ### Added
