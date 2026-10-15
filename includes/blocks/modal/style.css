@@ -132,3 +132,38 @@
 	color: inherit;
 	border-color: currentColor;
 }
+
+/*
+ * Editor preview only. The render() editor branch emits these classes;
+ * none of this markup reaches the frontend. The card below the trigger
+ * reuses the card look via the base .wicket-modal-block > div rule.
+ */
+
+/* Undo the frontend dialog centering inherited from .wicket-modal-block. */
+.wicket-modal-block--editor {
+	width: 100%;
+	margin: 0;
+}
+
+.wicket-modal-block--editor .wicket-modal-block__editor-note {
+	margin: 0 0 0.5rem;
+	font-size: 0.75rem;
+	opacity: 0.7;
+}
+
+/* Width tokens mirrored from the dialog rules above: in the editor branch
+   the card is not the .wicket-modal-block element. */
+.wicket-modal-block--editor .wicket-modal-block__editor-card.max_wt_md {
+	max-width: 28rem;
+}
+
+.wicket-modal-block--editor .wicket-modal-block__editor-card.max_wt_3xl {
+	max-width: 48rem;
+}
+
+/* Dashed outline marks the editable modal body region. */
+.wicket-modal-block--editor > .wicket-modal-block__editor-card {
+	margin-top: 1rem;
+	outline: 1px dashed currentColor;
+	outline-offset: 3px;
+}
