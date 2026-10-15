@@ -88,9 +88,9 @@ function wicket_csv_resolve_headers(array $headers, array $column_definitions): 
  * Unknown keys return false (safe fallback to legacy behavior).
  *
  * Per-key filter "wicket_supports_{$feature}" allows runtime override and is the
- * test seam for QA (e.g. add_filter('wicket_supports_<feature>', '__return_false')).
+ * test override for QA (e.g. add_filter('wicket_supports_<feature>', '__return_false')).
  * Full usage patterns (force-off, force-on, conditional, removal, dot-tag pitfall):
- * atlas/conventions/capability-detection.md#using-the-filter-runtime-override--test-seam.
+ * atlas/conventions/capability-detection.md#using-the-filter-runtime--test-override.
  *
  * Key format: '<package>.<subsystem>.<capability>'
  *   package    = qa/ slug from wicket-wp-stack/qa/package-config.json
