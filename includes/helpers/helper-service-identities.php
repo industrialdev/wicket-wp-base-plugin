@@ -56,9 +56,13 @@ function wicket_service_identity_identifiable_types(): array
  * @param string      $identifiable_id   UUID of the identifiable.
  * @param string      $service_uuid      UUID of the service.
  * @param string|null $external_id       Explicit value, or null to auto-generate.
+ * @param array       $extra_attributes  Additional create-time attributes merged
+ *   after external_id (e.g. ['namespace' => 'CPSO'] for namespaced services).
+ *   Only create-time attributes belong here; immutable server-owned fields are
+ *   rejected by the MDP.
  * @return array|WP_Error The created entry ({id, attributes, relationships}), or WP_Error.
  */
-function wicket_create_service_identity(string $identifiable_type, string $identifiable_id, string $service_uuid, ?string $external_id = null): array|WP_Error
+function wicket_create_service_identity(string $identifiable_type, string $identifiable_id, string $service_uuid, ?string $external_id = null, array $extra_attributes = []): array|WP_Error
 {
     if ($identifiable_id === '' || $service_uuid === '') {
         return new WP_Error('wicket_service_identity_missing_args', __('identifiable_id and service_uuid are required.', 'wicket'));
@@ -78,6 +82,9 @@ function wicket_create_service_identity(string $identifiable_type, string $ident
     $attributes = [];
     if ($external_id !== null && $external_id !== '') {
         $attributes['external_id'] = $external_id;
+    }
+    if ($extra_attributes !== []) {
+        $attributes = array_merge($attributes, $extra_attributes);
     }
 
     // JSON:API requires `attributes` to be an OBJECT. PHP serializes an empty
@@ -377,14 +384,15 @@ function wicket_get_service_by_slug(string $slug): ?array
  * Kept for the import/batch call sites that predate the generic layer; new code
  * should call wicket_create_service_identity('people', ...) directly.
  *
- * @param string      $person_uuid  UUID of the person.
- * @param string      $service_uuid UUID of the service.
- * @param string|null $external_id  Explicit value, or null to auto-generate.
+ * @param string      $person_uuid       UUID of the person.
+ * @param string      $service_uuid      UUID of the service.
+ * @param string|null $external_id       Explicit value, or null to auto-generate.
+ * @param array       $extra_attributes  Additional create-time attributes (namespace, ...).
  * @return array|WP_Error The created entry, or WP_Error.
  */
-function wicket_mint_service_identity(string $person_uuid, string $service_uuid, ?string $external_id = null): array|WP_Error
+function wicket_mint_service_identity(string $person_uuid, string $service_uuid, ?string $external_id = null, array $extra_attributes = []): array|WP_Error
 {
-    return wicket_create_service_identity('people', $person_uuid, $service_uuid, $external_id);
+    return wicket_create_service_identity('people', $person_uuid, $service_uuid, $external_id, $extra_attributes);
 }
 
 /**
