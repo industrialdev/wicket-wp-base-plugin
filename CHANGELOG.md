@@ -5,6 +5,21 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.10.0] - 2026-10-15
+
+### Added
+- **settings:** deprecate base Membership Categories and defer to Wicket Memberships
+
+### Changed
+- **settings:** share the Wicket Memberships availability check and settings link
+
+### Fixed
+- **settings:** clarify when the deprecated Membership Categories still applies
+
+### Documentation
+- reword capability comment and fix the conventions anchor
+
+
 ## [2.9.1] - 2026-10-15
 
 ### Fixed
