@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.11.0] - 2026-10-16
+
+### Added
+- **woocommerce:** hide subscription info table in order emails by default (WWID-2726)
+
+
 ## [2.10.0] - 2026-10-15
 
 ### Added
