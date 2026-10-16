@@ -521,6 +521,12 @@ if (!class_exists('Wicket_Settings')) {
                 'description' => __('Allow refund emails to customers when refunds are triggered by an admin.', 'wicket'),
                 'default' => '0',
             ]);
+            $section->add_option('checkbox', [
+                'name' => 'wicket_admin_settings_woo_email_show_subscription_info',
+                'label' => __('Show subscription information in order emails', 'wicket'),
+                'description' => __('Adds the WooCommerce Subscriptions "Subscription information" table (start date, end date, recurring total) to order emails. Off by default because the dates can be out of date when renewal order emails are sent.', 'wicket'),
+                'default' => '0',
+            ]);
             $section->add_option('text', [
                 'name' => 'wicket_admin_settings_woo_draft_order_retention_days',
                 'label' => __('Draft order retention (days)', 'wicket'),

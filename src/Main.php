@@ -64,6 +64,13 @@ class Main
     public $woo_email_blocker;
 
     /**
+     * Instance of the WooCommerce Subscriptions email info toggle.
+     *
+     * @var WooCommerce\SubscriptionInfoEmail|null
+     */
+    public $woo_subscription_info_email;
+
+    /**
      * Instance of the MDP schema inspector.
      *
      * @var SchemaInspector|null
@@ -160,6 +167,10 @@ class Main
         // Initialize WooCommerce email blocker
         $this->woo_email_blocker = new WooCommerce\EmailBlocker();
         $this->woo_email_blocker->init();
+
+        // Hide WooCommerce Subscriptions info table from order emails unless opted in
+        $this->woo_subscription_info_email = new WooCommerce\SubscriptionInfoEmail();
+        $this->woo_subscription_info_email->init();
 
         // Initialize MDP schema inspector (hidden dev tool)
         $this->schema_inspector = new SchemaInspector($this);
