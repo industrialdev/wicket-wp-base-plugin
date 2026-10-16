@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.11.1] - 2026-10-16
+
+### Fixed
+- **helpers:** pass extra attributes on service identity create (WWID-2773)
+
+
 ## [2.11.0] - 2026-10-16
 
 ### Added
