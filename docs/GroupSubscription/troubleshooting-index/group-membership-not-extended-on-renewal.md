@@ -38,12 +38,22 @@ Open the subscription in WooCommerce and read the order notes. Look for a note t
 
 ---
 
-### 4. Check the WooCommerce logs for API errors
+### 4. Check for a "No group membership is linked" order note
+
+Look for an order note that says **"Group subscription end date not updated ... No group membership is linked to this subscription."**
+
+This applies to a subscription created before the plugin recorded each subscription's membership. The plugin links such a subscription to the person's membership in the group, with the same role, that starts on the subscription's start date. The note means no membership has that start date.
+
+**To recover:** in Wicket, set the start date of the correct group membership to the subscription's start date. The next renewal, date change, or cancellation links it and updates its end date.
+
+---
+
+### 5. Check the WooCommerce logs for API errors
 
 Go to **WooCommerce > Status > Logs** and look for a log source named **wicket-group-sync**. Filter to the date of the renewal and look for any error entries. API errors from Wicket (such as authentication failures or invalid group/role references) will appear here and will explain precisely why the update did not go through.
 
 ---
 
-### 5. Confirm the renewal payment actually completed
+### 6. Confirm the renewal payment actually completed
 
 The extension only fires after a renewal payment is successfully processed — not when a renewal is attempted but fails or is pending. Go to the subscription's renewal orders and confirm the most recent renewal order has a status of **Completed** or **Processing**. If the payment failed or is on-hold, the membership will not be extended until the payment succeeds.

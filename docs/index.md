@@ -33,6 +33,14 @@ Technical reference for hooks, filters, architecture, and source-level contracts
 
 ---
 
+## Bugfix Docs — Developers & Agents
+
+Repairs, each with its blast radius on working functionality.
+
+- [WWID-2741 — Group Subscriptions Change Only the Group Membership They Own](bugfix/WWID-2741-group-subscription-membership-targeting.md) — subscriptions store and patch their own MDP group membership row
+
+---
+
 ## Guides — End Users
 
 - [Configure reCAPTCHA on the Create Account Form](guides/configure-recaptcha.md) — get Google keys and enable bot protection on sign-up

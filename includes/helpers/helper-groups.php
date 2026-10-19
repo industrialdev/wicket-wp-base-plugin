@@ -364,6 +364,7 @@ function wicket_get_group($uuid)
  *              page (Optional) The page number to return. Default: 1.
  *              active (Optional) Boolean to filter by active status. Default: true.
  *              role (Optional) String to filter by group role slug (e.g., 'member', 'administrator') or comma-separated string for multiple roles (e.g., 'member,observer').
+ *              person_uuid (Optional) Only return the rows of this person. Default: null.
  *
  * @return array|WP_Error Array of group members on success, WP_Error on failure
  */
@@ -379,6 +380,7 @@ function wicket_get_group_members($group_uuid, $args = [])
         'page'     => 1,
         'active'   => true,
         'role'     => null, // Default to no specific role filter
+        'person_uuid' => null,
     ];
     $args = wp_parse_args($args, $defaults);
 
@@ -397,6 +399,10 @@ function wicket_get_group_members($group_uuid, $args = [])
         ],
         'include' => 'person',
     ];
+
+    if (!empty($args['person_uuid'])) {
+        $query_params['filter']['person_uuid_eq'] = $args['person_uuid'];
+    }
 
     // Handle role filtering
     if (!empty($args['role'])) { // Use parsed args
@@ -448,6 +454,39 @@ function wicket_get_group_members($group_uuid, $args = [])
     }
 
     return $response; // Return the full response
+}
+
+/**
+ * Get the group member rows from all pages.
+ *
+ * @param string $group_uuid The UUID of the group
+ * @param array $args (Optional) Same args as wicket_get_group_members(), except page.
+ *              Pass active => null for active and inactive rows.
+ *
+ * @return array|WP_Error List of group member rows on success, WP_Error on failure
+ */
+function wicket_get_group_members_all_pages($group_uuid, $args = [])
+{
+    $args = wp_parse_args($args, ['per_page' => 100]);
+    $rows = [];
+    $page = 1;
+
+    do {
+        $args['page'] = $page;
+        $response = wicket_get_group_members($group_uuid, $args);
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        if (!is_array($response) || !isset($response['data'])) {
+            return new WP_Error('wicket_api_error', 'Unexpected group members response.');
+        }
+
+        $rows = array_merge($rows, $response['data']);
+        $total_pages = (int) ($response['meta']['page']['total_pages'] ?? 1);
+        $page++;
+    } while ($page <= $total_pages);
+
+    return $rows;
 }
 
 /**
