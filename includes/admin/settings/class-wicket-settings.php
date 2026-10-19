@@ -28,6 +28,7 @@ if (!class_exists('Wicket_Settings')) {
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-membership-table.php';
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-api-check.php';
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-plugin-check.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-group-role-entity-check.php';
 
             // Add Settings page options
             add_action('admin_menu', [$this, 'register_wicket_settings']);
@@ -561,9 +562,10 @@ if (!class_exists('Wicket_Settings')) {
             $section->add_option('text', [
                 'name' => 'wicket_admin_settings_group_assignment_role_entity_object',
                 'label' => __('Group Role Entity Object Slug', 'wicket'),
-                'description' => __('Use <code>group-members</code> unless it isn\'t working and only if you understand why it should be different. This retrieves Group Role resource entity options from Wicket.', 'wicket'),
+                'description' => __('The code for the group role resource type in Wicket. Default: <code>group-members</code>.', 'wicket'),
                 'default' => 'group-members',
             ]);
+            $section->add_option('wicket-group-role-entity-check');
 
             // WP Cassify Integration Tab
             $section = $tab->add_section(__('WP Cassify', 'wicket'), ['as_link' => true]);

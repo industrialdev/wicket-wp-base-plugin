@@ -105,7 +105,9 @@ function wicket_base_product_tab_content()
             }
         }
         if (empty($group_role_entity_type)) {
-            echo "<p style='color:red;font-weight:bold'>Group role entity slug from <code>$resource_type_slug</code> set on page <a href='?page=wicket-settings&tab=integrations&section=woocommerce'>Wicket > Settings > Integrations > Woocommerce</a> not found. Please correct this value to use this feature.</p>";
+            $suggested_entity_code = wicket_get_group_role_entity_code();
+            $suggestion = $suggested_entity_code ? ' The group role entity code in Wicket is <code>' . esc_html($suggested_entity_code) . '</code>.' : '';
+            echo "<p style='color:red;font-weight:bold'>Group role entity slug from <code>" . esc_html($resource_type_slug) . "</code> set on page <a href='?page=wicket-settings&tab=integrations&section=woocommerce'>Wicket > Settings > Integrations > Woocommerce</a> not found. Please correct this value to use this feature.$suggestion</p>";
         } else {
             $group_roles = $client->get('resource_types?filter[entity_type_uuid_eq]=' . $group_role_entity_type . '&page%5Bnumber%5D=1&page%5Bsize%5D=9999');
             foreach ($group_roles['data'] as $grouprole) {

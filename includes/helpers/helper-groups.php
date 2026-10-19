@@ -490,6 +490,39 @@ function wicket_get_group_members_all_pages($group_uuid, $args = [])
 }
 
 /**
+ * Get the entity type code of the group member roles in this Wicket environment, for example GroupMember.
+ *
+ * Looks the code up instead of guessing it: each environment names its roles and entity types differently.
+ * Group member roles are the resource types of the group_members resource. Their entity type has the code.
+ *
+ * @return string The entity type code, or an empty string if it cannot be found.
+ */
+function wicket_get_group_role_entity_code()
+{
+    $client = wicket_api_client();
+    if (!$client) {
+        return '';
+    }
+
+    try {
+        $resource_types = $client->get('resource_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999');
+        foreach ($resource_types['data'] ?? [] as $resource_type) {
+            $entity_type_uuid = $resource_type['relationships']['entity_type']['data']['id'] ?? '';
+            if (($resource_type['attributes']['resource_type'] ?? '') !== 'group_members' || $entity_type_uuid === '') {
+                continue;
+            }
+            $entity_type = $client->get("entity_types/{$entity_type_uuid}");
+
+            return (string) ($entity_type['data']['attributes']['code'] ?? '');
+        }
+    } catch (Exception $e) {
+        return '';
+    }
+
+    return '';
+}
+
+/**
  * Search for group members.
  *
  * @param string $group_uuid The UUID of the group to search in
