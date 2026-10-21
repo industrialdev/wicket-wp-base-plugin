@@ -15,11 +15,11 @@ defined('ABSPATH') || exit;
 function wicket_current_person_uuid()
 {
     // Get the SDK client from the wicket module.
-    if (function_exists('wicket_api_client')) {
-        $person_id = wp_get_current_user()->user_login;
-
-        return $person_id;
+    if (function_exists('wicket_api_client') && wicket_person_has_uuid()) {
+        return wp_get_current_user()->user_login;
     }
+
+    return null;
 }
 
 /**
@@ -37,8 +37,13 @@ function wicket_current_person()
         $person_id = wicket_current_person_uuid();
 
         if ($person_id) {
-            $client = wicket_api_client_current_user();
-            $person = $client->people->fetch($person_id);
+            try {
+                $client = wicket_api_client_current_user();
+                $person = $client->people->fetch($person_id);
+            } catch ( \GuzzleHttp\Exception\GuzzleException $e ) {
+                // MDP 4xx/5xx (stale uuid, deleted person, auth failure): degrade to no person.
+                $person = null;
+            }
 
             return $person;
         }
