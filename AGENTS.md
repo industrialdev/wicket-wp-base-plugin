@@ -9,7 +9,7 @@ This is a WordPress plugin rooted at `wicket.php`. It is the core plugin every o
 - `tests/`: Pest/PHPUnit test bootstrap and unit tests (`tests/unit/**/*Test.php`).
 - `docs/`: public end-user guides only.
 
-For the package map (stable surfaces, helpers, integrations, settings tabs, MDP sync architecture, touchpoints): `@see atlas://packages/wicket-wp-base-plugin.md`. Follow PHP doc conventions per `@see atlas://conventions/php-doc-comment-style.md`; code doc links (`@see atlas://...`) in source point at the governing Atlas docs.
+For the package map (stable surfaces, helpers, integrations, settings tabs, MDP sync architecture, touchpoints): `@see atlas://packages/wicket-wp-base-plugin.md`. Follow PHP doc conventions per `@see atlas://conventions/php-doc-comment-style.md`; code doc links (`@see atlas://...`) in source point at the governing Atlas docs. Atlas is the single knowledge base for all Wicket documentation; the repo docs/ folder carries only public end-consumer guides.
 
 ## Build, Test, and Development Commands
 
