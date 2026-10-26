@@ -211,6 +211,10 @@ apply_filters('wicket_api_url', $url);
 
 GPL v2 or later
 
+## Documentation
+
+End-user guides live in the [docs index](docs/INDEX.md): reCAPTCHA setup for the create account form, and connecting a self-hosted WordPress site to Wicket SSO.
+
 ## Credits
 
 Developed by [Wicket](https://wicket.io)

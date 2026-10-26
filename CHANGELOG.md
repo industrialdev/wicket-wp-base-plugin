@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.11.2] - 2026-10-23
+
+### Fixed
+- **person:** stop fataling when the MDP person is missing
+
+
 ## [2.11.1] - 2026-10-16
 
 ### Fixed
