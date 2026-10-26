@@ -6,6 +6,22 @@
 add_action('woocommerce_order_status_changed', 'woocommerce_order_touchpoint', 9999);
 add_action('woocommerce_new_order', 'woocommerce_order_touchpoint', 9999, 2);
 
+/**
+ * Writes a touchpoint to the customer's MDP person when an order is created or changes status.
+ *
+ * The details list each product in its own block, built by wicket_order_touchpoint_products().
+ * Sites can reshape the touchpoint through the alter_woocommerce_order_touchpoint filter,
+ * which receives the params and the order. Subscriptions and orders with no MDP person are
+ * skipped.
+ *
+ * @param int           $order_id The order ID.
+ * @param WC_Order|null $order    The order, passed by woocommerce_new_order. Loaded from $order_id when absent.
+ *
+ * @return void
+ *
+ * @see wicket_order_touchpoint_products()
+ * @see atlas://packages/wicket-wp-base-plugin/touchpoints-subsystem.md
+ */
 function woocommerce_order_touchpoint($order_id, $order = null)
 {
 
@@ -67,7 +83,6 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     $order_total = $order->get_total();
     $currency_code = $order->get_currency();
     $currency_symbol = get_woocommerce_currency_symbol($currency_code);
-    $coupons = implode(', ', $order->get_used_coupons());
 
     // ---------------------------------------------------------------------------------------
     // Build action of touchpoint
@@ -87,48 +102,14 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     // ---------------------------------------------------------------------------------------
     // Build details of touchpoint
     // ---------------------------------------------------------------------------------------
-    $line_item_meta = [];
-    $products_list = [];
-    foreach ($order->get_items() as $item_id => $line_item) {
-        $product = $line_item->get_product();
+    $products = wicket_order_touchpoint_products($order, $currency_symbol);
 
-        if (!$product) {
-            continue;
-        }
-
-        $product_id = $product->is_type('variation') ? $product->get_parent_id() : $product->get_id();
-        $parent_product = wc_get_product($product_id);
-        $product_name = $product->get_name();
-        $product_category_ids = $parent_product->get_category_ids();
-        $product_category_names = [];
-
-        // we want to load the parent product if this is a variation so we can get the product categories
-        foreach ($product_category_ids as $cat_id) {
-            $cat_term = get_term_by('id', (int) $cat_id, 'product_cat');
-            if ($cat_term) {
-                $product_category_names[] = $cat_term->name;
-            }
-        }
-
-        $item_quantity = $line_item->get_quantity();
-        $item_total = $line_item->get_total();
-        $line_item_meta[] = [
-            'product_id'       => $product_id,
-            'product_name'     => $product_name,
-            'product_category' => $product_category_names,
-            'quantity'         => $item_quantity,
-            'product_amount'   => number_format($item_total, 2),
-            'coupon_code'      => $coupons,
-        ];
-        $products_list[] = $product_name;
-    }
-
-    $products_imploded = implode('<br>', $products_list);
-    $products_link = "[$products_imploded]($order_edit_url)"; // needs to be markdown for the MDP
-    $details = "Order ID: [$order_id]($order_edit_url) <br>";
-    $details .= "Order Total: $currency_symbol $order_total $currency_code <br>";
+    $details = "Order ID: [$order_id]($order_edit_url) <br>"; // needs to be markdown for the MDP
+    $details .= "Order Total: $currency_symbol$order_total $currency_code <br>";
     $details .= 'Org Name: ' . $org_name . '<br>';
-    $details .= "Products: $products_link";
+    $details .= '<br>';
+    $details .= 'Product(s): <br>';
+    $details .= $products['details'];
 
     // ---------------------------------------------------------------------------------------
     // Build data of touchpoint
@@ -138,7 +119,7 @@ function woocommerce_order_touchpoint($order_id, $order = null)
         'order_total'           => $order_total,
         'organization_id'       => $order_org_meta['uuid'] ?? '',
         'organization_name'     => $order_org_meta['name'] ?? '',
-        'products'              => $line_item_meta,
+        'products'              => $products['meta'],
         'order_status'          => ucwords($order_status),
         'order_edit_link'       => $order_edit_url,
         'order_currency'        => $currency_code,
@@ -183,6 +164,80 @@ function woocommerce_order_touchpoint($order_id, $order = null)
     $values_arr = ['order' => $order];
     $params = apply_filters('alter_woocommerce_order_touchpoint', $params, $values_arr);
     write_touchpoint($params, get_create_touchpoint_service_id('WooCommerce', 'WooCommerce is an open-source e-commerce plugin for WordPress.', 'woo_commerce'));
+}
+
+/**
+ * Builds the product part of an order touchpoint: a data row and a details block per line item.
+ *
+ * Each block links the product's edit screen rather than its page, since the frontend can
+ * redirect away from some products, such as memberships. The block then lists the product's
+ * categories, its line amount and its short description, trimmed to 25 words. The
+ * Description line is left out when the product has no short description.
+ *
+ * Line items whose product no longer exists are skipped.
+ *
+ * @param WC_Order $order           The order whose line items are listed.
+ * @param string   $currency_symbol Symbol shown before each line amount, as returned by get_woocommerce_currency_symbol().
+ *
+ * @return array{meta: array<int, array<string, mixed>>, details: string} The rows for the touchpoint data's products key, and the markdown blocks for its details.
+ *
+ * @see atlas://packages/wicket-wp-base-plugin/touchpoints-subsystem.md
+ */
+function wicket_order_touchpoint_products($order, $currency_symbol): array
+{
+    $coupons = implode(', ', $order->get_used_coupons());
+    $line_item_meta = [];
+    $products_list = '';
+
+    foreach ($order->get_items() as $item_id => $line_item) {
+        $product = $line_item->get_product();
+
+        if (!$product) {
+            continue;
+        }
+
+        // A variation has no categories or short description of its own, so both come from its parent.
+        $product_id = $product->is_type('variation') ? $product->get_parent_id() : $product->get_id();
+        $parent_product = wc_get_product($product_id);
+        $product_name = $product->get_name();
+        $product_desc = wp_trim_words($parent_product->get_short_description(), 25);
+        $product_edit_url = admin_url("post.php?post=$product_id&action=edit");
+        $product_category_ids = $parent_product->get_category_ids();
+        $product_category_names = [];
+
+        foreach ($product_category_ids as $cat_id) {
+            $cat_term = get_term_by('id', (int) $cat_id, 'product_cat');
+            if ($cat_term) {
+                $product_category_names[] = $cat_term->name;
+            }
+        }
+
+        $item_quantity = $line_item->get_quantity();
+        $item_total = $line_item->get_total();
+        $product_amount = number_format($item_total, 2);
+        $line_item_meta[] = [
+            'product_id'       => $product_id,
+            'product_name'     => $product_name,
+            'product_desc'     => $product_desc,
+            'product_category' => $product_category_names,
+            'quantity'         => $item_quantity,
+            'product_amount'   => $product_amount,
+            'coupon_code'      => $coupons,
+        ];
+
+        $products_list .= " &#8226; [$product_name]($product_edit_url)<br>";
+        $products_list .= ' &nbsp;&nbsp; - Product Category: ' . implode(', ', $product_category_names) . '<br>';
+        $products_list .= " &nbsp;&nbsp; - Product Amount: $currency_symbol$product_amount<br>";
+
+        if ($product_desc !== '') {
+            $products_list .= " &nbsp;&nbsp; - Description: $product_desc<br>";
+        }
+    }
+
+    return [
+        'meta'    => $line_item_meta,
+        'details' => $products_list,
+    ];
 }
 
 // ---------------------------------------------------------------------------------------
