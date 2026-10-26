@@ -149,9 +149,23 @@ function sync_wicket_data_on_membership_created($membership_post_data)
 }
 add_action('wicket_membership_created_mdp', 'sync_wicket_data_on_membership_created', 10, 1);
 
-/**------------------------------------------------------------------
- * Sync data on a specific user at any given point
- ------------------------------------------------------------------*/
+/**
+ * Sync one person's WordPress roles and profile from the MDP at any point.
+ *
+ * Removes all roles of the WordPress user, then adds the person's security roles,
+ * active membership tiers, and allowed tags as roles, per the role sync settings.
+ * Every lookup uses $person_uuid, never the current user, so it is safe in cron
+ * and Action Scheduler.
+ *
+ * @param string $person_uuid MDP person UUID, which is also the WordPress user_login.
+ *
+ * @return void
+ *
+ * @global WP_Roles $wp_roles
+ *
+ * @see wicket_get_person_active_memberships()
+ * @see atlas://plans/feature-automatewoo-synced-role-rule.md
+ */
 function sync_wicket_data_for_person($person_uuid)
 {
     if (!$person_uuid) {
@@ -205,8 +219,9 @@ function sync_wicket_data_for_person($person_uuid)
 
     // Sync membership tiers as roles in WP if the option is set
     if (wicket_get_option('wicket_admin_settings_wpcassify_sync_memberships_as_roles') === '1') {
-        // get current person active memberships ids, find the active memberships slug from ids, assign user with roles from active membership tiers
-        $memberships = wicket_get_current_person_active_memberships();
+        // Look up by $person_uuid, not the current user: cron and Action Scheduler
+        // callers have no current user, and the roles were already removed above.
+        $memberships = wicket_get_person_active_memberships($person_uuid);
         $active_memberships_ids = [];
         if (isset($memberships['data'])) {
             foreach ($memberships['data'] as $key => $membership) {
@@ -264,6 +279,26 @@ function sync_wicket_data_for_person($person_uuid)
     wp_update_user($user);
 
 }
+
+/**
+ * Register the Wicket AutomateWoo rules.
+ *
+ * Registered here because this file loads only when role sync is on, and the
+ * synced role rule needs the role sync.
+ *
+ * @param array<string, mixed> $includes AutomateWoo rule classes keyed by rule key.
+ *
+ * @return array<string, mixed> The rules with the Wicket rules added.
+ *
+ * @see \WicketWP\AutomateWoo\Rules\CustomerSyncedRole
+ */
+function wicket_register_automatewoo_rules($includes)
+{
+    $includes[\WicketWP\AutomateWoo\Rules\CustomerSyncedRole::KEY] = \WicketWP\AutomateWoo\Rules\CustomerSyncedRole::class;
+
+    return $includes;
+}
+add_filter('automatewoo/rules/includes', 'wicket_register_automatewoo_rules');
 
 /**------------------------------------------------------------------
  * Additional hooks to ensure display_name is synced on profile update and user registration
