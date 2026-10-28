@@ -41,11 +41,12 @@ $wicket_settings = get_wicket_settings();
 // JSON_HEX_TAG/AMP keep editor text from closing or re-opening the inline script.
 $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
 
+// Cast to string: the previous emit always printed these as quoted strings ('' when unset).
 $trusted_options = [
-    'lang'        => wicket_get_current_language(),
-    'apiRoot'     => $wicket_settings['api_endpoint'],
-    'accessToken' => wicket_access_token_for_person(wicket_current_person_uuid()),
-    'personId'    => $person_id,
+    'lang'        => (string) wicket_get_current_language(),
+    'apiRoot'     => (string) $wicket_settings['api_endpoint'],
+    'accessToken' => (string) wicket_access_token_for_person(wicket_current_person_uuid()),
+    'personId'    => (string) $person_id,
 ];
 
 $widget_options_json = wp_json_encode(
