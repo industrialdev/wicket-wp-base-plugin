@@ -11,8 +11,8 @@ add_action('woocommerce_new_order', 'woocommerce_order_touchpoint', 9999, 2);
  *
  * The details list each product in its own block, built by wicket_order_touchpoint_products().
  * Sites can reshape the touchpoint through the alter_woocommerce_order_touchpoint filter,
- * which receives the params and the order. Subscriptions and orders with no MDP person are
- * skipped.
+ * which receives the params and a context array with the order under the 'order' key.
+ * Subscriptions and orders with no MDP person are skipped.
  *
  * @param int           $order_id The order ID.
  * @param WC_Order|null $order    The order, passed by woocommerce_new_order. Loaded from $order_id when absent.
