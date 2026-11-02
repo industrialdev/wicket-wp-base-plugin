@@ -174,7 +174,8 @@ function woocommerce_order_touchpoint($order_id, $order = null)
  * categories, its line amount and its short description, trimmed to 25 words. The
  * Description line is left out when the product has no short description.
  *
- * Line items whose product no longer exists are skipped.
+ * Line items whose product no longer exists are skipped. A variation whose parent can't be
+ * loaded keeps its block, but with no categories or description.
  *
  * @param WC_Order $order           The order whose line items are listed.
  * @param string   $currency_symbol Symbol shown before each line amount, as returned by get_woocommerce_currency_symbol().
@@ -197,8 +198,10 @@ function wicket_order_touchpoint_products($order, $currency_symbol): array
         }
 
         // A variation has no categories or short description of its own, so both come from its parent.
+        // The parent can fail to load while the variation still resolves, so fall back to the
+        // product itself rather than fatal inside the order hook.
         $product_id = $product->is_type('variation') ? $product->get_parent_id() : $product->get_id();
-        $parent_product = wc_get_product($product_id);
+        $parent_product = wc_get_product($product_id) ?: $product;
         $product_name = $product->get_name();
         $product_desc = wp_trim_words($parent_product->get_short_description(), 25);
         $product_edit_url = admin_url("post.php?post=$product_id&action=edit");
