@@ -5,6 +5,36 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.13.0] - 2026-11-03
+
+### Added
+- **components:** accept widget config on widget-prefs-person
+
+### Fixed
+- **components:** emit widget-prefs-person connection options as strings
+
+
+## [2.12.0] - 2026-11-03
+
+### Added
+- **woocommerce:** per-product blocks and product_desc in order touchpoints (WWID-2728)
+
+### Fixed
+- **woocommerce:** fall back to the product when a variation's parent can't load (WWID-2728)
+
+### Documentation
+- adopt the stack PR template format #norelease
+- state the atlas knowledge-base rule in AGENTS.md
+- streamline AGENTS.md and link atlas conventions
+- flatten end-user docs and link from README
+
+### Maintenance
+- **docs:** move engineering docs to atlas (A0012)
+
+### Other
+- Clarify context array in order touchpoint documentation
+
+
 ## [2.11.2] - 2026-10-23
 
 ### Fixed
