@@ -196,7 +196,10 @@ add_action('woocommerce_subscription_date_updated', function ($sub, $date_type, 
     $subscription_id = $sub->get_id();
     $group_assigned_next_payment = get_post_meta($subscription_id, '_group_assigned_next_payment', true);
 
-    if (empty($group_assigned_next_payment) || $group_assigned_next_payment == $sub->get_time('next_payment')) {
+    // Only a paid (active) subscription may activate groups. Checkout sets the dates of a
+    // pending subscription before payment, so without this check an unpaid subscription
+    // created or linked group rows.
+    if ($sub->has_status('active') && (empty($group_assigned_next_payment) || $group_assigned_next_payment == $sub->get_time('next_payment'))) {
         //$sub->add_order_note("Group subscription creation incomplete or skipped a date change on creation. You may try reactivating subscription if group membership failed.");
         wicket_group_membership_subscription_status_active($sub);
     }
@@ -229,6 +232,17 @@ add_action('woocommerce_subscription_status_cancelled', function ($sub) {
  */
 add_action('woocommerce_subscription_status_active', 'wicket_group_membership_subscription_status_active', 1, 1);
 
+/**
+ * Create or link the group membership row of each group product on an active subscription.
+ *
+ * Runs on the change to active, and from the next-payment date hook for an active subscription.
+ * Each group it creates or links is recorded in `_group_assigned_uuid`. The end-date
+ * handlers change only those groups.
+ *
+ * @param WC_Subscription $sub The subscription that became active.
+ *
+ * @return WC_Subscription|void The subscription when the integration is off or already running.
+ */
 function wicket_group_membership_subscription_status_active($sub)
 {
     static $processing_subscriptions = [];
@@ -312,6 +326,8 @@ function wicket_group_membership_subscription_status_active($sub)
 
             // A subscription from before the fix: link the row with its start date.
             if (!empty(wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, $group_role_slug))) {
+                // The link happens during activation, so the end-date handlers may change this group.
+                wicket_group_subscription_mark_assigned($subscription_id, $group_id, $sub_next_payment_date);
                 $sub->add_order_note("Group subscription linked to the existing group membership for $group_name.");
                 continue;
             }
@@ -333,14 +349,34 @@ function wicket_group_membership_subscription_status_active($sub)
                     'group_role_slug' => $group_role_slug,
                     'group_membership_uuid' => $membership_uuid,
                 ], Log::LOG_LEVEL_AUDIT);
-                add_post_meta($subscription_id, '_group_assigned_uuid', $group_id);
-                $group_assigned_next_payment = add_post_meta($subscription_id, '_group_assigned_next_payment', $sub_next_payment_date);
+                wicket_group_subscription_mark_assigned($subscription_id, $group_id, $sub_next_payment_date);
                 $sub->add_order_note("Group subscription added or exists for $group_name.");
             }
         }
     }
 
     unset($processing_subscriptions[$subscription_id]);
+}
+
+/**
+ * Record that activation created or linked the row of a group on the subscription.
+ *
+ * `_group_assigned_uuid` is the list of groups the end-date handlers may change, so a
+ * subscription that never activated changes no row. Each group is stored once, and the
+ * activation next payment keeps one value, because activation runs again on every reactivation.
+ *
+ * @param int    $subscription_id   The subscription ID.
+ * @param string $group_id          The MDP group UUID.
+ * @param int    $next_payment_time Unix timestamp of the next payment date at activation.
+ *
+ * @return void
+ */
+function wicket_group_subscription_mark_assigned($subscription_id, $group_id, $next_payment_time)
+{
+    if (!in_array($group_id, (array) get_post_meta($subscription_id, '_group_assigned_uuid', false), true)) {
+        add_post_meta($subscription_id, '_group_assigned_uuid', $group_id);
+    }
+    update_post_meta($subscription_id, '_group_assigned_next_payment', $next_payment_time);
 }
 
 /**
@@ -424,10 +460,16 @@ function wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, 
 
 /**
  * Set the end date of each group membership row that the subscription owns.
- * @param WC_Subscription $sub
- * @param int $end_time Unix timestamp of the new end date
- * @param string $event Event name for the order note
- * @return array The API responses
+ *
+ * Only groups that activation created or linked (`_group_assigned_uuid`) change. A subscription
+ * that never activated, for example a pending one that is cancelled, changes no row: its start
+ * date can match the row of another, paid subscription of the same person.
+ *
+ * @param WC_Subscription $sub      The subscription whose dates changed.
+ * @param int             $end_time Unix timestamp of the new end date.
+ * @param string          $event    Event name for the order note.
+ *
+ * @return array The API responses of the PATCH requests sent.
  */
 function wicket_group_subscription_update_end_dates($sub, $end_time, $event)
 {
@@ -439,8 +481,19 @@ function wicket_group_subscription_update_end_dates($sub, $end_time, $event)
 
     $person_id = get_user_by('id', $sub->get_user_id())->user_login;
     $args['end_date'] = (new DateTime('@' . $end_time))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
+    $assigned_group_ids = (array) get_post_meta($sub->get_id(), '_group_assigned_uuid', false);
 
     foreach ($group_ids as $group_role_slug => $group_id) {
+        if (!in_array($group_id, $assigned_group_ids, true)) {
+            wicket_wc_log_group_sync([
+                'END_DATE_SKIPPED_NOT_ACTIVATED',
+                'subscription_id' => $sub->get_id(),
+                'group_id' => $group_id,
+                'event' => $event,
+            ], Log::LOG_LEVEL_AUDIT);
+            continue;
+        }
+
         //this is necessary to handle case where same role on different groups in same subscription
         $group_role_slug = explode('|', $group_role_slug)[0];
         $group_info = wicket_wicket_get_group_info($group_id);
