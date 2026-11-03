@@ -392,12 +392,17 @@ function wicket_group_subscription_membership_meta_key($group_id, $group_role_sl
 
 /**
  * Get the UUID of the group membership row that the subscription owns.
+ *
  * A subscription from before the stored UUID links the row with the subscription
  * start date (first match), and stores its UUID.
- * @param WC_Subscription $sub
- * @param string $person_id
- * @param string $group_id
- * @param string $group_role_slug
+ *
+ * @param WC_Subscription $sub             The subscription.
+ * @param string          $person_id       The MDP person UUID of the subscriber.
+ * @param string          $group_id        The MDP group UUID.
+ * @param string          $group_role_slug The role slug of the group product.
+ *
+ * @see wicket_group_subscription_start_date_row()
+ *
  * @return string The row UUID, or an empty string if no row is linked.
  */
 function wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, $group_role_slug)
@@ -425,25 +430,20 @@ function wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, 
         return '';
     }
 
-    // Activation sends the start date in the site timezone. MDP keeps the date part as sent.
-    $start_date = (new DateTime('@' . $sub->get_time('start_date')))->setTimezone(wp_timezone())->format('Y-m-d');
-    foreach ($rows as $row) {
-        if (
-            ($row['attributes']['type'] ?? '') == $group_role_slug
-            && substr((string) ($row['attributes']['start_date'] ?? ''), 0, 10) === $start_date
-        ) {
-            update_post_meta($subscription_id, $meta_key, $row['attributes']['uuid']);
-            wicket_wc_log_group_sync([
-                'LINKED_BY_START_DATE',
-                'subscription_id' => $subscription_id,
-                'group_id' => $group_id,
-                'group_role_slug' => $group_role_slug,
-                'start_date' => $start_date,
-                'group_membership_uuid' => $row['attributes']['uuid'],
-            ], Log::LOG_LEVEL_AUDIT);
+    $start_date = wicket_group_subscription_start_date($sub);
+    $row = wicket_group_subscription_start_date_row($rows, $group_role_slug, $start_date);
+    if ($row !== null) {
+        update_post_meta($subscription_id, $meta_key, $row['attributes']['uuid']);
+        wicket_wc_log_group_sync([
+            'LINKED_BY_START_DATE',
+            'subscription_id' => $subscription_id,
+            'group_id' => $group_id,
+            'group_role_slug' => $group_role_slug,
+            'start_date' => $start_date,
+            'group_membership_uuid' => $row['attributes']['uuid'],
+        ], Log::LOG_LEVEL_AUDIT);
 
-            return $row['attributes']['uuid'];
-        }
+        return $row['attributes']['uuid'];
     }
 
     wicket_wc_log_group_sync([
@@ -456,6 +456,77 @@ function wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, 
     ], Log::LOG_LEVEL_AUDIT);
 
     return '';
+}
+
+/**
+ * The subscription start date as activation sends it to the MDP.
+ *
+ * Activation sends the start date in the site timezone, and the MDP keeps the date part as
+ * sent. Comparisons with a row `start_date` must use the same day.
+ *
+ * @param WC_Subscription $sub The subscription.
+ *
+ * @return string The start date as `Y-m-d` in the site timezone.
+ */
+function wicket_group_subscription_start_date($sub)
+{
+    return (new DateTime('@' . $sub->get_time('start_date')))->setTimezone(wp_timezone())->format('Y-m-d');
+}
+
+/**
+ * Find the row that a subscription created: the first row with the role and its start date.
+ *
+ * No code changes `start_date` after the create, so the start date identifies the row.
+ *
+ * @param array  $rows            Group member rows from the MDP, active and inactive.
+ * @param string $group_role_slug The role slug of the group product.
+ * @param string $start_date      The subscription start date as `Y-m-d` in the site timezone.
+ *
+ * @return array|null The row, or null when no row has the start date.
+ */
+function wicket_group_subscription_start_date_row(array $rows, $group_role_slug, $start_date)
+{
+    foreach ($rows as $row) {
+        if (
+            ($row['attributes']['type'] ?? '') == $group_role_slug
+            && substr((string) ($row['attributes']['start_date'] ?? ''), 0, 10) === $start_date
+        ) {
+            return $row;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Find the active row with the role and the latest start date.
+ *
+ * The MDP returns rows oldest first. On imported history, the first active row can be an old
+ * row that an earlier defect made active again. The current row is the one that started last.
+ * With one row for each person, group, and role, the result is that row.
+ *
+ * @param array  $rows            Group member rows from the MDP.
+ * @param string $group_role_slug The role slug of the group product.
+ *
+ * @return array|null The row, or null when the person has no active row with the role.
+ */
+function wicket_group_subscription_latest_active_row(array $rows, $group_role_slug)
+{
+    $latest = null;
+    foreach ($rows as $row) {
+        $attributes = $row['attributes'] ?? [];
+        // Rows from an active-only lookup may omit the flag; treat a missing flag as active.
+        if (($attributes['type'] ?? '') != $group_role_slug || ($attributes['active'] ?? true) === false) {
+            continue;
+        }
+        $start = substr((string) ($attributes['start_date'] ?? ''), 0, 10);
+        // Y-m-d strings sort as dates. A tie keeps the earlier row in API order.
+        if ($latest === null || strcmp($start, substr((string) ($latest['attributes']['start_date'] ?? ''), 0, 10)) > 0) {
+            $latest = $row;
+        }
+    }
+
+    return $latest;
 }
 
 /**
@@ -586,14 +657,21 @@ function wicket_get_subscription_group_ids($sub)
 /**
  * Add a member to a group with the specified role.
  *
- * @param int|string $person_id ID of the person to add
- * @param int|string $group_id ID of the group to add the member to
- * @param string $group_role_slug The type of group role to assign to the person
- * @param string $start_date [optional] The date to start the group membership
- * @param string $end_date [optional] The date to end the group membership
- * @param string $skip_if_exists [optional] Don't create duplicates
+ * With `$skip_if_exists`, the person's active rows in the group with the role are read on
+ * all pages first. If one exists, the active row with the latest start date is returned and
+ * nothing is created. If the lookup fails, nothing is created.
  *
- * @return object The response object from the Wicket API
+ * @param int|string $person_id       ID of the person to add.
+ * @param int|string $group_id        ID of the group to add the member to.
+ * @param string     $group_role_slug The type of group role to assign to the person.
+ * @param string     $start_date      [optional] The date to start the group membership.
+ * @param string     $end_date        [optional] The date to end the group membership.
+ * @param bool       $skip_if_exists  [optional] Return an existing active row instead of creating one.
+ *
+ * @see wicket_group_subscription_latest_active_row()
+ *
+ * @return array|WP_Error The created row response, the existing row, or WP_Error
+ *                        (`wicket_dup_check_failed` when the duplicate lookup fails).
  */
 function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
 {
@@ -617,19 +695,20 @@ function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug,
             return new WP_Error('wicket_dup_check_failed', 'Could not check for an existing group membership. ' . $existing_rows->get_error_message());
         }
 
-        foreach ($existing_rows as $existing_row) {
-            if (($existing_row['attributes']['type'] ?? '') == $group_role_slug) {
-                wicket_wc_log_group_sync([
-                    'DUPLICATE_FOUND',
-                    'person_id' => $person_id,
-                    'group_id' => $group_id,
-                    'group_role_slug' => $group_role_slug,
-                    'existing_membership_uuid' => $existing_row['attributes']['uuid'] ?? '',
-                ], Log::LOG_LEVEL_AUDIT);
+        // With more than one active row, the latest start date is the current membership, not
+        // a revived old row that the MDP lists first.
+        $existing_row = wicket_group_subscription_latest_active_row($existing_rows, $group_role_slug);
+        if ($existing_row !== null) {
+            wicket_wc_log_group_sync([
+                'DUPLICATE_FOUND',
+                'person_id' => $person_id,
+                'group_id' => $group_id,
+                'group_role_slug' => $group_role_slug,
+                'existing_membership_uuid' => $existing_row['attributes']['uuid'] ?? '',
+            ], Log::LOG_LEVEL_AUDIT);
 
-                // Matching group found - returning that group connection instead of adding them to the group again
-                return $existing_row;
-            }
+            // Matching group found - returning that group connection instead of adding them to the group again
+            return $existing_row;
         }
 
         wicket_wc_log_group_sync([
@@ -796,4 +875,10 @@ function wicket_wc_log_group_sync($data, $level = 'error')
         $data = wc_print_r($data, true);
     }
     Wicket()->log()->log($level, $data, ['source' => 'wicket-group-sync']);
+}
+
+// Relink command for use after an MDP repair. Registered only under WP-CLI, never on a web request.
+// @see atlas://plans/fix-group-subscription-membership-targeting.md (change 7)
+if (defined('WP_CLI') && WP_CLI) {
+    WP_CLI::add_command('wicket group-subscriptions', WicketWP\Cli\GroupSubscriptionRelinkCommand::class);
 }
