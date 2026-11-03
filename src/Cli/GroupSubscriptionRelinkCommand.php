@@ -23,8 +23,16 @@ defined('ABSPATH') || exit;
  * The command never creates rows, never changes a start date, and never changes a row other
  * than the target row of a subscription.
  *
+ * Shared rows: two active subscriptions of one person can link the same row. On MSA, a FIG
+ * is renewed with a new order while the current subscription is still active, and the duplicate
+ * check links the new subscription to the existing active row. MSA's AutomateWoo workflow 3122
+ * then rewrites the subscription dates after checkout (audit appendix, "MSA environment"), so
+ * each subscription carries its own end date. Setting the row once per subscription let the last
+ * one processed win, and could shorten the newer, paid period. The command therefore gives a
+ * shared row the latest end date of all subscriptions that link it, in one PATCH.
+ *
  * @see atlas://plans/fix-group-subscription-membership-targeting.md (change 7)
- * @see atlas://audits/2026-10-group-subscription-membership-damage.md (W5)
+ * @see atlas://audits/2026-10-group-subscription-membership-damage.md (W5, MSA environment)
  *
  * @since 2.14.0
  */
@@ -42,7 +50,7 @@ class GroupSubscriptionRelinkCommand
      *
      * @var list<string>
      */
-    private const FIELDS = ['subscription', 'group', 'role', 'old_uuid', 'new_uuid', 'old_end', 'new_end', 'action'];
+    private const FIELDS = ['subscription', 'group', 'role', 'old_uuid', 'new_uuid', 'shared_with', 'sub_end', 'old_end', 'new_end', 'action'];
 
     /**
      * Point each group subscription at its row, and set that row's end date.
@@ -50,11 +58,12 @@ class GroupSubscriptionRelinkCommand
      * Reads active, on-hold, and pending-cancel subscriptions that activated a group
      * (`_group_assigned_uuid`). For each group and role, the target row is the row with the
      * subscription start date. If no row agrees, the target is the active row with the latest
-     * start date. The command stores the target UUID and sets the target end date from the
-     * subscription: the next payment date, or the end date.
+     * start date. The command stores the target UUID on each subscription. Each target row gets
+     * one end date: the latest of its subscriptions' next payment dates (or end dates).
      *
      * Actions in the report: none, relink, end_date, relink+end_date, no_target (nothing
-     * changes), lookup_failed, failed (the MDP PATCH failed).
+     * changes), lookup_failed, failed (the MDP PATCH failed). `shared_with` lists the other
+     * subscriptions that link the same row. On a shared row, only the first line PATCHes.
      *
      * ## OPTIONS
      *
@@ -62,7 +71,8 @@ class GroupSubscriptionRelinkCommand
      * : Write the changes. Without it, the command is a dry run and writes nothing.
      *
      * [--subscription=<id>]
-     * : Relink one subscription ID instead of all group subscriptions.
+     * : Report and write only this subscription ID. A shared row still gets the latest end date
+     *   of every subscription that links it.
      *
      * [--format=<format>]
      * : Output format for the report.
@@ -97,12 +107,24 @@ class GroupSubscriptionRelinkCommand
 
         $apply = (bool) Utils\get_flag_value($assoc_args, 'apply', false);
         $format = (string) Utils\get_flag_value($assoc_args, 'format', 'table');
-        $report = [];
+        $only = (string) Utils\get_flag_value($assoc_args, 'subscription', '');
 
-        foreach ($this->subscriptions($assoc_args) as $sub) {
-            foreach ($this->relinkSubscription($sub, $apply) as $line) {
-                $report[] = $line;
+        $plan = $this->plan($this->subscriptions());
+        if ($only !== '') {
+            $plan = array_values(array_filter($plan, static fn (array $item): bool => $item['line']['subscription'] === $only));
+            if ($plan === []) {
+                WP_CLI::error('Subscription ' . $only . ' is not a renewable group subscription that activated a group.');
             }
+        }
+        // After the filter, so a single-subscription run still PATCHes its shared row once.
+        $plan = $this->assignPatches($plan);
+
+        $report = [];
+        foreach ($plan as $item) {
+            if ($apply && $item['line']['action'] !== 'none' && $item['target'] !== null) {
+                $item['line']['action'] = $this->write($item);
+            }
+            $report[] = $item['line'];
         }
 
         if ($report === []) {
@@ -124,23 +146,14 @@ class GroupSubscriptionRelinkCommand
     }
 
     /**
-     * Subscriptions in scope: one ID, or every renewable subscription that activated a group.
+     * Every renewable subscription that activated a group.
      *
-     * @param array<string, string> $assoc_args Command flags.
+     * All of them are always read, so a shared row sees every subscription that links it.
      *
      * @return list<WC_Subscription>
      */
-    private function subscriptions(array $assoc_args): array
+    private function subscriptions(): array
     {
-        if (!empty($assoc_args['subscription'])) {
-            $sub = wcs_get_subscription((int) $assoc_args['subscription']);
-            if (!$sub instanceof WC_Subscription) {
-                WP_CLI::error('Subscription ' . $assoc_args['subscription'] . ' not found.');
-            }
-
-            return [$sub];
-        }
-
         $subs = wcs_get_subscriptions([
             'subscription_status'    => self::STATUSES,
             'subscriptions_per_page' => -1,
@@ -151,26 +164,98 @@ class GroupSubscriptionRelinkCommand
     }
 
     /**
-     * Relink each activated group of one subscription.
+     * Build the full plan: find each target row, then give each row one end date.
      *
-     * @param WC_Subscription $sub   The subscription.
-     * @param bool            $apply Write the changes when true.
+     * Pass 1 finds the target row of each subscription group. Pass 2 groups the lines by target
+     * row. The row end date is the latest subscription end date of the group. Nothing is written
+     * here; assignPatches() decides which line PATCHes.
      *
-     * @return list<array<string, string>> One report line for each group.
+     * @param list<WC_Subscription> $subs The subscriptions in scope.
+     *
+     * @return list<array{sub: WC_Subscription, meta_key: string, target: array|null, end_time: int, relink: bool, row_change: bool, end_date: bool, line: array<string, string>}>
      */
-    private function relinkSubscription(WC_Subscription $sub, bool $apply): array
+    private function plan(array $subs): array
     {
-        $lines = [];
+        $plan = [];
+        foreach ($subs as $sub) {
+            foreach ($this->targets($sub) as $item) {
+                $plan[] = $item;
+            }
+        }
+
+        // Pass 2: one end date for each target row, the latest of the subscriptions that link it.
+        foreach ($this->byRow($plan) as $indexes) {
+            $row_end_time = max(array_map(static fn (int $i): int => $plan[$i]['end_time'], $indexes));
+            $row_end = $row_end_time ? $this->siteDate($row_end_time) : '';
+            $ids = array_map(static fn (int $i): string => $plan[$i]['line']['subscription'], $indexes);
+            foreach ($indexes as $i) {
+                $plan[$i]['end_time'] = $row_end_time;
+                $plan[$i]['row_change'] = $row_end !== '' && $plan[$i]['line']['old_end'] !== $row_end;
+                $plan[$i]['line']['new_end'] = $row_end;
+                $plan[$i]['line']['shared_with'] = implode(',', array_values(array_diff($ids, [$plan[$i]['line']['subscription']])));
+            }
+        }
+
+        return $plan;
+    }
+
+    /**
+     * Give each changed row exactly one PATCH: the first line of the row in the plan.
+     *
+     * @param list<array{sub: WC_Subscription, meta_key: string, target: array|null, end_time: int, relink: bool, row_change: bool, end_date: bool, line: array<string, string>}> $plan The plan.
+     *
+     * @return list<array{sub: WC_Subscription, meta_key: string, target: array|null, end_time: int, relink: bool, row_change: bool, end_date: bool, line: array<string, string>}>
+     */
+    private function assignPatches(array $plan): array
+    {
+        foreach ($this->byRow($plan) as $indexes) {
+            foreach ($indexes as $position => $i) {
+                $plan[$i]['end_date'] = $position === 0 && $plan[$i]['row_change'];
+                $plan[$i]['line']['action'] = $this->action($plan[$i]['relink'], $plan[$i]['end_date']);
+            }
+        }
+
+        return $plan;
+    }
+
+    /**
+     * Plan indexes grouped by target row UUID. Lines without a target are left out.
+     *
+     * @param list<array{target: array|null, line: array<string, string>}> $plan The plan.
+     *
+     * @return array<string, list<int>>
+     */
+    private function byRow(array $plan): array
+    {
+        $by_row = [];
+        foreach ($plan as $index => $item) {
+            if ($item['target'] !== null) {
+                $by_row[$item['line']['new_uuid']][] = $index;
+            }
+        }
+
+        return $by_row;
+    }
+
+    /**
+     * Pass 1 for one subscription: the target row of each activated group.
+     *
+     * @param WC_Subscription $sub The subscription.
+     *
+     * @return list<array{sub: WC_Subscription, meta_key: string, target: array|null, end_time: int, relink: bool, row_change: bool, end_date: bool, line: array<string, string>}>
+     */
+    private function targets(WC_Subscription $sub): array
+    {
+        $items = [];
         $user = get_user_by('id', $sub->get_user_id());
         if (!$user) {
-            return $lines;
+            return $items;
         }
 
         $subscription_id = $sub->get_id();
         $assigned_group_ids = (array) get_post_meta($subscription_id, '_group_assigned_uuid', false);
         $start_date = wicket_group_subscription_start_date($sub);
         $end_time = $this->endTime($sub);
-        $new_end = $end_time ? (new DateTime('@' . $end_time))->setTimezone(wp_timezone())->format('Y-m-d') : '';
 
         foreach (wicket_get_subscription_group_ids($sub) as $role_key => $group_id) {
             // A group the subscription never activated owns no row (plan change 5).
@@ -181,15 +266,26 @@ class GroupSubscriptionRelinkCommand
             $role = explode('|', (string) $role_key)[0];
             $meta_key = wicket_group_subscription_membership_meta_key($group_id, $role);
             $old_uuid = (string) get_post_meta($subscription_id, $meta_key, true);
-            $line = [
-                'subscription' => (string) $subscription_id,
-                'group'        => (string) $group_id,
-                'role'         => $role,
-                'old_uuid'     => $old_uuid,
-                'new_uuid'     => '',
-                'old_end'      => '',
-                'new_end'      => $new_end,
-                'action'       => 'none',
+            $item = [
+                'sub'      => $sub,
+                'meta_key' => $meta_key,
+                'target'   => null,
+                'end_time'   => $end_time,
+                'relink'     => false,
+                'row_change' => false,
+                'end_date'   => false,
+                'line'     => [
+                    'subscription' => (string) $subscription_id,
+                    'group'        => (string) $group_id,
+                    'role'         => $role,
+                    'old_uuid'     => $old_uuid,
+                    'new_uuid'     => '',
+                    'shared_with'  => '',
+                    'sub_end'      => $end_time ? $this->siteDate($end_time) : '',
+                    'old_end'      => '',
+                    'new_end'      => '',
+                    'action'       => 'none',
+                ],
             ];
 
             $rows = wicket_get_group_members_all_pages($group_id, [
@@ -198,52 +294,61 @@ class GroupSubscriptionRelinkCommand
                 'active'      => null,
             ]);
             if (is_wp_error($rows)) {
-                $line['action'] = 'lookup_failed';
-                $lines[] = $line;
+                $item['line']['action'] = 'lookup_failed';
+                $items[] = $item;
                 continue;
             }
 
             $target = wicket_group_subscription_start_date_row($rows, $role, $start_date)
                 ?? wicket_group_subscription_latest_active_row($rows, $role);
             if ($target === null) {
-                $line['action'] = 'no_target';
-                $lines[] = $line;
+                $item['line']['action'] = 'no_target';
+                $items[] = $item;
                 continue;
             }
 
-            $line['new_uuid'] = (string) ($target['attributes']['uuid'] ?? $target['id'] ?? '');
-            $line['old_end'] = substr((string) ($target['attributes']['end_date'] ?? ''), 0, 10);
-            $relink = $line['new_uuid'] !== $old_uuid;
-            $end_date = $new_end !== '' && $line['old_end'] !== $new_end;
-            $line['action'] = $relink && $end_date ? 'relink+end_date' : ($relink ? 'relink' : ($end_date ? 'end_date' : 'none'));
-
-            if ($apply && ($relink || $end_date)) {
-                $line['action'] = $this->write($sub, $line, $meta_key, $end_time, $relink, $end_date);
-            }
-            $lines[] = $line;
+            $item['target'] = $target;
+            $item['line']['new_uuid'] = (string) ($target['attributes']['uuid'] ?? $target['id'] ?? '');
+            $item['line']['old_end'] = substr((string) ($target['attributes']['end_date'] ?? ''), 0, 10);
+            $item['relink'] = $item['line']['new_uuid'] !== $old_uuid;
+            $items[] = $item;
         }
 
-        return $lines;
+        return $items;
     }
 
     /**
-     * Store the target UUID and PATCH the target end date.
+     * The report action for a planned line.
      *
-     * @param WC_Subscription       $sub      The subscription.
-     * @param array<string, string> $line     The report line for the group.
-     * @param string                $meta_key The subscription meta key that stores the row UUID.
-     * @param int                   $end_time Unix timestamp of the end date to set.
-     * @param bool                  $relink   Store the target UUID.
-     * @param bool                  $end_date PATCH the target end date.
+     * @param bool $relink   The stored UUID changes.
+     * @param bool $end_date The row end date changes.
+     *
+     * @return string none, relink, end_date, or relink+end_date.
+     */
+    private function action(bool $relink, bool $end_date): string
+    {
+        if ($relink && $end_date) {
+            return 'relink+end_date';
+        }
+
+        return $relink ? 'relink' : ($end_date ? 'end_date' : 'none');
+    }
+
+    /**
+     * Apply one planned line: PATCH the row end date, then store the target UUID.
+     *
+     * @param array{sub: WC_Subscription, meta_key: string, target: array|null, end_time: int, relink: bool, row_change: bool, end_date: bool, line: array<string, string>} $item The planned line.
      *
      * @return string The report action: the planned action, or failed.
      */
-    private function write(WC_Subscription $sub, array $line, string $meta_key, int $end_time, bool $relink, bool $end_date): string
+    private function write(array $item): string
     {
-        if ($end_date) {
+        $sub = $item['sub'];
+        $line = $item['line'];
+        if ($item['end_date']) {
             // Same format as the handlers: the site timezone with its offset.
             $response = wicket_wicket_update_group_membership($line['new_uuid'], [
-                'end_date' => (new DateTime('@' . $end_time))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP'),
+                'end_date' => (new DateTime('@' . $item['end_time']))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP'),
             ]);
             if (is_wp_error($response)) {
                 wicket_wc_log_group_sync(['RELINK_PATCH_FAILED', 'subscription_id' => $sub->get_id(), 'line' => $line, 'error' => $response->get_error_message()]);
@@ -251,18 +356,19 @@ class GroupSubscriptionRelinkCommand
                 return 'failed';
             }
         }
-        if ($relink) {
-            update_post_meta($sub->get_id(), $meta_key, $line['new_uuid']);
+        if ($item['relink']) {
+            update_post_meta($sub->get_id(), $item['meta_key'], $line['new_uuid']);
         }
 
         wicket_wc_log_group_sync(['RELINK_APPLIED', 'subscription_id' => $sub->get_id(), 'line' => $line], Log::LOG_LEVEL_AUDIT);
         $sub->add_order_note(sprintf(
-            'Group subscription relinked for group %s: row %s (was %s), end date %s (was %s).',
+            'Group subscription relinked for group %s: row %s (was %s), row end date %s (was %s)%s.',
             $line['group'],
             $line['new_uuid'],
             $line['old_uuid'] !== '' ? $line['old_uuid'] : 'none',
             $line['new_end'],
-            $line['old_end'] !== '' ? $line['old_end'] : 'none'
+            $line['old_end'] !== '' ? $line['old_end'] : 'none',
+            $line['shared_with'] !== '' ? ', row shared with subscription ' . $line['shared_with'] : ''
         ));
 
         return $line['action'];
@@ -280,5 +386,17 @@ class GroupSubscriptionRelinkCommand
         $next_payment = (int) $sub->get_time('next_payment');
 
         return $next_payment !== 0 ? $next_payment : (int) $sub->get_time('end_date');
+    }
+
+    /**
+     * A timestamp as `Y-m-d` in the site timezone, the day the MDP stores.
+     *
+     * @param int $time Unix timestamp.
+     *
+     * @return string The date.
+     */
+    private function siteDate(int $time): string
+    {
+        return (new DateTime('@' . $time))->setTimezone(wp_timezone())->format('Y-m-d');
     }
 }
