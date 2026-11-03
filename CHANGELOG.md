@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.13.0] - 2026-11-03
+
+### Added
+- **components:** accept widget config on widget-prefs-person
+
+### Fixed
+- **components:** emit widget-prefs-person connection options as strings
+
+
 ## [2.12.0] - 2026-11-03
 
 ### Added
