@@ -16,7 +16,8 @@ declare(strict_types=1);
  *   wp eval-file "$SEED" diff base.json  # what changed since the snapshot
  *   wp eval-file "$SEED" reset           # delete seeded rows and subscriptions
  *
- * Test tooling for the WWID-2741 branch only. It runs only on GS_SEED_HOST, and it exits on a
+ * Test tooling for the WWID-2741 branch only. It runs only on one host (WICKET_GS_SEED_HOST, else
+ * GS_SEED_HOST), never with the prod Wicket environment, and it exits on a
  * direct web request. Remove it from the branch before the PR merges, so client sites never get it.
  *
  * Seeding never runs the group subscription hooks: it blanks the group-products option for this
@@ -32,7 +33,7 @@ if (!defined('ABSPATH') || !defined('WP_CLI')) {
     exit;
 }
 
-const GS_SEED_HOST = 'product-test-5.ind.ninja';
+const GS_SEED_HOST = 'product-test-2.ind.ninja';
 const GS_SEED_OPTION = 'wicket_gs_seed_manifest';
 const GS_SEED_EMAIL = 'gs-seed-%s@example.com';
 
@@ -42,8 +43,26 @@ $gs_cmd = $args[0] ?? '';
 // Guards
 // ---------------------------------------------------------------------------------------------
 
-if (wp_parse_url(home_url(), PHP_URL_HOST) !== GS_SEED_HOST) {
-    WP_CLI::error('Refusing to run: this site is ' . home_url() . ', not ' . GS_SEED_HOST . '.');
+/**
+ * The one host the seeder may write to.
+ *
+ * A test site sets WICKET_GS_SEED_HOST (constant, or env from Bedrock .env) to move the seeder
+ * without a code change. Without it, the default GS_SEED_HOST applies.
+ *
+ * @return string Host name, for example product-test-2.ind.ninja.
+ */
+function gs_seed_allowed_host()
+{
+    if (defined('WICKET_GS_SEED_HOST') && WICKET_GS_SEED_HOST) {
+        return (string) WICKET_GS_SEED_HOST;
+    }
+    $env = getenv('WICKET_GS_SEED_HOST') ?: ($_ENV['WICKET_GS_SEED_HOST'] ?? '');
+
+    return $env ? (string) $env : GS_SEED_HOST;
+}
+
+if (wp_parse_url(home_url(), PHP_URL_HOST) !== gs_seed_allowed_host()) {
+    WP_CLI::error('Refusing to run: this site is ' . home_url() . ', not ' . gs_seed_allowed_host() . '. Set WICKET_GS_SEED_HOST to allow a different test host.');
 }
 if (wicket_get_option('wicket_admin_settings_environment') === 'prod') {
     WP_CLI::error('Refusing to run: the Wicket environment setting is prod.');
