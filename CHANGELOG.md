@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.13.1] - 2026-11-09
+
+### Fixed
+- **woo:** email-scope AW admin-update vetoes (WWID-2985)
+
+
 ## [2.13.0] - 2026-11-03
 
 ### Added
