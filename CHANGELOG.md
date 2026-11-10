@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.14.0] - 2026-11-10
+
+### Added
+- AutomateWoo synced role rule and per-person tier role sync (WWID-2821)
+
+### Fixed
+- change no roles until the MDP fetches succeed in sync_wicket_data_for_person (WWID-2821)
+
+
 ## [2.13.1] - 2026-11-09
 
 ### Fixed
