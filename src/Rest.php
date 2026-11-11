@@ -667,8 +667,9 @@ class Rest
             wp_send_json_error('Organization identifier is not a valid uuid.');
         }
 
-        // The component links the caller's own org to the parent it picked,
-        // so the child org must belong to the caller's active connections.
+        // JSON:API makes toUuid a CHILD of fromUuid here, so this guard
+        // bounds only the parent side; authority over the picked org is a
+        // product call (follow-up), leaving this route not fully closed.
         $this->assertCallerConnectedToOrg($fromUuid);
 
         try {

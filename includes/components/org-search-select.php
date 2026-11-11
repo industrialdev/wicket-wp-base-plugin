@@ -234,10 +234,18 @@ if ($searchMode == 'org') {
         'dedupe' => 'org_id',
     ]);
 
+    // Oldest rows may be ended connections; the organization-parent route
+    // only accepts an org the caller is actively connected to.
+    $orgss_active_org_id = '';
+
     foreach (($current_connections['data'] ?? []) as $connection) {
         $connection_id = $connection['id'];
         if (isset($connection['attributes']['connection_type'])) {
             $org_id = $connection['relationships']['organization']['data']['id'];
+
+            if ($orgss_active_org_id === '' && ($connection['attributes']['active'] ?? false)) {
+                $orgss_active_org_id = $org_id;
+            }
 
             $org_info = wicket_get_organization_basic_info($org_id);
 
@@ -1982,7 +1990,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           }
         });
       },
-      selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
+      async selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
         if (event) {
           event.preventDefault();
@@ -2093,8 +2101,16 @@ if (defined('WICKET_WP_THEME_V2')) {
         // If the site forces creation on select, ignore the skip flag passed by the caller
         const shouldCreate = this.forceCreateOnExistingSelect || !skipCreateRelationship;
         if (shouldCreate) {
-          this.createOrUpdateRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
+          const created = await this.createOrUpdateRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
             this.relationshipTypeUponOrgCreation);
+
+          if (!created || !created.success) {
+            const serverMessage = (created && typeof created.data === 'string' && created.data !== '')
+              ? created.data
+              : '<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>';
+            this.setSearchMessage(serverMessage);
+            return;
+          }
         }
         this.selectOrg(orgUuid, event);
         this.showGfNextButton();
@@ -2227,8 +2243,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         if (data.relationshipType === 'organization_parent') {
           // JSON-encoded: emits a quoted, safe JS literal inside this inline
-          // script. $org_id exists only for people with current connections.
-          data.fromUuid = <?php echo wp_json_encode( (string) ( $org_id ?? '' ) ); ?>;
+          // script. An empty string means no active org connection, which
+          // the route refuses.
+          data.fromUuid = <?php echo wp_json_encode((string) ($orgss_active_org_id ?? '')); ?>;
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
@@ -2270,7 +2287,7 @@ if (defined('WICKET_WP_THEME_V2')) {
                     alert(responseText);
                   <?php endif; ?>
 
-                  return;
+                  return data;
                 <?php endif; ?>
 
                 if (typeof data.data[0] === 'undefined') {
