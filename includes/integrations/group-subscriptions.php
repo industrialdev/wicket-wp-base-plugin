@@ -1,5 +1,7 @@
 <?php
 
+use WicketWP\Log;
+
 /**
  * Hide the Group Product Tab unless subscription product chosen.
  */
@@ -103,7 +105,9 @@ function wicket_base_product_tab_content()
             }
         }
         if (empty($group_role_entity_type)) {
-            echo "<p style='color:red;font-weight:bold'>Group role entity slug from <code>$resource_type_slug</code> set on page <a href='?page=wicket-settings&tab=integrations&section=woocommerce'>Wicket > Settings > Integrations > Woocommerce</a> not found. Please correct this value to use this feature.</p>";
+            $suggested_entity_code = wicket_get_group_role_entity_code();
+            $suggestion = $suggested_entity_code ? ' The group role entity code in Wicket is <code>' . esc_html($suggested_entity_code) . '</code>.' : '';
+            echo "<p style='color:red;font-weight:bold'>Group role entity slug from <code>" . esc_html($resource_type_slug) . "</code> set on page <a href='?page=wicket-settings&tab=integrations&section=woocommerce'>Wicket > Settings > Integrations > Woocommerce</a> not found. Please correct this value to use this feature.$suggestion</p>";
         } else {
             $group_roles = $client->get('resource_types?filter[entity_type_uuid_eq]=' . $group_role_entity_type . '&page%5Bnumber%5D=1&page%5Bsize%5D=9999');
             foreach ($group_roles['data'] as $grouprole) {
@@ -170,28 +174,7 @@ function wicket_base_group_membership_subscription_renewal_completed($sub)
         return $sub;
     }
 
-    $group_memberships = [];
-    $group_membership_uuids = [];
-
-    $group_ids = wicket_get_subscription_group_ids($sub);
-    if (!empty($group_ids)) {
-        $user_id = $sub->get_user_id();
-        $user = get_user_by('id', $user_id);
-        $person_id = $user->user_login;
-        $group_memberships = wicket_get_group_memberships($person_id, $group_ids);
-    }
-    if (!empty($group_memberships)) {
-        $group_membership_uuids = wicket_get_group_membership_uuids($group_memberships);
-    }
-
-    if (!empty($group_membership_uuids)) {
-        $args['end_date'] = (new DateTime('@' . $sub->get_time('next_payment')))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
-        foreach ($group_membership_uuids as $group_membership_uuid) {
-            $response = wicket_wicket_update_group_membership($group_membership_uuid['id'], $args);
-            $sub->add_order_note('Group subscription end date updated to '
-              . date('Y-m-d', $sub->get_time('next_payment')) . " on Renewal Order Payment for Group: {$group_membership_uuid['name']}.");
-        }
-    }
+    wicket_group_subscription_update_end_dates($sub, $sub->get_time('next_payment'), 'Renewal Order Payment');
 }
 
 /*
@@ -213,33 +196,16 @@ add_action('woocommerce_subscription_date_updated', function ($sub, $date_type, 
     $subscription_id = $sub->get_id();
     $group_assigned_next_payment = get_post_meta($subscription_id, '_group_assigned_next_payment', true);
 
-    if (empty($group_assigned_next_payment) || $group_assigned_next_payment == $sub->get_time('next_payment')) {
+    // Only a paid (active) subscription may activate groups. Checkout sets the dates of a
+    // pending subscription before payment, so without this check an unpaid subscription
+    // created or linked group rows.
+    if ($sub->has_status('active') && (empty($group_assigned_next_payment) || $group_assigned_next_payment == $sub->get_time('next_payment'))) {
         //$sub->add_order_note("Group subscription creation incomplete or skipped a date change on creation. You may try reactivating subscription if group membership failed.");
         wicket_group_membership_subscription_status_active($sub);
     }
 
-    $group_memberships = [];
-    $group_membership_uuids = [];
-
-    $group_ids = wicket_get_subscription_group_ids($sub);
-
-    if (!empty($group_ids)) {
-        $user_id = $sub->get_user_id();
-        $user = get_user_by('id', $user_id);
-        $person_id = $user->user_login;
-        $group_memberships = wicket_get_group_memberships($person_id, $group_ids);
-    }
-    if (!empty($group_memberships)) {
-        $group_membership_uuids = wicket_get_group_membership_uuids($group_memberships);
-    }
-
-    if (!empty($group_membership_uuids)) {
-        $args['end_date'] = (new DateTime('@' . strtotime($datetime)))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
-        foreach ($group_membership_uuids as $group_membership_uuid) {
-            $response[] = wicket_wicket_update_group_membership($group_membership_uuid['id'], $args);
-            $sub->add_order_note('Group subscription end date updated to '
-              . date('Y-m-d', strtotime($datetime)) . " on Next Payment Date changed for Group: {$group_membership_uuid['name']}.");
-        }
+    $response = wicket_group_subscription_update_end_dates($sub, strtotime($datetime), 'Next Payment Date changed');
+    if (!empty($response)) {
         wicket_wc_log_group_sync(['woocommerce_subscription_date_updated', 'API RESPONSE', $response]);
     }
 }, 10, 3);
@@ -254,29 +220,9 @@ add_action('woocommerce_subscription_status_cancelled', function ($sub) {
         return $sub;
     }
 
-    $group_memberships = [];
-    $group_membership_uuids = [];
     $sub = wcs_get_subscription($sub);
-    $subscription_id = $sub->get_id();
 
-    $group_ids = wicket_get_subscription_group_ids($sub);
-    if (!empty($group_ids)) {
-        $user_id = $sub->get_user_id();
-        $user = get_user_by('id', $user_id);
-        $person_id = $user->user_login;
-        $group_memberships = wicket_get_group_memberships($person_id, $group_ids);
-        if (!empty($group_memberships)) {
-            $group_membership_uuids = wicket_get_group_membership_uuids($group_memberships);
-            if (!empty($group_membership_uuids)) {
-                $args['end_date'] = (new DateTime('@' . $sub->get_time('end_date')))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
-                foreach ($group_membership_uuids as $group_membership_uuid) {
-                    $response = wicket_wicket_update_group_membership($group_membership_uuid['id'], $args);
-                    $sub->add_order_note('Group subscription end date updated to '
-                      . date('Y-m-d', $sub->get_time('end_date')) . " on Subscription Cancelled for Group: {$group_membership_uuid['name']}.");
-                }
-            }
-        }
-    }
+    wicket_group_subscription_update_end_dates($sub, $sub->get_time('end_date'), 'Subscription Cancelled');
 }, 10, 1);
 
 /*
@@ -286,6 +232,17 @@ add_action('woocommerce_subscription_status_cancelled', function ($sub) {
  */
 add_action('woocommerce_subscription_status_active', 'wicket_group_membership_subscription_status_active', 1, 1);
 
+/**
+ * Create or link the group membership row of each group product on an active subscription.
+ *
+ * Runs on the change to active, and from the next-payment date hook for an active subscription.
+ * Each group it creates or links is recorded in `_group_assigned_uuid`. The end-date
+ * handlers change only those groups.
+ *
+ * @param WC_Subscription $sub The subscription that became active.
+ *
+ * @return WC_Subscription|void The subscription when the integration is off or already running.
+ */
 function wicket_group_membership_subscription_status_active($sub)
 {
     static $processing_subscriptions = [];
@@ -353,20 +310,278 @@ function wicket_group_membership_subscription_status_active($sub)
             $group_role_slug = $group_role_slug_parts[0];
             $group_info = wicket_wicket_get_group_info($group_id);
             $group_name = $group_info['data']['attributes']['name'];
+
+            // The subscription owns one row for each group and role. Activation runs again on
+            // reactivation and renewal, so do not create a second row.
+            $membership_meta_key = wicket_group_subscription_membership_meta_key($group_id, $group_role_slug);
+            if (!empty(get_post_meta($subscription_id, $membership_meta_key, true))) {
+                wicket_wc_log_group_sync([
+                    'ACTIVATION_SKIPPED_ROW_STORED',
+                    'subscription_id' => $subscription_id,
+                    'group_id' => $group_id,
+                    'group_role_slug' => $group_role_slug,
+                ], Log::LOG_LEVEL_AUDIT);
+                continue;
+            }
+
+            // A subscription from before the fix: link the row with its start date.
+            if (!empty(wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, $group_role_slug))) {
+                // The link happens during activation, so the end-date handlers may change this group.
+                wicket_group_subscription_mark_assigned($subscription_id, $group_id, $sub_next_payment_date);
+                $sub->add_order_note("Group subscription linked to the existing group membership for $group_name.");
+                continue;
+            }
+
             $wicket_api_response = wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date, $next_payment_date, true);
             if (is_wp_error($wicket_api_response)) {
                 $errors = $wicket_api_response->get_error_data('wicket_api_error');
-                $error = is_array($errors) && isset($errors[0]->title) ? $errors[0]->title : 'unknown error';
+                $error = is_array($errors) && isset($errors[0]->title) ? $errors[0]->title : $wicket_api_response->get_error_message();
                 $sub->add_order_note("Failed group subscription for $group_name. ($error)");
             } else {
-                add_post_meta($subscription_id, '_group_assigned_uuid', $group_id);
-                $group_assigned_next_payment = add_post_meta($subscription_id, '_group_assigned_next_payment', $sub_next_payment_date);
+                // A created row comes back in data, a matched row comes back as the row.
+                $membership_row = $wicket_api_response['data'] ?? $wicket_api_response;
+                $membership_uuid = $membership_row['attributes']['uuid'] ?? $membership_row['id'] ?? '';
+                update_post_meta($subscription_id, $membership_meta_key, $membership_uuid);
+                wicket_wc_log_group_sync([
+                    'ACTIVATION_ROW_STORED',
+                    'subscription_id' => $subscription_id,
+                    'group_id' => $group_id,
+                    'group_role_slug' => $group_role_slug,
+                    'group_membership_uuid' => $membership_uuid,
+                ], Log::LOG_LEVEL_AUDIT);
+                wicket_group_subscription_mark_assigned($subscription_id, $group_id, $sub_next_payment_date);
                 $sub->add_order_note("Group subscription added or exists for $group_name.");
             }
         }
     }
 
     unset($processing_subscriptions[$subscription_id]);
+}
+
+/**
+ * Record that activation created or linked the row of a group on the subscription.
+ *
+ * `_group_assigned_uuid` is the list of groups the end-date handlers may change, so a
+ * subscription that never activated changes no row. Each group is stored once, and the
+ * activation next payment keeps one value, because activation runs again on every reactivation.
+ *
+ * @param int    $subscription_id   The subscription ID.
+ * @param string $group_id          The MDP group UUID.
+ * @param int    $next_payment_time Unix timestamp of the next payment date at activation.
+ *
+ * @return void
+ */
+function wicket_group_subscription_mark_assigned($subscription_id, $group_id, $next_payment_time)
+{
+    if (!in_array($group_id, (array) get_post_meta($subscription_id, '_group_assigned_uuid', false), true)) {
+        add_post_meta($subscription_id, '_group_assigned_uuid', $group_id);
+    }
+    update_post_meta($subscription_id, '_group_assigned_next_payment', $next_payment_time);
+}
+
+/**
+ * Subscription meta key that stores the UUID of the group membership row the subscription owns.
+ * @param string $group_id
+ * @param string $group_role_slug
+ * @return string
+ */
+function wicket_group_subscription_membership_meta_key($group_id, $group_role_slug)
+{
+    return "_group_membership_uuid_{$group_id}_{$group_role_slug}";
+}
+
+/**
+ * Get the UUID of the group membership row that the subscription owns.
+ *
+ * A subscription from before the stored UUID links the row with the subscription
+ * start date (first match), and stores its UUID.
+ *
+ * @param WC_Subscription $sub             The subscription.
+ * @param string          $person_id       The MDP person UUID of the subscriber.
+ * @param string          $group_id        The MDP group UUID.
+ * @param string          $group_role_slug The role slug of the group product.
+ *
+ * @see wicket_group_subscription_start_date_row()
+ *
+ * @return string The row UUID, or an empty string if no row is linked.
+ */
+function wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, $group_role_slug)
+{
+    $subscription_id = $sub->get_id();
+    $meta_key = wicket_group_subscription_membership_meta_key($group_id, $group_role_slug);
+    $stored_uuid = get_post_meta($subscription_id, $meta_key, true);
+    if (!empty($stored_uuid)) {
+        return $stored_uuid;
+    }
+
+    $rows = wicket_get_group_members_all_pages($group_id, [
+        'person_uuid' => $person_id,
+        'role'        => $group_role_slug,
+        'active'      => null,
+    ]);
+    if (is_wp_error($rows)) {
+        wicket_wc_log_group_sync([
+            'LINK_LOOKUP_FAILED',
+            'subscription_id' => $subscription_id,
+            'group_id' => $group_id,
+            'error' => $rows->get_error_message(),
+        ]);
+
+        return '';
+    }
+
+    $start_date = wicket_group_subscription_start_date($sub);
+    $row = wicket_group_subscription_start_date_row($rows, $group_role_slug, $start_date);
+    if ($row !== null) {
+        update_post_meta($subscription_id, $meta_key, $row['attributes']['uuid']);
+        wicket_wc_log_group_sync([
+            'LINKED_BY_START_DATE',
+            'subscription_id' => $subscription_id,
+            'group_id' => $group_id,
+            'group_role_slug' => $group_role_slug,
+            'start_date' => $start_date,
+            'group_membership_uuid' => $row['attributes']['uuid'],
+        ], Log::LOG_LEVEL_AUDIT);
+
+        return $row['attributes']['uuid'];
+    }
+
+    wicket_wc_log_group_sync([
+        'LINK_NO_MATCH',
+        'subscription_id' => $subscription_id,
+        'group_id' => $group_id,
+        'group_role_slug' => $group_role_slug,
+        'start_date' => $start_date,
+        'rows_found' => count($rows),
+    ], Log::LOG_LEVEL_AUDIT);
+
+    return '';
+}
+
+/**
+ * The subscription start date as activation sends it to the MDP.
+ *
+ * Activation sends the start date in the site timezone, and the MDP keeps the date part as
+ * sent. Comparisons with a row `start_date` must use the same day.
+ *
+ * @param WC_Subscription $sub The subscription.
+ *
+ * @return string The start date as `Y-m-d` in the site timezone.
+ */
+function wicket_group_subscription_start_date($sub)
+{
+    return (new DateTime('@' . $sub->get_time('start_date')))->setTimezone(wp_timezone())->format('Y-m-d');
+}
+
+/**
+ * Find the row that a subscription created: the first row with the role and its start date.
+ *
+ * No code changes `start_date` after the create, so the start date identifies the row.
+ *
+ * @param array  $rows            Group member rows from the MDP, active and inactive.
+ * @param string $group_role_slug The role slug of the group product.
+ * @param string $start_date      The subscription start date as `Y-m-d` in the site timezone.
+ *
+ * @return array|null The row, or null when no row has the start date.
+ */
+function wicket_group_subscription_start_date_row(array $rows, $group_role_slug, $start_date)
+{
+    foreach ($rows as $row) {
+        if (
+            ($row['attributes']['type'] ?? '') == $group_role_slug
+            && substr((string) ($row['attributes']['start_date'] ?? ''), 0, 10) === $start_date
+        ) {
+            return $row;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Find the active row with the role and the latest start date.
+ *
+ * The MDP returns rows oldest first. On imported history, the first active row can be an old
+ * row that an earlier defect made active again. The current row is the one that started last.
+ * With one row for each person, group, and role, the result is that row.
+ *
+ * @param array  $rows            Group member rows from the MDP.
+ * @param string $group_role_slug The role slug of the group product.
+ *
+ * @return array|null The row, or null when the person has no active row with the role.
+ */
+function wicket_group_subscription_latest_active_row(array $rows, $group_role_slug)
+{
+    $latest = null;
+    foreach ($rows as $row) {
+        $attributes = $row['attributes'] ?? [];
+        // Rows from an active-only lookup may omit the flag; treat a missing flag as active.
+        if (($attributes['type'] ?? '') != $group_role_slug || ($attributes['active'] ?? true) === false) {
+            continue;
+        }
+        $start = substr((string) ($attributes['start_date'] ?? ''), 0, 10);
+        // Y-m-d strings sort as dates. A tie keeps the earlier row in API order.
+        if ($latest === null || strcmp($start, substr((string) ($latest['attributes']['start_date'] ?? ''), 0, 10)) > 0) {
+            $latest = $row;
+        }
+    }
+
+    return $latest;
+}
+
+/**
+ * Set the end date of each group membership row that the subscription owns.
+ *
+ * Only groups that activation created or linked (`_group_assigned_uuid`) change. A subscription
+ * that never activated, for example a pending one that is cancelled, changes no row: its start
+ * date can match the row of another, paid subscription of the same person.
+ *
+ * @param WC_Subscription $sub      The subscription whose dates changed.
+ * @param int             $end_time Unix timestamp of the new end date.
+ * @param string          $event    Event name for the order note.
+ *
+ * @return array The API responses of the PATCH requests sent.
+ */
+function wicket_group_subscription_update_end_dates($sub, $end_time, $event)
+{
+    $responses = [];
+    $group_ids = wicket_get_subscription_group_ids($sub);
+    if (empty($group_ids)) {
+        return $responses;
+    }
+
+    $person_id = get_user_by('id', $sub->get_user_id())->user_login;
+    $args['end_date'] = (new DateTime('@' . $end_time))->setTimezone(wp_timezone())->format('Y-m-d\TH:i:sP');
+    $assigned_group_ids = (array) get_post_meta($sub->get_id(), '_group_assigned_uuid', false);
+
+    foreach ($group_ids as $group_role_slug => $group_id) {
+        if (!in_array($group_id, $assigned_group_ids, true)) {
+            wicket_wc_log_group_sync([
+                'END_DATE_SKIPPED_NOT_ACTIVATED',
+                'subscription_id' => $sub->get_id(),
+                'group_id' => $group_id,
+                'event' => $event,
+            ], Log::LOG_LEVEL_AUDIT);
+            continue;
+        }
+
+        //this is necessary to handle case where same role on different groups in same subscription
+        $group_role_slug = explode('|', $group_role_slug)[0];
+        $group_info = wicket_wicket_get_group_info($group_id);
+        $group_name = is_array($group_info) ? ($group_info['data']['attributes']['name'] ?? $group_id) : $group_id;
+
+        $group_membership_uuid = wicket_group_subscription_membership_uuid($sub, $person_id, $group_id, $group_role_slug);
+        if (empty($group_membership_uuid)) {
+            $sub->add_order_note("Group subscription end date not updated on $event for Group: $group_name. No group membership is linked to this subscription.");
+            continue;
+        }
+
+        $responses[] = wicket_wicket_update_group_membership($group_membership_uuid, $args);
+        $sub->add_order_note('Group subscription end date updated to '
+          . date('Y-m-d', $end_time) . " on $event for Group: $group_name.");
+    }
+
+    return $responses;
 }
 /**
  * Extract just the specific role membership id from a group memberships response.
@@ -442,85 +657,66 @@ function wicket_get_subscription_group_ids($sub)
 /**
  * Add a member to a group with the specified role.
  *
- * @param int|string $person_id ID of the person to add
- * @param int|string $group_id ID of the group to add the member to
- * @param string $group_role_slug The type of group role to assign to the person
- * @param string $start_date [optional] The date to start the group membership
- * @param string $end_date [optional] The date to end the group membership
- * @param string $skip_if_exists [optional] Don't create duplicates
+ * With `$skip_if_exists`, the person's active rows in the group with the role are read on
+ * all pages first. If one exists, the active row with the latest start date is returned and
+ * nothing is created. If the lookup fails, nothing is created.
  *
- * @return object The response object from the Wicket API
+ * @param int|string $person_id       ID of the person to add.
+ * @param int|string $group_id        ID of the group to add the member to.
+ * @param string     $group_role_slug The type of group role to assign to the person.
+ * @param string     $start_date      [optional] The date to start the group membership.
+ * @param string     $end_date        [optional] The date to end the group membership.
+ * @param bool       $skip_if_exists  [optional] Return an existing active row instead of creating one.
+ *
+ * @see wicket_group_subscription_latest_active_row()
+ *
+ * @return array|WP_Error The created row response, the existing row, or WP_Error
+ *                        (`wicket_dup_check_failed` when the duplicate lookup fails).
  */
 function wicket_wicket_add_group_member($person_id, $group_id, $group_role_slug, $start_date = null, $end_date = null, $skip_if_exists = false)
 {
     if ($skip_if_exists) {
-        // Log: Start of duplicate check
-        wicket_wc_log_group_sync([
-            'DUPLICATE_CHECK_START',
-            'person_id' => $person_id,
-            'group_id' => $group_id,
-            'group_role_slug' => $group_role_slug,
-        ], 'info');
-
-        // Check if the user is already an active member of that group with the same role
-        $current_user_groups = wicket_get_person_groups(['person_uuid' => $person_id]);
-        // Log: Result of get person groups call
-        $group_count = isset($current_user_groups['data']) ? count($current_user_groups['data']) : 0;
-        wicket_wc_log_group_sync([
-            'DUPLICATE_CHECK_GET_PERSON_GROUPS_RESULT',
-            'groups_returned' => $group_count,
-        ], 'info');
-        if (isset($current_user_groups['data'])) {
-            foreach ($current_user_groups['data'] as $group) {
-                $this_group_id = $group['relationships']['group']['data']['id'];
-                $this_group_role = $group['attributes']['type'];
-                $this_group_active = !empty($group['attributes']['active']);
-
-                // Log: Each group comparison
-                wicket_wc_log_group_sync([
-                    'DUPLICATE_CHECK_COMPARING_GROUP',
-                    'this_group_id' => $this_group_id,
-                    'matches_target_group_id' => ($this_group_id == $group_id),
-                    'this_group_role' => $this_group_role,
-                    'matches_target_role' => ($this_group_role == $group_role_slug),
-                    'is_active' => $this_group_active,
-                ], 'info');
-
-                if (
-                    $this_group_id == $group_id
-                    && $this_group_role == $group_role_slug && $this_group_active
-                ) {
-                    // Log: Duplicate found
-                    wicket_wc_log_group_sync([
-                        'DUPLICATE_FOUND',
-                        'person_id' => $person_id,
-                        'group_id' => $group_id,
-                        'group_role_slug' => $group_role_slug,
-                        'existing_membership_uuid' => $group['attributes']['uuid'],
-                        'group_name' => $group['attributes']['name'] ?? 'unknown',
-                    ], 'info');
-
-                    // Matching group found - returning that group connection instead of adding them to the group again
-                    return $group;
-                }
-            }
-
-            // Log: No duplicate found - will proceed to API creation
+        // Check if the person already has an active row in this group with this role, on any page
+        $existing_rows = wicket_get_group_members_all_pages($group_id, [
+            'person_uuid' => $person_id,
+            'role'        => $group_role_slug,
+            'active'      => true,
+        ]);
+        if (is_wp_error($existing_rows)) {
             wicket_wc_log_group_sync([
-                'NO_DUPLICATE_FOUND',
+                'DUPLICATE_CHECK_FAILED',
                 'person_id' => $person_id,
                 'group_id' => $group_id,
                 'group_role_slug' => $group_role_slug,
-                'will_create_new' => true,
-            ], 'info');
-        } else {
-            // Log: get_person_groups returned no data
-            wicket_wc_log_group_sync([
-                'DUPLICATE_CHECK_NO_DATA',
-                'person_id' => $person_id,
-                'reason' => 'get_person_groups returned empty data array',
-            ], 'warning');
+                'error' => $existing_rows->get_error_message(),
+            ]);
+
+            // Do not create a row when we cannot tell if one exists
+            return new WP_Error('wicket_dup_check_failed', 'Could not check for an existing group membership. ' . $existing_rows->get_error_message());
         }
+
+        // With more than one active row, the latest start date is the current membership, not
+        // a revived old row that the MDP lists first.
+        $existing_row = wicket_group_subscription_latest_active_row($existing_rows, $group_role_slug);
+        if ($existing_row !== null) {
+            wicket_wc_log_group_sync([
+                'DUPLICATE_FOUND',
+                'person_id' => $person_id,
+                'group_id' => $group_id,
+                'group_role_slug' => $group_role_slug,
+                'existing_membership_uuid' => $existing_row['attributes']['uuid'] ?? '',
+            ], Log::LOG_LEVEL_AUDIT);
+
+            // Matching group found - returning that group connection instead of adding them to the group again
+            return $existing_row;
+        }
+
+        wicket_wc_log_group_sync([
+            'NO_DUPLICATE_FOUND',
+            'person_id' => $person_id,
+            'group_id' => $group_id,
+            'group_role_slug' => $group_role_slug,
+        ], Log::LOG_LEVEL_AUDIT);
     }
 
     $client = wicket_api_client();
@@ -679,4 +875,10 @@ function wicket_wc_log_group_sync($data, $level = 'error')
         $data = wc_print_r($data, true);
     }
     Wicket()->log()->log($level, $data, ['source' => 'wicket-group-sync']);
+}
+
+// Relink command for use after an MDP repair. Registered only under WP-CLI, never on a web request.
+// @see atlas://plans/fix-group-subscription-membership-targeting.md (change 7)
+if (defined('WP_CLI') && WP_CLI) {
+    WP_CLI::add_command('wicket group-subscriptions', WicketWP\Cli\GroupSubscriptionRelinkCommand::class);
 }

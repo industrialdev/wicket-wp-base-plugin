@@ -364,6 +364,7 @@ function wicket_get_group($uuid)
  *              page (Optional) The page number to return. Default: 1.
  *              active (Optional) Boolean to filter by active status. Default: true.
  *              role (Optional) String to filter by group role slug (e.g., 'member', 'administrator') or comma-separated string for multiple roles (e.g., 'member,observer').
+ *              person_uuid (Optional) Only return the rows of this person. Default: null.
  *
  * @return array|WP_Error Array of group members on success, WP_Error on failure
  */
@@ -379,6 +380,7 @@ function wicket_get_group_members($group_uuid, $args = [])
         'page'     => 1,
         'active'   => true,
         'role'     => null, // Default to no specific role filter
+        'person_uuid' => null,
     ];
     $args = wp_parse_args($args, $defaults);
 
@@ -397,6 +399,10 @@ function wicket_get_group_members($group_uuid, $args = [])
         ],
         'include' => 'person',
     ];
+
+    if (!empty($args['person_uuid'])) {
+        $query_params['filter']['person_uuid_eq'] = $args['person_uuid'];
+    }
 
     // Handle role filtering
     if (!empty($args['role'])) { // Use parsed args
@@ -448,6 +454,72 @@ function wicket_get_group_members($group_uuid, $args = [])
     }
 
     return $response; // Return the full response
+}
+
+/**
+ * Get the group member rows from all pages.
+ *
+ * @param string $group_uuid The UUID of the group
+ * @param array $args (Optional) Same args as wicket_get_group_members(), except page.
+ *              Pass active => null for active and inactive rows.
+ *
+ * @return array|WP_Error List of group member rows on success, WP_Error on failure
+ */
+function wicket_get_group_members_all_pages($group_uuid, $args = [])
+{
+    $args = wp_parse_args($args, ['per_page' => 100]);
+    $rows = [];
+    $page = 1;
+
+    do {
+        $args['page'] = $page;
+        $response = wicket_get_group_members($group_uuid, $args);
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        if (!is_array($response) || !isset($response['data'])) {
+            return new WP_Error('wicket_api_error', 'Unexpected group members response.');
+        }
+
+        $rows = array_merge($rows, $response['data']);
+        $total_pages = (int) ($response['meta']['page']['total_pages'] ?? 1);
+        $page++;
+    } while ($page <= $total_pages);
+
+    return $rows;
+}
+
+/**
+ * Get the entity type code of the group member roles in this Wicket environment, for example GroupMember.
+ *
+ * Looks the code up instead of guessing it: each environment names its roles and entity types differently.
+ * Group member roles are the resource types of the group_members resource. Their entity type has the code.
+ *
+ * @return string The entity type code, or an empty string if it cannot be found.
+ */
+function wicket_get_group_role_entity_code()
+{
+    $client = wicket_api_client();
+    if (!$client) {
+        return '';
+    }
+
+    try {
+        $resource_types = $client->get('resource_types?page%5Bnumber%5D=1&page%5Bsize%5D=9999');
+        foreach ($resource_types['data'] ?? [] as $resource_type) {
+            $entity_type_uuid = $resource_type['relationships']['entity_type']['data']['id'] ?? '';
+            if (($resource_type['attributes']['resource_type'] ?? '') !== 'group_members' || $entity_type_uuid === '') {
+                continue;
+            }
+            $entity_type = $client->get("entity_types/{$entity_type_uuid}");
+
+            return (string) ($entity_type['data']['attributes']['code'] ?? '');
+        }
+    } catch (Exception $e) {
+        return '';
+    }
+
+    return '';
 }
 
 /**
