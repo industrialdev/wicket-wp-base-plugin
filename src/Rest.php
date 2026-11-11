@@ -175,13 +175,25 @@ class Rest
         $removeRelationship = $params['removeRelationship'] ?? false;
         $limitToRelationshipType = $params['relationshipType'] ?? false;
 
+        $current_connection_info = wicket_get_connection_by_id($connectionId);
+
+        if (empty($current_connection_info)) {
+            wp_send_json_error('Connection not found.');
+        }
+
+        $currentPersonUuid = wicket_current_person_uuid();
+
+        // The identical not-found wording keeps foreign callers from
+        // distinguishing a real connection from a guessed id.
+        if (
+            $currentPersonUuid === null
+            || $currentPersonUuid === ''
+            || $this->connection_person_uuid($current_connection_info) !== $currentPersonUuid
+        ) {
+            wp_send_json_error('Connection not found.');
+        }
+
         if ($limitToRelationshipType) {
-            $current_connection_info = wicket_get_connection_by_id($connectionId);
-
-            if (empty($current_connection_info)) {
-                wp_send_json_error('Connection not found. During relationship type limiting.');
-            }
-
             $attributes = $current_connection_info['data']['attributes'];
             $relationshipType = $attributes['type'];
 
@@ -204,6 +216,33 @@ class Rest
         }
 
         wp_send_json_error('Something wrong setting the end date of the connection.');
+    }
+
+    /**
+     * Person-side uuid of a fetched connection row. The API has spelled the
+     * person relationship both as `person` and as `from`/`to` over time, so
+     * both shapes are checked; empty string when neither resolves.
+     */
+    private function connection_person_uuid(array $connection): string
+    {
+        $rels = $connection['data']['relationships'] ?? [];
+
+        $direct = $rels['person']['data']['id'] ?? null;
+        if (is_string($direct) && $direct !== '') {
+            return $direct;
+        }
+
+        foreach (['from', 'to'] as $side) {
+            $node = is_array($rels[$side]['data'] ?? null) ? $rels[$side]['data'] : [];
+            $type = is_string($node['type'] ?? null) ? strtolower($node['type']) : '';
+            $id = $node['id'] ?? null;
+
+            if (in_array($type, ['people', 'person'], true) && is_string($id) && $id !== '') {
+                return $id;
+            }
+        }
+
+        return '';
     }
 
     public function create_or_update_relationship(\WP_REST_Request $request)
