@@ -2558,7 +2558,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         let data = {
           "action_name": actionType,
           "action_data": {
-            "uri": '<?php echo $_SERVER['REQUEST_URI']; ?>',
+            "uri": <?php echo wp_json_encode( (string) ( $_SERVER['REQUEST_URI'] ?? '' ) ); ?>,
             "org_uuid": this.selectedOrgUuid,
           },
         };
