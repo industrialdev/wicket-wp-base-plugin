@@ -234,8 +234,9 @@ if ($searchMode == 'org') {
         'dedupe' => 'org_id',
     ]);
 
-    // Oldest rows may be ended connections; the organization-parent route
-    // only accepts an org the caller is actively connected to.
+    // The loop keeps the LAST active row: the list is newest-first, so
+    // this preserves the legacy oldest-org pick while never handing the
+    // route an ended connection.
     $orgss_active_org_id = '';
 
     foreach (($current_connections['data'] ?? []) as $connection) {
@@ -243,7 +244,7 @@ if ($searchMode == 'org') {
         if (isset($connection['attributes']['connection_type'])) {
             $org_id = $connection['relationships']['organization']['data']['id'];
 
-            if ($orgss_active_org_id === '' && ($connection['attributes']['active'] ?? false)) {
+            if ($connection['attributes']['active'] ?? false) {
                 $orgss_active_org_id = $org_id;
             }
 
@@ -1992,6 +1993,9 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       async selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
+        if (this.isLoading) {
+          return;
+        }
         if (event) {
           event.preventDefault();
           event.stopPropagation();
@@ -2105,6 +2109,11 @@ if (defined('WICKET_WP_THEME_V2')) {
             this.relationshipTypeUponOrgCreation);
 
           if (!created || !created.success) {
+            // A refusal also undoes the modal's pre-selection and restores
+            // the new-org search UI, so every path keeps a retry affordance.
+            this.clearSelectedOrgState();
+            this.justCreatedNewOrg = false;
+            this.justCreatedOrgUuid = '';
             const serverMessage = (created && typeof created.data === 'string' && created.data !== '')
               ? created.data
               : '<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>';
@@ -2112,6 +2121,7 @@ if (defined('WICKET_WP_THEME_V2')) {
             return;
           }
         }
+        this.showSearchMessage = false;
         this.selectOrg(orgUuid, event);
         this.showGfNextButton();
         this.$nextTick(() => {
@@ -2244,8 +2254,8 @@ if (defined('WICKET_WP_THEME_V2')) {
         if (data.relationshipType === 'organization_parent') {
           // JSON-encoded: emits a quoted, safe JS literal inside this inline
           // script. An empty string means no active org connection, which
-          // the route refuses.
-          data.fromUuid = <?php echo wp_json_encode((string) ($orgss_active_org_id ?? '')); ?>;
+          // the route rejects as an invalid uuid.
+          data.fromUuid = <?php echo wp_json_encode((string) ( $orgss_active_org_id ?? '' )); ?>;
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
@@ -2301,6 +2311,12 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
             }
             return data;
+          })
+          .catch(() => {
+            this.isLoading = false;
+            // Resolve as a refusal so callers show the generic message
+            // instead of an unhandled rejection leaving the overlay stuck.
+            return {success: false, data: ''};
           });
 
         return results;
