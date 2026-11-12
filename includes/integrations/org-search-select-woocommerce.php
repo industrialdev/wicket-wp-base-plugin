@@ -110,19 +110,21 @@ function wicket_org_search_select_on_order_complete($order_id)
 
     // The flagged org must be an org the customer actually bought a
     // membership for; a mismatch is stored-meta escalation onto a foreign
-    // org. A mismatched flag stays for a later matching order.
+    // org. A mismatched flag, or a failed grant, stays for a later order.
     if (isset($org_uuid_for_roster_man_access) && !empty($org_uuid_for_roster_man_access)) {
-        if (in_array((string) $org_uuid_for_roster_man_access, $order_org_uuids, true)) {
-            wicket_assign_role($order_user_mdp_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
-
+        if (
+            in_array((string) $org_uuid_for_roster_man_access, $order_org_uuids, true)
+            && wicket_assign_role($order_user_mdp_uuid, 'membership_manager', $org_uuid_for_roster_man_access)
+        ) {
             delete_user_meta($order_user_id, 'wicket_roster_man_org_to_grant');
         }
     }
 
     if (isset($org_uuid_for_org_editor_access) && !empty($org_uuid_for_org_editor_access)) {
-        if (in_array((string) $org_uuid_for_org_editor_access, $order_org_uuids, true)) {
-            wicket_assign_role($order_user_mdp_uuid, 'org_editor', $org_uuid_for_org_editor_access);
-
+        if (
+            in_array((string) $org_uuid_for_org_editor_access, $order_org_uuids, true)
+            && wicket_assign_role($order_user_mdp_uuid, 'org_editor', $org_uuid_for_org_editor_access)
+        ) {
             delete_user_meta($order_user_id, 'wicket_org_editor_org_to_grant');
         }
     }
