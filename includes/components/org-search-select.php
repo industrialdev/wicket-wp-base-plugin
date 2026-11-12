@@ -1070,7 +1070,7 @@ if (defined('WICKET_WP_THEME_V2')) {
   if ($selectedUuidHiddenFieldName !== '' && $selectedUuidHiddenFieldName !== 'input_' . $key) :
       $submittedUuid = isset($_POST[$selectedUuidHiddenFieldName]) ? wp_unslash($_POST[$selectedUuidHiddenFieldName]) : '';
       $submittedUuid = is_string($submittedUuid) ? $submittedUuid : '';
-  ?>
+      ?>
   <input type="hidden" name="<?php echo esc_attr($selectedUuidHiddenFieldName); ?>" value="<?php echo esc_attr($submittedUuid); ?>" />
   <?php endif; ?>
 </div>
@@ -1138,9 +1138,9 @@ if (defined('WICKET_WP_THEME_V2')) {
       activeMembershipAlertTitle: <?php echo json_encode($active_membership_alert_title); ?>,
       activeMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
       <?php // Gate seat-based messaging on the explicit admin toggle only. The
-            // $seat_*_message_configured flags are derived from titles/bodies that always
-            // default to non-empty strings, so OR-ing them in turned this on for every form
-            // (including ones that never enabled it), trapping users in a buttonless modal. ?>
+                // $seat_*_message_configured flags are derived from titles/bodies that always
+                // default to non-empty strings, so OR-ing them in turned this on for every form
+                // (including ones that never enabled it), trapping users in a buttonless modal.?>
       activeMembershipSeatMessagingEnabled: <?php echo $active_membership_seat_messaging_enabled ? 'true' : 'false'; ?>,
       seatMessageHasAvailableSeats: <?php echo $seat_available_message_configured ? 'true' : 'false'; ?>,
       seatMessageHasNoSeats: <?php echo $seat_unavailable_message_configured ? 'true' : 'false'; ?>,
@@ -2255,7 +2255,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           // JSON-encoded: emits a quoted, safe JS literal inside this inline
           // script. An empty string means no active org connection, which
           // the route rejects as an invalid uuid.
-          data.fromUuid = <?php echo wp_json_encode((string) ( $orgss_active_org_id ?? '' )); ?>;
+          data.fromUuid = <?php echo wp_json_encode((string) ($orgss_active_org_id ?? '')); ?>;
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
@@ -2594,7 +2594,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         let data = {
           "action_name": actionType,
           "action_data": {
-            "uri": <?php echo wp_json_encode( (string) ( $_SERVER['REQUEST_URI'] ?? '' ) ); ?>,
+            "uri": <?php echo wp_json_encode((string) ($_SERVER['REQUEST_URI'] ?? '')); ?>,
             "org_uuid": this.selectedOrgUuid,
           },
         };
