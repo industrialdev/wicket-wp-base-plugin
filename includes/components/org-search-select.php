@@ -498,7 +498,9 @@ $available_org_types = wicket_get_resource_types('organizations');
             $button_2_new_tab,
             $action_suffix = ''
         ) {
-            $request_uri_clean = preg_replace('/[^A-Za-z0-9\-_]/', '', $_SERVER['REQUEST_URI'] ?? '');
+            // Legacy token: client listeners rebuild this name with only '/' stripped.
+            // esc_js on output closes the quote breakout without changing the name.
+            $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI'] ?? '');
 
             // Button 1
             if (
@@ -534,7 +536,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'atts'  => [
                             $button_1_is_close_only
                                 ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');showingActiveMembershipAlert = false;"'
-                                : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                                : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . esc_js($request_uri_clean) . '\', {});showingActiveMembershipAlert = false;"',
                         ],
                         'classes' => [
                             'component-org-search-select__active-membership-alert-button',
@@ -604,7 +606,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'type'     => 'button',
                         'atts'  => [
                             'style="margin-left:20px;"',
-                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . esc_js($request_uri_clean) . '\', {});showingActiveMembershipAlert = false;"',
                         ],
                         'classes' => [
                             'component-org-search-select__active-membership-alert-button',
@@ -1433,9 +1435,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       normalizeSearchMessage(message) {
         const safeMessage = message === null || typeof message === 'undefined' ? '' : String(message);
-        const parser = document.createElement('div');
-        parser.innerHTML = safeMessage;
-        return parser.textContent || parser.innerText || '';
+        // textarea parses innerHTML as text: entities decode without scripts or img running.
+        const decoder = document.createElement('textarea');
+        decoder.innerHTML = safeMessage;
+        return decoder.value;
       },
       getActiveMembershipBlockingMessage() {
         return this.activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>';
@@ -1999,15 +2002,17 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       async selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
-        if (this.isLoading) {
-          return;
-        }
         if (event) {
           event.preventDefault();
           event.stopPropagation();
           if (typeof event.stopImmediatePropagation === 'function') {
             event.stopImmediatePropagation();
           }
+        }
+        // Bounced events must still preventDefault above or the native
+        // submit falls through to the form.
+        if (this.isLoading) {
+          return;
         }
 
         wicketOrgssDebug.log('ORGSS: selectOrgAndCreateRelationship', {
@@ -2240,6 +2245,12 @@ if (defined('WICKET_WP_THEME_V2')) {
               if (!this.firstSearchSubmitted) {
                 this.firstSearchSubmitted = true;
               }
+            }
+          })
+          .catch(() => {
+            this.results = [];
+            if (showLoading) {
+              this.isLoading = false;
             }
           });
 
@@ -2634,6 +2645,9 @@ if (defined('WICKET_WP_THEME_V2')) {
             } else {
               // ...
             }
+          })
+          .catch(() => {
+            return {success: false};
           });
 
         return;
