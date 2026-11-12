@@ -623,7 +623,7 @@ class Rest
         if (!isset($params['orgUuid'])) {
             wp_send_json_error('Organization uuid not provided');
         }
-        if (!isset($params['personUuid'])) {
+        if (!isset($params['personUuid']) || !is_string($params['personUuid'])) {
             wp_send_json_error('Person uuid not provided');
         }
 
