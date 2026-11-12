@@ -2437,6 +2437,9 @@ if (defined('WICKET_WP_THEME_V2')) {
                 this.justCreatedNewOrg = true;
                 this.justCreatedOrgUuid = newOrgUuid;
 
+                // The create-org fetch is done; isLoading must be false or the
+                // re-entrancy guard in selectOrgAndCreateRelationship bounces this hand-off.
+                this.isLoading = false;
                 this.selectOrgAndCreateRelationship(newOrgUuid, event);
 
                 // Check a user-defined checkbox (if provided) so the form an respond to a new org
