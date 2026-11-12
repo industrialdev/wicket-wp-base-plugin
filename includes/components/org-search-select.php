@@ -498,7 +498,7 @@ $available_org_types = wicket_get_resource_types('organizations');
             $button_2_new_tab,
             $action_suffix = ''
         ) {
-            $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI']);
+            $request_uri_clean = preg_replace('/[^A-Za-z0-9\-_]/', '', $_SERVER['REQUEST_URI'] ?? '');
 
             // Button 1
             if (
@@ -1519,6 +1519,12 @@ if (defined('WICKET_WP_THEME_V2')) {
             if (!this.firstSearchSubmitted) {
               this.firstSearchSubmitted = true;
             }
+          })
+          .catch(() => {
+            this.results = [];
+            if (showLoading) {
+              this.isLoading = false;
+            }
           });
 
       },
@@ -2389,6 +2395,10 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
 
             }
+          })
+          .catch(() => {
+            this.isLoading = false;
+            this.showRemovalError(connectionId, '');
           });
 
       },
@@ -2396,6 +2406,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         this.isLoading = true;
 
         if (orgName.length <= 0 || orgType.length <= 0) {
+          this.isLoading = false;
           return false;
         }
 
@@ -2453,6 +2464,12 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
 
             }
+          })
+          .catch(() => {
+            this.isLoading = false;
+            this.setSearchMessage(sprintf(__(
+              'There was an error creating the %s, please try again.',
+              'wicket'), $orgTermSingularLower));
           });
 
       },
