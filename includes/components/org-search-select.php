@@ -2403,6 +2403,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 
       },
       async createOrganization(orgName, orgType, event = null) {
+        if (this.isLoading) {
+          return false;
+        }
         this.isLoading = true;
 
         if (orgName.length <= 0 || orgType.length <= 0) {
@@ -2437,9 +2440,7 @@ if (defined('WICKET_WP_THEME_V2')) {
                 this.displayDuplicateOrgWarning = true;
                 return;
               }
-              this.setSearchMessage(sprintf(__(
-                'There was an error creating the %s, please try again.',
-                'wicket'), $orgTermSingularLower));
+              this.setSearchMessage('<?php echo esc_js(sprintf(__('There was an error creating the %s, please try again.', 'wicket'), $orgTermSingularLower)); ?>');
             } else {
               if (data.success) {
                 let newOrgUuid = data.data.data.id;
@@ -2467,9 +2468,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           })
           .catch(() => {
             this.isLoading = false;
-            this.setSearchMessage(sprintf(__(
-              'There was an error creating the %s, please try again.',
-              'wicket'), $orgTermSingularLower));
+            this.setSearchMessage('<?php echo esc_js(sprintf(__('There was an error creating the %s, please try again.', 'wicket'), $orgTermSingularLower)); ?>');
           });
 
       },
