@@ -298,13 +298,15 @@ class Rest
             wp_send_json_error('Relationship identifier is not a valid uuid.');
         }
 
-        // The component connects the viewing person, or links the person's
-        // own org to a parent. Both shapes must resolve to the caller.
         if ($params['relationshipType'] === 'organization_parent') {
-            $this->assertCallerConnectedToOrg($fromUuid);
-        } else {
-            $this->assertCallerIsPerson($fromUuid);
+            // This shape belongs to the organization-parent route; here it
+            // built a people/<org-uuid> payload no caller could use.
+            wp_send_json_error('Use the organization-parent route for parent links.');
         }
+
+        // The component connects the viewing person; the shape must resolve
+        // to the caller.
+        $this->assertCallerIsPerson($fromUuid);
 
         $relationshipType = $params['relationshipType'];
         $userRoleInRelationship = $params['userRoleInRelationship'];
@@ -583,11 +585,9 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['orgUuid'])) {
-            wp_send_json_error('Organization uuid not provided');
-        }
+        $org_uuid = $this->assertOrgUuidParam($params);
 
-        $org_uuid = $params['orgUuid'];
+        $this->assertSelfServiceSession();
 
         update_user_meta(get_current_user_id(), 'wicket_roster_man_org_to_grant', $org_uuid);
 
@@ -598,11 +598,9 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['orgUuid'])) {
-            wp_send_json_error('Organization uuid not provided');
-        }
+        $org_uuid = $this->assertOrgUuidParam($params);
 
-        $org_uuid = $params['orgUuid'];
+        $this->assertSelfServiceSession();
 
         update_user_meta(get_current_user_id(), 'wicket_org_editor_org_to_grant', $org_uuid);
 
@@ -631,7 +629,7 @@ class Rest
 
         $this->assertSelfServiceSession();
 
-        $org_uuid = $params['orgUuid'];
+        $org_uuid = $this->assertOrgUuidParam($params);
         $person_uuid = $params['personUuid'];
 
         // The component only ever grants to the viewer selecting the org;
@@ -743,6 +741,25 @@ class Rest
                 wp_send_json_error('Not allowed.');
             }
         }
+    }
+
+    /**
+     * The flagged uuid decides which org a later order grants roles on, so
+     * only a well-formed uuid may reach user meta.
+     */
+    private function assertOrgUuidParam(array $params): string
+    {
+        if (!isset($params['orgUuid']) || !is_string($params['orgUuid'])) {
+            wp_send_json_error('Organization uuid not provided');
+        }
+
+        $org_uuid = sanitize_text_field($params['orgUuid']);
+
+        if (!wp_is_uuid($org_uuid)) {
+            wp_send_json_error('Organization identifier is not a valid uuid.');
+        }
+
+        return $org_uuid;
     }
 
     private function assertCallerIsPerson(string $personUuid): void

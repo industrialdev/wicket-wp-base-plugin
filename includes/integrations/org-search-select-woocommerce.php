@@ -54,7 +54,6 @@ function wicket_org_search_select_on_order_complete($order_id)
     // Only proceed if order contains a membership product.
     if ($order instanceof WC_Order) {
         $has_membership_like_item = false;
-        $has_org_membership_context = false;
 
         foreach ($order->get_items() as $item) {
             $product = $item->get_product();
@@ -88,15 +87,15 @@ function wicket_org_search_select_on_order_complete($order_id)
             return; // No qualifying items; skip role grants
         }
 
+        $order_org_uuids = [];
         foreach ($order->get_items() as $item) {
             $item_org_uuid = wc_get_order_item_meta($item->get_id(), '_org_uuid', true);
             if (!empty($item_org_uuid)) {
-                $has_org_membership_context = true;
-                break;
+                $order_org_uuids[] = (string) $item_org_uuid;
             }
         }
 
-        if (!$has_org_membership_context) {
+        if (empty($order_org_uuids)) {
             return; // No organization context; never grant org-scoped roles
         }
     }
@@ -109,22 +108,23 @@ function wicket_org_search_select_on_order_complete($order_id)
         return;
     }
 
-    // Assign Roster Manager role if needed
+    // The flagged org must be an org the customer actually bought a
+    // membership for; a mismatch is stored-meta escalation onto a foreign
+    // org. A mismatched flag stays for a later matching order.
     if (isset($org_uuid_for_roster_man_access) && !empty($org_uuid_for_roster_man_access)) {
-        // Assign roles
-        wicket_assign_role($order_user_mdp_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
+        if (in_array((string) $org_uuid_for_roster_man_access, $order_org_uuids, true)) {
+            wicket_assign_role($order_user_mdp_uuid, 'membership_manager', $org_uuid_for_roster_man_access);
 
-        // Clean up after ourselves now that we've actioned the meta's value
-        delete_user_meta($order_user_id, 'wicket_roster_man_org_to_grant');
+            delete_user_meta($order_user_id, 'wicket_roster_man_org_to_grant');
+        }
     }
 
-    // Assign Org Editor role if needed
     if (isset($org_uuid_for_org_editor_access) && !empty($org_uuid_for_org_editor_access)) {
-        // Assign role
-        wicket_assign_role($order_user_mdp_uuid, 'org_editor', $org_uuid_for_org_editor_access);
+        if (in_array((string) $org_uuid_for_org_editor_access, $order_org_uuids, true)) {
+            wicket_assign_role($order_user_mdp_uuid, 'org_editor', $org_uuid_for_org_editor_access);
 
-        // Clean up after ourselves now that we've actioned the meta's value
-        delete_user_meta($order_user_id, 'wicket_org_editor_org_to_grant'); // Delete new meta
+            delete_user_meta($order_user_id, 'wicket_org_editor_org_to_grant');
+        }
     }
 
     return true;
