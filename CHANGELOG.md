@@ -5,6 +5,25 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.0] - 2026-11-12
+
+### Fixed
+- **rest:** reject a non-string personUuid in grant-org-editor
+- **orgss:** restore legacy event token and close remaining fetch gaps
+- **orgss:** keep flagged org meta when the role grant fails
+- **orgss:** interpolate org-create error message and guard double-submit
+- **orgss:** reset overlay state on network failures and escape path token
+- **rest:** validate org uuids and bind flag grants to purchased orgs
+- **orgss:** clear isLoading before new-org connect hand-off
+- **rest:** harden org-connect flow per peer review
+- **rest:** address WWID-2908 review notes on parent-org flow
+- **rest:** close the client-uuid family of holes in legacy routes (WWID-2908)
+- **rest:** require connection ownership before terminate (WWID-2908)
+
+### Maintenance
+- **orgss:** apply php-cs-fixer to org-search-select
+
+
 ## [2.14.0] - 2026-11-10
 
 ### Added
