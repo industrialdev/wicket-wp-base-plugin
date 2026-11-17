@@ -129,12 +129,12 @@ class WicketSecret extends Text
             data-bwignore
             class="<?php echo $this->get_input_class_attribute(); ?>">
 
-          <?php if ($this->has_stored_value()) { ?>
-            <p class="description"><em><?php esc_html_e('Saved. Leave blank to keep the current value.', 'wicket'); ?></em></p>
-          <?php } ?>
-
           <?php if ($description) { ?>
             <p class="description"><?php echo wp_kses_post($description); ?></p>
+          <?php } ?>
+
+          <?php if ($this->has_stored_value()) { ?>
+            <p class="description"><em><?php esc_html_e('A value is saved and hidden for security. Enter a new value to replace it, or leave this blank to keep it.', 'wicket'); ?></em></p>
           <?php } ?>
 
           <?php if ($error) { ?>
