@@ -130,7 +130,7 @@ class WicketSecret extends Text
             class="<?php echo $this->get_input_class_attribute(); ?>">
 
           <?php if ($this->has_stored_value()) { ?>
-            <p class="description"><?php esc_html_e('Saved. Leave blank to keep the current value.', 'wicket'); ?></p>
+            <p class="description"><em><?php esc_html_e('Saved. Leave blank to keep the current value.', 'wicket'); ?></em></p>
           <?php } ?>
 
           <?php if ($description) { ?>
