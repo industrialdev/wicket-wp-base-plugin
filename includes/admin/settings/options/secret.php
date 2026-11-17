@@ -134,7 +134,7 @@ class WicketSecret extends Text
           <?php } ?>
 
           <?php if ($this->has_stored_value()) { ?>
-            <p class="description"><em><?php esc_html_e('A value is saved and hidden for security. Enter a new value to replace it, or leave this blank to keep it.', 'wicket'); ?></em></p>
+            <p class="description"><em><?php esc_html_e('A value is currently saved and hidden for security. Enter a new value to replace it, or leave this blank to keep it.', 'wicket'); ?></em></p>
           <?php } ?>
 
           <?php if ($error) { ?>
