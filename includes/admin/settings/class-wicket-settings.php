@@ -28,6 +28,7 @@ if (!class_exists('Wicket_Settings')) {
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-membership-table.php';
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-api-check.php';
             include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/wicket-plugin-check.php';
+            include_once WICKET_PLUGIN_DIR . 'includes/admin/settings/options/secret.php';
 
             // Add Settings page options
             add_action('admin_menu', [$this, 'register_wicket_settings']);
@@ -262,7 +263,7 @@ if (!class_exists('Wicket_Settings')) {
                     'input_class' => 'regular-text',
                 ],
             ]);
-            $section->add_option('text', [
+            $section->add_option('secret', [
                 'name' => 'wicket_admin_settings_google_captcha_secret_key',
                 'label' => __('Google Captcha Secret Key', 'wicket'),
                 'description' => __('The secret key used to dislay Google recaptcha. Obtain a key here <a href="https://www.google.com/recaptcha" target="_blank"> https://www.google.com/recaptcha</a>', 'wicket'),
@@ -311,7 +312,7 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('API Endpoint', 'wicket'),
                 'description' => __('The address of the api endpoint. Ex: https://[client]-api.wicketcloud.com', 'wicket'),
             ]);
-            $section->add_option('text', [
+            $section->add_option('secret', [
                 'name' => 'wicket_admin_settings_prod_secret_key',
                 'label' => __('JWT Secret Key', 'wicket'),
                 'description' => __('Secret key from Wicket', 'wicket'),
@@ -341,7 +342,7 @@ if (!class_exists('Wicket_Settings')) {
                 'label' => __('API Endpoint', 'wicket'),
                 'description' => __('The address of the api endpoint. Ex: https://[client]-api.wicketcloud.com', 'wicket'),
             ]);
-            $section->add_option('text', [
+            $section->add_option('secret', [
                 'name' => 'wicket_admin_settings_stage_secret_key',
                 'label' => __('JWT Secret Key', 'wicket'),
                 'description' => __('Secret key from Wicket', 'wicket'),

@@ -47,7 +47,7 @@ if (!class_exists('Wicket_Admin')) {
             if ($screen->id == 'toplevel_page_wicket-settings') {
                 // Enqueue Wicket Admin JS CSS
                 wp_enqueue_script('wicket_admin_js', WICKET_URL . 'assets/js/wicket_admin.js', ['jquery'], '1.0', false);
-                wp_enqueue_style('wicket_admin_css', WICKET_URL . 'assets/css/wicket_admin.css', [], '1.0');
+                wp_enqueue_style('wicket_admin_css', WICKET_URL . 'assets/css/wicket_admin.css', [], (string) filemtime(WICKET_PLUGIN_DIR . 'assets/css/wicket_admin.css'));
 
                 // Enqueue Select2 JS CSS
                 wp_enqueue_style('select2', WICKET_URL . 'assets/css/select2.css', [], '1.0');
