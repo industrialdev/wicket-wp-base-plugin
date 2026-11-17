@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.1] - 2026-11-17
+
+### Fixed
+- **settings:** reword secret note to say a value is currently saved
+- **settings:** clarify secret note and bust admin CSS cache
+- **settings:** match secret field width and italicize saved note
+- **settings:** stop rendering Wicket secrets in admin settings
+
+
 ## [2.15.0] - 2026-11-12
 
 ### Fixed
