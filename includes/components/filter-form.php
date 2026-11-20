@@ -327,8 +327,8 @@ if (!empty($pre_filter_categories)) {
                 <div id="date-dropdown" x-show="open">
                     <div class="mt-3">
                         <?php
-                        $start_date = $_GET['start_date'] ?? '';
-            $end_date = $_GET['end_date'] ?? '';
+                        $start_date = sanitize_text_field(wp_unslash($_GET['start_date'] ?? ''));
+            $end_date = sanitize_text_field(wp_unslash($_GET['end_date'] ?? ''));
             ?>
                         <div class="group relative mb-3">
                             <label for="start_date"
@@ -337,7 +337,7 @@ if (!empty($pre_filter_categories)) {
                             </label>
                             <input id="start_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
-                                type="date" name="start_date" value="<?php echo $start_date; ?>">
+                                type="date" name="start_date" value="<?php echo esc_attr($start_date); ?>">
                         </div>
                         <div class="group relative">
                             <label for="end_date"
@@ -346,7 +346,7 @@ if (!empty($pre_filter_categories)) {
                             </label>
                             <input id="end_date"
                                 class="<?php echo defined('WICKET_WP_THEME_V2') ? 'component-filter-form__date-input' : 'w-full italic pl-16 text-light-040 group-[.has-value]:text-dark-100' ?>"
-                                type="date" name="end_date" value="<?php echo $end_date; ?>">
+                                type="date" name="end_date" value="<?php echo esc_attr($end_date); ?>">
                         </div>
                     </div>
                 </div>
