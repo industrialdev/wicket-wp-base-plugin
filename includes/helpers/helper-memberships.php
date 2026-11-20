@@ -976,7 +976,7 @@ function wicket_delete_organization_membership($membership_uuid)
 {
     $client = wicket_api_client();
     try {
-        $response = $client->delete("organization_memberships/$membership_uuid?force_detroy=true");
+        $response = $client->delete("organization_memberships/$membership_uuid?force_destroy=true");
     } catch (Exception $e) {
         $response = new WP_Error('wicket_api_error', $e->getMessage());
     }
