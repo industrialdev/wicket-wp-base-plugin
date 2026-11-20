@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.2] - 2026-11-20
+
+### Fixed
+- **components:** escape reflected query values in search and filter forms
+
+
 ## [2.15.1] - 2026-11-17
 
 ### Fixed
