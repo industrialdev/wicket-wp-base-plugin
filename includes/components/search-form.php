@@ -29,9 +29,9 @@ $button_variant = apply_filters('wicket_search_form_button_variant', 'primary');
 		        'text-lg',
 		    ],
 		]); ?>
-		<input type="search" id="<?php echo $url_param; ?>" name="<?php echo $url_param; ?>"
-			value="<?php echo $_GET[$url_param] ?? ''; ?>"
-			placeholder="<?php echo $placeholder; ?>" class="!pl-10 w-full h-full" />
+		<input type="search" id="<?php echo esc_attr($url_param); ?>" name="<?php echo esc_attr($url_param); ?>"
+			value="<?php echo esc_attr(sanitize_text_field(wp_unslash($_GET[$url_param] ?? ''))); ?>"
+			placeholder="<?php echo esc_attr($placeholder); ?>" class="!pl-10 w-full h-full" />
 	</div>
 
 	<?php
