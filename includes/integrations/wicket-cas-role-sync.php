@@ -12,9 +12,19 @@ function custom_action_before_auth_user_wordpress($cas_user_data)
 }
 add_action('wp_cassify_before_auth_user_wordpress', 'custom_action_before_auth_user_wordpress', 1, 1);
 
-/**------------------------------------------------------------------
- * Perform operations when the user is logging in to Wordpress
- ------------------------------------------------------------------*/
+/**
+ * Sync the WordPress roles and profile of the user logging in through CAS.
+ *
+ * Replaces the user's roles with the MDP security roles, active membership tiers,
+ * and allowed tags, per the role sync settings, then copies the name and the MDP
+ * login email. The email changes only when the MDP login email is not empty.
+ *
+ * @return void
+ *
+ * @global WP_Roles $wp_roles
+ *
+ * @see atlas://quirks/role-sync-blanks-email-without-mdp-login.md
+ */
 function sync_wicket_data()
 {
     // if they're logged in via CAS...
@@ -101,7 +111,11 @@ function sync_wicket_data()
         $user->nickname = $person->full_name;
         $user->display_name = $person->full_name;
         $user->first_name = $person->given_name;
-        $user->user_email = $person->user['email'];
+        // $person->user is the MDP login account; a person without one has no login
+        // email. Never write an empty email over the WordPress one.
+        if (!empty($person->user['email'])) {
+            $user->user_email = $person->user['email'];
+        }
         $user->last_name = $person->family_name;
         wp_update_user($user);
     }
@@ -156,7 +170,8 @@ add_action('wicket_membership_created_mdp', 'sync_wicket_data_on_membership_crea
  * roles with the security roles, active membership tiers, and allowed tags, per
  * the role sync settings. A failed fetch leaves the roles unchanged. Every lookup
  * uses $person_uuid, never the current user, so it is safe in cron and Action
- * Scheduler.
+ * Scheduler. The email changes only when the person has an MDP login account with
+ * an email; a person without one keeps their WordPress email.
  *
  * @param string $person_uuid MDP person UUID, which is also the WordPress user_login.
  *
@@ -166,6 +181,7 @@ add_action('wicket_membership_created_mdp', 'sync_wicket_data_on_membership_crea
  *
  * @see wicket_get_person_active_memberships()
  * @see atlas://plans/feature-automatewoo-synced-role-rule.md
+ * @see atlas://quirks/role-sync-blanks-email-without-mdp-login.md
  */
 function sync_wicket_data_for_person($person_uuid)
 {
@@ -284,7 +300,11 @@ function sync_wicket_data_for_person($person_uuid)
     $user->nickname = $person->full_name;
     $user->display_name = $person->full_name;
     $user->first_name = $person->given_name;
-    $user->user_email = $person->user['email'];
+    // $person->user is the MDP login account. Callers sync people who never logged in
+    // through CAS and may have no login account, so never write an empty email.
+    if (!empty($person->user['email'])) {
+        $user->user_email = $person->user['email'];
+    }
     $user->last_name = $person->family_name;
     wp_update_user($user);
 
