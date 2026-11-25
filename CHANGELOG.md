@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.3] - 2026-11-25
+
+### Fixed
+- send force_destroy when deleting an organization membership
+
+### Maintenance
+- sync PR template stub with agent-first spec
+
+
 ## [2.15.2] - 2026-11-20
 
 ### Fixed
