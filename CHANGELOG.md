@@ -5,6 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.4] - 2026-11-25
+
+### Fixed
+- **roles:** keep the WordPress email when the person has no MDP login (WWID-3114)
+
+
 ## [2.15.3] - 2026-11-25
 
 ### Fixed
