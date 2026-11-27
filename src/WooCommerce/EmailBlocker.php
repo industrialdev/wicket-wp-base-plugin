@@ -1063,9 +1063,11 @@ class EmailBlocker
      * 2. The order carries an unexpired admin-update marker for the same target
      *    status as the workflow's trigger: the status change came from an admin
      *    update while the blocker setting was active, and AutomateWoo validates
-     *    asynchronously (see mark_admin_updated_order_for_automatewoo()).
+     *    asynchronously (see mark_admin_updated_order_for_automatewoo()). The
+     *    marker vetoes email-sending workflows only (WWID-2627).
      * 3. The blocker setting is enabled and validation happens synchronously
-     *    inside the admin order action itself (non-deferred triggers).
+     *    inside the admin order action itself (non-deferred triggers). Same
+     *    scoping as condition 2: email-sending workflows only (WWID-2627).
      *
      * Manual workflows are exempt from conditions 2 and 3. An admin pressing
      * Run is a deliberate send, the workflow-path equivalent of the explicit
@@ -1112,15 +1114,30 @@ class EmailBlocker
         }
 
         if ($this->is_enabled() && $this->admin_update_marker_blocks($order, $workflow)) {
-            $this->log_automatewoo_decision('block', 'admin_update_async', $workflow, $order);
+            if ($this->workflow_sends_email($workflow)) {
+                $this->log_automatewoo_decision('block', 'admin_update_async', $workflow, $order);
 
-            return false;
+                return false;
+            }
+
+            // WWID-2627: the marker suppresses customer-email side effects of
+            // an admin update. A workflow that cannot send email (for example
+            // change_order_status auto-completion) must still run, or every
+            // staff-created order stays stuck in Processing.
+            $this->log_automatewoo_decision('allow', 'admin_update_marker_ignored_non_email', $workflow, $order);
         }
 
         if ($this->is_enabled() && $this->is_admin_order_context($order)) {
-            $this->log_automatewoo_decision('block', 'admin_update', $workflow, $order);
+            if ($this->workflow_sends_email($workflow)) {
+                $this->log_automatewoo_decision('block', 'admin_update', $workflow, $order);
 
-            return false;
+                return false;
+            }
+
+            // WWID-2627: same scoping as the marker veto. The sync
+            // admin-context veto suppresses customer-email side effects of
+            // editing an order; a status-only workflow must still run.
+            $this->log_automatewoo_decision('allow', 'admin_update_ignored_non_email', $workflow, $order);
         }
 
         $this->log_automatewoo_decision($valid ? 'allow' : 'invalid', 'not_blocked', $workflow, $order, false);
@@ -1141,6 +1158,46 @@ class EmailBlocker
     private function is_manual_automatewoo_workflow($workflow): bool
     {
         return method_exists($workflow, 'get_type') && 'manual' === $workflow->get_type();
+    }
+
+    /**
+     * Whether any of the workflow's actions sends email.
+     *
+     * The admin-update marker exists to suppress customer-email side effects
+     * of an admin order update (WWID-2627). It must not veto status-only
+     * workflows such as change_order_status auto-completion.
+     *
+     * Detection uses the real action objects, so renamed or subclassed
+     * AutomateWoo email actions stay covered by the shared abstract.
+     * Third-party email actions outside that hierarchy can force the veto
+     * through the wicket_woo_email_blocker_workflow_sends_email filter.
+     *
+     * @param mixed $workflow AutomateWoo\Workflow instance.
+     * @return bool
+     */
+    private function workflow_sends_email($workflow): bool
+    {
+        if (!is_object($workflow) || !method_exists($workflow, 'get_actions')) {
+            return false;
+        }
+
+        try {
+            $sends = false;
+
+            foreach ((array) $workflow->get_actions() as $action) {
+                if ($action instanceof \AutomateWoo\Action_Send_Email_Abstract) {
+                    $sends = true;
+                    break;
+                }
+            }
+
+            return (bool) apply_filters('wicket_woo_email_blocker_workflow_sends_email', $sends, $workflow);
+        } catch (\Throwable $e) {
+            // Fail open like the sibling data_layer() guard: a broken
+            // third-party get_actions() override or filter callback must not
+            // abort the whole Action Scheduler validation batch.
+            return false;
+        }
     }
 
     /**

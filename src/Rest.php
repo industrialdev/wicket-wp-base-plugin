@@ -171,17 +171,34 @@ class Rest
             wp_send_json_error('Connection ID not provided');
         }
 
+        $this->assertSelfServiceSession();
+
         $connectionId = $params['connectionId'];
         $removeRelationship = $params['removeRelationship'] ?? false;
         $limitToRelationshipType = $params['relationshipType'] ?? false;
 
+        if (!wp_is_uuid($connectionId)) {
+            wp_send_json_error('Connection not found.');
+        }
+        $current_connection_info = wicket_get_connection_by_id($connectionId);
+
+        if (empty($current_connection_info)) {
+            wp_send_json_error('Connection not found.');
+        }
+
+        $currentPersonUuid = wicket_current_person_uuid();
+
+        // The identical not-found wording keeps foreign callers from
+        // distinguishing a real connection from a guessed id.
+        if (
+            $currentPersonUuid === null
+            || $currentPersonUuid === ''
+            || $this->connection_person_uuid($current_connection_info) !== $currentPersonUuid
+        ) {
+            wp_send_json_error('Connection not found.');
+        }
+
         if ($limitToRelationshipType) {
-            $current_connection_info = wicket_get_connection_by_id($connectionId);
-
-            if (empty($current_connection_info)) {
-                wp_send_json_error('Connection not found. During relationship type limiting.');
-            }
-
             $attributes = $current_connection_info['data']['attributes'];
             $relationshipType = $attributes['type'];
 
@@ -204,6 +221,33 @@ class Rest
         }
 
         wp_send_json_error('Something wrong setting the end date of the connection.');
+    }
+
+    /**
+     * Person-side uuid of a fetched connection row. The API has spelled the
+     * person relationship both as `person` and as `from`/`to` over time, so
+     * both shapes are checked; empty string when neither resolves.
+     */
+    private function connection_person_uuid(array $connection): string
+    {
+        $rels = $connection['data']['relationships'] ?? [];
+
+        $direct = $rels['person']['data']['id'] ?? null;
+        if (is_string($direct) && $direct !== '') {
+            return $direct;
+        }
+
+        foreach (['from', 'to'] as $side) {
+            $node = is_array($rels[$side]['data'] ?? null) ? $rels[$side]['data'] : [];
+            $type = is_string($node['type'] ?? null) ? strtolower($node['type']) : '';
+            $id = $node['id'] ?? null;
+
+            if (in_array($type, ['people', 'person'], true) && is_string($id) && $id !== '') {
+                return $id;
+            }
+        }
+
+        return '';
     }
 
     public function create_or_update_relationship(\WP_REST_Request $request)
@@ -245,8 +289,25 @@ class Rest
             wp_send_json_error('userRoleInRelationship not provided');
         }
 
+        $this->assertSelfServiceSession();
+
         $fromUuid = $params['fromUuid'];
         $toUuid = $params['toUuid'];
+
+        if (!wp_is_uuid($fromUuid) || !wp_is_uuid($toUuid)) {
+            wp_send_json_error('Relationship identifier is not a valid uuid.');
+        }
+
+        if ($params['relationshipType'] === 'organization_parent') {
+            // This shape belongs to the organization-parent route; here it
+            // built a people/<org-uuid> payload no caller could use.
+            wp_send_json_error('Use the organization-parent route for parent links.');
+        }
+
+        // The component connects the viewing person; the shape must resolve
+        // to the caller.
+        $this->assertCallerIsPerson($fromUuid);
+
         $relationshipType = $params['relationshipType'];
         $userRoleInRelationship = $params['userRoleInRelationship'];
         $description = $params['description'] ?? null;
@@ -468,9 +529,23 @@ class Rest
             wp_send_json_error('Organization type not provided');
         }
 
-        $org_name = $params['orgName'];
-        $org_type = $params['orgType'];
+        $this->assertSelfServiceSession();
+
+        if ($this->rateLimited('create_org', 10, HOUR_IN_SECONDS)) {
+            wp_send_json_error('Too many organizations created recently. Please try again later.');
+        }
+
+        $org_name = trim(sanitize_text_field((string) $params['orgName']));
+        $org_type = trim(sanitize_key((string) $params['orgType']));
         $no_duplicate = $params['noDuplicate'] ?? false;
+
+        if ($org_name === '' || mb_strlen($org_name) > 200) {
+            wp_send_json_error('Organization name is empty or too long.');
+        }
+
+        if ($org_type === '' || strlen($org_type) > 64) {
+            wp_send_json_error('Organization type is empty or too long.');
+        }
 
         if ($no_duplicate) {
             $org_name_lowercase = trim(strtolower($org_name));
@@ -510,11 +585,9 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['orgUuid'])) {
-            wp_send_json_error('Organization uuid not provided');
-        }
+        $org_uuid = $this->assertOrgUuidParam($params);
 
-        $org_uuid = $params['orgUuid'];
+        $this->assertSelfServiceSession();
 
         update_user_meta(get_current_user_id(), 'wicket_roster_man_org_to_grant', $org_uuid);
 
@@ -525,11 +598,9 @@ class Rest
     {
         $params = $request->get_json_params();
 
-        if (!isset($params['orgUuid'])) {
-            wp_send_json_error('Organization uuid not provided');
-        }
+        $org_uuid = $this->assertOrgUuidParam($params);
 
-        $org_uuid = $params['orgUuid'];
+        $this->assertSelfServiceSession();
 
         update_user_meta(get_current_user_id(), 'wicket_org_editor_org_to_grant', $org_uuid);
 
@@ -552,12 +623,18 @@ class Rest
         if (!isset($params['orgUuid'])) {
             wp_send_json_error('Organization uuid not provided');
         }
-        if (!isset($params['personUuid'])) {
+        if (!isset($params['personUuid']) || !is_string($params['personUuid'])) {
             wp_send_json_error('Person uuid not provided');
         }
 
-        $org_uuid = $params['orgUuid'];
+        $this->assertSelfServiceSession();
+
+        $org_uuid = $this->assertOrgUuidParam($params);
         $person_uuid = $params['personUuid'];
+
+        // The component only ever grants to the viewer selecting the org;
+        // anything else is another member (or a stranger) escalating.
+        $this->assertCallerIsPerson($person_uuid);
 
         $result = wicket_assign_role($person_uuid, 'org_editor', $org_uuid);
 
@@ -579,8 +656,19 @@ class Rest
             wp_send_json_error('toUuid not provided');
         }
 
+        $this->assertSelfServiceSession();
+
         $fromUuid = $params['fromUuid'];
         $toUuid = $params['toUuid'];
+
+        if (!wp_is_uuid($fromUuid) || !wp_is_uuid($toUuid)) {
+            wp_send_json_error('Organization identifier is not a valid uuid.');
+        }
+
+        // JSON:API makes toUuid a CHILD of fromUuid here, so this guard
+        // bounds only the parent side; authority over the picked org is a
+        // product call (follow-up), leaving this route not fully closed.
+        $this->assertCallerConnectedToOrg($fromUuid);
 
         try {
             $client = wicket_api_client();
@@ -620,9 +708,108 @@ class Rest
         $action_name = $params['action_name'] ?? 'generic';
         $action_data = $params['action_data'] ?? [];
 
+        $this->assertSelfServiceSession();
+
+        if (
+            !is_string($action_name)
+            || preg_match('/^[A-Za-z0-9_\-]{1,64}$/', $action_name) !== 1
+            || !has_action('wicket_component_' . $action_name)
+        ) {
+            wp_send_json_error('Action not available.');
+        }
+
         do_action('wicket_component_' . $action_name, $action_data);
 
         wp_send_json_success();
+    }
+
+    /**
+     * Members self-service these routes, so a session acting as another
+     * member must never pass: user switching and guest-payment sessions
+     * both authenticate as the target member while meaning someone else.
+     */
+    private function assertSelfServiceSession(): void
+    {
+        if (class_exists('user_switching') && method_exists(\user_switching::class, 'get_old_user')) {
+            if (\user_switching::get_old_user()) {
+                wp_send_json_error('Not allowed.');
+            }
+        }
+
+        if (class_exists(\Wicket\GuestPayment\WicketGuestPaymentCore::class)) {
+            if ((new \Wicket\GuestPayment\WicketGuestPaymentCore())->is_guest_payment_session()) {
+                wp_send_json_error('Not allowed.');
+            }
+        }
+    }
+
+    /**
+     * The flagged uuid decides which org a later order grants roles on, so
+     * only a well-formed uuid may reach user meta.
+     */
+    private function assertOrgUuidParam(array $params): string
+    {
+        if (!isset($params['orgUuid']) || !is_string($params['orgUuid'])) {
+            wp_send_json_error('Organization uuid not provided');
+        }
+
+        $org_uuid = sanitize_text_field($params['orgUuid']);
+
+        if (!wp_is_uuid($org_uuid)) {
+            wp_send_json_error('Organization identifier is not a valid uuid.');
+        }
+
+        return $org_uuid;
+    }
+
+    private function assertCallerIsPerson(string $personUuid): void
+    {
+        $current = wicket_current_person_uuid();
+
+        if ($current === null || $current === '' || $personUuid !== $current) {
+            wp_send_json_error('Not allowed.');
+        }
+    }
+
+    private function assertCallerConnectedToOrg(string $orgUuid): void
+    {
+        $current = wicket_current_person_uuid();
+
+        if ($current === null || $current === '') {
+            wp_send_json_error('Not allowed.');
+        }
+
+        $connections = wicket_get_active_person_org_connections($current, $orgUuid);
+
+        if (is_wp_error($connections) || empty($connections)) {
+            wp_send_json_error('Not allowed.');
+        }
+    }
+
+    /**
+     * Fixed-window per-user throttle over transients. Returns true when the
+     * caller has spent this window's budget.
+     */
+    private function rateLimited(string $bucket, int $max, int $windowSeconds): bool
+    {
+        $userId = get_current_user_id();
+        $windowId = (string) intdiv(time(), max($windowSeconds, 1));
+        $key = 'orgss_rl_' . $bucket . '_' . $userId . '_' . $windowId;
+        $count = get_transient($key);
+
+        if ($count === false) {
+            set_transient($key, 1, $windowSeconds);
+
+            return false;
+        }
+
+        if ((int) $count >= $max) {
+            return true;
+        }
+
+        set_transient($key, (int) $count + 1, $windowSeconds);
+
+        return false;
     }
 
     public function orgss_seat_summary(\WP_REST_Request $request)

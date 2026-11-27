@@ -11,7 +11,8 @@ body.wicket-admin-settings form h2:not(:first-of-type) {
 }
 
 body.wicket-admin-settings select,
-body.wicket-admin-settings input[type='text'] {
+body.wicket-admin-settings input[type='text'],
+body.wicket-admin-settings input[type='password'] {
 	min-width: 25em;
 }
 

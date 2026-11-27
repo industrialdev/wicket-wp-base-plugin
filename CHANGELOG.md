@@ -5,6 +5,70 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 <!-- new releases inserted below this line -->
 
+## [2.15.4] - 2026-11-25
+
+### Fixed
+- **roles:** keep the WordPress email when the person has no MDP login (WWID-3114)
+
+
+## [2.15.3] - 2026-11-25
+
+### Fixed
+- send force_destroy when deleting an organization membership
+
+### Maintenance
+- sync PR template stub with agent-first spec
+
+
+## [2.15.2] - 2026-11-20
+
+### Fixed
+- **components:** escape reflected query values in search and filter forms
+
+
+## [2.15.1] - 2026-11-17
+
+### Fixed
+- **settings:** reword secret note to say a value is currently saved
+- **settings:** clarify secret note and bust admin CSS cache
+- **settings:** match secret field width and italicize saved note
+- **settings:** stop rendering Wicket secrets in admin settings
+
+
+## [2.15.0] - 2026-11-12
+
+### Fixed
+- **rest:** reject a non-string personUuid in grant-org-editor
+- **orgss:** restore legacy event token and close remaining fetch gaps
+- **orgss:** keep flagged org meta when the role grant fails
+- **orgss:** interpolate org-create error message and guard double-submit
+- **orgss:** reset overlay state on network failures and escape path token
+- **rest:** validate org uuids and bind flag grants to purchased orgs
+- **orgss:** clear isLoading before new-org connect hand-off
+- **rest:** harden org-connect flow per peer review
+- **rest:** address WWID-2908 review notes on parent-org flow
+- **rest:** close the client-uuid family of holes in legacy routes (WWID-2908)
+- **rest:** require connection ownership before terminate (WWID-2908)
+
+### Maintenance
+- **orgss:** apply php-cs-fixer to org-search-select
+
+
+## [2.14.0] - 2026-11-10
+
+### Added
+- AutomateWoo synced role rule and per-person tier role sync (WWID-2821)
+
+### Fixed
+- change no roles until the MDP fetches succeed in sync_wicket_data_for_person (WWID-2821)
+
+
+## [2.13.1] - 2026-11-09
+
+### Fixed
+- **woo:** email-scope AW admin-update vetoes (WWID-2985)
+
+
 ## [2.13.0] - 2026-11-03
 
 ### Added

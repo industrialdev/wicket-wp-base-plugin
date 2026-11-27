@@ -234,10 +234,19 @@ if ($searchMode == 'org') {
         'dedupe' => 'org_id',
     ]);
 
+    // The loop keeps the LAST active row: the list is newest-first, so
+    // this preserves the legacy oldest-org pick while never handing the
+    // route an ended connection.
+    $orgss_active_org_id = '';
+
     foreach (($current_connections['data'] ?? []) as $connection) {
         $connection_id = $connection['id'];
         if (isset($connection['attributes']['connection_type'])) {
             $org_id = $connection['relationships']['organization']['data']['id'];
+
+            if ($connection['attributes']['active'] ?? false) {
+                $orgss_active_org_id = $org_id;
+            }
 
             $org_info = wicket_get_organization_basic_info($org_id);
 
@@ -489,7 +498,9 @@ $available_org_types = wicket_get_resource_types('organizations');
             $button_2_new_tab,
             $action_suffix = ''
         ) {
-            $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI']);
+            // Legacy token: client listeners rebuild this name with only '/' stripped.
+            // esc_js on output closes the quote breakout without changing the name.
+            $request_uri_clean = str_replace('/', '', $_SERVER['REQUEST_URI'] ?? '');
 
             // Button 1
             if (
@@ -525,7 +536,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'atts'  => [
                             $button_1_is_close_only
                                 ? 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');showingActiveMembershipAlert = false;"'
-                                : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                                : 'x-on:click="doWpAction(\'orgss_active_membership_alert_button_1_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button1-' . esc_js($request_uri_clean) . '\', {});showingActiveMembershipAlert = false;"',
                         ],
                         'classes' => [
                             'component-org-search-select__active-membership-alert-button',
@@ -595,7 +606,7 @@ $available_org_types = wicket_get_resource_types('organizations');
                         'type'     => 'button',
                         'atts'  => [
                             'style="margin-left:20px;"',
-                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . $request_uri_clean . '\', {});showingActiveMembershipAlert = false;"',
+                            'x-on:click="doWpAction(\'orgss_active_membership_alert_button_2_clicked' . $action_suffix . '\');dispatchWindowEvent(\'orgss-existing-membership-modal-button2-' . esc_js($request_uri_clean) . '\', {});showingActiveMembershipAlert = false;"',
                         ],
                         'classes' => [
                             'component-org-search-select__active-membership-alert-button',
@@ -1061,7 +1072,7 @@ if (defined('WICKET_WP_THEME_V2')) {
   if ($selectedUuidHiddenFieldName !== '' && $selectedUuidHiddenFieldName !== 'input_' . $key) :
       $submittedUuid = isset($_POST[$selectedUuidHiddenFieldName]) ? wp_unslash($_POST[$selectedUuidHiddenFieldName]) : '';
       $submittedUuid = is_string($submittedUuid) ? $submittedUuid : '';
-  ?>
+      ?>
   <input type="hidden" name="<?php echo esc_attr($selectedUuidHiddenFieldName); ?>" value="<?php echo esc_attr($submittedUuid); ?>" />
   <?php endif; ?>
 </div>
@@ -1129,9 +1140,9 @@ if (defined('WICKET_WP_THEME_V2')) {
       activeMembershipAlertTitle: <?php echo json_encode($active_membership_alert_title); ?>,
       activeMembershipAlertBody: <?php echo json_encode($active_membership_alert_body); ?>,
       <?php // Gate seat-based messaging on the explicit admin toggle only. The
-            // $seat_*_message_configured flags are derived from titles/bodies that always
-            // default to non-empty strings, so OR-ing them in turned this on for every form
-            // (including ones that never enabled it), trapping users in a buttonless modal. ?>
+                // $seat_*_message_configured flags are derived from titles/bodies that always
+                // default to non-empty strings, so OR-ing them in turned this on for every form
+                // (including ones that never enabled it), trapping users in a buttonless modal.?>
       activeMembershipSeatMessagingEnabled: <?php echo $active_membership_seat_messaging_enabled ? 'true' : 'false'; ?>,
       seatMessageHasAvailableSeats: <?php echo $seat_available_message_configured ? 'true' : 'false'; ?>,
       seatMessageHasNoSeats: <?php echo $seat_unavailable_message_configured ? 'true' : 'false'; ?>,
@@ -1424,9 +1435,10 @@ if (defined('WICKET_WP_THEME_V2')) {
       },
       normalizeSearchMessage(message) {
         const safeMessage = message === null || typeof message === 'undefined' ? '' : String(message);
-        const parser = document.createElement('div');
-        parser.innerHTML = safeMessage;
-        return parser.textContent || parser.innerText || '';
+        // textarea parses innerHTML as text: entities decode without scripts or img running.
+        const decoder = document.createElement('textarea');
+        decoder.innerHTML = safeMessage;
+        return decoder.value;
       },
       getActiveMembershipBlockingMessage() {
         return this.activeMembershipAlertBody || '<?php echo esc_js(__('This organization has an active membership and cannot be selected.', 'wicket')); ?>';
@@ -1509,6 +1521,12 @@ if (defined('WICKET_WP_THEME_V2')) {
 
             if (!this.firstSearchSubmitted) {
               this.firstSearchSubmitted = true;
+            }
+          })
+          .catch(() => {
+            this.results = [];
+            if (showLoading) {
+              this.isLoading = false;
             }
           });
 
@@ -1982,7 +2000,7 @@ if (defined('WICKET_WP_THEME_V2')) {
           }
         });
       },
-      selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
+      async selectOrgAndCreateRelationship(orgUuid, event = null, existingActiveMembership = false,
         skipCreateRelationship = false, seatSummary = null) {
         if (event) {
           event.preventDefault();
@@ -1990,6 +2008,11 @@ if (defined('WICKET_WP_THEME_V2')) {
           if (typeof event.stopImmediatePropagation === 'function') {
             event.stopImmediatePropagation();
           }
+        }
+        // Bounced events must still preventDefault above or the native
+        // submit falls through to the form.
+        if (this.isLoading) {
+          return;
         }
 
         wicketOrgssDebug.log('ORGSS: selectOrgAndCreateRelationship', {
@@ -2093,9 +2116,23 @@ if (defined('WICKET_WP_THEME_V2')) {
         // If the site forces creation on select, ignore the skip flag passed by the caller
         const shouldCreate = this.forceCreateOnExistingSelect || !skipCreateRelationship;
         if (shouldCreate) {
-          this.createOrUpdateRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
+          const created = await this.createOrUpdateRelationship(this.currentPersonUuid, orgUuid, this.relationshipMode,
             this.relationshipTypeUponOrgCreation);
+
+          if (!created || !created.success) {
+            // A refusal also undoes the modal's pre-selection and restores
+            // the new-org search UI, so every path keeps a retry affordance.
+            this.clearSelectedOrgState();
+            this.justCreatedNewOrg = false;
+            this.justCreatedOrgUuid = '';
+            const serverMessage = (created && typeof created.data === 'string' && created.data !== '')
+              ? created.data
+              : '<?php echo esc_js(__('There was an error creating the connection. Please try again.', 'wicket')); ?>';
+            this.setSearchMessage(serverMessage);
+            return;
+          }
         }
+        this.showSearchMessage = false;
         this.selectOrg(orgUuid, event);
         this.showGfNextButton();
         this.$nextTick(() => {
@@ -2209,6 +2246,12 @@ if (defined('WICKET_WP_THEME_V2')) {
                 this.firstSearchSubmitted = true;
               }
             }
+          })
+          .catch(() => {
+            this.results = [];
+            if (showLoading) {
+              this.isLoading = false;
+            }
           });
 
       },
@@ -2227,8 +2270,9 @@ if (defined('WICKET_WP_THEME_V2')) {
 
         if (data.relationshipType === 'organization_parent') {
           // JSON-encoded: emits a quoted, safe JS literal inside this inline
-          // script. $org_id exists only for people with current connections.
-          data.fromUuid = <?php echo wp_json_encode( (string) ( $org_id ?? '' ) ); ?>;
+          // script. An empty string means no active org connection, which
+          // the route rejects as an invalid uuid.
+          data.fromUuid = <?php echo wp_json_encode((string) ($orgss_active_org_id ?? '')); ?>;
           endPointUrl = this.apiUrl + 'organization-parent';
         }
 
@@ -2270,7 +2314,7 @@ if (defined('WICKET_WP_THEME_V2')) {
                     alert(responseText);
                   <?php endif; ?>
 
-                  return;
+                  return data;
                 <?php endif; ?>
 
                 if (typeof data.data[0] === 'undefined') {
@@ -2284,6 +2328,12 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
             }
             return data;
+          })
+          .catch(() => {
+            this.isLoading = false;
+            // Resolve as a refusal so callers show the generic message
+            // instead of an unhandled rejection leaving the overlay stuck.
+            return {success: false, data: ''};
           });
 
         return results;
@@ -2356,13 +2406,21 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
 
             }
+          })
+          .catch(() => {
+            this.isLoading = false;
+            this.showRemovalError(connectionId, '');
           });
 
       },
       async createOrganization(orgName, orgType, event = null) {
+        if (this.isLoading) {
+          return false;
+        }
         this.isLoading = true;
 
         if (orgName.length <= 0 || orgType.length <= 0) {
+          this.isLoading = false;
           return false;
         }
 
@@ -2393,9 +2451,7 @@ if (defined('WICKET_WP_THEME_V2')) {
                 this.displayDuplicateOrgWarning = true;
                 return;
               }
-              this.setSearchMessage(sprintf(__(
-                'There was an error creating the %s, please try again.',
-                'wicket'), $orgTermSingularLower));
+              this.setSearchMessage('<?php echo esc_js(sprintf(__('There was an error creating the %s, please try again.', 'wicket'), $orgTermSingularLower)); ?>');
             } else {
               if (data.success) {
                 let newOrgUuid = data.data.data.id;
@@ -2404,6 +2460,9 @@ if (defined('WICKET_WP_THEME_V2')) {
                 this.justCreatedNewOrg = true;
                 this.justCreatedOrgUuid = newOrgUuid;
 
+                // The create-org fetch is done; isLoading must be false or the
+                // re-entrancy guard in selectOrgAndCreateRelationship bounces this hand-off.
+                this.isLoading = false;
                 this.selectOrgAndCreateRelationship(newOrgUuid, event);
 
                 // Check a user-defined checkbox (if provided) so the form an respond to a new org
@@ -2417,6 +2476,10 @@ if (defined('WICKET_WP_THEME_V2')) {
               }
 
             }
+          })
+          .catch(() => {
+            this.isLoading = false;
+            this.setSearchMessage('<?php echo esc_js(sprintf(__('There was an error creating the %s, please try again.', 'wicket'), $orgTermSingularLower)); ?>');
           });
 
       },
@@ -2558,7 +2621,7 @@ if (defined('WICKET_WP_THEME_V2')) {
         let data = {
           "action_name": actionType,
           "action_data": {
-            "uri": '<?php echo $_SERVER['REQUEST_URI']; ?>',
+            "uri": <?php echo wp_json_encode((string) ($_SERVER['REQUEST_URI'] ?? '')); ?>,
             "org_uuid": this.selectedOrgUuid,
           },
         };
@@ -2582,6 +2645,9 @@ if (defined('WICKET_WP_THEME_V2')) {
             } else {
               // ...
             }
+          })
+          .catch(() => {
+            return {success: false};
           });
 
         return;
